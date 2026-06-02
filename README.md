@@ -1,121 +1,72 @@
-# WoAccount 项目文档
+# WoAccount - AI智能记账App
 
-> AI智能记账App - 用户只需输入描述，AI自动分类
-
----
-
-## 📚 文档目录
-
-| 序号 | 文档 | 描述 | 状态 |
-|------|------|------|------|
-| 01 | [需求分析](01-requirements.md) | 项目背景、目标用户、功能清单、验收标准 | ✅ 完成 |
-| 02 | [市场调研](02-market-research.md) | 市场概况、竞品分析、差异化定位 | ✅ 完成 |
-| 03 | [技术选型](03-tech-stack.md) | 前后端、AI、数据库技术方案对比与选择 | ✅ 完成 |
-| 04 | [产品设计](04-product-design.md) | 信息架构、页面设计、交互流程、UI规范 | ✅ 完成 |
-| 05 | [架构设计](05-architecture.md) | 系统架构、目录结构、数据库设计、模块设计 | ✅ 完成 |
-| 06 | [开发计划](06-development-plan.md) | 开发阶段、任务分解、里程碑定义 | ✅ 完成 |
-| 07 | [测试策略](07-testing-strategy.md) | 测试金字塔、测试用例、AI准确率测试 | ✅ 完成 |
-| 08 | [部署发布](08-deployment.md) | CI/CD、应用商店发布、监控配置 | ✅ 完成 |
-| 09 | [迭代运营](09-iteration.md) | 版本规划、用户增长、商业化策略 | ✅ 完成 |
+> **架构策略**: 本地优先 (Local-First)，个人开发者自用场景
+>
+> **技术栈**: Flutter + SQLite (Drift) + LLM API (通义千问) + 本地规则引擎，无后端服务
 
 ---
 
-## 🚀 快速开始
+## 核心功能
 
-### 1. 了解项目
-
-- 阅读 [需求分析](01-requirements.md) 了解项目背景和目标
-- 阅读 [市场调研](02-market-research.md) 了解竞品和差异化
-
-### 2. 技术方案
-
-- 阅读 [技术选型](03-tech-stack.md) 了解技术栈选择
-- 阅读 [架构设计](05-architecture.md) 了解系统架构
-
-### 3. 开发指南
-
-- 阅读 [开发计划](06-development-plan.md) 了解开发阶段和任务
-- 阅读 [产品设计](04-product-design.md) 了解UI和交互设计
-- 阅读 [测试策略](07-testing-strategy.md) 了解测试方法
-
-### 4. 发布运营
-
-- 阅读 [部署发布](08-deployment.md) 了解发布流程
-- 阅读 [迭代运营](09-iteration.md) 了解运营策略
+- **智能记账**: 输入"午饭拉面25"，AI自动识别金额和分类
+- **AI对话助手**: 自然语言查询历史账单
+- **消费洞察**: AI主动分析消费规律和异常
+- **预算管理**: 设置月度预算，超支提醒
 
 ---
 
-## 📖 文档使用说明
+## 文档目录
 
-### 文档目的
+| 序号 | 文档 | 描述 |
+|------|------|------|
+| 01 | [需求分析](docs/project-workflow/01-requirements.md) | 项目背景、目标用户、功能清单、验收标准 |
+| 02 | [市场调研](docs/project-workflow/02-market-research.md) | 市场概况、竞品分析、差异化定位 |
+| 03 | [技术选型](docs/project-workflow/03-tech-stack.md) | 技术栈方案对比与选择 |
+| 04 | [产品设计](docs/project-workflow/04-product-design.md) | 信息架构、页面设计、交互流程、UI规范 |
+| 05 | [架构设计](docs/project-workflow/05-architecture.md) | 系统架构、目录结构、数据库设计、模块设计 |
+| 06 | [开发计划](docs/project-workflow/06-development-plan.md) | 开发阶段、任务分解、里程碑定义 |
+| 07 | [测试策略](docs/project-workflow/07-testing-strategy.md) | 测试金字塔、测试用例、AI准确率测试 |
+| 08 | [部署发布](docs/project-workflow/08-deployment.md) | CI/CD、构建流程 |
+| 09 | [迭代运营](docs/project-workflow/09-iteration.md) | 版本规划、迭代策略 |
+| -- | [项目工作流总览](docs/project-workflow/PROJECT_WORKFLOW.md) | 全流程概览 |
 
-每个文档都有明确的目的，在文档开头标注：
+---
 
-```markdown
-> **文档目的**: xxx
+## 技术栈
+
+| 层级 | 技术 | 版本 |
+|------|------|------|
+| 前端框架 | Flutter | 3.x |
+| 编程语言 | Dart | 3.x |
+| 状态管理 | Riverpod | 2.x |
+| 本地数据库 | SQLite (Drift) | 2.x |
+| AI服务 | LLM API (通义千问) + 本地规则引擎 | - |
+
+---
+
+## 项目结构
+
+```
+lib/
+├── main.dart
+├── app.dart
+├── core/              # 主题、常量、工具类、错误处理
+├── features/          # 功能模块 (Clean Architecture)
+│   ├── transaction/   # 记账
+│   ├── category/      # 分类管理
+│   ├── stats/         # 统计图表
+│   ├── ai/            # AI解析、规则引擎、对话
+│   ├── budget/        # 预算管理
+│   └── settings/      # 设置
+├── shared/            # 共享数据库、通用Widget
+└── config/            # 路由、依赖注入、环境配置
 ```
 
-### 文档结构
-
-每个文档都包含：
-
-1. **概述** - 简要说明文档内容
-2. **详细内容** - 分章节详细说明
-3. **图表说明** - 使用表格、流程图、代码示例
-4. **检查清单** - 可执行的验收标准
-
-### 文档更新
-
-- 文档应与代码同步更新
-- 重大变更需在文档中记录
-- 使用Git管理文档版本
-
 ---
 
-## 📝 文档规范
+## 外部资源
 
-### Markdown规范
-
-- 使用标准Markdown语法
-- 标题层级清晰 (H1 > H2 > H3)
-- 使用表格展示结构化数据
-- 使用代码块展示代码示例
-
-### 命名规范
-
-- 文件名使用数字前缀: `01-xxx.md`
-- 文件名使用小写和连字符: `01-requirements.md`
-- 目录名使用小写: `docs/`
-
-### 内容规范
-
-- 语言简洁明了
-- 使用列表和表格提高可读性
-- 添加图表说明复杂概念
-- 提供可执行的检查清单
-
----
-
-## 🔗 相关资源
-
-### 项目资源
-
-- [项目工作流](../PROJECT_WORKFLOW.md) - 总览文档
-- [源代码](../lib/) - Flutter项目代码
-- [测试代码](../test/) - 测试用例
-
-### 外部资源
-
-- [Flutter文档](https://flutter.dev/docs)
-- [Supabase文档](https://supabase.com/docs)
-- [通义千问API](https://help.aliyun.com/zh/dashscope/)
-
----
-
-## 📞 联系方式
-
-如有问题或建议，请通过以下方式联系：
-
-- 提交Issue
-- 发送邮件
-- 社区讨论
+- [Flutter 官方文档](https://flutter.dev/docs)
+- [通义千问 API](https://help.aliyun.com/zh/dashscope/)
+- [Riverpod 文档](https://riverpod.dev/)
+- [Drift 文档](https://drift.simonbinder.eu/)

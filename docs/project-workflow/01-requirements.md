@@ -34,8 +34,6 @@ WoAccount:
 | 状态管理   | Riverpod                       | 2.x  |
 | 本地数据库 | SQLite (Drift)                 | 2.x  |
 | AI服务     | LLM API (通义千问/GPT-4o-mini) | -    |
-| 后端服务   | Supabase                       | -    |
-| 数据库     | PostgreSQL                     | 15+  |
 
 ## 1.2 需求分类
 

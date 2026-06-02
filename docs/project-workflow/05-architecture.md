@@ -1338,9 +1338,6 @@ MigrationStrategy get migration => MigrationStrategy(
     await m.database.customStatement(
       'CREATE INDEX idx_transactions_category ON transactions(category_id)'
     );
-    await m.database.customStatement(
-      'CREATE INDEX idx_transactions_user_date ON transactions(user_id, transaction_date DESC)'
-    );
   },
 );
 ```

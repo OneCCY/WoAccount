@@ -113,64 +113,7 @@
 
 ### 9.4.3 数据收集
 
-```dart
-// lib/shared/services/training_data_service.dart
-
-/// 训练数据收集服务
-class TrainingDataService {
-  final AppDatabase _database;
-  
-  TrainingDataService(this._database);
-  
-  /// 记录用户修正
-  Future<void> recordUserCorrection({
-    required String inputText,
-    required int predictedCategoryId,
-    required int actualCategoryId,
-  }) async {
-    await _database.into(_database.aiTrainingData).insert(
-      AiTrainingDataCompanion.insert(
-        inputText: inputText,
-        predictedCategoryId: Value(predictedCategoryId),
-        actualCategoryId: Value(actualCategoryId),
-        wasCorrect: Value(predictedCategoryId == actualCategoryId),
-      ),
-    );
-  }
-  
-  /// 获取训练数据
-  Future<List<AiTrainingDataRecord>> getTrainingData({
-    int limit = 1000,
-  }) async {
-    return await (_database.select(_database.aiTrainingData)
-      ..limit(limit)
-      ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
-    ).get();
-  }
-  
-  /// 计算准确率
-  Future<double> calculateAccuracy({
-    DateTime? startDate,
-    DateTime? endDate,
-  }) async {
-    final query = _database.select(_database.aiTrainingData)
-      ..where((t) => t.wasCorrect.isNotNull());
-    
-    if (startDate != null) {
-      query.where((t) => t.createdAt.isBiggerOrEqualValue(startDate));
-    }
-    if (endDate != null) {
-      query.where((t) => t.createdAt.isSmallerOrEqualValue(endDate));
-    }
-    
-    final data = await query.get();
-    if (data.isEmpty) return 0;
-    
-    final correct = data.where((t) => t.wasCorrect == true).length;
-    return correct / data.length;
-  }
-}
-```
+通过本地 `ai_training_data` 表收集用户修正数据，用于评估 AI 准确率和优化规则引擎。具体实现见 [9.10.1 数据收集](#9101-数据收集)。
 
 ---
 

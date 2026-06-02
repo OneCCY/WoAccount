@@ -111,14 +111,6 @@ final appRouter = GoRouter(
     
     // 非Shell路由
     GoRoute(
-      path: '/login',
-      builder: (context, state) => const LoginPage(),
-    ),
-    GoRoute(
-      path: '/register',
-      builder: (context, state) => const RegisterPage(),
-    ),
-    GoRoute(
       path: '/budget-setting',
       builder: (context, state) => const BudgetSettingPage(),
     ),
