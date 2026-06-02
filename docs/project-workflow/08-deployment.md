@@ -1,35 +1,35 @@
 # 08 - 部署与发布文档 (Technical Specification)
 
-> **版本**: v2.0 | **更新日期**: 2025-01-15 | **状态**: 技术评审中
+> **版本**: v3.0 | **更新日期**: 2026-06-02 | **状态**: 已更新为本地优先方案
 
 ---
 
-## 8.1 CI/CD 流程
+## 8.1 构建流程
 
 ### 8.1.1 流程图
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                              CI/CD 流程                                       │
+│                              构建流程                                         │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  代码提交 ──▶ GitHub ──▶ GitHub Actions                                     │
 │                              │                                              │
-│                    ┌─────────┼─────────┬─────────┐                          │
-│                    ▼         ▼         ▼         ▼                          │
-│               ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐                  │
-│               │  Lint  │ │  Test  │ │ Build  │ │ Deploy │                  │
-│               │  检查  │ │  测试  │ │  构建  │ │  部署  │                  │
-│               └────┬───┘ └────┬───┘ └────┬───┘ └────┬───┘                  │
-│                    │         │         │         │                          │
-│                    ▼         ▼         ▼         ▼                          │
-│               ┌─────────────────────────────────────────┐                  │
-│               │           产物/部署                      │                  │
-│               │  ├─ Android APK/AAB                     │                  │
-│               │  ├─ iOS IPA                             │                  │
-│               │  ├─ Web                                 │                  │
-│               │  └─ Firebase App Distribution           │                  │
-│               └─────────────────────────────────────────┘                  │
+│                    ┌─────────┼─────────┐                                    │
+│                    ▼         ▼         ▼                                    │
+│               ┌────────┐ ┌────────┐ ┌────────┐                             │
+│               │  Lint  │ │  Test  │ │ Build  │                             │
+│               │  检查  │ │  测试  │ │  构建  │                             │
+│               └────┬───┘ └────┬───┘ └────┬───┘                             │
+│                    │         │         │                                    │
+│                    ▼         ▼         ▼                                    │
+│               ┌─────────────────────────────────────┐                      │
+│               │           产物                       │                      │
+│               │  ├─ Android APK (直接安装)           │                      │
+│               │  └─ iOS IPA (TestFlight/自签)        │                      │
+│               └─────────────────────────────────────┘                      │
+│                                                                             │
+│  当前阶段为个人自用，暂不提交应用商店                                         │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -39,7 +39,7 @@
 ```yaml
 # .github/workflows/ci.yml
 
-name: CI/CD Pipeline
+name: CI Pipeline
 
 on:
   push:
@@ -57,19 +57,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
-      
+
       - name: Install dependencies
         run: flutter pub get
-      
+
       - name: Analyze code
         run: flutter analyze --fatal-infos
-      
+
       - name: Check formatting
         run: dart format --set-exit-if-changed .
 
@@ -80,23 +80,18 @@ jobs:
     needs: lint
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
-      
+
       - name: Install dependencies
         run: flutter pub get
-      
+
       - name: Run tests
         run: flutter test --coverage
-      
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
-        with:
-          file: coverage/lcov.info
 
   # 构建Android
   build-android:
@@ -106,116 +101,30 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
-      
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
-      
+
       - name: Install dependencies
         run: flutter pub get
-      
+
       - name: Build APK
-        run: flutter build apk --release
-      
-      - name: Build AAB
-        run: flutter build appbundle --release
-      
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-release
-          path: |
-            build/app/outputs/flutter-apk/app-release.apk
-            build/app/outputs/bundle/release/app-release.aab
+        run: flutter build apk --release --dart-define=AI_API_KEY=${{ secrets.AI_API_KEY }}
 
-  # 构建iOS
-  build-ios:
-    name: Build iOS
-    runs-on: macos-latest
-    needs: test
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          cache: true
-      
-      - name: Install dependencies
-        run: flutter pub get
-      
-      - name: Build iOS
-        run: flutter build ios --release --no-codesign
-      
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ios-release
-          path: build/ios/iphoneos/Runner.app
-
-  # 构建Web
-  build-web:
-    name: Build Web
-    runs-on: ubuntu-latest
-    needs: test
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          cache: true
-      
-      - name: Install dependencies
-        run: flutter pub get
-      
-      - name: Build Web
-        run: flutter build web --release
-      
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: web-release
-          path: build/web
-
-  # 部署到Firebase App Distribution
-  deploy-firebase:
-    name: Deploy to Firebase
-    runs-on: ubuntu-latest
-    needs: [build-android, build-ios]
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Download Android artifact
-        uses: actions/download-artifact@v4
-        with:
           name: android-release
-          path: build/android
-      
-      - name: Setup Firebase CLI
-        run: npm install -g firebase-tools
-      
-      - name: Deploy to Firebase App Distribution
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-        run: |
-          firebase appdistribution:distribute build/android/app-release.apk \
-            --app ${{ secrets.FIREBASE_APP_ID }} \
-            --groups testers \
-            --release-notes "Latest build from main branch"
+          path: build/app/outputs/flutter-apk/app-release.apk
 ```
 
 ---
@@ -438,106 +347,37 @@ Download now and start smart expense tracking!
 
 ---
 
-## 8.5 监控与分析
+## 8.5 质量保障
 
-### 8.5.1 Firebase Crashlytics
+当前阶段无 Firebase 监控，通过以下方式保障质量：
+
+### 8.5.1 错误处理
 
 ```dart
 // lib/main.dart
 
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // 初始化Firebase
-  await Firebase.initializeApp();
-  
-  // 配置Crashlytics
-  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-  PlatformDispatcher.instance.onError = (error, stack) {
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-    return true;
+
+  // 全局错误捕获
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    // 本地日志记录
+    _logError(details.exception, details.stack);
   };
-  
+
   runApp(MyApp());
 }
 ```
 
-### 8.5.2 Firebase Analytics
+### 8.5.2 关键指标
 
-```dart
-// lib/shared/services/analytics_service.dart
-
-class AnalyticsService {
-  final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
-  
-  // 记账事件
-  Future<void> logTransaction({
-    required double amount,
-    required String category,
-    required AiSource source,
-  }) async {
-    await _analytics.logEvent(
-      name: 'add_transaction',
-      parameters: {
-        'amount': amount,
-        'category': category,
-        'source': source.toString(),
-      },
-    );
-  }
-  
-  // AI解析事件
-  Future<void> logAiParse({
-    required bool success,
-    required double confidence,
-    required int duration_ms,
-  }) async {
-    await _analytics.logEvent(
-      name: 'ai_parse',
-      parameters: {
-        'success': success,
-        'confidence': confidence,
-        'duration_ms': duration_ms,
-      },
-    );
-  }
-  
-  // 查询事件
-  Future<void> logQuery({
-    required String intent,
-    required bool success,
-    required int resultCount,
-  }) async {
-    await _analytics.logEvent(
-      name: 'ai_query',
-      parameters: {
-        'intent': intent,
-        'success': success,
-        'result_count': resultCount,
-      },
-    );
-  }
-  
-  // 页面访问
-  Future<void> logScreenView(String screenName) async {
-    await _analytics.logScreenView(screenName: screenName);
-  }
-}
-```
-
-### 8.5.3 关键指标
-
-| 指标 | 目标 | 监控工具 | 告警阈值 |
-|------|------|----------|----------|
-| 崩溃率 | < 1% | Crashlytics | > 2% |
-| ANR率 | < 0.5% | Google Play | > 1% |
-| 日活用户 | 持续增长 | Analytics | 下降20% |
-| 记账频率 | 日均1-3笔 | 自建统计 | < 0.5 |
-| AI准确率 | > 90% | 自建统计 | < 85% |
-| 用户留存 | 次日>40% | Analytics | < 30% |
+| 指标 | 目标 | 验证方式 |
+|------|------|----------|
+| 崩溃率 | < 1% | 真机手动测试 |
+| AI准确率 | > 90% | 内置训练数据表统计 |
+| 记账响应时间 | < 2s | 性能测试 |
+| 启动时间 | < 2s | 性能测试 |
 
 ---
 

@@ -1,6 +1,22 @@
 # 03 - 技术选型文档 (Technical Specification)
 
-> **版本**: v2.0 | **更新日期**: 2025-01-15 | **状态**: 技术评审中
+> **版本**: v3.0 | **更新日期**: 2026-06-02 | **状态**: 已更新为本地优先方案
+
+---
+
+## 3.0 架构策略说明
+
+**当前阶段: 本地优先 (Local-First)**
+
+作为个人开发者、前期自用的场景，采用本地优先策略：
+
+- **数据存储**: 仅使用本地 SQLite (Drift)，无云端数据库
+- **认证系统**: 无用户认证，App 打开即用
+- **数据同步**: 无多设备同步，数据仅在本机
+- **监控分析**: 无 Firebase，通过日志和手动测试验证
+- **后端服务**: 无 Supabase/自建后端
+
+**未来扩展路径**: Clean Architecture 分层设计保留了 RemoteDataSource 接口位置，未来需要多设备同步时，只需实现 RemoteDataSource + SyncService，无需重构业务逻辑。
 
 ---
 
@@ -16,20 +32,10 @@
 │  │  ├── Framework: Flutter 3.x                              │   │
 │  │  ├── Language: Dart 3.x                                  │   │
 │  │  ├── State Management: Riverpod 2.x                     │   │
-│  │  ├── Navigation: go_router 12.x                         │   │
+│  │  ├── Navigation: go_router 13.x                         │   │
 │  │  ├── Local DB: Drift 2.x (SQLite)                       │   │
 │  │  ├── HTTP Client: Dio 5.x                               │   │
-│  │  └── Charts: fl_chart 0.65.x                            │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│                                                                 │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                    后端层 (BaaS)                          │   │
-│  │  ├── Platform: Supabase                                  │   │
-│  │  ├── Database: PostgreSQL 15+                            │   │
-│  │  ├── Auth: Supabase Auth                                 │   │
-│  │  ├── Storage: Supabase Storage                           │   │
-│  │  ├── Realtime: Supabase Realtime                         │   │
-│  │  └── Edge Functions: Supabase Edge Functions (Deno)      │   │
+│  │  └── Charts: fl_chart 0.66.x                            │   │
 │  └─────────────────────────────────────────────────────────┘   │
 │                                                                 │
 │  ┌─────────────────────────────────────────────────────────┐   │
@@ -45,7 +51,6 @@
 │  │                    工具层                                │   │
 │  │  ├── Version Control: Git + GitHub                       │   │
 │  │  ├── CI/CD: GitHub Actions                               │   │
-│  │  ├── Monitoring: Firebase Crashlytics + Analytics        │   │
 │  │  ├── Design: Figma                                       │   │
 │  │  └── IDE: VS Code / Android Studio                       │   │
 │  └─────────────────────────────────────────────────────────┘   │
@@ -92,7 +97,7 @@
 # pubspec.yaml
 
 name: wo_account
-description: AI智能记账App
+description: AI智能记账App - 本地优先
 version: 1.0.0+1
 
 environment:
@@ -102,57 +107,51 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
+
   # 状态管理
   flutter_riverpod: ^2.4.9
   riverpod_annotation: ^2.3.3
-  
+
   # 路由
   go_router: ^13.0.0
-  
+
   # 本地数据库
   drift: ^2.14.1
   sqlite3_flutter_libs: ^0.5.18
   path_provider: ^2.1.2
   path: ^1.8.3
-  
-  # 网络请求
+
+  # 网络请求 (调用LLM API)
   dio: ^5.4.0
-  
+
   # JSON序列化
   json_annotation: ^4.8.1
   freezed_annotation: ^2.4.1
-  
+
   # UI组件
   fl_chart: ^0.66.2
   flutter_slidable: ^3.0.1
-  cached_network_image: ^3.3.1
-  
+
   # 国际化
   intl: ^0.19.0
-  
+
   # 工具
   uuid: ^4.2.2
   shared_preferences: ^2.2.2
   collection: ^1.18.0
-  
-  # Firebase
-  firebase_core: ^2.24.2
-  firebase_crashlytics: ^3.5.7
-  firebase_analytics: ^10.8.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.1
-  
+
   # 代码生成
   drift_dev: ^2.14.1
   build_runner: ^2.4.8
   riverpod_generator: ^2.3.9
   json_serializable: ^6.7.1
   freezed: ^2.4.6
-  
+
   # 测试
   mockito: ^5.4.4
   integration_test:
@@ -283,7 +282,9 @@ LlmApiService llmApi(LlmApiRef ref) {
 | **性能** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ (网络) |
 | **离线** | ✅ | ✅ | ✅ | ❌ |
 
-**选择: SQLite (Drift) 本地 + Supabase (PostgreSQL) 远程**
+**选择: SQLite (Drift) 本地**
+
+> 当前阶段仅使用本地 SQLite。未来需要云同步时，可按需接入 Supabase。
 
 ### 3.4.2 Drift 数据库定义
 
@@ -695,208 +696,17 @@ class LlmApiServiceImpl implements LlmApiService {
 
 ---
 
-## 3.6 后端服务选型
+## 3.6 后端服务说明
 
-### 3.6.1 方案对比
+当前阶段**无后端服务**。所有数据存储在本地 SQLite，AI 功能通过 Dio 直接调用通义千问 API。
 
-| 维度 | Supabase | Firebase | 自建后端 |
-|------|----------|----------|----------|
-| **开源** | ✅ | ❌ | ✅ |
-| **数据库** | PostgreSQL | Firestore | 自选 |
-| **认证** | ✅ 内置 | ✅ 内置 | 需实现 |
-| **实时同步** | ✅ Realtime | ✅ | 需实现 |
-| **国内访问** | ✅ (自托管) | ❌ | ✅ |
-| **成本** | 免费额度大 | 按量付费 | 服务器成本 |
-| **学习曲线** | 中 | 低 | 高 |
-| **Vendor Lock-in** | 低 | 高 | 无 |
+**未来扩展方案**: 需要多设备同步时，可接入 Supabase (开源 BaaS)：
+- Supabase Auth: 用户认证
+- Supabase PostgreSQL: 云端数据存储
+- Supabase Realtime: 实时数据同步
+- Row Level Security: 多用户数据隔离
 
-**选择: Supabase**
-
-### 3.6.2 Supabase 集成
-
-```dart
-// lib/shared/services/supabase_service.dart
-
-import 'package:supabase_flutter/supabase_flutter.dart';
-
-class SupabaseService {
-  late final SupabaseClient _client;
-  
-  Future<void> initialize() async {
-    await Supabase.initialize(
-      url: 'https://your-project.supabase.co',
-      anonKey: 'your-anon-key',
-    );
-    _client = Supabase.instance.client;
-  }
-  
-  SupabaseClient get client => _client;
-  
-  /// 获取当前用户
-  User? get currentUser => _client.auth.currentUser;
-  
-  /// 监听认证状态
-  Stream<AuthState> get authStateChanges => _client.auth.onAuthStateChange;
-  
-  /// 邮箱登录
-  Future<AuthResponse> signInWithEmail(String email, String password) async {
-    return await _client.auth.signInWithPassword(
-      email: email,
-      password: password,
-    );
-  }
-  
-  /// 邮箱注册
-  Future<AuthResponse> signUpWithEmail(String email, String password) async {
-    return await _client.auth.signUp(
-      email: email,
-      password: password,
-    );
-  }
-  
-  /// 登出
-  Future<void> signOut() async {
-    await _client.auth.signOut();
-  }
-  
-  /// 同步交易到云端
-  Future<void> syncTransaction(Transaction transaction) async {
-    await _client.from('transactions').upsert({
-      'id': transaction.id,
-      'amount': transaction.amount,
-      'description': transaction.description,
-      'category_id': transaction.categoryId,
-      'transaction_date': transaction.transactionDate.toIso8601String(),
-      'created_at': transaction.createdAt.toIso8601String(),
-    });
-  }
-  
-  /// 监听交易变化
-  RealtimeChannel listenToTransactions(void Function(Transaction) onUpdate) {
-    return _client
-        .from('transactions')
-        .stream(primaryKey: ['id'])
-        .eq('user_id', currentUser!.id)
-        .listen((data) {
-          for (final item in data) {
-            onUpdate(Transaction.fromJson(item));
-          }
-        });
-  }
-}
-```
-
-### 3.6.3 数据库Schema (PostgreSQL)
-
-```sql
--- Supabase PostgreSQL Schema
-
--- 启用UUID扩展
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
--- 用户表 (Supabase Auth自动创建)
--- auth.users
-
--- 交易表
-CREATE TABLE transactions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    amount DECIMAL(10,2) NOT NULL CHECK (amount > 0),
-    description VARCHAR(500) NOT NULL,
-    category_id UUID NOT NULL,
-    subcategory_id UUID,
-    transaction_date DATE NOT NULL,
-    original_input VARCHAR(500),
-    ai_confidence FLOAT CHECK (ai_confidence >= 0 AND ai_confidence <= 1),
-    ai_source VARCHAR(20) DEFAULT 'manual',
-    user_confirmed BOOLEAN DEFAULT FALSE,
-    is_deleted BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 分类表
-CREATE TABLE categories (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-    name VARCHAR(50) NOT NULL,
-    icon VARCHAR(10),
-    color VARCHAR(9) DEFAULT '#607D8B',
-    parent_id UUID REFERENCES categories(id),
-    level INTEGER DEFAULT 1 CHECK (level >= 1 AND level <= 3),
-    is_system BOOLEAN DEFAULT FALSE,
-    is_expense BOOLEAN DEFAULT TRUE,
-    sort_order INTEGER DEFAULT 0,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    
-    UNIQUE(user_id, name, parent_id)
-);
-
--- 预算表
-CREATE TABLE budgets (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    category_id UUID REFERENCES categories(id),
-    amount DECIMAL(10,2) NOT NULL CHECK (amount > 0),
-    period VARCHAR(20) DEFAULT 'monthly',
-    year INTEGER NOT NULL,
-    month INTEGER NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    
-    UNIQUE(user_id, category_id, year, month)
-);
-
--- 索引
-CREATE INDEX idx_transactions_user_date ON transactions(user_id, transaction_date DESC);
-CREATE INDEX idx_transactions_category ON transactions(category_id);
-CREATE INDEX idx_categories_user ON categories(user_id);
-CREATE INDEX idx_budgets_user_period ON budgets(user_id, year, month);
-
--- RLS (Row Level Security)
-ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE budgets ENABLE ROW LEVEL SECURITY;
-
--- 交易表策略
-CREATE POLICY "Users can view own transactions" ON transactions
-    FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert own transactions" ON transactions
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own transactions" ON transactions
-    FOR UPDATE USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own transactions" ON transactions
-    FOR DELETE USING (auth.uid() = user_id);
-
--- 分类表策略
-CREATE POLICY "Users can view own categories" ON categories
-    FOR SELECT USING (auth.uid() = user_id OR is_system = TRUE);
-
-CREATE POLICY "Users can insert own categories" ON categories
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own categories" ON categories
-    FOR UPDATE USING (auth.uid() = user_id AND is_system = FALSE);
-
-CREATE POLICY "Users can delete own categories" ON categories
-    FOR DELETE USING (auth.uid() = user_id AND is_system = FALSE);
-
--- 更新时间触发器
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
-
-CREATE TRIGGER update_transactions_updated_at
-    BEFORE UPDATE ON transactions
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
-```
+**选择: 当前无后端，未来 Supabase**
 
 ---
 
@@ -1034,109 +844,15 @@ jobs:
 
 ---
 
-## 3.8 监控与分析
+## 3.8 监控说明
 
-### 3.8.1 Firebase 集成
+当前阶段**无 Firebase 监控**。通过以下方式保障质量：
 
-```dart
-// lib/shared/services/analytics_service.dart
+- **开发阶段**: 单元测试 + 集成测试 + 手动真机测试
+- **错误处理**: 应用内全局错误捕获 + 本地日志记录
+- **AI 质量**: 内置训练数据表记录用户修正，用于评估准确率
 
-import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-
-class AnalyticsService {
-  final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
-  final FirebaseCrashlytics _crashlytics = FirebaseCrashlytics.instance;
-  
-  /// 初始化
-  Future<void> initialize() async {
-    // Crashlytics配置
-    FlutterError.onError = _crashlytics.recordFlutterFatalError;
-    PlatformDispatcher.instance.onError = (error, stack) {
-      _crashlytics.recordError(error, stack, fatal: true);
-      return true;
-    };
-  }
-  
-  /// 记录记账事件
-  Future<void> logTransaction({
-    required double amount,
-    required String category,
-    required AiSource source,
-    required int parseDurationMs,
-  }) async {
-    await _analytics.logEvent(
-      name: 'add_transaction',
-      parameters: {
-        'amount': amount,
-        'category': category,
-        'source': source.toString(),
-        'parse_duration_ms': parseDurationMs,
-      },
-    );
-  }
-  
-  /// 记录AI解析事件
-  Future<void> logAiParse({
-    required bool success,
-    required double confidence,
-    required AiSource source,
-    required int durationMs,
-  }) async {
-    await _analytics.logEvent(
-      name: 'ai_parse',
-      parameters: {
-        'success': success,
-        'confidence': confidence,
-        'source': source.toString(),
-        'duration_ms': durationMs,
-      },
-    );
-  }
-  
-  /// 记录查询事件
-  Future<void> logQuery({
-    required String intent,
-    required bool success,
-    required int resultCount,
-  }) async {
-    await _analytics.logEvent(
-      name: 'ai_query',
-      parameters: {
-        'intent': intent,
-        'success': success,
-        'result_count': resultCount,
-      },
-    );
-  }
-  
-  /// 记录页面访问
-  Future<void> logScreenView(String screenName) async {
-    await _analytics.logScreenView(screenName: screenName);
-  }
-  
-  /// 记录错误
-  Future<void> recordError(
-    dynamic exception,
-    StackTrace? stack, {
-    String? reason,
-    bool fatal = false,
-  }) async {
-    await _crashlytics.recordError(
-      exception,
-      stack,
-      reason: reason,
-      fatal: fatal,
-    );
-  }
-  
-  /// 设置用户ID
-  Future<void> setUserId(String userId) async {
-    await _analytics.setUserId(id: userId);
-    await _crashlytics.setUserIdentifier(userId);
-  }
-}
-```
+**未来扩展**: 用户量增长后可接入 Firebase Crashlytics + Analytics。
 
 ---
 
@@ -1178,30 +894,11 @@ class AnalyticsService {
 
 | 层级 | 措施 | 实现方式 |
 |------|------|----------|
-| **传输层** | HTTPS/TLS 1.3 | 强制HTTPS |
-| **存储层** | SQLCipher加密 | 本地数据库加密 |
-| **应用层** | 输入校验 | 防止SQL注入 |
-| **认证层** | JWT + Refresh Token | 短期Token + 自动刷新 |
-| **授权层** | Row Level Security | 用户数据隔离 |
+| **传输层** | HTTPS/TLS 1.3 | LLM API 调用强制 HTTPS |
+| **存储层** | 本地存储 | 数据仅存本机 SQLite |
+| **应用层** | 输入校验 | 防止 SQL 注入 |
 
-### 3.10.2 密码安全
-
-```dart
-// 密码加密
-import 'package:bcrypt/bcrypt.dart';
-
-class PasswordService {
-  /// 加密密码
-  static String hashPassword(String password) {
-    return BCrypt.hashpw(password, BCrypt.gensalt(rounds: 12));
-  }
-  
-  /// 验证密码
-  static bool verifyPassword(String password, String hash) {
-    return BCrypt.checkpw(password, hash);
-  }
-}
-```
+> 当前阶段无用户认证、无云端数据，安全风险集中在 LLM API Key 保护和本地数据完整性。API Key 通过 `--dart-define` 注入，不硬编码在代码中。
 
 ---
 
@@ -1211,7 +908,7 @@ class PasswordService {
 |------|------|------|----------|
 | Flutter版本兼容 | 低 | 中 | 锁定版本，及时更新 |
 | LLM API不稳定 | 中 | 高 | 多服务商备选，规则引擎兜底 |
-| Supabase服务中断 | 低 | 高 | 本地缓存，离线可用 |
+| 本地数据丢失 | 低 | 高 | 定期导出备份，SQLite 事务保证 |
 | 数据库性能瓶颈 | 低 | 中 | 索引优化，分页查询 |
-| 国内网络问题 | 中 | 高 | 选择国内服务商 |
+| 国内网络问题 | 中 | 高 | 规则引擎离线可用，选择国内 LLM 服务商 |
 | 包体积过大 | 中 | 低 | Tree Shaking，代码分割 |

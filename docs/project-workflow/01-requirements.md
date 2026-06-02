@@ -1,6 +1,6 @@
 # 01 - 需求分析文档 (Technical Specification)
 
-> **版本**: v2.0 | **更新日期**: 2025-01-15 | **状态**: 技术评审中
+> **版本**: v3.0 | **更新日期**: 2026-06-02 | **状态**: 已更新为本地优先方案
 
 ## 1.1 系统概述
 
@@ -774,47 +774,35 @@ CREATE TABLE budgets (
 | 数据库查询    | < 50ms  | 100ms | 基准测试 |
 | 页面切换      | < 200ms | 500ms | UI测试   |
 
-### 1.4.2 并发需求
+### 1.4.2 存储需求
 
 
-| 指标          | 目标值 | 说明         |
-| ------------- | ------ | ------------ |
-| 同时在线用户  | 10,000 | MVP阶段预期  |
-| API并发请求   | 100/s  | 单服务器     |
-| 数据库连接池  | 20     | Supabase默认 |
-| WebSocket连接 | 1,000  | 实时同步     |
+| 数据类型 | 单条大小 | 增长速率    | 存储策略 |
+| -------- | -------- | ----------- | -------- |
+| 交易记录 | ~1KB     | 3条/天      | 本地SQLite |
+| 分类数据 | ~100B    | 静态        | 本地SQLite |
+| 对话历史 | ~2KB/轮  | 按需        | 本地SQLite |
+| AI训练数据 | ~200B  | 按修正记录  | 本地SQLite |
 
-### 1.4.3 存储需求
-
-
-| 数据类型 | 单条大小 | 增长速率    | 存储策略  |
-| -------- | -------- | ----------- | --------- |
-| 交易记录 | ~1KB     | 3条/天/用户 | 本地+云端 |
-| 分类数据 | ~100B    | 静态        | 本地+云端 |
-| 对话历史 | ~2KB/轮  | 按需        | 本地      |
-| 用户画像 | ~10KB    | 低频        | 云端      |
-
-### 1.4.4 安全需求
+### 1.4.3 安全需求
 
 
 | 需求      | 实现方式                         | 验收标准               |
 | --------- | -------------------------------- | ---------------------- |
-| 传输加密  | HTTPS/TLS 1.3                    | 所有API通信加密        |
-| 存储加密  | SQLCipher (本地)                 | 本地数据库加密         |
-| 密码安全  | bcrypt (cost=12)                 | 密码不可逆             |
-| Token管理 | JWT (15min) + Refresh Token (7d) | 自动刷新               |
-| 数据隔离  | Row Level Security               | 用户只能访问自己的数据 |
+| 传输加密  | HTTPS/TLS 1.3                    | LLM API通信加密        |
+| API Key保护 | --dart-define 注入，不硬编码   | Key不出现在代码仓库中  |
 | 输入校验  | 参数校验 + SQL注入防护           | 防止恶意输入           |
 
-### 1.4.5 可用性需求
+> 当前阶段无用户认证、无云端数据，数据仅存本机 SQLite。
+
+### 1.4.4 可用性需求
 
 
 | 需求     | 描述                | 实现方式              |
 | -------- | ------------------- | --------------------- |
-| 离线可用 | 无网络时可记账      | 本地SQLite + 队列同步 |
-| 数据同步 | 联网后自动同步      | Supabase Realtime     |
+| 离线可用 | 无网络时可记账      | 本地SQLite + 规则引擎 |
 | 错误恢复 | 网络异常时降级      | 规则引擎兜底          |
-| 崩溃恢复 | App崩溃后数据不丢失 | 事务保证              |
+| 崩溃恢复 | App崩溃后数据不丢失 | SQLite事务保证        |
 
 ---
 
@@ -852,8 +840,7 @@ CREATE TABLE budgets (
                           ▼
 ┌─────────────────────────────────────────────────────────────┐
 │  Layer 4: 数据持久化                                          │
-│  ├── 写入本地SQLite                                           │
-│  ├── 异步同步到Supabase                                      │
+│  ├── 写入本地SQLite (Drift)                                   │
 │  └── 更新统计缓存                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -1014,82 +1001,29 @@ CREATE TABLE budgets (
 
 ## 1.7 接口规格 (Interface Specifications)
 
-### 1.7.1 AI解析接口
+### 1.7.1 AI解析接口 (内部服务，非HTTP API)
 
-**请求**:
+AI解析在应用内部通过 Dart 类调用，不暴露 HTTP 接口。流程如下：
+
+```
+用户输入 → AiService.parseInput() → 规则引擎/LLM API → AiParseResult
+```
+
+**LLM API 调用规格 (通义千问)**:
 
 ```http
-POST /api/ai/parse
+POST https://dashscope.aliyuncs.com/api/v1/chat/completions
 Content-Type: application/json
-Authorization: Bearer {access_token}
+Authorization: Bearer {AI_API_KEY}
 
 {
-  "input": "午饭吃了碗拉面25",
-  "context": {
-    "timezone": "Asia/Shanghai",
-    "language": "zh-CN"
-  }
-}
-```
-
-**响应 (成功)**:
-
-```json
-{
-  "success": true,
-  "data": {
-    "amount": 25.00,
-    "category": {
-      "id": "cat_001",
-      "name": "餐饮",
-      "icon": "🍜",
-      "color": "#FF9800"
-    },
-    "subcategory": {
-      "id": "sub_001_02",
-      "name": "午餐"
-    },
-    "description": "午饭拉面",
-    "transaction_date": "2025-01-15",
-    "confidence": 0.92,
-    "source": "llm"
-  },
-  "metadata": {
-    "parse_duration_ms": 850,
-    "model_used": "qwen-turbo",
-    "tokens_consumed": 128
-  }
-}
-```
-
-**响应 (失败)**:
-
-```json
-{
-  "success": false,
-  "error": {
-    "code": "PARSE_FAILED",
-    "message": "无法解析输入内容",
-    "details": "未识别到金额信息"
-  }
-}
-```
-
-### 1.7.2 对话接口
-
-**请求**:
-
-```http
-POST /api/ai/chat
-Content-Type: application/json
-Authorization: Bearer {access_token}
-
-{
-  "message": "这个月餐饮花了多少？",
-  "conversation_id": "conv_001",
-  "context": {
-    "timezone": "Asia/Shanghai"
-  }
+  "model": "qwen-turbo",
+  "messages": [
+    {"role": "system", "content": "你是记账助手..."},
+    {"role": "user", "content": "午饭吃了碗拉面25"}
+  ],
+  "temperature": 0.1,
+  "response_format": {"type": "json_object"}
 }
 ```
 
@@ -1097,26 +1031,20 @@ Authorization: Bearer {access_token}
 
 ```json
 {
-  "success": true,
-  "data": {
-    "reply": "本月餐饮共消费2,340元，日均78元。",
-    "conversation_id": "conv_001",
-    "function_calls": [
-      {
-        "name": "analyze_spending",
-        "arguments": {
-          "period": "this_month",
-          "category": "餐饮"
-        },
-        "result": {
-          "total": 2340.00,
-          "daily_average": 78.00,
-          "count": 45
-        }
-      }
-    ]
-  }
+  "amount": 25.00,
+  "category": "餐饮",
+  "subcategory": "午餐",
+  "description": "午饭拉面",
+  "confidence": 0.92
 }
+```
+
+### 1.7.2 对话接口 (内部服务)
+
+AI对话在应用内部通过 AiService.chat() 调用，使用 Function Calling 架构：
+
+```
+用户查询 → AiService.chat() → LLM (Function Calling) → 执行工具 → 生成回复
 ```
 
 ---
@@ -1167,6 +1095,7 @@ Authorization: Bearer {access_token}
 | 平台约束 | iOS/Android双平台 | 需要考虑平台差异   |
 | 网络约束 | AI功能需要网络    | 需要离线降级方案   |
 | 成本约束 | LLM API调用成本   | 需要缓存和降级策略 |
+| 数据约束 | 仅本地存储        | 单设备，无多端同步 |
 
 ### 1.9.2 假设条件
 
@@ -1174,10 +1103,10 @@ Authorization: Bearer {access_token}
 | 假设     | 描述                         | 风险                 |
 | -------- | ---------------------------- | -------------------- |
 | 用户设备 | 用户使用iOS 14+ / Android 8+ | 低端设备性能问题     |
-| 网络环境 | 用户有稳定的网络连接         | 弱网环境下AI功能受限 |
+| 网络环境 | 用户有基本的网络连接         | 弱网环境下AI功能受限 |
 | 用户输入 | 用户输入中文描述             | 方言、俚语识别难度   |
-| AI服务   | AI API服务稳定可用           | 服务不可用时功能降级 |
-| 数据安全 | 用户接受本地存储             | 数据丢失风险         |
+| AI服务   | AI API服务稳定可用           | 服务不可用时降级为规则引擎 |
+| 使用场景 | 个人自用，单设备             | 换手机需手动迁移数据 |
 
 ---
 
@@ -1188,10 +1117,9 @@ Authorization: Bearer {access_token}
 | -------------- | ---- | ---- | ------------------------------------ |
 | AI准确率不达标 | 中   | 高   | 规则引擎兜底，持续优化Prompt         |
 | 用户输入多样化 | 高   | 中   | 支持多种表达方式，AI学习用户习惯     |
-| LLM API不稳定  | 中   | 高   | 多服务商备选，本地缓存，规则引擎降级 |
+| LLM API不稳定  | 中   | 高   | 多服务商备选，规则引擎离线降级       |
 | 性能问题       | 中   | 中   | 优化数据库查询，使用缓存，懒加载     |
-| 数据安全       | 低   | 高   | 本地加密存储，传输加密，定期备份     |
-| 竞品模仿       | 中   | 中   | 持续创新，保持差异化，快速迭代       |
+| 本地数据丢失   | 低   | 高   | 定期CSV导出备份，SQLite事务保证      |
 | 开发延期       | 中   | 中   | 优先P0功能，P2可延期，灵活调整计划   |
 
 ---
@@ -1222,9 +1150,10 @@ Authorization: Bearer {access_token}
 | FR-001 | 智能记账输入 | P0     | 04-product-design.md | Week 3     | TC-001~010 | 待开发 |
 | FR-002 | AI自动分类   | P0     | 05-architecture.md   | Week 4     | TC-011~020 | 待开发 |
 | FR-003 | 账单管理     | P0     | 04-product-design.md | Week 5     | TC-021~030 | 待开发 |
-| FR-004 | 分类管理     | P0     | 04-product-design.md | Week 2     | TC-031~040 | 待开发 |
+| FR-004 | 分类管理     | P0     | 04-product-design.md | Week 10    | TC-031~040 | 待开发 |
 | FR-005 | AI智能检索   | P0     | 05-architecture.md   | Week 7-8   | TC-041~050 | 规划中 |
 | FR-006 | AI消费洞察   | P1     | 05-architecture.md   | Week 9     | TC-051~060 | 规划中 |
 | FR-007 | AI对话助手   | P1     | 05-architecture.md   | Week 11-12 | TC-061~070 | 规划中 |
 | FR-008 | AI智能建议   | P2     | 05-architecture.md   | Week 13-14 | TC-071~080 | 规划中 |
 | FR-009 | 预算管理     | P1     | 04-product-design.md | Week 9     | TC-081~090 | 规划中 |
+| FR-010 | 数据导出     | P1     | 05-architecture.md   | Week 10    | TC-091~100 | 规划中 |

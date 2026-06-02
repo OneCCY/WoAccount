@@ -1,6 +1,8 @@
 # WoAccount - AI智能记账App 完整开发工作流
 
 > **核心理念**: 用户只需输入描述（如"中午吃了碗牛肉面"），AI自动识别并归类到对应分类。
+>
+> **架构策略**: 本地优先 (Local-First)，个人开发者自用场景。Flutter + SQLite + LLM API，无后端服务。
 
 ---
 
@@ -138,11 +140,11 @@
 
 | 方案         | 优点                         | 缺点                       | 推荐度   |
 | ------------ | ---------------------------- | -------------------------- | -------- |
-| **Firebase** | 快速搭建，免运维，实时同步   | 国内访问问题，成本随量增长 | ⭐⭐⭐⭐ |
-| **Supabase** | 开源Firebase替代，PostgreSQL | 相对较新                   | ⭐⭐⭐⭐ |
+| **无后端**   | 零成本、零运维、数据在本地   | 无多设备同步               | ⭐⭐⭐⭐⭐ |
+| **Supabase** | 开源Firebase替代，PostgreSQL | 需要网络、成本随量增长     | ⭐⭐⭐⭐ |
 | **自建后端** | 完全可控，无vendor lock-in   | 开发运维成本高             | ⭐⭐⭐   |
 
-**推荐: Supabase/自建** - 考虑到国内访问和数据隐私
+**当前选择: 无后端** - 本地优先，个人自用场景。未来按需接入 Supabase。
 
 ### 3.3 AI方案对比
 
@@ -165,20 +167,17 @@
 ┌─────────────────────────────────────────────────┐
 │                    前端 (Mobile)                  │
 │              Flutter + Dart                       │
-│         状态管理: Riverpod / Bloc                 │
-└─────────────────────┬───────────────────────────┘
-                      │
-┌─────────────────────▼───────────────────────────┐
-│                    后端服务                       │
-│         Node.js/Python + Supabase                │
-│         或 Firebase (国内用 Supabase自建)         │
+│         状态管理: Riverpod                        │
+│         本地数据库: Drift (SQLite)                │
 └─────────────────────┬───────────────────────────┘
                       │
 ┌─────────────────────▼───────────────────────────┐
 │                   AI 服务                        │
-│    LLM API (通义千问/GPT) + 规则引擎兜底         │
-│    后期: 本地微调模型                             │
+│    LLM API (通义千问) + 本地规则引擎兜底         │
+│    Function Calling 实现 AI Agent                │
 └─────────────────────────────────────────────────┘
+
+特点: 无后端服务器，本地优先，数据完全在用户手中
 ```
 
 ## 4. 产品设计
@@ -265,69 +264,57 @@
 │  └───────────────────────┬──────────────────────────────┘ │
 └──────────────────────────┼────────────────────────────────┘
                            │
-                     REST API / gRPC
-                           │
-┌──────────────────────────▼────────────────────────────────┐
-│                     Backend Server                         │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────┐  │
-│  │  记账 API    │  │  统计 API    │  │   AI 解析服务    │  │
-│  └──────┬──────┘  └──────┬──────┘  └────────┬────────┘  │
-│         │                │                   │           │
-│  ┌──────▼────────────────▼───────────────────▼────────┐  │
-│  │                  数据访问层                          │  │
-│  └───────────────────────┬────────────────────────────┘  │
-└──────────────────────────┼────────────────────────────────┘
-                           │
               ┌────────────┼────────────┐
               ▼            ▼            ▼
         ┌──────────┐ ┌──────────┐ ┌──────────┐
-        │ Database │ │ LLM API  │ │  Cache   │
-        │(Postgres)│ │(通义千问) │ │ (Redis)  │
+        │  SQLite  │ │ LLM API  │ │ 规则引擎  │
+        │ (Drift)  │ │(通义千问) │ │ (本地)    │
         └──────────┘ └──────────┘ └──────────┘
 ```
 
-### 5.2 数据库设计
+**特点**: 无后端服务器，数据存本地 SQLite，AI 能力通过 API 调用 + 本地规则引擎混合实现。
+
+### 5.2 数据库设计 (Drift/SQLite)
 
 ```sql
--- 用户表
-CREATE TABLE users (
-    id UUID PRIMARY KEY,
-    email VARCHAR(255) UNIQUE,
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
 -- 分类表
 CREATE TABLE categories (
-    id UUID PRIMARY KEY,
-    user_id UUID REFERENCES users(id),
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(50) NOT NULL,          -- 如: "餐饮"
     icon VARCHAR(10),                    -- 如: "🍜"
-    parent_id UUID REFERENCES categories(id),  -- 支持子分类
+    color VARCHAR(9) DEFAULT '#607D8B',
+    parent_id INTEGER REFERENCES categories(id),
+    level INTEGER DEFAULT 1,
     is_system BOOLEAN DEFAULT FALSE,     -- 系统预设 vs 用户自建
-    created_at TIMESTAMP DEFAULT NOW()
+    sort_order INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 交易记录表
 CREATE TABLE transactions (
-    id UUID PRIMARY KEY,
-    user_id UUID REFERENCES users(id),
-    amount DECIMAL(10,2) NOT NULL,
-    description TEXT,                    -- 用户原始输入
-    category_id UUID REFERENCES categories(id),
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    amount REAL NOT NULL,
+    description TEXT,
+    category_id INTEGER REFERENCES categories(id),
+    subcategory_id INTEGER REFERENCES categories(id),
     transaction_date DATE NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW(),
-    ai_confidence FLOAT,                 -- AI分类置信度
-    user_confirmed BOOLEAN DEFAULT FALSE -- 用户是否确认
+    original_input TEXT,
+    ai_confidence REAL,
+    ai_source VARCHAR(20) DEFAULT 'manual',
+    user_confirmed BOOLEAN DEFAULT FALSE,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- AI学习记录表 (用于后续微调)
+-- AI学习记录表 (用于后续优化规则引擎)
 CREATE TABLE ai_training_data (
-    id UUID PRIMARY KEY,
-    user_id UUID REFERENCES users(id),
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     input_text TEXT NOT NULL,
-    predicted_category_id UUID,
-    actual_category_id UUID,            -- 用户修正后的分类
-    created_at TIMESTAMP DEFAULT NOW()
+    predicted_category_id INTEGER,
+    actual_category_id INTEGER,
+    was_correct BOOLEAN,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
@@ -456,25 +443,24 @@ test('AI分类准确率测试', () {
 
 ## 8. 部署与发布
 
-### 8.1 CI/CD 流程
+### 8.1 构建流程
 
 ```
 代码提交 → GitHub Actions
               │
+              ├─→ 代码检查 (lint)
               ├─→ 单元测试
-              ├─→ 集成测试
-              ├─→ 构建 APK/IPA
-              └─→ 自动发布到 TestFlight/Firebase App Distribution
+              └─→ 构建 APK
 ```
 
 ### 8.2 发布清单
 
 - [ ]  App图标和启动图
-- [ ]  隐私政策和用户协议
-- [ ]  App Store / Google Play 截图和描述
 - [ ]  应用签名配置
-- [ ]  崩溃监控 (Firebase Crashlytics)
-- [ ]  数据分析 (Firebase Analytics)
+- [ ]  构建 APK (Android)
+- [ ]  真机测试通过
+
+> 当前阶段为个人自用，暂不提交应用商店。
 
 ## 9. 迭代与运营
 
@@ -483,11 +469,9 @@ test('AI分类准确率测试', () {
 
 | 指标           | 目标              | 监控方式           |
 | -------------- | ----------------- | ------------------ |
-| 日活用户 (DAU) | 持续增长          | Firebase Analytics |
-| 记账频率       | 日均1-3笔         | 自建统计           |
-| AI分类准确率   | > 90%             | 用户修正率统计     |
-| 用户留存率     | 次日>40%, 7日>20% | Firebase Analytics |
-| App崩溃率      | < 1%              | Crashlytics        |
+| 记账频率       | 日均1-3笔         | 本地统计           |
+| AI分类准确率   | > 90%             | 训练数据表统计     |
+| 记账坚持率     | 连续记账>30天     | 本地统计           |
 
 ### 9.2 持续优化方向
 

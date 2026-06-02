@@ -1,6 +1,6 @@
 # 05 - 架构设计文档 (Technical Specification)
 
-> **版本**: v2.0 | **更新日期**: 2025-01-15 | **状态**: 技术评审中
+> **版本**: v3.0 | **更新日期**: 2026-06-02 | **状态**: 已更新为本地优先方案
 
 ---
 
@@ -49,10 +49,11 @@
 │  │                    Data Layer                             │   │
 │  │  ├── Repositories (仓储实现)                             │   │
 │  │  ├── DataSources (数据源)                                │   │
-│  │  │   ├── Local (SQLite)                                  │   │
-│  │  │   └── Remote (Supabase)                               │   │
+│  │  │   └── Local (SQLite / Drift)                          │   │
 │  │  └── Models (数据模型)                                   │   │
 │  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  * RemoteDataSource 接口已预留，未来可扩展 Supabase 实现        │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -94,8 +95,7 @@ lib/
 │   ├── transaction/                   # 记账功能
 │   │   ├── data/
 │   │   │   ├── datasources/
-│   │   │   │   ├── transaction_local_ds.dart
-│   │   │   │   └── transaction_remote_ds.dart
+│   │   │   │   └── transaction_local_ds.dart
 │   │   │   ├── models/
 │   │   │   │   └── transaction_model.dart
 │   │   │   └── repositories/
@@ -165,11 +165,6 @@ lib/
 │   │   ├── domain/
 │   │   └── presentation/
 │   │
-│   ├── auth/                          # 认证功能
-│   │   ├── data/
-│   │   ├── domain/
-│   │   └── presentation/
-│   │
 │   └── settings/                      # 设置功能
 │       ├── data/
 │       ├── domain/
@@ -187,9 +182,7 @@ lib/
 │   │       ├── transaction_dao.dart
 │   │       └── category_dao.dart
 │   ├── services/
-│   │   ├── analytics_service.dart
-│   │   ├── notification_service.dart
-│   │   └── sync_service.dart
+│   │   └── export_service.dart        # 数据导出 (CSV)
 │   └── widgets/
 │       ├── common_card.dart
 │       ├── common_button.dart
@@ -217,64 +210,62 @@ lib/
 │                          ER Diagram                              │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  ┌─────────────┐       ┌─────────────┐       ┌─────────────┐  │
-│  │   Users     │       │ Categories  │       │   Budgets   │  │
-│  ├─────────────┤       ├─────────────┤       ├─────────────┤  │
-│  │ id (PK)     │◀──┐   │ id (PK)     │◀──┐   │ id (PK)     │  │
-│  │ email       │   │   │ user_id(FK) │   │   │ user_id(FK) │  │
-│  │ created_at  │   │   │ name        │   │   │ category_id │  │
-│  └─────────────┘   │   │ icon        │   │   │ amount      │  │
-│                    │   │ color       │   │   │ period      │  │
-│                    │   │ parent_id   │───┘   │ year        │  │
-│                    │   │ level       │       │ month       │  │
-│                    │   │ is_system   │       └─────────────┘  │
-│                    │   └─────────────┘                         │
-│                    │           ▲                                │
-│                    │           │                                │
-│                    │   ┌───────┴───────┐                       │
-│                    │   │               │                       │
-│  ┌─────────────────┴───┴───────────────┴───────────────────┐  │
-│  │                    Transactions                           │  │
-│  ├─────────────────────────────────────────────────────────┤  │
-│  │ id (PK)                                                  │  │
-│  │ user_id (FK → Users)                                     │  │
-│  │ amount                                                   │  │
-│  │ description                                              │  │
-│  │ category_id (FK → Categories)                            │  │
-│  │ subcategory_id (FK → Categories)                         │  │
-│  │ transaction_date                                         │  │
-│  │ original_input                                           │  │
-│  │ ai_confidence                                            │  │
-│  │ ai_source                                                │  │
-│  │ user_confirmed                                           │  │
-│  │ created_at                                               │  │
-│  │ updated_at                                               │  │
-│  └─────────────────────────────────────────────────────────┘  │
+│  ┌─────────────┐       ┌─────────────┐                         │
+│  │ Categories  │       │   Budgets   │                         │
+│  ├─────────────┤       ├─────────────┤                         │
+│  │ id (PK)     │◀──┐   │ id (PK)     │                         │
+│  │ name        │   │   │ category_id │                         │
+│  │ icon        │   │   │ amount      │                         │
+│  │ color       │   │   │ period      │                         │
+│  │ parent_id   │───┘   │ year        │                         │
+│  │ level       │       │ month       │                         │
+│  │ is_system   │       │ created_at  │                         │
+│  │ sort_order  │       └─────────────┘                         │
+│  │ created_at  │                                                │
+│  └─────────────┘                                                │
+│         ▲                                                       │
+│         │                                                       │
+│  ┌──────┴────────────────────────────────────────────────────┐ │
+│  │                    Transactions                             │ │
+│  ├───────────────────────────────────────────────────────────┤ │
+│  │ id (PK)                                                    │ │
+│  │ amount                                                     │ │
+│  │ description                                                │ │
+│  │ category_id (FK → Categories)                              │ │
+│  │ subcategory_id (FK → Categories)                           │ │
+│  │ transaction_date                                           │ │
+│  │ original_input                                             │ │
+│  │ ai_confidence                                              │ │
+│  │ ai_source                                                  │ │
+│  │ user_confirmed                                             │ │
+│  │ is_deleted                                                 │ │
+│  │ created_at                                                 │ │
+│  │ updated_at                                                 │ │
+│  └───────────────────────────────────────────────────────────┘ │
 │                                                                 │
-│  ┌─────────────────────────────────────────────────────────┐  │
-│  │                  ConversationMessages                     │  │
-│  ├─────────────────────────────────────────────────────────┤  │
-│  │ id (PK)                                                  │  │
-│  │ conversation_id                                          │  │
-│  │ role (user/assistant/system/function)                    │  │
-│  │ content                                                  │  │
-│  │ function_name                                            │  │
-│  │ function_args                                            │  │
-│  │ function_result                                          │  │
-│  │ created_at                                               │  │
-│  └─────────────────────────────────────────────────────────┘  │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │                  ConversationMessages                     │   │
+│  ├─────────────────────────────────────────────────────────┤   │
+│  │ id (PK)                                                  │   │
+│  │ conversation_id                                          │   │
+│  │ role (user/assistant/system/function)                    │   │
+│  │ content                                                  │   │
+│  │ function_name                                            │   │
+│  │ function_args                                            │   │
+│  │ function_result                                          │   │
+│  │ created_at                                               │   │
+│  └─────────────────────────────────────────────────────────┘   │
 │                                                                 │
-│  ┌─────────────────────────────────────────────────────────┐  │
-│  │                    AiTrainingData                         │  │
-│  ├─────────────────────────────────────────────────────────┤  │
-│  │ id (PK)                                                  │  │
-│  │ user_id (FK → Users)                                     │  │
-│  │ input_text                                               │  │
-│  │ predicted_category_id                                    │  │
-│  │ actual_category_id                                       │  │
-│  │ was_correct                                              │  │
-│  │ created_at                                               │  │
-│  └─────────────────────────────────────────────────────────┘  │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │                    AiTrainingData                         │   │
+│  ├─────────────────────────────────────────────────────────┤   │
+│  │ id (PK)                                                  │   │
+│  │ input_text                                               │   │
+│  │ predicted_category_id                                    │   │
+│  │ actual_category_id                                       │   │
+│  │ was_correct                                              │   │
+│  │ created_at                                               │   │
+│  └─────────────────────────────────────────────────────────┘   │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -295,7 +286,6 @@ part 'app_database.g.dart';
 @DataClassName('TransactionRecord')
 class Transactions extends Table {
   IntColumn get id => integer().autoIncrement()();
-  TextColumn get remoteId => text().nullable()();
   RealColumn get amount => real()();
   TextColumn get description => text().withLength(min: 1, max: 500)();
   IntColumn get categoryId => integer().references(Categories, #id)();
@@ -305,7 +295,6 @@ class Transactions extends Table {
   RealColumn get aiConfidence => real().nullable()();
   TextColumn get aiSource => text().withLength(max: 20).withDefault(const Constant('manual'))();
   BoolColumn get userConfirmed => boolean().withDefault(const Constant(false))();
-  BoolColumn get isSynced => boolean().withDefault(const Constant(false))();
   BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
@@ -315,7 +304,6 @@ class Transactions extends Table {
 @DataClassName('CategoryRecord')
 class Categories extends Table {
   IntColumn get id => integer().autoIncrement()();
-  TextColumn get remoteId => text().nullable()();
   TextColumn get name => text().withLength(min: 1, max: 50)();
   TextColumn get icon => text().withLength(max: 10).nullable()();
   TextColumn get color => text().withLength(max: 9).withDefault(const Constant('#607D8B'))();
@@ -331,14 +319,13 @@ class Categories extends Table {
 @DataClassName('BudgetRecord')
 class Budgets extends Table {
   IntColumn get id => integer().autoIncrement()();
-  TextColumn get remoteId => text().nullable()();
   IntColumn get categoryId => integer().nullable().references(Categories, #id)();
   RealColumn get amount => real()();
   TextColumn get period => text().withLength(min: 1, max: 20).withDefault(const Constant('monthly'))();
   IntColumn get year => integer()();
   IntColumn get month => integer()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  
+
   @override
   List<Set<Column>> get uniqueKeys => [{categoryId, year, month}];
 }
@@ -957,17 +944,14 @@ abstract class TransactionRepository {
 
 // lib/features/transaction/data/repositories/transaction_repo_impl.dart
 
-/// 交易仓储实现
+/// 交易仓储实现 (本地优先)
 class TransactionRepositoryImpl implements TransactionRepository {
   final TransactionLocalDataSource _localDataSource;
-  final TransactionRemoteDataSource? _remoteDataSource;
-  
+
   TransactionRepositoryImpl({
     required TransactionLocalDataSource localDataSource,
-    TransactionRemoteDataSource? remoteDataSource,
-  })  : _localDataSource = localDataSource,
-        _remoteDataSource = remoteDataSource;
-  
+  }) : _localDataSource = localDataSource;
+
   @override
   Future<List<Transaction>> getTransactions({
     DateTime? startDate,
@@ -979,7 +963,6 @@ class TransactionRepositoryImpl implements TransactionRepository {
     int limit = 50,
     int offset = 0,
   }) async {
-    // 优先从本地获取
     return await _localDataSource.getTransactions(
       startDate: startDate,
       endDate: endDate,
@@ -991,41 +974,22 @@ class TransactionRepositoryImpl implements TransactionRepository {
       offset: offset,
     );
   }
-  
+
   @override
   Future<Transaction> addTransaction(Transaction transaction) async {
-    // 保存到本地
-    final localTransaction = await _localDataSource.addTransaction(transaction);
-    
-    // 异步同步到云端
-    _remoteDataSource?.syncTransaction(localTransaction).catchError((e) {
-      // 记录同步失败，稍后重试
-      print('Sync failed: $e');
-    });
-    
-    return localTransaction;
+    return await _localDataSource.addTransaction(transaction);
   }
-  
+
   @override
   Future<Transaction> updateTransaction(Transaction transaction) async {
-    final updated = await _localDataSource.updateTransaction(transaction);
-    
-    _remoteDataSource?.syncTransaction(updated).catchError((e) {
-      print('Sync failed: $e');
-    });
-    
-    return updated;
+    return await _localDataSource.updateTransaction(transaction);
   }
-  
+
   @override
   Future<void> deleteTransaction(int id) async {
     await _localDataSource.deleteTransaction(id);
-    
-    _remoteDataSource?.deleteTransaction(id).catchError((e) {
-      print('Sync failed: $e');
-    });
   }
-  
+
   @override
   Future<StatsData> getStats({
     required DateTime startDate,
@@ -1036,7 +1000,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
       endDate: endDate,
     );
   }
-  
+
   @override
   Future<List<Transaction>> searchTransactions(String query) async {
     return await _localDataSource.searchTransactions(query);
@@ -1256,14 +1220,6 @@ class ValidationException extends AppException {
   const ValidationException(String message) : super(message: message);
 }
 
-/// 认证异常
-class AuthException extends AppException {
-  const AuthException({
-    required super.message,
-    super.code,
-    super.originalError,
-  });
-}
 ```
 
 ### 5.6.2 错误处理
@@ -1300,8 +1256,8 @@ class ErrorHandler {
       rethrow;
     } catch (e, stack) {
       _logError(AppException(message: e.toString()), context);
-      // 上报Crashlytics
-      FirebaseCrashlytics.instance.recordError(e, stack, reason: context);
+      // 本地日志记录 (未来可接入 Crashlytics)
+      print('Unhandled error in $context: $e\n$stack');
       rethrow;
     }
   }
@@ -1424,55 +1380,16 @@ class EncryptionService {
 }
 ```
 
-### 5.8.2 Token管理
+### 5.8.2 API Key 管理
+
+LLM API Key 通过 `--dart-define` 注入，不硬编码在代码中：
+
+```bash
+# 构建时注入
+flutter build apk --dart-define=AI_API_KEY=your-api-key
+```
 
 ```dart
-// lib/shared/services/token_service.dart
-
-/// Token服务
-class TokenService {
-  final SharedPreferences _prefs;
-  
-  TokenService(this._prefs);
-  
-  /// 获取Access Token
-  String? get accessToken => _prefs.getString('access_token');
-  
-  /// 获取Refresh Token
-  String? get refreshToken => _prefs.getString('refresh_token');
-  
-  /// 保存Token
-  Future<void> saveTokens({
-    required String accessToken,
-    required String refreshToken,
-  }) async {
-    await _prefs.setString('access_token', accessToken);
-    await _prefs.setString('refresh_token', refreshToken);
-  }
-  
-  /// 清除Token
-  Future<void> clearTokens() async {
-    await _prefs.remove('access_token');
-    await _prefs.remove('refresh_token');
-  }
-  
-  /// 检查Token是否过期
-  bool isTokenExpired(String token) {
-    try {
-      final parts = token.split('.');
-      if (parts.length != 3) return true;
-      
-      final payload = jsonDecode(
-        utf8.decode(base64Url.decode(base64Url.normalize(parts[1])))
-      );
-      
-      final exp = payload['exp'] as int;
-      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-      
-      return now >= exp;
-    } catch (e) {
-      return true;
-    }
-  }
-}
+// 运行时读取
+const apiKey = String.fromEnvironment('AI_API_KEY');
 ```
