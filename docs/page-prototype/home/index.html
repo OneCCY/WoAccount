@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WoAccount - 记账首页</title>
+  <link rel="stylesheet" href="../shared/style.css">
+  <style>
+    .input-section {
+      background: #fff;
+      padding: 16px;
+    }
+    .input-box {
+      display: flex;
+      align-items: center;
+      background: #f5f5f5;
+      border-radius: 12px;
+      padding: 12px 16px;
+      gap: 8px;
+    }
+    .input-box input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: 15px;
+      outline: none;
+      color: #212121;
+    }
+    .input-box input::placeholder {
+      color: #bdbdbd;
+    }
+    .action-bar {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .action-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #e0e0e0;
+      background: #fff;
+      font-size: 13px;
+      color: #757575;
+      cursor: pointer;
+    }
+    .action-btn:hover {
+      background: #f5f5f5;
+    }
+    .action-btn.primary {
+      background: #4caf50;
+      color: #fff;
+      border-color: #4caf50;
+    }
+    .today-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+    }
+    .today-header .label {
+      font-size: 14px;
+      color: #757575;
+    }
+    .today-header .total {
+      font-size: 18px;
+      font-weight: 700;
+      color: #f44336;
+    }
+    .insight-card {
+      background: #fff3e0;
+      margin: 12px 16px;
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .insight-card .icon {
+      font-size: 24px;
+    }
+    .insight-card .text {
+      flex: 1;
+      font-size: 13px;
+      color: #e65100;
+    }
+    .insight-card .action {
+      font-size: 13px;
+      color: #ff9800;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .ai-section {
+      margin-top: 8px;
+    }
+    .ai-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px 8px;
+    }
+    .ai-header .icon { font-size: 20px; }
+    .ai-header .title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #212121;
+    }
+    .chat-bubble {
+      margin: 8px 16px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.5;
+      max-width: 85%;
+    }
+    .chat-bubble.ai {
+      background: #f5f5f5;
+      color: #212121;
+      border-bottom-left-radius: 4px;
+    }
+    .chat-bubble.user {
+      background: #e8f5e9;
+      color: #212121;
+      margin-left: auto;
+      border-bottom-right-radius: 4px;
+    }
+    .quick-queries {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 8px 16px;
+    }
+    .quick-query-tag {
+      padding: 6px 14px;
+      border-radius: 16px;
+      background: #f5f5f5;
+      font-size: 13px;
+      color: #757575;
+      cursor: pointer;
+    }
+    .quick-query-tag:hover {
+      background: #e8f5e9;
+      color: #4caf50;
+    }
+    .chat-input-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: #fff;
+      border-top: 1px solid #f0f0f0;
+      margin-top: 8px;
+    }
+    .chat-input-bar input {
+      flex: 1;
+      border: 1px solid #e0e0e0;
+      border-radius: 20px;
+      padding: 8px 16px;
+      font-size: 14px;
+      outline: none;
+    }
+    .chat-input-bar input:focus {
+      border-color: #4caf50;
+    }
+    .chat-input-bar .voice-btn,
+    .chat-input-bar .send-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+      border: none;
+    }
+    .chat-input-bar .voice-btn {
+      background: #f5f5f5;
+      color: #757575;
+    }
+    .chat-input-bar .send-btn {
+      background: #4caf50;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="phone-frame">
+    <!-- 状态栏 -->
+    <div class="status-bar">
+      <span>9:41</span>
+      <span>WoAccount</span>
+      <span>⚙️</span>
+    </div>
+
+    <!-- 内容区 -->
+    <div class="content">
+      <!-- 记账输入区 -->
+      <div class="input-section">
+        <div class="input-box">
+          <span>📝</span>
+          <input type="text" placeholder="输入消费描述，例如：午饭吃了碗拉面25元">
+        </div>
+        <div class="action-bar">
+          <button class="action-btn primary">记一笔</button>
+          <button class="action-btn">🎤 语音</button>
+          <button class="action-btn">📷 拍照</button>
+        </div>
+      </div>
+
+      <!-- 今日消费 -->
+      <div class="today-header">
+        <span class="label">📅 今日消费</span>
+        <span class="total">¥71.00</span>
+      </div>
+
+      <div class="list-item">
+        <div class="icon" style="background:#fff3e0;">🍜</div>
+        <div class="info">
+          <div class="title">午饭拉面</div>
+          <div class="subtitle">12:30 · 餐饮 > 午餐</div>
+        </div>
+        <div class="amount expense">-¥25.00</div>
+      </div>
+
+      <div class="list-item">
+        <div class="icon" style="background:#e3f2fd;">🚗</div>
+        <div class="info">
+          <div class="title">打车去公司</div>
+          <div class="subtitle">09:15 · 交通 > 打车</div>
+        </div>
+        <div class="amount expense">-¥28.00</div>
+      </div>
+
+      <div class="list-item">
+        <div class="icon" style="background:#fff3e0;">☕</div>
+        <div class="info">
+          <div class="title">下午茶咖啡</div>
+          <div class="subtitle">15:45 · 餐饮 > 饮料</div>
+        </div>
+        <div class="amount expense">-¥18.00</div>
+      </div>
+
+      <!-- 今日洞察 -->
+      <div class="insight-card">
+        <span class="icon">💡</span>
+        <span class="text">今日消费已超过日均预算的80%</span>
+        <span class="action">查看详情</span>
+      </div>
+
+      <!-- AI 对话区 -->
+      <div class="ai-section">
+        <div class="ai-header">
+          <span class="icon">🤖</span>
+          <span class="title">AI 助手</span>
+        </div>
+
+        <div class="chat-bubble ai">
+          你好！我是你的记账助手。你可以问我：<br>
+          • "这个月花了多少钱？"<br>
+          • "我上周剪过头发吗？"<br>
+          • "帮我分析一下消费习惯"
+        </div>
+
+        <div class="chat-bubble user">
+          这个月餐饮花了多少？
+        </div>
+
+        <div class="chat-bubble ai">
+          本月餐饮共消费 <strong>2,340元</strong>，日均78元。<br><br>
+          占总支出的35%，其中：<br>
+          • 外卖: 1,200元 (51%)<br>
+          • 堂食: 800元 (34%)<br>
+          • 零食: 340元 (15%)
+        </div>
+
+        <div class="quick-queries">
+          <span class="quick-query-tag">今日消费</span>
+          <span class="quick-query-tag">本周消费</span>
+          <span class="quick-query-tag">本月消费</span>
+          <span class="quick-query-tag">找出大额</span>
+          <span class="quick-query-tag">查看外卖</span>
+          <span class="quick-query-tag">查看交通</span>
+        </div>
+
+        <div class="chat-input-bar">
+          <input type="text" placeholder="输入消息...">
+          <button class="voice-btn">🎤</button>
+          <button class="send-btn">➤</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部导航 -->
+    <div class="bottom-nav">
+      <a href="../transaction-list/index.html" class="nav-item">
+        <span class="nav-icon">📋</span>
+        <span>账单</span>
+      </a>
+      <a href="index.html" class="nav-item active">
+        <span class="nav-icon">✏️</span>
+        <span>记账</span>
+      </a>
+      <a href="../profile/index.html" class="nav-item">
+        <span class="nav-icon">👤</span>
+        <span>我的</span>
+      </a>
+    </div>
+  </div>
+</body>
+</html>

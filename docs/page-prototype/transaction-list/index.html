@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WoAccount - 账单列表</title>
+  <link rel="stylesheet" href="../shared/style.css">
+  <style>
+    .search-bar {
+      padding: 8px 16px;
+      background: #fff;
+    }
+    .search-input {
+      display: flex;
+      align-items: center;
+      background: #f5f5f5;
+      border-radius: 10px;
+      padding: 10px 14px;
+      gap: 8px;
+    }
+    .search-input input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: 14px;
+      outline: none;
+    }
+    .search-input .icon {
+      color: #bdbdbd;
+      font-size: 16px;
+    }
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      padding: 8px 16px;
+      overflow-x: auto;
+    }
+    .filter-tag {
+      padding: 6px 14px;
+      border-radius: 16px;
+      background: #f5f5f5;
+      font-size: 13px;
+      color: #757575;
+      white-space: nowrap;
+      cursor: pointer;
+      border: none;
+    }
+    .filter-tag.active {
+      background: #e8f5e9;
+      color: #4caf50;
+    }
+    .summary-bar {
+      display: flex;
+      padding: 12px 16px;
+      gap: 16px;
+      background: #fff;
+      margin: 8px 16px;
+      border-radius: 12px;
+    }
+    .summary-item {
+      flex: 1;
+      text-align: center;
+    }
+    .summary-item .label {
+      font-size: 12px;
+      color: #9e9e9e;
+      margin-bottom: 4px;
+    }
+    .summary-item .value {
+      font-size: 16px;
+      font-weight: 700;
+      color: #212121;
+    }
+    .summary-item .value.expense { color: #f44336; }
+    .summary-item .value.income { color: #4caf50; }
+  </style>
+</head>
+<body>
+  <div class="phone-frame">
+    <div class="status-bar">
+      <span>9:41</span>
+      <span>账单列表</span>
+      <span></span>
+    </div>
+
+    <div class="nav-bar">
+      <span></span>
+      <h1>账单列表</h1>
+      <span class="nav-icon">🔍</span>
+    </div>
+
+    <div class="content">
+      <!-- 搜索栏 -->
+      <div class="search-bar">
+        <div class="search-input">
+          <span class="icon">🔍</span>
+          <input type="text" placeholder="搜索账单...">
+        </div>
+      </div>
+
+      <!-- 筛选栏 -->
+      <div class="filter-bar">
+        <button class="filter-tag active">全部</button>
+        <button class="filter-tag">餐饮</button>
+        <button class="filter-tag">交通</button>
+        <button class="filter-tag">购物</button>
+        <button class="filter-tag">娱乐</button>
+        <button class="filter-tag">住房</button>
+      </div>
+
+      <!-- 本月概览 -->
+      <div class="summary-bar">
+        <div class="summary-item">
+          <div class="label">本月支出</div>
+          <div class="value expense">¥6,540</div>
+        </div>
+        <div class="summary-item">
+          <div class="label">本月收入</div>
+          <div class="value income">¥12,000</div>
+        </div>
+        <div class="summary-item">
+          <div class="label">结余</div>
+          <div class="value">¥5,460</div>
+        </div>
+      </div>
+
+      <!-- 今日 -->
+      <div class="group-header">今天 · 1月15日</div>
+
+      <a href="detail/index.html" class="list-item">
+        <div class="icon" style="background:#fff3e0;">🍜</div>
+        <div class="info">
+          <div class="title">午饭拉面</div>
+          <div class="subtitle">12:30 · 餐饮 > 午餐</div>
+        </div>
+        <div class="amount expense">-¥25.00</div>
+      </a>
+
+      <a href="detail/index.html" class="list-item">
+        <div class="icon" style="background:#e3f2fd;">🚗</div>
+        <div class="info">
+          <div class="title">打车去公司</div>
+          <div class="subtitle">09:15 · 交通 > 打车</div>
+        </div>
+        <div class="amount expense">-¥28.00</div>
+      </a>
+
+      <a href="detail/index.html" class="list-item">
+        <div class="icon" style="background:#fff3e0;">☕</div>
+        <div class="info">
+          <div class="title">下午茶咖啡</div>
+          <div class="subtitle">15:45 · 餐饮 > 饮料</div>
+        </div>
+        <div class="amount expense">-¥18.00</div>
+      </a>
+
+      <!-- 昨日 -->
+      <div class="group-header">昨天 · 1月14日</div>
+
+      <a href="detail/index.html" class="list-item">
+        <div class="icon" style="background:#e8f5e9;">💰</div>
+        <div class="info">
+          <div class="title">工资到账</div>
+          <div class="subtitle">10:00 · 收入 > 工资</div>
+        </div>
+        <div class="amount income">+¥12,000</div>
+      </a>
+
+      <a href="detail/index.html" class="list-item">
+        <div class="icon" style="background:#fce4ec;">🛒</div>
+        <div class="info">
+          <div class="title">超市采购</div>
+          <div class="subtitle">18:30 · 购物 > 日用品</div>
+        </div>
+        <div class="amount expense">-¥156.50</div>
+      </a>
+
+      <a href="detail/index.html" class="list-item">
+        <div class="icon" style="background:#e3f2fd;">🚗</div>
+        <div class="info">
+          <div class="title">地铁充值</div>
+          <div class="subtitle">08:00 · 交通 > 地铁</div>
+        </div>
+        <div class="amount expense">-¥100.00</div>
+      </a>
+
+      <!-- 1月13日 -->
+      <div class="group-header">1月13日 · 周一</div>
+
+      <a href="detail/index.html" class="list-item">
+        <div class="icon" style="background:#fff3e0;">🍜</div>
+        <div class="info">
+          <div class="title">外卖晚餐</div>
+          <div class="subtitle">19:00 · 餐饮 > 外卖</div>
+        </div>
+        <div class="amount expense">-¥42.00</div>
+      </a>
+
+      <a href="detail/index.html" class="list-item">
+        <div class="icon" style="background:#f3e5f5;">🎮</div>
+        <div class="info">
+          <div class="title">游戏充值</div>
+          <div class="subtitle">21:00 · 娱乐 > 游戏</div>
+        </div>
+        <div class="amount expense">-¥68.00</div>
+      </a>
+    </div>
+
+    <!-- 底部导航 -->
+    <div class="bottom-nav">
+      <a href="index.html" class="nav-item active">
+        <span class="nav-icon">📋</span>
+        <span>账单</span>
+      </a>
+      <a href="../home/index.html" class="nav-item">
+        <span class="nav-icon">✏️</span>
+        <span>记账</span>
+      </a>
+      <a href="../profile/index.html" class="nav-item">
+        <span class="nav-icon">👤</span>
+        <span>我的</span>
+      </a>
+    </div>
+  </div>
+</body>
+</html>
