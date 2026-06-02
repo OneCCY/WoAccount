@@ -456,22 +456,24 @@ LazyDatabase _openConnection() {
 
 基于 01 需求（国内网络问题概率"中"）和 02 竞品分析，优先选择国内 LLM 服务商，确保直连无障碍。
 
-| 维度                 | DeepSeek (主力)       | 通义千问 (备选)       | 文心一言 (备选)       |
-| -------------------- | --------------------- | --------------------- | --------------------- |
-| **模型**             | deepseek-chat         | qwen-turbo            | ernie-speed           |
-| **价格**             | ¥1/百万token          | ¥0.008/千token        | ¥0.008/千token        |
-| **国内访问**         | ✅ 直连               | ✅ 直连               | ✅ 直连               |
-| **中文优化**         | ⭐⭐⭐⭐⭐            | ⭐⭐⭐⭐⭐            | ⭐⭐⭐⭐⭐            |
-| **Function Calling** | ✅ 原生               | ✅ 原生               | ✅ 原生               |
-| **JSON模式**         | ✅                    | ✅                    | ✅                    |
-| **响应速度**         | 快 (<1s)              | 快 (<1s)              | 快 (<1s)              |
-| **稳定性**           | ⭐⭐⭐⭐⭐            | ⭐⭐⭐⭐⭐            | ⭐⭐⭐⭐              |
-| **性价比**           | ⭐⭐⭐⭐⭐ (最便宜)   | ⭐⭐⭐⭐              | ⭐⭐⭐⭐              |
-| **推理能力**         | ⭐⭐⭐⭐⭐ (最强)     | ⭐⭐⭐⭐              | ⭐⭐⭐⭐              |
+
+| 维度                 | DeepSeek (主力)     | 通义千问 (备选) | 文心一言 (备选) |
+| -------------------- | ------------------- | --------------- | --------------- |
+| **模型**             | deepseek-chat       | qwen-turbo      | ernie-speed     |
+| **价格**             | ¥1/百万token       | ¥0.008/千token | ¥0.008/千token |
+| **国内访问**         | ✅ 直连             | ✅ 直连         | ✅ 直连         |
+| **中文优化**         | ⭐⭐⭐⭐⭐          | ⭐⭐⭐⭐⭐      | ⭐⭐⭐⭐⭐      |
+| **Function Calling** | ✅ 原生             | ✅ 原生         | ✅ 原生         |
+| **JSON模式**         | ✅                  | ✅              | ✅              |
+| **响应速度**         | 快 (<1s)            | 快 (<1s)        | 快 (<1s)        |
+| **稳定性**           | ⭐⭐⭐⭐⭐          | ⭐⭐⭐⭐⭐      | ⭐⭐⭐⭐        |
+| **性价比**           | ⭐⭐⭐⭐⭐ (最便宜) | ⭐⭐⭐⭐        | ⭐⭐⭐⭐        |
+| **推理能力**         | ⭐⭐⭐⭐⭐ (最强)   | ⭐⭐⭐⭐        | ⭐⭐⭐⭐        |
 
 **选择: DeepSeek (主力) + 通义千问 (备选)**
 
 **理由**:
+
 - **DeepSeek**: 性价比最高，推理能力强，国内直连，Function Calling 支持好
 - **通义千问**: 阿里云生态，稳定性极高，中文优化好，作为可靠备选
 - **兜底**: 本地规则引擎，离线可用，零成本
@@ -507,6 +509,7 @@ LazyDatabase _openConnection() {
 ```
 
 **Fallback 规则**:
+
 1. **L1 规则引擎**: 离线优先，命中率约 60-70%，响应 <10ms
 2. **L2 DeepSeek**: 主力在线服务，超时 3s
 3. **L3 通义千问**: 备选在线服务，超时 3s
@@ -551,13 +554,14 @@ class AiConfig {
 
 ### 3.5.4 兜底方案详解
 
-| 场景 | 处理方式 | 用户体验 |
-|------|----------|----------|
-| **无网络** | 规则引擎直接处理 | 离线可用，准确率约 60-70% |
-| **DeepSeek 超时** | 自动切换通义千问 | 无感知，延迟增加约 1s |
-| **两家都失败** | 规则引擎降级处理 | 返回低置信度结果，提示用户确认 |
-| **API Key 无效** | 规则引擎 + 提示用户配置 | 离线可用，设置页提示 |
-| **LLM 返回异常** | 规则引擎兜底 + 记录错误 | 离线可用，后台记录异常 |
+
+| 场景              | 处理方式                | 用户体验                       |
+| ----------------- | ----------------------- | ------------------------------ |
+| **无网络**        | 规则引擎直接处理        | 离线可用，准确率约 60-70%      |
+| **DeepSeek 超时** | 自动切换通义千问        | 无感知，延迟增加约 1s          |
+| **两家都失败**    | 规则引擎降级处理        | 返回低置信度结果，提示用户确认 |
+| **API Key 无效**  | 规则引擎 + 提示用户配置 | 离线可用，设置页提示           |
+| **LLM 返回异常**  | 规则引擎兜底 + 记录错误 | 离线可用，后台记录异常         |
 
 ### 3.5.2 AI服务架构
 
@@ -826,9 +830,247 @@ class LlmApiServiceImpl implements LlmApiService {
 }
 ```
 
+## 3.6 AI 能力扩展与优化策略
+
+### 3.6.1 检索速度优化
+
+#### 本地缓存层 (L1 Cache)
+
+```
+用户输入 → 缓存查询 → 命中? → 返回缓存结果 (<1ms)
+                  │
+                  └─ 未命中 → LLM API → 缓存结果 → 返回
+```
+
+```dart
+// lib/shared/services/ai_cache_service.dart
+
+class AiCacheService {
+  final Map<String, CacheEntry> _cache = {};
+  final AppDatabase _db;
+
+  AiCacheService(this._db);
+
+  /// 精确匹配缓存
+  AiParseResult? get(String input) {
+    final key = _normalize(input);
+    final entry = _cache[key];
+    if (entry != null && !entry.isExpired) {
+      return entry.result;
+    }
+    return null;
+  }
+
+  /// 语义相似度匹配 (基于编辑距离)
+  AiParseResult? getSimilar(String input, {double threshold = 0.85}) {
+    final normalized = _normalize(input);
+    for (final entry in _cache.entries) {
+      if (entry.value.isExpired) continue;
+      final similarity = _calculateSimilarity(normalized, entry.key);
+      if (similarity >= threshold) {
+        return entry.value.result;
+      }
+    }
+    return null;
+  }
+
+  /// 规范化输入 (去空格、标点、统一数字格式)
+  String _normalize(String input) {
+    return input
+        .trim()
+        .replaceAll(RegExp(r'\s+'), '')
+        .replaceAll(RegExp(r'[，。！？、元块¥]'), '')
+        .replaceAll(RegExp(r'(\d+)块', caseSensitive: false), r'$1元')
+        .toLowerCase();
+  }
+}
+```
+
+**缓存策略**:
+- 精确匹配: 相同输入直接返回 (<1ms)
+- 相似匹配: 编辑距离 > 0.85 返回缓存 (<5ms)
+- 缓存淘汰: LRU + 过期时间 (24h)
+
+#### 本地规则引擎优化 (L2 Cache)
+
+```dart
+// lib/features/ai/domain/services/rule_engine.dart
+
+class RuleEngine {
+  final List<CategoryRule> _systemRules;  // 系统预设规则
+  final List<CategoryRule> _userRules;    // 用户学习规则
+
+  /// 从用户修正数据中学习新规则
+  Future<void> learnFromCorrections() async {
+    final corrections = await _db.getRecentCorrections(limit: 100);
+    final patterns = _extractPatterns(corrections);
+
+    for (final pattern in patterns) {
+      if (pattern.confidence > 0.9 && pattern.count >= 3) {
+        _userRules.add(CategoryRule(
+          keywords: pattern.keywords,
+          category: pattern.category,
+          confidence: pattern.confidence,
+          isLearned: true,
+        ));
+      }
+    }
+  }
+
+  /// 规则优先级: 用户规则 > 系统规则
+  Future<RuleMatchResult?> match(String input) async {
+    // 1. 先查用户学习的规则 (更精准)
+    for (final rule in _userRules) {
+      if (rule.matches(input)) {
+        return RuleMatchResult(
+          category: rule.category,
+          confidence: rule.confidence,
+          source: 'user_rule',
+        );
+      }
+    }
+    // 2. 再查系统预设规则
+    for (final rule in _systemRules) {
+      if (rule.matches(input)) {
+        return RuleMatchResult(
+          category: rule.category,
+          confidence: rule.confidence,
+          source: 'system_rule',
+        );
+      }
+    }
+    return null;
+  }
+}
+```
+
+**优化效果**:
+- 初始命中率: 60-70% (系统规则)
+- 使用 1 个月后: 80-90% (用户规则学习)
+- 使用 3 个月后: 90%+ (规则库完善)
+
+### 3.6.2 检索准确率优化
+
+#### RAG (检索增强生成)
+
+当用户查询历史账单时，先检索相关数据，再让 LLM 基于数据生成回答：
+
+```
+用户查询: "这个月餐饮花了多少？"
+    │
+    ▼
+┌─────────────────┐
+│ 1. 意图识别      │  → intent: query_spending, category: 餐饮, period: this_month
+└────────┬────────┘
+         ▼
+┌─────────────────┐
+│ 2. 本地数据检索  │  → SQL: SELECT SUM(amount) FROM transactions WHERE category='餐饮' AND ...
+└────────┬────────┘
+         ▼
+┌─────────────────┐
+│ 3. 构建上下文    │  → "本月餐饮消费2340元，共45笔，日均78元..."
+└────────┬────────┘
+         ▼
+┌─────────────────┐
+│ 4. LLM 生成回复  │  → "本月餐饮共消费2,340元，日均78元。其中外卖占51%..."
+└─────────────────┘
+```
+
+**优势**: LLM 不需要"记住"所有数据，只需基于检索结果生成自然语言回复。数据越查越准。
+
+#### Function Calling 优化
+
+```dart
+// 工具定义 (给LLM用)
+final tools = [
+  FunctionDefinition(
+    name: 'query_transactions',
+    description: '查询历史账单记录',
+    parameters: {
+      'type': 'object',
+      'properties': {
+        'start_date': {'type': 'string', 'description': '开始日期'},
+        'end_date': {'type': 'string', 'description': '结束日期'},
+        'category': {'type': 'string', 'description': '分类名称'},
+        'keyword': {'type': 'string', 'description': '关键词'},
+        'min_amount': {'type': 'number', 'description': '最小金额'},
+        'max_amount': {'type': 'number', 'description': '最大金额'},
+      },
+    },
+  ),
+  // ... 更多工具
+];
+```
+
+**优化点**:
+- 工具描述越精确，LLM 调用越准确
+- 参数类型约束，减少 LLM 返回错误格式
+- 多轮对话上下文，减少重复查询
+
+### 3.6.3 未来进阶方案
+
+#### 方案 A: 本地向量数据库 (语义检索)
+
+```
+当前: 关键词匹配 (规则引擎)
+未来: 语义相似度匹配 (向量数据库)
+
+用户输入: "中午吃了碗面"  →  向量化  →  与历史记录向量比较  →  找到最相似记录
+```
+
+| 技术 | 方案 | 适用场景 |
+|------|------|----------|
+| **SQLite FTS5** | 全文搜索扩展 | 关键词检索，零依赖 |
+| **sqlite-vss** | SQLite向量扩展 | 语义检索，轻量 |
+| **Hive + 嵌入** | 本地向量存储 | 大规模语义检索 |
+
+**推荐**: SQLite FTS5 (零依赖，够用)
+
+#### 方案 B: 本地小模型 (离线AI)
+
+```
+当前: 规则引擎 (关键词匹配)
+未来: 本地小模型 (语义理解)
+
+用户输入: "中午吃了碗面"  →  本地ML模型  →  分类: 餐饮/午餐, 金额: 25
+```
+
+| 技术 | 方案 | 模型大小 | 准确率 |
+|------|------|----------|--------|
+| **TensorFlow Lite** | 轻量ML框架 | 5-20MB | 80%+ |
+| **ONNX Runtime** | 跨平台推理 | 10-30MB | 85%+ |
+| **Core ML** | Apple原生 | 5-15MB | 85%+ |
+
+**推荐**: TensorFlow Lite (跨平台，社区活跃)
+
+#### 方案 C: 微调模型 (个性化)
+
+```
+用户修正数据 → 训练数据集 → 微调小模型 → 部署到本地
+```
+
+| 阶段 | 数据量 | 时间 | 效果 |
+|------|--------|------|------|
+| 冷启动 | 0-100条 | 0 | 规则引擎 60-70% |
+| 初期 | 100-500条 | 1-2周 | 规则学习 80-90% |
+| 成熟 | 500+条 | 1-3月 | 本地模型 90%+ |
+
+### 3.6.4 优化路线图
+
+```
+Phase 1 (当前)          Phase 2 (3个月后)        Phase 3 (6个月后)
+┌─────────────┐        ┌─────────────────┐      ┌─────────────────┐
+│ 规则引擎     │  ──▶   │ + 用户规则学习   │ ──▶  │ + SQLite FTS5   │
+│ LLM API     │        │ + 本地缓存      │      │ + 本地小模型    │
+│ RAG检索      │        │ + RAG优化       │      │ + 微调模型      │
+└─────────────┘        └─────────────────┘      └─────────────────┘
+准确率: 60-70%          准确率: 80-90%            准确率: 90%+
+响应: <1s (在线)        响应: <500ms (缓存命中)   响应: <100ms (本地)
+```
+
 ---
 
-## 3.6 后端服务说明
+## 3.7 后端服务说明
 
 当前阶段**无后端服务**。所有数据存储在本地 SQLite，AI 功能通过 Dio 直接调用通义千问 API。
 
@@ -892,8 +1134,6 @@ class TransactionRepositoryImpl implements TransactionRepository {
 - 开源: SimpleFIN / GoCardless
 
 **实现**: 添加 `BankSyncService`，通过 CSV/OFX 导入银行账单，AI 自动分类。
-
----
 
 ## 3.7 CI/CD 选型
 
@@ -1027,8 +1267,6 @@ jobs:
           path: build/ios/iphoneos/Runner.app
 ```
 
----
-
 ## 3.8 监控说明
 
 当前阶段**无 Firebase 监控**。通过以下方式保障质量：
@@ -1038,8 +1276,6 @@ jobs:
 - **AI 质量**: 内置训练数据表记录用户修正，用于评估准确率
 
 **未来扩展**: 用户量增长后可接入 Firebase Crashlytics + Analytics。
-
----
 
 ## 3.9 性能优化策略
 
@@ -1074,8 +1310,6 @@ jobs:
 | **异步处理** | AI解析异步执行     | UI不阻塞        |
 | **降级策略** | 规则引擎兜底       | 网络异常可用    |
 
----
-
 ## 3.10 安全策略
 
 ### 3.10.1 数据安全
@@ -1088,8 +1322,6 @@ jobs:
 | **应用层** | 输入校验      | 防止 SQL 注入          |
 
 > 当前阶段无用户认证、无云端数据，安全风险集中在 LLM API Key 保护和本地数据完整性。API Key 通过 `--dart-define` 注入，不硬编码在代码中。
-
----
 
 ## 3.11 技术风险评估
 
