@@ -186,6 +186,42 @@
       font-weight: 500;
       cursor: pointer;
     }
+    .ai-entry {
+      margin: 12px 16px;
+      background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.2s;
+    }
+    .ai-entry:hover {
+      transform: scale(0.98);
+    }
+    .ai-entry .icon {
+      font-size: 32px;
+    }
+    .ai-entry .info {
+      flex: 1;
+    }
+    .ai-entry .info .title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #2e7d32;
+    }
+    .ai-entry .info .desc {
+      font-size: 12px;
+      color: #66bb6a;
+      margin-top: 4px;
+    }
+    .ai-entry .arrow {
+      font-size: 20px;
+      color: #66bb6a;
+    }
     .settings-group {
       background: #fff;
       margin: 12px 16px;
@@ -292,6 +328,16 @@
 
         <div class="view-detail-btn">查看详细统计 →</div>
       </div>
+
+      <!-- AI 助手入口 -->
+      <a href="#" class="ai-entry" onclick="alert('AI助手对话页面（待实现）'); return false;">
+        <span class="icon">🤖</span>
+        <div class="info">
+          <div class="title">AI 助手</div>
+          <div class="desc">智能记账 · 消费分析 · 问答查询</div>
+        </div>
+        <span class="arrow">›</span>
+      </a>
 
       <!-- 设置入口 -->
       <div class="settings-group">
