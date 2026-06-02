@@ -8,13 +8,14 @@
 
 基于 01 需求分析（个人开发者、前期自用）和 02 竞品分析（钱迹的本地优先理念、Copilot 的 AI 能力），采用本地优先策略：
 
-| 维度 | 当前方案 | 理由 (来自01/02) |
-|------|----------|------------------|
+
+| 维度     | 当前方案       | 理由 (来自01/02)                                         |
+| -------- | -------------- | -------------------------------------------------------- |
 | 数据存储 | SQLite (Drift) | 01: 数据安全是用户核心痛点；02: 钱迹验证了本地优先可行性 |
-| 认证系统 | 无 | 01: 单用户场景，零摩擦使用 |
-| 数据同步 | 无 | 01: 单设备，无需同步 |
-| 监控分析 | 本地日志 | 01: 个人自用，无需 Firebase |
-| 后端服务 | 无 | 01: 降低运维成本，专注核心功能 |
+| 认证系统 | 无             | 01: 单用户场景，零摩擦使用                               |
+| 数据同步 | 无             | 01: 单设备，无需同步                                     |
+| 监控分析 | 本地日志       | 01: 个人自用，无需 Firebase                              |
+| 后端服务 | 无             | 01: 降低运维成本，专注核心功能                           |
 
 ### 3.0.2 未来扩展路径
 
@@ -30,6 +31,7 @@ Phase 1 (当前)          Phase 2 (按需)           Phase 3 (用户增长后)
 ```
 
 **扩展时只需**:
+
 1. 实现 `RemoteDataSource` 接口 (Supabase)
 2. 添加 `SyncService` (本地→云端同步)
 3. 添加 `AuthService` (Supabase Auth)
@@ -72,8 +74,6 @@ Phase 1 (当前)          Phase 2 (按需)           Phase 3 (用户增长后)
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
-
----
 
 ## 3.2 前端技术选型
 
@@ -184,14 +184,13 @@ flutter:
 
 **依赖选型理由** (结合01需求/02竞品):
 
-| 依赖 | 选择理由 | 竞品参考 |
-|------|----------|----------|
-| Drift | 类型安全ORM，自动迁移，优于Room(Android) | 02: 钱迹用Room，Drift跨平台更优 |
-| Riverpod | 编译时安全，代码生成，优于Bloc | 02: Copilot用Swift原生状态管理 |
-| fl_chart | 纯Dart实现，无原生依赖，轻量 | 02: 随手记图表臃肿 |
-| Dio | 拦截器丰富，支持重试/超时 | 01: LLM API需要重试机制 |
 
----
+| 依赖     | 选择理由                                 | 竞品参考                        |
+| -------- | ---------------------------------------- | ------------------------------- |
+| Drift    | 类型安全ORM，自动迁移，优于Room(Android) | 02: 钱迹用Room，Drift跨平台更优 |
+| Riverpod | 编译时安全，代码生成，优于Bloc           | 02: Copilot用Swift原生状态管理  |
+| fl_chart | 纯Dart实现，无原生依赖，轻量             | 02: 随手记图表臃肿              |
+| Dio      | 拦截器丰富，支持重试/超时                | 01: LLM API需要重试机制         |
 
 ## 3.3 状态管理选型
 
@@ -245,10 +244,10 @@ class TransactionList extends _$TransactionList {
     state = await AsyncValue.guard(() async {
       final aiService = ref.read(aiServiceProvider);
       final repository = ref.read(transactionRepositoryProvider);
-    
+  
       // AI解析
       final result = await aiService.parseInput(input);
-    
+  
       // 创建交易
       final transaction = Transaction(
         amount: result.amount!,
@@ -258,10 +257,10 @@ class TransactionList extends _$TransactionList {
         originalInput: input,
         aiConfidence: result.confidence,
       );
-    
+  
       // 保存
       await repository.addTransaction(transaction);
-    
+  
       // 刷新列表
       return repository.getTransactions(
         startDate: DateTime.now().startOfDay,
@@ -296,8 +295,6 @@ LlmApiService llmApi(LlmApiRef ref) {
   );
 }
 ```
-
----
 
 ## 3.4 数据库选型
 
@@ -453,82 +450,90 @@ LazyDatabase _openConnection() {
 }
 ```
 
----
-
 ## 3.5 AI服务选型
 
-### 3.5.1 LLM API 对比
+### 3.5.1 LLM API 对比 (国内模型优先)
 
-基于 02 竞品分析，Copilot Money 的 Core ML 设备端推理是 AI 能力标杆。WoAccount 采用云端 LLM + 本地规则引擎混合方案，在 AI 能力和离线可用性之间取得平衡。
+基于 01 需求（国内网络问题概率"中"）和 02 竞品分析，优先选择国内 LLM 服务商，确保直连无障碍。
 
-| 维度                 | 通义千问 (主力) | GPT-4o-mini (备选) | Claude-3-haiku (备选) | 文心一言 (备选) |
-| -------------------- | --------------- | ------------------ | --------------------- | --------------- |
-| **模型**             | qwen-turbo      | gpt-4o-mini        | claude-3-haiku        | ernie-speed     |
-| **价格**             | ¥0.008/千token | $0.00015/千token   | $0.00025/千token      | ¥0.008/千token |
-| **国内访问**         | ✅ 直连        | ❌ 需代理          | ❌ 需代理             | ✅ 直连        |
-| **中文优化**         | ⭐⭐⭐⭐⭐      | ⭐⭐⭐⭐           | ⭐⭐⭐⭐              | ⭐⭐⭐⭐⭐      |
-| **Function Calling** | ✅ 原生        | ✅ 原生            | ✅ 原生               | ✅ 原生        |
-| **响应速度**         | 快 (<1s)       | 中 (1-2s)          | 中 (1-2s)             | 快 (<1s)       |
-| **稳定性**           | ⭐⭐⭐⭐⭐      | ⭐⭐⭐⭐⭐         | ⭐⭐⭐⭐⭐            | ⭐⭐⭐⭐        |
-| **JSON模式**         | ✅              | ✅                 | ✅                    | ✅              |
+| 维度                 | DeepSeek (主力)       | 通义千问 (备选)       | 文心一言 (备选)       |
+| -------------------- | --------------------- | --------------------- | --------------------- |
+| **模型**             | deepseek-chat         | qwen-turbo            | ernie-speed           |
+| **价格**             | ¥1/百万token          | ¥0.008/千token        | ¥0.008/千token        |
+| **国内访问**         | ✅ 直连               | ✅ 直连               | ✅ 直连               |
+| **中文优化**         | ⭐⭐⭐⭐⭐            | ⭐⭐⭐⭐⭐            | ⭐⭐⭐⭐⭐            |
+| **Function Calling** | ✅ 原生               | ✅ 原生               | ✅ 原生               |
+| **JSON模式**         | ✅                    | ✅                    | ✅                    |
+| **响应速度**         | 快 (<1s)              | 快 (<1s)              | 快 (<1s)              |
+| **稳定性**           | ⭐⭐⭐⭐⭐            | ⭐⭐⭐⭐⭐            | ⭐⭐⭐⭐              |
+| **性价比**           | ⭐⭐⭐⭐⭐ (最便宜)   | ⭐⭐⭐⭐              | ⭐⭐⭐⭐              |
+| **推理能力**         | ⭐⭐⭐⭐⭐ (最强)     | ⭐⭐⭐⭐              | ⭐⭐⭐⭐              |
 
-**选择: 通义千问 (主力) + GPT-4o-mini (备选)**
+**选择: DeepSeek (主力) + 通义千问 (备选)**
 
-**理由** (结合01/02):
-- 01: 国内网络问题概率"中"，需要国内直连的 LLM 服务商
-- 02: 通义千问中文优化最佳，适合中文口语化记账场景
-- 02: Copilot 的 AI 能力是标杆，WoAccount 用 LLM+规则引擎追赶
+**理由**:
+- **DeepSeek**: 性价比最高，推理能力强，国内直连，Function Calling 支持好
+- **通义千问**: 阿里云生态，稳定性极高，中文优化好，作为可靠备选
+- **兜底**: 本地规则引擎，离线可用，零成本
 
-### 3.5.2 多服务商 Fallback 策略
+### 3.5.2 多级 Fallback 策略
 
 ```
 用户输入
     │
     ▼
-┌─────────────┐    命中     ┌─────────────┐
-│ 规则引擎     │ ──────────▶ │ 返回结果     │ (离线, <10ms)
-│ (本地,离线)  │             │ confidence>0.85│
-└──────┬──────┘             └─────────────┘
-       │ 未命中/confidence<0.85
-       ▼
-┌─────────────┐    成功     ┌─────────────┐
-│ 通义千问 API │ ──────────▶ │ 返回结果     │ (在线, <1s)
-│ (主力)       │             └─────────────┘
-└──────┬──────┘
-       │ 失败/超时(3s)
-       ▼
-┌─────────────┐    成功     ┌─────────────┐
-│ GPT-4o-mini  │ ──────────▶ │ 返回结果     │ (在线, <2s)
-│ (备选)       │             └─────────────┘
-└──────┬──────┘
-       │ 失败
-       ▼
-┌─────────────┐
-│ 规则引擎     │ (兜底, 返回低置信度结果)
-│ (降级)       │
-└─────────────┘
+┌─────────────────┐    命中(confidence>0.85)    ┌─────────────┐
+│ L1: 规则引擎     │ ──────────────────────────▶ │ 返回结果     │
+│ (本地, 离线)     │                              │ <10ms       │
+└────────┬────────┘                              └─────────────┘
+         │ 未命中 / confidence<0.85
+         ▼
+┌─────────────────┐    成功                       ┌─────────────┐
+│ L2: DeepSeek API │ ──────────────────────────▶ │ 返回结果     │
+│ (主力, 在线)     │                              │ <1s         │
+└────────┬────────┘                              └─────────────┘
+         │ 失败 / 超时(3s)
+         ▼
+┌─────────────────┐    成功                       ┌─────────────┐
+│ L3: 通义千问 API │ ──────────────────────────▶ │ 返回结果     │
+│ (备选, 在线)     │                              │ <1s         │
+└────────┬────────┘                              └─────────────┘
+         │ 失败
+         ▼
+┌─────────────────┐
+│ L4: 规则引擎     │ (兜底, 返回低置信度结果)
+│ (降级, 离线)     │
+└─────────────────┘
 ```
 
-**Fallback 配置**:
+**Fallback 规则**:
+1. **L1 规则引擎**: 离线优先，命中率约 60-70%，响应 <10ms
+2. **L2 DeepSeek**: 主力在线服务，超时 3s
+3. **L3 通义千问**: 备选在线服务，超时 3s
+4. **L4 规则引擎降级**: 所有在线服务失败时，返回低置信度结果，用户可手动修正
+
+### 3.5.3 Fallback 配置
 
 ```dart
 // lib/config/ai_config.dart
 
 class AiConfig {
-  /// LLM服务商优先级
+  /// LLM服务商优先级 (国内模型优先)
   static const providers = [
     LlmProvider(
-      name: 'qwen-turbo',
-      baseUrl: 'https://dashscope.aliyuncs.com/api/v1',
-      model: 'qwen-turbo',
+      name: 'deepseek',
+      baseUrl: 'https://api.deepseek.com/v1',
+      model: 'deepseek-chat',
+      apiKeyEnv: 'DEEPSEEK_API_KEY',
       timeout: Duration(seconds: 3),
       isPrimary: true,
     ),
     LlmProvider(
-      name: 'gpt-4o-mini',
-      baseUrl: 'https://api.openai.com/v1',
-      model: 'gpt-4o-mini',
-      timeout: Duration(seconds: 5),
+      name: 'qwen',
+      baseUrl: 'https://dashscope.aliyuncs.com/api/v1',
+      model: 'qwen-turbo',
+      apiKeyEnv: 'QWEN_API_KEY',
+      timeout: Duration(seconds: 3),
       isPrimary: false,
     ),
   ];
@@ -538,8 +543,21 @@ class AiConfig {
 
   /// LLM超时后降级到规则引擎
   static const Duration llmTimeout = Duration(seconds: 3);
+
+  /// 是否启用规则引擎兜底
+  static const bool enableRuleFallback = true;
 }
 ```
+
+### 3.5.4 兜底方案详解
+
+| 场景 | 处理方式 | 用户体验 |
+|------|----------|----------|
+| **无网络** | 规则引擎直接处理 | 离线可用，准确率约 60-70% |
+| **DeepSeek 超时** | 自动切换通义千问 | 无感知，延迟增加约 1s |
+| **两家都失败** | 规则引擎降级处理 | 返回低置信度结果，提示用户确认 |
+| **API Key 无效** | 规则引擎 + 提示用户配置 | 离线可用，设置页提示 |
+| **LLM 返回异常** | 规则引擎兜底 + 记录错误 | 离线可用，后台记录异常 |
 
 ### 3.5.2 AI服务架构
 
@@ -701,44 +719,56 @@ class AiParseResult {
 enum AiSource { rule, llm, cache }
 ```
 
-### 3.5.3 LLM API 封装
+### 3.5.5 LLM API 封装 (多服务商 Fallback)
 
 ```dart
 // lib/shared/services/llm_api_service.dart
 
-/// LLM API服务
+/// LLM API服务 (支持多服务商Fallback)
 class LlmApiServiceImpl implements LlmApiService {
-  final Dio _dio;
-  final String _apiKey;
-  final String _baseUrl;
-  
+  final List<LlmProvider> _providers;
+  final RuleEngine _ruleEngine;
+
   LlmApiServiceImpl({
-    required String apiKey,
-    required String baseUrl,
-  })  : _apiKey = apiKey,
-        _baseUrl = baseUrl,
-        _dio = Dio(BaseOptions(
-          baseUrl: baseUrl,
-          headers: {
-            'Authorization': 'Bearer $apiKey',
-            'Content-Type': 'application/json',
-          },
-        ));
-  
+    required List<LlmProvider> providers,
+    required RuleEngine ruleEngine,
+  })  : _providers = providers,
+        _ruleEngine = ruleEngine;
+
+  /// 带Fallback的LLM调用
+  Future<T> _callWithFallback<T>(
+    Future<T> Function(LlmProvider provider) call,
+  ) async {
+    for (final provider in _providers) {
+      try {
+        return await call(provider).timeout(
+          provider.timeout,
+          onTimeout: () => throw TimeoutException('LLM timeout'),
+        );
+      } catch (e) {
+        continue; // 尝试下一个服务商
+      }
+    }
+    throw AiServiceException('所有LLM服务商均不可用');
+  }
+
   @override
   Future<LlmParseResult> parseTransaction(String input) async {
-    final response = await _dio.post('/chat/completions', data: {
-      'model': 'qwen-turbo',
-      'messages': [
-        {
-          'role': 'system',
-          'content': _buildParseSystemPrompt(),
+    return _callWithFallback((provider) async {
+      final dio = Dio(BaseOptions(
+        baseUrl: provider.baseUrl,
+        headers: {
+          'Authorization': 'Bearer ${provider.apiKey}',
+          'Content-Type': 'application/json',
         },
-        {
-          'role': 'user',
-          'content': '用户输入: $input',
-        },
-      ],
+      ));
+
+      final response = await dio.post('/chat/completions', data: {
+        'model': provider.model,
+        'messages': [
+          {'role': 'system', 'content': _buildParseSystemPrompt()},
+          {'role': 'user', 'content': '用户输入: $input'},
+        ],
       'temperature': 0.1,
       'response_format': {'type': 'json_object'},
     });
@@ -809,20 +839,22 @@ class LlmApiServiceImpl implements LlmApiService {
 基于 02 竞品分析，Actual Budget 的本地优先+CRDT同步方案验证了"本地优先+可选云同步"的可行性。
 
 **扩展触发条件**:
+
 - 用户需要多设备同步
 - 用户量增长需要后端支持
 - 需要银行账单自动导入
 
 **扩展步骤**:
 
-| 步骤 | 内容 | 影响范围 |
-|------|------|----------|
-| 1 | 添加 `supabase_flutter` 依赖 | pubspec.yaml |
-| 2 | 实现 `RemoteDataSource` 接口 | data层 |
-| 3 | 添加 `SyncService` (本地→云端) | shared/services |
-| 4 | 添加 `AuthService` (Supabase Auth) | features/auth |
-| 5 | 配置 RLS (Row Level Security) | Supabase 控制台 |
-| 6 | 业务逻辑层**零改动** | 无影响 |
+
+| 步骤 | 内容                              | 影响范围        |
+| ---- | --------------------------------- | --------------- |
+| 1    | 添加`supabase_flutter` 依赖       | pubspec.yaml    |
+| 2    | 实现`RemoteDataSource` 接口       | data层          |
+| 3    | 添加`SyncService` (本地→云端)    | shared/services |
+| 4    | 添加`AuthService` (Supabase Auth) | features/auth   |
+| 5    | 配置 RLS (Row Level Security)     | Supabase 控制台 |
+| 6    | 业务逻辑层**零改动**              | 无影响          |
 
 **Repository 层扩展示例**:
 
@@ -854,6 +886,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
 基于 02 竞品分析，YNAB/Monarch/Copilot 的银行同步是核心差异点。
 
 **方案**:
+
 - 海外: Plaid / MX / Finicity (多聚合器)
 - 国内: 微信/支付宝账单导入 (CSV解析)
 - 开源: SimpleFIN / GoCardless
@@ -887,19 +920,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-    
+  
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
-    
+  
       - name: Install dependencies
         run: flutter pub get
-    
+  
       - name: Analyze code
         run: flutter analyze --fatal-infos
-    
+  
       - name: Check formatting
         run: dart format --set-exit-if-changed .
 
@@ -910,19 +943,19 @@ jobs:
     needs: lint
     steps:
       - uses: actions/checkout@v4
-    
+  
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
-    
+  
       - name: Install dependencies
         run: flutter pub get
-    
+  
       - name: Run tests
         run: flutter test --coverage
-    
+  
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
@@ -936,28 +969,28 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
-    
+  
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
-    
+  
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
-    
+  
       - name: Install dependencies
         run: flutter pub get
-    
+  
       - name: Build APK
         run: flutter build apk --release
-    
+  
       - name: Build AAB
         run: flutter build appbundle --release
-    
+  
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -974,19 +1007,19 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
-    
+  
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
-    
+  
       - name: Install dependencies
         run: flutter pub get
-    
+  
       - name: Build iOS
         run: flutter build ios --release --no-codesign
-    
+  
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -1062,13 +1095,14 @@ jobs:
 
 基于 01 需求分析的风险评估和 02 竞品分析的技术壁垒，更新风险矩阵：
 
-| 风险            | 概率 | 影响 | 应对策略                              | 竞品参考 |
-| --------------- | ---- | ---- | ------------------------------------- | -------- |
-| Flutter版本兼容 | 低   | 中   | 锁定版本，及时更新                    | 02: 微力记账用Flutter验证可行 |
-| LLM API不稳定   | 中   | 高   | 多服务商fallback，规则引擎兜底        | 01: 风险评估"中" |
-| 本地数据丢失    | 低   | 高   | 定期CSV导出备份，SQLite事务保证       | 02: 钱迹本地优先已验证 |
-| 数据库性能瓶颈  | 低   | 中   | 索引优化，分页查询，虚拟列表          | 01: 性能需求<2s |
-| 国内网络问题    | 中   | 高   | 规则引擎离线可用，通义千问国内直连    | 01: 风险评估"中" |
-| 包体积过大      | 中   | 低   | Tree Shaking，代码分割                | 02: 简单记账轻量化验证 |
-| AI准确率不达标  | 中   | 高   | 规则引擎兜底，用户反馈学习            | 01: 风险评估"中" |
-| LLM API成本     | 低   | 低   | 规则引擎减少调用，缓存相似输入        | 01: 个人用量极小 |
+
+| 风险            | 概率 | 影响 | 应对策略                           | 竞品参考                      |
+| --------------- | ---- | ---- | ---------------------------------- | ----------------------------- |
+| Flutter版本兼容 | 低   | 中   | 锁定版本，及时更新                 | 02: 微力记账用Flutter验证可行 |
+| LLM API不稳定   | 中   | 高   | 多服务商fallback，规则引擎兜底     | 01: 风险评估"中"              |
+| 本地数据丢失    | 低   | 高   | 定期CSV导出备份，SQLite事务保证    | 02: 钱迹本地优先已验证        |
+| 数据库性能瓶颈  | 低   | 中   | 索引优化，分页查询，虚拟列表       | 01: 性能需求<2s               |
+| 国内网络问题    | 中   | 高   | 规则引擎离线可用，通义千问国内直连 | 01: 风险评估"中"              |
+| 包体积过大      | 中   | 低   | Tree Shaking，代码分割             | 02: 简单记账轻量化验证        |
+| AI准确率不达标  | 中   | 高   | 规则引擎兜底，用户反馈学习         | 01: 风险评估"中"              |
+| LLM API成本     | 低   | 低   | 规则引擎减少调用，缓存相似输入     | 01: 个人用量极小              |
