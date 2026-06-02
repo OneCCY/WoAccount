@@ -1,24 +1,39 @@
 # 03 - 技术选型文档 (Technical Specification)
 
-> **版本**: v3.0 | **更新日期**: 2026-06-02 | **状态**: 已更新为本地优先方案
-
----
+> **版本**: v3.1 | **更新日期**: 2026-06-02 | **状态**: 结合01需求/02竞品分析深化
 
 ## 3.0 架构策略说明
 
-**当前阶段: 本地优先 (Local-First)**
+### 3.0.1 当前阶段: 本地优先 (Local-First)
 
-作为个人开发者、前期自用的场景，采用本地优先策略：
+基于 01 需求分析（个人开发者、前期自用）和 02 竞品分析（钱迹的本地优先理念、Copilot 的 AI 能力），采用本地优先策略：
 
-- **数据存储**: 仅使用本地 SQLite (Drift)，无云端数据库
-- **认证系统**: 无用户认证，App 打开即用
-- **数据同步**: 无多设备同步，数据仅在本机
-- **监控分析**: 无 Firebase，通过日志和手动测试验证
-- **后端服务**: 无 Supabase/自建后端
+| 维度 | 当前方案 | 理由 (来自01/02) |
+|------|----------|------------------|
+| 数据存储 | SQLite (Drift) | 01: 数据安全是用户核心痛点；02: 钱迹验证了本地优先可行性 |
+| 认证系统 | 无 | 01: 单用户场景，零摩擦使用 |
+| 数据同步 | 无 | 01: 单设备，无需同步 |
+| 监控分析 | 本地日志 | 01: 个人自用，无需 Firebase |
+| 后端服务 | 无 | 01: 降低运维成本，专注核心功能 |
 
-**未来扩展路径**: Clean Architecture 分层设计保留了 RemoteDataSource 接口位置，未来需要多设备同步时，只需实现 RemoteDataSource + SyncService，无需重构业务逻辑。
+### 3.0.2 未来扩展路径
 
----
+Clean Architecture 分层设计保留了扩展接口，具体扩展步骤：
+
+```
+Phase 1 (当前)          Phase 2 (按需)           Phase 3 (用户增长后)
+┌─────────────┐        ┌─────────────────┐      ┌─────────────────────┐
+│ SQLite 本地  │  ──▶   │ + Supabase 云端  │ ──▶  │ + Firebase 监控      │
+│ 无认证       │        │ + Supabase Auth │      │ + 应用商店上架       │
+│ 无同步       │        │ + Realtime 同步 │      │ + 多聚合器银行同步   │
+└─────────────┘        └─────────────────┘      └─────────────────────┘
+```
+
+**扩展时只需**:
+1. 实现 `RemoteDataSource` 接口 (Supabase)
+2. 添加 `SyncService` (本地→云端同步)
+3. 添加 `AuthService` (Supabase Auth)
+4. 业务逻辑层**零改动**
 
 ## 3.1 技术栈总览
 
@@ -64,20 +79,22 @@
 
 ### 3.2.1 框架对比
 
-| 维度 | Flutter | React Native | Kotlin Multiplatform | 原生开发 |
-|------|---------|--------------|---------------------|----------|
-| **语言** | Dart | JavaScript/TypeScript | Kotlin | Swift/Kotlin |
-| **跨平台** | ✅ iOS/Android/Web/Desktop | ✅ iOS/Android | ✅ iOS/Android | ❌ 需两套代码 |
-| **性能** | ⭐⭐⭐⭐⭐ (编译为原生) | ⭐⭐⭐⭐ (JS Bridge) | ⭐⭐⭐⭐⭐ (原生) | ⭐⭐⭐⭐⭐ |
-| **UI一致性** | ⭐⭐⭐⭐⭐ (自绘引擎) | ⭐⭐⭐ (平台组件) | ⭐⭐⭐⭐ (Compose Multiplatform) | ⭐⭐⭐ |
-| **热重载** | ✅ (毫秒级) | ✅ (Fast Refresh) | ✅ (有限) | ❌ |
-| **生态** | ⭐⭐⭐⭐ (pub.dev 40k+包) | ⭐⭐⭐⭐⭐ (npm) | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| **学习曲线** | 中 (需学Dart) | 低 (JS/TS) | 中高 | 高 |
-| **适合场景** | 跨平台App | 跨平台App | 共享业务逻辑 | 高性能App |
+
+| 维度         | Flutter                    | React Native          | Kotlin Multiplatform             | 原生开发      |
+| ------------ | -------------------------- | --------------------- | -------------------------------- | ------------- |
+| **语言**     | Dart                       | JavaScript/TypeScript | Kotlin                           | Swift/Kotlin  |
+| **跨平台**   | ✅ iOS/Android/Web/Desktop | ✅ iOS/Android        | ✅ iOS/Android                   | ❌ 需两套代码 |
+| **性能**     | ⭐⭐⭐⭐⭐ (编译为原生)    | ⭐⭐⭐⭐ (JS Bridge)  | ⭐⭐⭐⭐⭐ (原生)                | ⭐⭐⭐⭐⭐    |
+| **UI一致性** | ⭐⭐⭐⭐⭐ (自绘引擎)      | ⭐⭐⭐ (平台组件)     | ⭐⭐⭐⭐ (Compose Multiplatform) | ⭐⭐⭐        |
+| **热重载**   | ✅ (毫秒级)                | ✅ (Fast Refresh)     | ✅ (有限)                        | ❌            |
+| **生态**     | ⭐⭐⭐⭐ (pub.dev 40k+包)  | ⭐⭐⭐⭐⭐ (npm)      | ⭐⭐⭐                           | ⭐⭐⭐⭐⭐    |
+| **学习曲线** | 中 (需学Dart)              | 低 (JS/TS)            | 中高                             | 高            |
+| **适合场景** | 跨平台App                  | 跨平台App             | 共享业务逻辑                     | 高性能App     |
 
 **选择: Flutter**
 
 **技术理由**:
+
 1. **自绘引擎**: 不依赖平台组件，UI一致性最佳
 2. **AOT编译**: Release模式编译为原生代码，性能优秀
 3. **单代码库**: 一套代码覆盖iOS/Android/Web
@@ -85,11 +102,13 @@
 5. **Google支持**: 持续更新，生态快速发展
 
 **风险评估**:
-| 风险 | 概率 | 影响 | 应对策略 |
-|------|------|------|----------|
-| Dart语言小众 | 中 | 低 | 学习曲线平缓，文档完善 |
-| 原生功能缺失 | 中 | 中 | Platform Channel桥接 |
-| 包体积较大 | 中 | 低 | Tree Shaking优化 |
+
+
+| 风险         | 概率 | 影响 | 应对策略               |
+| ------------ | ---- | ---- | ---------------------- |
+| Dart语言小众 | 中   | 低   | 学习曲线平缓，文档完善 |
+| 原生功能缺失 | 中   | 中   | Platform Channel桥接   |
+| 包体积较大   | 中   | 低   | Tree Shaking优化       |
 
 ### 3.2.2 依赖清单
 
@@ -101,59 +120,60 @@ description: AI智能记账App - 本地优先
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
-  flutter: '>=3.0.0'
+  sdk: '>=3.2.0 <4.0.0'    # Dart 3.2+ (Records, Patterns)
+  flutter: '>=3.16.0'       # Flutter 3.16+ (Impeller默认启用)
 
 dependencies:
   flutter:
     sdk: flutter
 
-  # 状态管理
-  flutter_riverpod: ^2.4.9
-  riverpod_annotation: ^2.3.3
+  # === 状态管理 ===
+  flutter_riverpod: ^2.5.1       # 响应式状态管理
+  riverpod_annotation: ^2.3.5    # 注解支持
 
-  # 路由
-  go_router: ^13.0.0
+  # === 路由 ===
+  go_router: ^14.2.0             # 声明式路由
 
-  # 本地数据库
-  drift: ^2.14.1
-  sqlite3_flutter_libs: ^0.5.18
-  path_provider: ^2.1.2
-  path: ^1.8.3
+  # === 本地数据库 ===
+  drift: ^2.18.0                 # SQLite ORM (类型安全)
+  sqlite3_flutter_libs: ^2.0.0   # SQLite 原生库
+  path_provider: ^2.1.2          # 应用文档目录
+  path: ^1.9.0                   # 路径处理
 
-  # 网络请求 (调用LLM API)
-  dio: ^5.4.0
+  # === 网络请求 (调用LLM API) ===
+  dio: ^5.6.0                    # HTTP客户端
 
-  # JSON序列化
-  json_annotation: ^4.8.1
-  freezed_annotation: ^2.4.1
+  # === JSON序列化 ===
+  json_annotation: ^4.9.0        # JSON注解
+  freezed_annotation: ^2.4.4     # 不可变数据类注解
 
-  # UI组件
-  fl_chart: ^0.66.2
-  flutter_slidable: ^3.0.1
+  # === UI组件 ===
+  fl_chart: ^0.68.0              # 图表 (饼图/折线图)
+  flutter_slidable: ^3.1.0       # 列表滑动操作
 
-  # 国际化
-  intl: ^0.19.0
+  # === 国际化 ===
+  intl: ^0.19.0                  # 日期/货币格式化
 
-  # 工具
-  uuid: ^4.2.2
-  shared_preferences: ^2.2.2
-  collection: ^1.18.0
+  # === 工具 ===
+  uuid: ^4.4.0                   # UUID生成
+  shared_preferences: ^2.2.3     # 轻量KV存储 (设置项)
+  collection: ^1.18.0            # 集合工具
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.1
+  flutter_lints: ^4.0.0
 
-  # 代码生成
-  drift_dev: ^2.14.1
-  build_runner: ^2.4.8
-  riverpod_generator: ^2.3.9
-  json_serializable: ^6.7.1
-  freezed: ^2.4.6
+  # === 代码生成 ===
+  drift_dev: ^2.18.0             # Drift代码生成
+  build_runner: ^2.4.9           # 通用代码生成器
+  riverpod_generator: ^2.4.0     # Riverpod代码生成
+  json_serializable: ^6.8.0      # JSON序列化生成
+  freezed: ^2.5.2                # 不可变类生成
 
-  # 测试
-  mockito: ^5.4.4
+  # === 测试 ===
+  mockito: ^5.4.4                # Mock框架
+  drift_dev: ^2.18.0             # Drift测试支持
   integration_test:
     sdk: flutter
 
@@ -162,25 +182,36 @@ flutter:
   generate: true  # 国际化
 ```
 
+**依赖选型理由** (结合01需求/02竞品):
+
+| 依赖 | 选择理由 | 竞品参考 |
+|------|----------|----------|
+| Drift | 类型安全ORM，自动迁移，优于Room(Android) | 02: 钱迹用Room，Drift跨平台更优 |
+| Riverpod | 编译时安全，代码生成，优于Bloc | 02: Copilot用Swift原生状态管理 |
+| fl_chart | 纯Dart实现，无原生依赖，轻量 | 02: 随手记图表臃肿 |
+| Dio | 拦截器丰富，支持重试/超时 | 01: LLM API需要重试机制 |
+
 ---
 
 ## 3.3 状态管理选型
 
 ### 3.3.1 方案对比
 
-| 维度 | Riverpod | Bloc | Provider | GetX |
-|------|----------|------|----------|------|
-| **类型安全** | ✅ 编译时检查 | ✅ | ❌ 运行时 | ❌ |
-| **可测试性** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
-| **代码生成** | ✅ (riverpod_generator) | ❌ | ❌ | ❌ |
-| **异步支持** | ✅ (AsyncValue) | ✅ | ✅ | ✅ |
-| **依赖注入** | ✅ 内置 | ❌ 需额外 | ❌ | ✅ |
-| **学习曲线** | 中 | 中高 | 低 | 低 |
-| **性能** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+
+| 维度         | Riverpod                | Bloc       | Provider  | GetX     |
+| ------------ | ----------------------- | ---------- | --------- | -------- |
+| **类型安全** | ✅ 编译时检查           | ✅         | ❌ 运行时 | ❌       |
+| **可测试性** | ⭐⭐⭐⭐⭐              | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐  | ⭐⭐⭐   |
+| **代码生成** | ✅ (riverpod_generator) | ❌         | ❌        | ❌       |
+| **异步支持** | ✅ (AsyncValue)         | ✅         | ✅        | ✅       |
+| **依赖注入** | ✅ 内置                 | ❌ 需额外  | ❌        | ✅       |
+| **学习曲线** | 中                      | 中高       | 低        | 低       |
+| **性能**     | ⭐⭐⭐⭐⭐              | ⭐⭐⭐⭐   | ⭐⭐⭐⭐  | ⭐⭐⭐⭐ |
 
 **选择: Riverpod**
 
 **技术理由**:
+
 1. **编译时安全**: 类型错误在编译时发现
 2. **代码生成**: 减少样板代码
 3. **可测试性**: 易于Mock和单元测试
@@ -210,14 +241,14 @@ class TransactionList extends _$TransactionList {
   /// 添加交易
   Future<void> addTransaction(String input) async {
     state = const AsyncValue.loading();
-    
+  
     state = await AsyncValue.guard(() async {
       final aiService = ref.read(aiServiceProvider);
       final repository = ref.read(transactionRepositoryProvider);
-      
+    
       // AI解析
       final result = await aiService.parseInput(input);
-      
+    
       // 创建交易
       final transaction = Transaction(
         amount: result.amount!,
@@ -227,10 +258,10 @@ class TransactionList extends _$TransactionList {
         originalInput: input,
         aiConfidence: result.confidence,
       );
-      
+    
       // 保存
       await repository.addTransaction(transaction);
-      
+    
       // 刷新列表
       return repository.getTransactions(
         startDate: DateTime.now().startOfDay,
@@ -272,15 +303,16 @@ LlmApiService llmApi(LlmApiRef ref) {
 
 ### 3.4.1 方案对比
 
-| 维度 | SQLite (Drift) | Hive | Isar | Supabase (远程) |
-|------|----------------|------|------|-----------------|
-| **类型** | 关系型 | KV存储 | NoSQL | 关系型 |
-| **SQL支持** | ✅ 完整SQL | ❌ | ❌ | ✅ PostgreSQL |
-| **类型安全** | ✅ (Drift) | ❌ | ✅ | ✅ |
-| **关系查询** | ✅ | ❌ | ✅ | ✅ |
-| **迁移** | ✅ 自动 | ❌ | ✅ | ✅ |
-| **性能** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ (网络) |
-| **离线** | ✅ | ✅ | ✅ | ❌ |
+
+| 维度         | SQLite (Drift) | Hive       | Isar       | Supabase (远程) |
+| ------------ | -------------- | ---------- | ---------- | --------------- |
+| **类型**     | 关系型         | KV存储     | NoSQL      | 关系型          |
+| **SQL支持**  | ✅ 完整SQL     | ❌         | ❌         | ✅ PostgreSQL   |
+| **类型安全** | ✅ (Drift)     | ❌         | ✅         | ✅              |
+| **关系查询** | ✅             | ❌         | ✅         | ✅              |
+| **迁移**     | ✅ 自动        | ❌         | ✅         | ✅              |
+| **性能**     | ⭐⭐⭐⭐⭐     | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ (网络) |
+| **离线**     | ✅             | ✅         | ✅         | ❌              |
 
 **选择: SQLite (Drift) 本地**
 
@@ -405,7 +437,7 @@ class AppDatabase extends _$AppDatabase {
       CategoriesCompanion.insert(name: '社交', icon: '👤', color: '#FF5722', level: 1, isSystem: const Value(true), sortOrder: const Value(8)),
       CategoriesCompanion.insert(name: '其他', icon: '💰', color: '#607D8B', level: 1, isSystem: const Value(true), sortOrder: const Value(9)),
     ];
-    
+  
     for (final category in categories) {
       await into(categories).insert(category);
     }
@@ -427,17 +459,87 @@ LazyDatabase _openConnection() {
 
 ### 3.5.1 LLM API 对比
 
-| 维度 | 通义千问 | OpenAI GPT | Claude | 文心一言 |
-|------|----------|------------|--------|----------|
-| **模型** | qwen-turbo | gpt-4o-mini | claude-3-haiku | ernie-speed |
-| **价格** | ¥0.008/千token | $0.00015/千token | $0.00025/千token | ¥0.008/千token |
-| **国内访问** | ✅ | ❌ | ❌ | ✅ |
-| **中文优化** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| **Function Calling** | ✅ | ✅ | ✅ | ✅ |
-| **响应速度** | 快 | 中 | 中 | 快 |
-| **稳定性** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+基于 02 竞品分析，Copilot Money 的 Core ML 设备端推理是 AI 能力标杆。WoAccount 采用云端 LLM + 本地规则引擎混合方案，在 AI 能力和离线可用性之间取得平衡。
+
+| 维度                 | 通义千问 (主力) | GPT-4o-mini (备选) | Claude-3-haiku (备选) | 文心一言 (备选) |
+| -------------------- | --------------- | ------------------ | --------------------- | --------------- |
+| **模型**             | qwen-turbo      | gpt-4o-mini        | claude-3-haiku        | ernie-speed     |
+| **价格**             | ¥0.008/千token | $0.00015/千token   | $0.00025/千token      | ¥0.008/千token |
+| **国内访问**         | ✅ 直连        | ❌ 需代理          | ❌ 需代理             | ✅ 直连        |
+| **中文优化**         | ⭐⭐⭐⭐⭐      | ⭐⭐⭐⭐           | ⭐⭐⭐⭐              | ⭐⭐⭐⭐⭐      |
+| **Function Calling** | ✅ 原生        | ✅ 原生            | ✅ 原生               | ✅ 原生        |
+| **响应速度**         | 快 (<1s)       | 中 (1-2s)          | 中 (1-2s)             | 快 (<1s)       |
+| **稳定性**           | ⭐⭐⭐⭐⭐      | ⭐⭐⭐⭐⭐         | ⭐⭐⭐⭐⭐            | ⭐⭐⭐⭐        |
+| **JSON模式**         | ✅              | ✅                 | ✅                    | ✅              |
 
 **选择: 通义千问 (主力) + GPT-4o-mini (备选)**
+
+**理由** (结合01/02):
+- 01: 国内网络问题概率"中"，需要国内直连的 LLM 服务商
+- 02: 通义千问中文优化最佳，适合中文口语化记账场景
+- 02: Copilot 的 AI 能力是标杆，WoAccount 用 LLM+规则引擎追赶
+
+### 3.5.2 多服务商 Fallback 策略
+
+```
+用户输入
+    │
+    ▼
+┌─────────────┐    命中     ┌─────────────┐
+│ 规则引擎     │ ──────────▶ │ 返回结果     │ (离线, <10ms)
+│ (本地,离线)  │             │ confidence>0.85│
+└──────┬──────┘             └─────────────┘
+       │ 未命中/confidence<0.85
+       ▼
+┌─────────────┐    成功     ┌─────────────┐
+│ 通义千问 API │ ──────────▶ │ 返回结果     │ (在线, <1s)
+│ (主力)       │             └─────────────┘
+└──────┬──────┘
+       │ 失败/超时(3s)
+       ▼
+┌─────────────┐    成功     ┌─────────────┐
+│ GPT-4o-mini  │ ──────────▶ │ 返回结果     │ (在线, <2s)
+│ (备选)       │             └─────────────┘
+└──────┬──────┘
+       │ 失败
+       ▼
+┌─────────────┐
+│ 规则引擎     │ (兜底, 返回低置信度结果)
+│ (降级)       │
+└─────────────┘
+```
+
+**Fallback 配置**:
+
+```dart
+// lib/config/ai_config.dart
+
+class AiConfig {
+  /// LLM服务商优先级
+  static const providers = [
+    LlmProvider(
+      name: 'qwen-turbo',
+      baseUrl: 'https://dashscope.aliyuncs.com/api/v1',
+      model: 'qwen-turbo',
+      timeout: Duration(seconds: 3),
+      isPrimary: true,
+    ),
+    LlmProvider(
+      name: 'gpt-4o-mini',
+      baseUrl: 'https://api.openai.com/v1',
+      model: 'gpt-4o-mini',
+      timeout: Duration(seconds: 5),
+      isPrimary: false,
+    ),
+  ];
+
+  /// 规则引擎置信度阈值
+  static const double ruleConfidenceThreshold = 0.85;
+
+  /// LLM超时后降级到规则引擎
+  static const Duration llmTimeout = Duration(seconds: 3);
+}
+```
 
 ### 3.5.2 AI服务架构
 
@@ -476,16 +578,16 @@ class AiServiceImpl implements AiService {
   @override
   Future<AiParseResult> parseInput(String input) async {
     final stopwatch = Stopwatch()..start();
-    
+  
     // 1. 预处理
     final cleaned = _preprocess(input);
-    
+  
     // 2. 提取金额
     final amount = _extractAmount(cleaned);
     if (amount == null) {
       throw ValidationException('未识别到金额信息');
     }
-    
+  
     // 3. 规则引擎匹配
     final ruleResult = await _ruleEngine.match(cleaned);
     if (ruleResult != null && ruleResult.confidence > 0.85) {
@@ -500,13 +602,13 @@ class AiServiceImpl implements AiService {
         parseDurationMs: stopwatch.elapsedMilliseconds,
       );
     }
-    
+  
     // 4. LLM API调用
     final llmResult = await _llmApi.parseTransaction(cleaned);
-    
+  
     // 5. 匹配本地分类
     final category = await _matchCategory(llmResult.categoryName);
-    
+  
     stopwatch.stop();
     return AiParseResult(
       amount: amount,
@@ -528,14 +630,14 @@ class AiServiceImpl implements AiService {
       AgentTools.analyzeSpending,
       AgentTools.setBudget,
     ];
-    
+  
     final response = await _llmApi.chatWithTools(
       message: message,
       tools: tools,
       history: context.history,
       systemPrompt: context.buildSystemPrompt(),
     );
-    
+  
     // 处理Function Calling
     if (response.hasFunctionCall) {
       final functionResult = await _executeFunction(
@@ -546,7 +648,7 @@ class AiServiceImpl implements AiService {
         functionCalls: [functionResult],
       );
     }
-    
+  
     return ChatResponse(reply: response.reply);
   }
   
@@ -640,10 +742,10 @@ class LlmApiServiceImpl implements LlmApiService {
       'temperature': 0.1,
       'response_format': {'type': 'json_object'},
     });
-    
+  
     final content = response.data['choices'][0]['message']['content'];
     final json = jsonDecode(content);
-    
+  
     return LlmParseResult.fromJson(json);
   }
   
@@ -659,7 +761,7 @@ class LlmApiServiceImpl implements LlmApiService {
       ...history.map((m) => m.toJson()),
       {'role': 'user', 'content': message},
     ];
-    
+  
     final response = await _dio.post('/chat/completions', data: {
       'model': 'qwen-turbo',
       'messages': messages,
@@ -667,7 +769,7 @@ class LlmApiServiceImpl implements LlmApiService {
       'tool_choice': 'auto',
       'temperature': 0.7,
     });
-    
+  
     return ChatCompletion.fromJson(response.data);
   }
   
@@ -700,13 +802,63 @@ class LlmApiServiceImpl implements LlmApiService {
 
 当前阶段**无后端服务**。所有数据存储在本地 SQLite，AI 功能通过 Dio 直接调用通义千问 API。
 
-**未来扩展方案**: 需要多设备同步时，可接入 Supabase (开源 BaaS)：
-- Supabase Auth: 用户认证
-- Supabase PostgreSQL: 云端数据存储
-- Supabase Realtime: 实时数据同步
-- Row Level Security: 多用户数据隔离
-
 **选择: 当前无后端，未来 Supabase**
+
+### 3.6.1 未来扩展: Supabase 集成方案
+
+基于 02 竞品分析，Actual Budget 的本地优先+CRDT同步方案验证了"本地优先+可选云同步"的可行性。
+
+**扩展触发条件**:
+- 用户需要多设备同步
+- 用户量增长需要后端支持
+- 需要银行账单自动导入
+
+**扩展步骤**:
+
+| 步骤 | 内容 | 影响范围 |
+|------|------|----------|
+| 1 | 添加 `supabase_flutter` 依赖 | pubspec.yaml |
+| 2 | 实现 `RemoteDataSource` 接口 | data层 |
+| 3 | 添加 `SyncService` (本地→云端) | shared/services |
+| 4 | 添加 `AuthService` (Supabase Auth) | features/auth |
+| 5 | 配置 RLS (Row Level Security) | Supabase 控制台 |
+| 6 | 业务逻辑层**零改动** | 无影响 |
+
+**Repository 层扩展示例**:
+
+```dart
+// 当前: 仅本地
+class TransactionRepositoryImpl implements TransactionRepository {
+  final TransactionLocalDataSource _localDataSource;
+  // ...
+}
+
+// 未来: 本地+云端
+class TransactionRepositoryImpl implements TransactionRepository {
+  final TransactionLocalDataSource _localDataSource;
+  final TransactionRemoteDataSource? _remoteDataSource;  // 新增
+
+  @override
+  Future<Transaction> addTransaction(Transaction transaction) async {
+    final local = await _localDataSource.addTransaction(transaction);
+    _remoteDataSource?.syncTransaction(local).catchError((e) {
+      // 同步失败，稍后重试
+    });
+    return local;
+  }
+}
+```
+
+### 3.6.2 未来扩展: 银行同步
+
+基于 02 竞品分析，YNAB/Monarch/Copilot 的银行同步是核心差异点。
+
+**方案**:
+- 海外: Plaid / MX / Finicity (多聚合器)
+- 国内: 微信/支付宝账单导入 (CSV解析)
+- 开源: SimpleFIN / GoCardless
+
+**实现**: 添加 `BankSyncService`，通过 CSV/OFX 导入银行账单，AI 自动分类。
 
 ---
 
@@ -735,19 +887,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+    
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
-      
+    
       - name: Install dependencies
         run: flutter pub get
-      
+    
       - name: Analyze code
         run: flutter analyze --fatal-infos
-      
+    
       - name: Check formatting
         run: dart format --set-exit-if-changed .
 
@@ -758,19 +910,19 @@ jobs:
     needs: lint
     steps:
       - uses: actions/checkout@v4
-      
+    
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
-      
+    
       - name: Install dependencies
         run: flutter pub get
-      
+    
       - name: Run tests
         run: flutter test --coverage
-      
+    
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
@@ -784,28 +936,28 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
-      
+    
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
-      
+    
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
-      
+    
       - name: Install dependencies
         run: flutter pub get
-      
+    
       - name: Build APK
         run: flutter build apk --release
-      
+    
       - name: Build AAB
         run: flutter build appbundle --release
-      
+    
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -822,19 +974,19 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
-      
+    
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
-      
+    
       - name: Install dependencies
         run: flutter pub get
-      
+    
       - name: Build iOS
         run: flutter build ios --release --no-codesign
-      
+    
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -860,31 +1012,34 @@ jobs:
 
 ### 3.9.1 前端优化
 
-| 优化点 | 技术方案 | 预期效果 |
-|--------|----------|----------|
-| **懒加载** | 按需加载页面和数据 | 首屏加载 < 1s |
-| **虚拟列表** | ListView.builder + 离屏渲染 | 1000+列表流畅 |
-| **图片缓存** | cached_network_image | 图片加载 < 200ms |
-| **代码分割** | go_router lazy loading | 包体积减小 |
-| **状态优化** | Riverpod select | 减少不必要的rebuild |
+
+| 优化点       | 技术方案                    | 预期效果            |
+| ------------ | --------------------------- | ------------------- |
+| **懒加载**   | 按需加载页面和数据          | 首屏加载 < 1s       |
+| **虚拟列表** | ListView.builder + 离屏渲染 | 1000+列表流畅       |
+| **图片缓存** | cached_network_image        | 图片加载 < 200ms    |
+| **代码分割** | go_router lazy loading      | 包体积减小          |
+| **状态优化** | Riverpod select             | 减少不必要的rebuild |
 
 ### 3.9.2 数据库优化
 
-| 优化点 | 技术方案 | 预期效果 |
-|--------|----------|----------|
-| **索引** | 关键字段添加索引 | 查询 < 50ms |
-| **分页** | LIMIT + OFFSET | 大数据量查询 |
-| **缓存** | 内存缓存热点数据 | 重复查询 < 10ms |
+
+| 优化点       | 技术方案            | 预期效果         |
+| ------------ | ------------------- | ---------------- |
+| **索引**     | 关键字段添加索引    | 查询 < 50ms      |
+| **分页**     | LIMIT + OFFSET      | 大数据量查询     |
+| **缓存**     | 内存缓存热点数据    | 重复查询 < 10ms  |
 | **批量操作** | batch insert/update | 批量操作性能提升 |
 
 ### 3.9.3 AI优化
 
-| 优化点 | 技术方案 | 预期效果 |
-|--------|----------|----------|
-| **规则缓存** | 缓存规则匹配结果 | 相同输入 < 10ms |
+
+| 优化点       | 技术方案           | 预期效果        |
+| ------------ | ------------------ | --------------- |
+| **规则缓存** | 缓存规则匹配结果   | 相同输入 < 10ms |
 | **结果缓存** | 缓存相似输入的解析 | 相似输入 < 50ms |
-| **异步处理** | AI解析异步执行 | UI不阻塞 |
-| **降级策略** | 规则引擎兜底 | 网络异常可用 |
+| **异步处理** | AI解析异步执行     | UI不阻塞        |
+| **降级策略** | 规则引擎兜底       | 网络异常可用    |
 
 ---
 
@@ -892,11 +1047,12 @@ jobs:
 
 ### 3.10.1 数据安全
 
-| 层级 | 措施 | 实现方式 |
-|------|------|----------|
+
+| 层级       | 措施          | 实现方式               |
+| ---------- | ------------- | ---------------------- |
 | **传输层** | HTTPS/TLS 1.3 | LLM API 调用强制 HTTPS |
-| **存储层** | 本地存储 | 数据仅存本机 SQLite |
-| **应用层** | 输入校验 | 防止 SQL 注入 |
+| **存储层** | 本地存储      | 数据仅存本机 SQLite    |
+| **应用层** | 输入校验      | 防止 SQL 注入          |
 
 > 当前阶段无用户认证、无云端数据，安全风险集中在 LLM API Key 保护和本地数据完整性。API Key 通过 `--dart-define` 注入，不硬编码在代码中。
 
@@ -904,11 +1060,15 @@ jobs:
 
 ## 3.11 技术风险评估
 
-| 风险 | 概率 | 影响 | 应对策略 |
-|------|------|------|----------|
-| Flutter版本兼容 | 低 | 中 | 锁定版本，及时更新 |
-| LLM API不稳定 | 中 | 高 | 多服务商备选，规则引擎兜底 |
-| 本地数据丢失 | 低 | 高 | 定期导出备份，SQLite 事务保证 |
-| 数据库性能瓶颈 | 低 | 中 | 索引优化，分页查询 |
-| 国内网络问题 | 中 | 高 | 规则引擎离线可用，选择国内 LLM 服务商 |
-| 包体积过大 | 中 | 低 | Tree Shaking，代码分割 |
+基于 01 需求分析的风险评估和 02 竞品分析的技术壁垒，更新风险矩阵：
+
+| 风险            | 概率 | 影响 | 应对策略                              | 竞品参考 |
+| --------------- | ---- | ---- | ------------------------------------- | -------- |
+| Flutter版本兼容 | 低   | 中   | 锁定版本，及时更新                    | 02: 微力记账用Flutter验证可行 |
+| LLM API不稳定   | 中   | 高   | 多服务商fallback，规则引擎兜底        | 01: 风险评估"中" |
+| 本地数据丢失    | 低   | 高   | 定期CSV导出备份，SQLite事务保证       | 02: 钱迹本地优先已验证 |
+| 数据库性能瓶颈  | 低   | 中   | 索引优化，分页查询，虚拟列表          | 01: 性能需求<2s |
+| 国内网络问题    | 中   | 高   | 规则引擎离线可用，通义千问国内直连    | 01: 风险评估"中" |
+| 包体积过大      | 中   | 低   | Tree Shaking，代码分割                | 02: 简单记账轻量化验证 |
+| AI准确率不达标  | 中   | 高   | 规则引擎兜底，用户反馈学习            | 01: 风险评估"中" |
+| LLM API成本     | 低   | 低   | 规则引擎减少调用，缓存相似输入        | 01: 个人用量极小 |
