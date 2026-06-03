@@ -6,13 +6,65 @@
   <title>WoAccount - 记账首页</title>
   <link rel="stylesheet" href="../shared/style.css">
   <style>
-    .phone-frame {
-      position: relative;
+    .phone-frame { position: relative; }
+    .content { padding-bottom: 0; }
+
+    /* 顶部导航栏 */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: #fff;
     }
-    .content {
-      padding-bottom: 0;
+    .view-switcher {
+      display: flex;
+      background: #f5f5f5;
+      border-radius: 8px;
+      overflow: hidden;
     }
-    /* 记账输入栏 - 固定底部 */
+    .view-switcher .tab {
+      padding: 6px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #9e9e9e;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      background: transparent;
+    }
+    .view-switcher .tab.active {
+      background: #4caf50;
+      color: #fff;
+    }
+    .period-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .period-nav .arrow-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #757575;
+      cursor: pointer;
+    }
+    .period-nav .arrow-btn:hover { background: #f5f5f5; }
+    .period-nav .period-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #212121;
+      min-width: 100px;
+      text-align: center;
+    }
+
+    /* 输入栏 */
     .input-section {
       background: #fff;
       padding: 12px 16px;
@@ -38,12 +90,8 @@
       flex-shrink: 0;
       transition: background 0.2s;
     }
-    .input-bar .side-btn:hover {
-      background: #f5f5f5;
-    }
-    .input-bar .side-btn:active {
-      background: #e8f5e9;
-    }
+    .input-bar .side-btn:hover { background: #f5f5f5; }
+    .input-bar .side-btn:active { background: #e8f5e9; }
     .input-bar .text-input {
       flex: 1;
       height: 44px;
@@ -55,27 +103,128 @@
       color: #212121;
       transition: border-color 0.2s;
     }
-    .input-bar .text-input:focus {
-      border-color: #4caf50;
+    .input-bar .text-input:focus { border-color: #4caf50; }
+    .input-bar .text-input::placeholder { color: #bdbdbd; }
+
+    /* 周视图 - 日摘要 */
+    .day-group {
+      border-bottom: 1px solid #f5f5f5;
     }
-    .input-bar .text-input::placeholder {
-      color: #bdbdbd;
-    }
-    .today-header {
+    .day-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      padding: 10px 16px;
+      background: #fafafa;
+    }
+    .day-header .date {
+      font-size: 13px;
+      font-weight: 600;
+      color: #212121;
+    }
+    .day-header .weekday {
+      font-size: 12px;
+      color: #9e9e9e;
+      margin-left: 6px;
+    }
+    .day-header .day-total {
+      font-size: 13px;
+      color: #9e9e9e;
+    }
+    .day-header .day-total .expense {
+      color: #f44336;
+      font-weight: 600;
+    }
+
+    /* 月视图 - 日历 */
+    .calendar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 8px 16px;
+      background: #fafafa;
+    }
+    .calendar-header .weekday-cell {
+      flex: 1;
+      text-align: center;
+      font-size: 12px;
+      color: #9e9e9e;
+      font-weight: 500;
+    }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      background: #fff;
+    }
+    .calendar-cell {
+      min-height: 64px;
+      padding: 4px;
+      border: 1px solid #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .calendar-cell:hover { background: #fafafa; }
+    .calendar-cell.today {
+      background: #e8f5e9;
+    }
+    .calendar-cell.other-month {
+      opacity: 0.3;
+    }
+    .calendar-cell .day-num {
+      font-size: 13px;
+      font-weight: 500;
+      color: #212121;
+      margin-bottom: 2px;
+    }
+    .calendar-cell.today .day-num {
+      color: #4caf50;
+      font-weight: 700;
+    }
+    .calendar-cell .day-expense {
+      font-size: 9px;
+      color: #f44336;
+      line-height: 1.2;
+    }
+    .calendar-cell .day-income {
+      font-size: 9px;
+      color: #4caf50;
+      line-height: 1.2;
+    }
+    .calendar-cell.no-data .day-expense,
+    .calendar-cell.no-data .day-income {
+      display: none;
+    }
+
+    /* 月视图 - 月汇总 */
+    .month-summary {
+      display: flex;
+      gap: 12px;
       padding: 12px 16px;
     }
-    .today-header .label {
-      font-size: 14px;
-      color: #757575;
+    .month-summary .summary-item {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+      background: #fafafa;
+      border-radius: 8px;
     }
-    .today-header .total {
-      font-size: 18px;
+    .month-summary .summary-item .label {
+      font-size: 11px;
+      color: #9e9e9e;
+      margin-bottom: 4px;
+    }
+    .month-summary .summary-item .value {
+      font-size: 16px;
       font-weight: 700;
-      color: #f44336;
     }
+    .month-summary .summary-item .value.expense { color: #f44336; }
+    .month-summary .summary-item .value.income { color: #4caf50; }
+    .month-summary .summary-item .value.balance { color: #212121; }
+
+    /* 洞察卡片 */
     .insight-card {
       background: #fff3e0;
       margin: 12px 16px;
@@ -85,20 +234,16 @@
       align-items: center;
       gap: 10px;
     }
-    .insight-card .icon {
-      font-size: 24px;
-    }
-    .insight-card .text {
-      flex: 1;
-      font-size: 13px;
-      color: #e65100;
-    }
+    .insight-card .icon { font-size: 24px; }
+    .insight-card .text { flex: 1; font-size: 13px; color: #e65100; }
     .insight-card .action {
       font-size: 13px;
       color: #ff9800;
       font-weight: 500;
       cursor: pointer;
     }
+
+    /* AI 入口 */
     .ai-entry {
       margin: 12px 16px;
       background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
@@ -112,38 +257,20 @@
       color: inherit;
       transition: transform 0.2s;
     }
-    .ai-entry:hover {
-      transform: scale(0.98);
-    }
-    .ai-entry .icon {
-      font-size: 32px;
-    }
-    .ai-entry .info {
-      flex: 1;
-    }
-    .ai-entry .info .title {
-      font-size: 15px;
-      font-weight: 600;
-      color: #2e7d32;
-    }
-    .ai-entry .info .desc {
-      font-size: 12px;
-      color: #66bb6a;
-      margin-top: 2px;
-    }
-    .ai-entry .arrow {
-      font-size: 18px;
-      color: #66bb6a;
-    }
-    /* 长按语音浮层 */
+    .ai-entry:hover { transform: scale(0.98); }
+    .ai-entry .icon { font-size: 32px; }
+    .ai-entry .info { flex: 1; }
+    .ai-entry .info .title { font-size: 15px; font-weight: 600; color: #2e7d32; }
+    .ai-entry .info .desc { font-size: 12px; color: #66bb6a; margin-top: 2px; }
+    .ai-entry .arrow { font-size: 18px; color: #66bb6a; }
+
+    /* 语音浮层 */
     .voice-overlay {
       display: none;
       position: absolute;
-      top: 50%;
-      left: 50%;
+      top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      width: 200px;
-      height: 200px;
+      width: 200px; height: 200px;
       background: rgba(0,0,0,0.75);
       border-radius: 20px;
       flex-direction: column;
@@ -152,30 +279,16 @@
       gap: 16px;
       z-index: 100;
     }
-    .voice-overlay.show {
-      display: flex;
-    }
-    .voice-overlay .mic-icon {
-      font-size: 48px;
-      animation: pulse 1s ease-in-out infinite;
-    }
-    .voice-overlay .text {
-      color: #fff;
-      font-size: 14px;
-    }
-    .voice-overlay .hint {
-      color: rgba(255,255,255,0.6);
-      font-size: 11px;
-      text-align: center;
-      line-height: 1.5;
-    }
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.2); }
-    }
-    .nav-item.voice-active .nav-icon {
-      animation: pulse 0.8s ease-in-out infinite;
-    }
+    .voice-overlay.show { display: flex; }
+    .voice-overlay .mic-icon { font-size: 48px; animation: pulse 1s ease-in-out infinite; }
+    .voice-overlay .text { color: #fff; font-size: 14px; }
+    .voice-overlay .hint { color: rgba(255,255,255,0.6); font-size: 11px; text-align: center; line-height: 1.5; }
+    @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.2)} }
+    .nav-item.voice-active .nav-icon { animation: pulse 0.8s ease-in-out infinite; }
+
+    /* 视图容器 */
+    .view-container { display: none; }
+    .view-container.active { display: block; }
   </style>
 </head>
 <body>
@@ -187,62 +300,195 @@
       <span>⚙️</span>
     </div>
 
-    <!-- 可滚动内容区 -->
-    <div class="content">
-      <!-- 今日消费 -->
-      <div class="today-header">
-        <span class="label">📅 今日消费</span>
-        <span class="total">¥71.00</span>
+    <!-- 顶部：视图切换 + 周/月导航 -->
+    <div class="top-bar">
+      <div class="view-switcher">
+        <button class="tab active" onclick="switchView('week')">周</button>
+        <button class="tab" onclick="switchView('month')">月</button>
       </div>
-
-      <div class="list-item">
-        <div class="icon" style="background:#fff3e0;">🍜</div>
-        <div class="info">
-          <div class="title">午饭拉面</div>
-          <div class="subtitle">12:30 · 餐饮 > 午餐</div>
-        </div>
-        <div class="amount expense">-¥25.00</div>
+      <div class="period-nav">
+        <button class="arrow-btn" onclick="changePeriod(-1)">‹</button>
+        <span class="period-label" id="periodLabel">6月2日 - 6月8日</span>
+        <button class="arrow-btn" onclick="changePeriod(1)">›</button>
       </div>
-
-      <div class="list-item">
-        <div class="icon" style="background:#e3f2fd;">🚗</div>
-        <div class="info">
-          <div class="title">打车去公司</div>
-          <div class="subtitle">09:15 · 交通 > 打车</div>
-        </div>
-        <div class="amount expense">-¥28.00</div>
-      </div>
-
-      <div class="list-item">
-        <div class="icon" style="background:#fff3e0;">☕</div>
-        <div class="info">
-          <div class="title">下午茶咖啡</div>
-          <div class="subtitle">15:45 · 餐饮 > 饮料</div>
-        </div>
-        <div class="amount expense">-¥18.00</div>
-      </div>
-
-      <!-- 今日洞察 -->
-      <div class="insight-card">
-        <span class="icon">💡</span>
-        <span class="text">今日消费已超过日均预算的80%</span>
-        <span class="action">查看详情</span>
-      </div>
-
-      <!-- AI 助手入口 -->
-      <a href="../profile/index.html" class="ai-entry">
-        <span class="icon">🤖</span>
-        <div class="info">
-          <div class="title">AI 助手</div>
-          <div class="desc">智能记账 · 消费分析 · 问答查询</div>
-        </div>
-        <span class="arrow">›</span>
-      </a>
-
-      <div style="height:16px;"></div>
     </div>
 
-    <!-- 记账输入栏 - 固定在底部导航上方 -->
+    <!-- 可滚动内容区 -->
+    <div class="content">
+      <!-- ========== 周视图 ========== -->
+      <div class="view-container active" id="weekView">
+        <!-- 周一 -->
+        <div class="day-group">
+          <div class="day-header">
+            <div><span class="date">6月2日</span><span class="weekday">周一</span></div>
+            <span class="day-total">支出 <span class="expense">¥71.00</span></span>
+          </div>
+          <div class="list-item">
+            <div class="icon" style="background:#fff3e0;">🍜</div>
+            <div class="info">
+              <div class="title">午饭拉面</div>
+              <div class="subtitle">12:30 · 餐饮 > 午餐</div>
+            </div>
+            <div class="amount expense">-¥25.00</div>
+          </div>
+          <div class="list-item">
+            <div class="icon" style="background:#e3f2fd;">🚗</div>
+            <div class="info">
+              <div class="title">打车去公司</div>
+              <div class="subtitle">09:15 · 交通 > 打车</div>
+            </div>
+            <div class="amount expense">-¥28.00</div>
+          </div>
+          <div class="list-item">
+            <div class="icon" style="background:#fff3e0;">☕</div>
+            <div class="info">
+              <div class="title">下午茶咖啡</div>
+              <div class="subtitle">15:45 · 餐饮 > 饮料</div>
+            </div>
+            <div class="amount expense">-¥18.00</div>
+          </div>
+        </div>
+
+        <!-- 周二 -->
+        <div class="day-group">
+          <div class="day-header">
+            <div><span class="date">6月1日</span><span class="weekday">周日</span></div>
+            <span class="day-total">支出 <span class="expense">¥156.00</span></span>
+          </div>
+          <div class="list-item">
+            <div class="icon" style="background:#fce4ec;">🛒</div>
+            <div class="info">
+              <div class="title">超市购物</div>
+              <div class="subtitle">18:30 · 购物 > 日用品</div>
+            </div>
+            <div class="amount expense">-¥156.00</div>
+          </div>
+        </div>
+
+        <div style="text-align:center; padding:16px; color:#bdbdbd; font-size:12px;">
+          ↑ 上滑切换上周 · 下滑切换下周 ↓
+        </div>
+
+        <!-- 洞察 -->
+        <div class="insight-card">
+          <span class="icon">💡</span>
+          <span class="text">本周餐饮支出占比最高，达45%</span>
+          <span class="action">详情</span>
+        </div>
+
+        <!-- AI入口 -->
+        <a href="../profile/index.html" class="ai-entry">
+          <span class="icon">🤖</span>
+          <div class="info">
+            <div class="title">AI 助手</div>
+            <div class="desc">智能记账 · 消费分析 · 问答查询</div>
+          </div>
+          <span class="arrow">›</span>
+        </a>
+        <div style="height:16px;"></div>
+      </div>
+
+      <!-- ========== 月视图 ========== -->
+      <div class="view-container" id="monthView">
+        <!-- 月汇总 -->
+        <div class="month-summary">
+          <div class="summary-item">
+            <div class="label">总支出</div>
+            <div class="value expense">¥3,280</div>
+          </div>
+          <div class="summary-item">
+            <div class="label">总收入</div>
+            <div class="value income">¥12,000</div>
+          </div>
+          <div class="summary-item">
+            <div class="label">结余</div>
+            <div class="value balance">¥8,720</div>
+          </div>
+        </div>
+
+        <!-- 星期头 -->
+        <div class="calendar-header">
+          <span class="weekday-cell">日</span>
+          <span class="weekday-cell">一</span>
+          <span class="weekday-cell">二</span>
+          <span class="weekday-cell">三</span>
+          <span class="weekday-cell">四</span>
+          <span class="weekday-cell">五</span>
+          <span class="weekday-cell">六</span>
+        </div>
+
+        <!-- 日历网格 -->
+        <div class="calendar-grid">
+          <!-- 上月 -->
+          <div class="calendar-cell other-month"><span class="day-num">26</span></div>
+          <div class="calendar-cell other-month"><span class="day-num">27</span></div>
+          <div class="calendar-cell other-month"><span class="day-num">28</span></div>
+          <div class="calendar-cell other-month"><span class="day-num">29</span></div>
+          <div class="calendar-cell other-month"><span class="day-num">30</span></div>
+          <div class="calendar-cell other-month"><span class="day-num">31</span></div>
+          <!-- 6月第1周 -->
+          <div class="calendar-cell"><span class="day-num">1</span><span class="day-expense">-156</span></div>
+          <div class="calendar-cell today"><span class="day-num">2</span><span class="day-expense">-71</span></div>
+          <div class="calendar-cell"><span class="day-num">3</span></div>
+          <div class="calendar-cell"><span class="day-num">4</span></div>
+          <div class="calendar-cell"><span class="day-num">5</span></div>
+          <div class="calendar-cell"><span class="day-num">6</span></div>
+          <div class="calendar-cell"><span class="day-num">7</span></div>
+          <!-- 第2周 -->
+          <div class="calendar-cell"><span class="day-num">8</span></div>
+          <div class="calendar-cell"><span class="day-num">9</span><span class="day-expense">-320</span></div>
+          <div class="calendar-cell"><span class="day-num">10</span><span class="day-expense">-45</span></div>
+          <div class="calendar-cell"><span class="day-num">11</span></div>
+          <div class="calendar-cell"><span class="day-num">12</span><span class="day-expense">-128</span></div>
+          <div class="calendar-cell"><span class="day-num">13</span></div>
+          <div class="calendar-cell"><span class="day-num">14</span></div>
+          <!-- 第3周 -->
+          <div class="calendar-cell"><span class="day-num">15</span><span class="day-income">+12000</span></div>
+          <div class="calendar-cell"><span class="day-num">16</span><span class="day-expense">-890</span></div>
+          <div class="calendar-cell"><span class="day-num">17</span><span class="day-expense">-56</span></div>
+          <div class="calendar-cell"><span class="day-num">18</span></div>
+          <div class="calendar-cell"><span class="day-num">19</span><span class="day-expense">-210</span></div>
+          <div class="calendar-cell"><span class="day-num">20</span></div>
+          <div class="calendar-cell"><span class="day-num">21</span></div>
+          <!-- 第4周 -->
+          <div class="calendar-cell"><span class="day-num">22</span><span class="day-expense">-178</span></div>
+          <div class="calendar-cell"><span class="day-num">23</span></div>
+          <div class="calendar-cell"><span class="day-num">24</span><span class="day-expense">-67</span></div>
+          <div class="calendar-cell"><span class="day-num">25</span></div>
+          <div class="calendar-cell"><span class="day-num">26</span></div>
+          <div class="calendar-cell"><span class="day-num">27</span><span class="day-expense">-430</span></div>
+          <div class="calendar-cell"><span class="day-num">28</span></div>
+          <!-- 第5周 -->
+          <div class="calendar-cell"><span class="day-num">29</span></div>
+          <div class="calendar-cell"><span class="day-num">30</span><span class="day-expense">-605</span></div>
+          <div class="calendar-cell other-month"><span class="day-num">1</span></div>
+          <div class="calendar-cell other-month"><span class="day-num">2</span></div>
+          <div class="calendar-cell other-month"><span class="day-num">3</span></div>
+          <div class="calendar-cell other-month"><span class="day-num">4</span></div>
+          <div class="calendar-cell other-month"><span class="day-num">5</span></div>
+        </div>
+
+        <!-- 洞察 -->
+        <div class="insight-card">
+          <span class="icon">💡</span>
+          <span class="text">本月日均支出¥109，低于上月12%</span>
+          <span class="action">详情</span>
+        </div>
+
+        <!-- AI入口 -->
+        <a href="../profile/index.html" class="ai-entry">
+          <span class="icon">🤖</span>
+          <div class="info">
+            <div class="title">AI 助手</div>
+            <div class="desc">智能记账 · 消费分析 · 问答查询</div>
+          </div>
+          <span class="arrow">›</span>
+        </a>
+        <div style="height:16px;"></div>
+      </div>
+    </div>
+
+    <!-- 记账输入栏 -->
     <div class="input-section">
       <div class="input-bar">
         <button class="side-btn" title="手动记账">➕</button>
@@ -251,7 +497,7 @@
       </div>
     </div>
 
-    <!-- 语音输入浮层 -->
+    <!-- 语音浮层 -->
     <div class="voice-overlay" id="voiceOverlay">
       <span class="mic-icon">🎤</span>
       <span class="text">正在聆听...</span>
@@ -278,9 +524,40 @@
   </div>
 
   <script>
-    let voiceTimer = null;
-    let isLongPress = false;
+    // 视图切换
+    function switchView(view) {
+      document.querySelectorAll('.view-switcher .tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
+      if (view === 'week') {
+        document.querySelector('.view-switcher .tab:first-child').classList.add('active');
+        document.getElementById('weekView').classList.add('active');
+        document.getElementById('periodLabel').textContent = '6月2日 - 6月8日';
+      } else {
+        document.querySelector('.view-switcher .tab:last-child').classList.add('active');
+        document.getElementById('monthView').classList.add('active');
+        document.getElementById('periodLabel').textContent = '2025年6月';
+      }
+    }
 
+    // 周/月切换
+    function changePeriod(dir) {
+      const label = document.getElementById('periodLabel');
+      const isWeek = document.querySelector('.view-switcher .tab:first-child').classList.contains('active');
+      if (isWeek) {
+        const weeks = ['5月26日 - 6月1日', '6月2日 - 6月8日', '6月9日 - 6月15日', '6月16日 - 6月22日'];
+        let idx = weeks.indexOf(label.textContent);
+        idx = Math.max(0, Math.min(weeks.length - 1, idx + dir));
+        label.textContent = weeks[idx];
+      } else {
+        const months = ['2025年4月', '2025年5月', '2025年6月', '2025年7月'];
+        let idx = months.indexOf(label.textContent);
+        idx = Math.max(0, Math.min(months.length - 1, idx + dir));
+        label.textContent = months[idx];
+      }
+    }
+
+    // 语音
+    let voiceTimer = null, isLongPress = false;
     function startVoiceTimer() {
       isLongPress = false;
       voiceTimer = setTimeout(() => {
@@ -290,7 +567,6 @@
         if (navigator.vibrate) navigator.vibrate(30);
       }, 500);
     }
-
     function handleNavRelease() {
       clearTimeout(voiceTimer);
       if (isLongPress) {
@@ -300,18 +576,14 @@
       }
       isLongPress = false;
     }
-
     function cancelVoiceTimer() {
       clearTimeout(voiceTimer);
       document.getElementById('voiceOverlay').classList.remove('show');
       document.getElementById('navRecord').classList.remove('voice-active');
       isLongPress = false;
     }
-
     document.getElementById('navRecord').addEventListener('click', function(e) {
-      if (isLongPress) {
-        e.preventDefault();
-      }
+      if (isLongPress) e.preventDefault();
     });
   </script>
 </body>
