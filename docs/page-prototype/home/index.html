@@ -63,8 +63,7 @@
     }
     .submit-row {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
+      justify-content: flex-end;
       margin-top: 8px;
     }
     .submit-btn {
@@ -84,16 +83,6 @@
     }
     .submit-btn:hover {
       opacity: 0.9;
-    }
-    .voice-hint {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      color: #bdbdbd;
-    }
-    .voice-hint .icon {
-      font-size: 12px;
     }
     .today-header {
       display: flex;
@@ -284,10 +273,6 @@
         <button class="side-btn" title="拍照识别">📷</button>
       </div>
       <div class="submit-row">
-        <span class="voice-hint">
-          <span class="icon">💡</span>
-          <span>长按"记账"Tab语音输入</span>
-        </span>
         <button class="submit-btn">记一笔</button>
       </div>
     </div>
