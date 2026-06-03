@@ -6,7 +6,6 @@
   <title>WoAccount - 分类管理</title>
   <link rel="stylesheet" href="../../shared/style.css">
   <style>
-    /* 顶部切换 */
     .type-tabs {
       display: flex;
       background: #fff;
@@ -25,18 +24,12 @@
       position: relative;
       transition: color 0.2s;
     }
-    .type-tabs .tab.active {
-      color: #4caf50;
-    }
+    .type-tabs .tab.active { color: #4caf50; }
     .type-tabs .tab.active::after {
       content: '';
       position: absolute;
-      bottom: 0;
-      left: 30%;
-      width: 40%;
-      height: 3px;
-      background: #4caf50;
-      border-radius: 2px;
+      bottom: 0; left: 30%; width: 40%; height: 3px;
+      background: #4caf50; border-radius: 2px;
     }
 
     /* 分类网格 */
@@ -59,8 +52,7 @@
     }
     .category-item:hover { background: #f5f5f5; }
     .category-item .icon {
-      width: 44px;
-      height: 44px;
+      width: 44px; height: 44px;
       border-radius: 12px;
       display: flex;
       align-items: center;
@@ -77,22 +69,34 @@
       font-size: 9px;
       color: #bdbdbd;
     }
-    /* 长按编辑角标 */
-    .category-item .edit-dot {
+    /* 自定义标记 */
+    .category-item .custom-badge {
+      position: absolute;
+      top: 6px; right: 10px;
+      font-size: 8px;
+      color: #4caf50;
+      background: #e8f5e9;
+      padding: 1px 4px;
+      border-radius: 4px;
+      display: none;
+    }
+    .category-item.custom .custom-badge { display: block; }
+    /* 删除角标 - 仅编辑模式下自定义分类显示 */
+    .category-item .delete-dot {
       display: none;
       position: absolute;
-      top: 6px;
-      right: 10px;
-      width: 16px;
-      height: 16px;
+      top: 4px; right: 8px;
+      width: 18px; height: 18px;
       border-radius: 50%;
       background: #f44336;
       color: #fff;
-      font-size: 10px;
-      line-height: 16px;
+      font-size: 12px;
+      line-height: 18px;
       text-align: center;
+      z-index: 2;
     }
-    .edit-mode .category-item .edit-dot { display: block; }
+    .edit-mode .category-item.custom .delete-dot { display: block; }
+    .edit-mode .category-item.custom .custom-badge { display: none; }
 
     /* 添加按钮 */
     .add-category {
@@ -107,8 +111,7 @@
     }
     .add-category:hover { background: #f5f5f5; }
     .add-category .icon {
-      width: 44px;
-      height: 44px;
+      width: 44px; height: 44px;
       border-radius: 12px;
       border: 2px dashed #e0e0e0;
       display: flex;
@@ -117,16 +120,11 @@
       font-size: 22px;
       color: #bdbdbd;
     }
-    .add-category .name {
-      font-size: 11px;
-      color: #bdbdbd;
-    }
+    .add-category .name { font-size: 11px; color: #bdbdbd; }
 
-    /* 视图容器 */
     .view-container { display: none; }
     .view-container.active { display: block; }
 
-    /* 提示 */
     .tip {
       padding: 12px 16px;
       font-size: 12px;
@@ -134,19 +132,113 @@
       text-align: center;
     }
 
-    /* 编辑模式提示栏 */
+    /* 二级分类页面 */
+    .sub-view {
+      display: none;
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #fafafa;
+      z-index: 60;
+      flex-direction: column;
+    }
+    .sub-view.show { display: flex; }
+    .sub-view .sub-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: #fff;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .sub-view .sub-header .back-btn {
+      font-size: 20px;
+      cursor: pointer;
+      color: #757575;
+      border: none;
+      background: none;
+    }
+    .sub-view .sub-header .parent-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .sub-view .sub-header .parent-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #212121;
+    }
+    .sub-view .sub-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+    .sub-item {
+      display: flex;
+      align-items: center;
+      padding: 14px 16px;
+      background: #fff;
+      border-bottom: 1px solid #f5f5f5;
+      position: relative;
+    }
+    .sub-item .icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      margin-right: 12px;
+    }
+    .sub-item .name {
+      flex: 1;
+      font-size: 15px;
+      color: #212121;
+    }
+    .sub-item .custom-tag {
+      font-size: 11px;
+      color: #4caf50;
+      background: #e8f5e9;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-right: 8px;
+      display: none;
+    }
+    .sub-item.custom .custom-tag { display: inline-block; }
+    .sub-item .delete-btn {
+      display: none;
+      font-size: 14px;
+      color: #f44336;
+      cursor: pointer;
+    }
+    .edit-mode .sub-item.custom .delete-btn { display: inline; }
+    .sub-add {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 14px;
+      margin: 12px 16px;
+      background: #fff;
+      border-radius: 12px;
+      color: #4caf50;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    /* 编辑模式底栏 */
     .edit-bar {
       display: none;
       position: fixed;
-      bottom: 0;
-      left: 50%;
+      bottom: 0; left: 50%;
       transform: translateX(-50%);
       width: 375px;
       background: #fff;
       padding: 12px 16px;
       border-top: 1px solid #f0f0f0;
       text-align: center;
-      z-index: 50;
+      z-index: 70;
     }
     .edit-bar.show { display: block; }
     .edit-bar .done-btn {
@@ -171,10 +263,9 @@
     <div class="nav-bar">
       <a href="../index.html" class="nav-icon">←</a>
       <h1>分类管理</h1>
-      <span class="nav-icon" id="editBtn" onclick="toggleEdit()">✏️</span>
+      <span class="nav-icon" onclick="toggleEdit()">✏️</span>
     </div>
 
-    <!-- 支出/收入切换 -->
     <div class="type-tabs">
       <button class="tab active" onclick="switchType('expense')">支出</button>
       <button class="tab" onclick="switchType('income')">收入</button>
@@ -184,111 +275,179 @@
       <!-- ========== 支出分类 ========== -->
       <div class="view-container active" id="expenseView">
         <div class="category-grid" id="expenseGrid">
-          <div class="category-item">
-            <span class="edit-dot">×</span>
+          <!-- 默认分类（不可删除） -->
+          <div class="category-item" onclick="showSub('餐饮','#fff3e0','🍜',[
+            {name:'早餐',icon:'🥐',default:true},
+            {name:'午餐',icon:'🍱',default:true},
+            {name:'晚餐',icon:'🍲',default:true},
+            {name:'饮料',icon:'☕',default:false},
+            {name:'零食',icon:'🍪',default:false}
+          ])">
+            <span class="delete-dot">×</span>
             <div class="icon" style="background:#fff3e0;">🍜</div>
             <span class="name">餐饮</span>
-            <span class="sub-count">3个子分类</span>
+            <span class="sub-count">5个子分类</span>
           </div>
-          <div class="category-item">
-            <span class="edit-dot">×</span>
+          <div class="category-item" onclick="showSub('交通','#e3f2fd','🚗',[
+            {name:'公交地铁',icon:'🚇',default:true},
+            {name:'打车',icon:'🚕',default:true},
+            {name:'加油',icon:'⛽',default:true}
+          ])">
+            <span class="delete-dot">×</span>
             <div class="icon" style="background:#e3f2fd;">🚗</div>
             <span class="name">交通</span>
-            <span class="sub-count">2个子分类</span>
+            <span class="sub-count">3个子分类</span>
           </div>
-          <div class="category-item">
-            <span class="edit-dot">×</span>
+          <div class="category-item" onclick="showSub('购物','#fce4ec','🛒',[
+            {name:'日用品',icon:'🧴',default:true},
+            {name:'衣物',icon:'👕',default:true},
+            {name:'数码',icon:'📱',default:true}
+          ])">
+            <span class="delete-dot">×</span>
             <div class="icon" style="background:#fce4ec;">🛒</div>
             <span class="name">购物</span>
-            <span class="sub-count">2个子分类</span>
+            <span class="sub-count">3个子分类</span>
           </div>
-          <div class="category-item">
-            <span class="edit-dot">×</span>
+          <div class="category-item" onclick="showSub('住房','#f3e5f5','🏠',[
+            {name:'房租',icon:'🏠',default:true},
+            {name:'水电燃气',icon:'💡',default:true},
+            {name:'物业',icon:'🏢',default:true}
+          ])">
+            <span class="delete-dot">×</span>
             <div class="icon" style="background:#f3e5f5;">🏠</div>
             <span class="name">住房</span>
-            <span class="sub-count">1个子分类</span>
+            <span class="sub-count">3个子分类</span>
           </div>
-          <div class="category-item">
-            <span class="edit-dot">×</span>
+          <div class="category-item" onclick="showSub('娱乐','#e8f5e9','🎮',[
+            {name:'电影',icon:'🎬',default:true},
+            {name:'游戏',icon:'🎮',default:true}
+          ])">
+            <span class="delete-dot">×</span>
             <div class="icon" style="background:#e8f5e9;">🎮</div>
             <span class="name">娱乐</span>
             <span class="sub-count">2个子分类</span>
           </div>
-          <div class="category-item">
-            <span class="edit-dot">×</span>
+          <div class="category-item" onclick="showSub('教育','#e0f7fa','📚',[
+            {name:'书籍',icon:'📖',default:true},
+            {name:'课程',icon:'🎓',default:true}
+          ])">
+            <span class="delete-dot">×</span>
             <div class="icon" style="background:#e0f7fa;">📚</div>
             <span class="name">教育</span>
-            <span class="sub-count">1个子分类</span>
+            <span class="sub-count">2个子分类</span>
           </div>
-          <div class="category-item">
-            <span class="edit-dot">×</span>
+          <div class="category-item" onclick="showSub('医疗','#ffebee','💊',[
+            {name:'看病',icon:'🏥',default:true},
+            {name:'药品',icon:'💊',default:true}
+          ])">
+            <span class="delete-dot">×</span>
             <div class="icon" style="background:#ffebee;">💊</div>
             <span class="name">医疗</span>
-            <span class="sub-count">1个子分类</span>
+            <span class="sub-count">2个子分类</span>
           </div>
-          <div class="category-item">
-            <span class="edit-dot">×</span>
+          <div class="category-item" onclick="showSub('社交','#fbe9e7','👤',[
+            {name:'聚餐',icon:'🍽️',default:true},
+            {name:'礼物',icon:'🎁',default:true}
+          ])">
+            <span class="delete-dot">×</span>
             <div class="icon" style="background:#fbe9e7;">👤</div>
             <span class="name">社交</span>
-            <span class="sub-count">1个子分类</span>
+            <span class="sub-count">2个子分类</span>
           </div>
-          <div class="category-item">
-            <span class="edit-dot">×</span>
+          <div class="category-item" onclick="showSub('其他','#f5f5f5','💰',[
+            {name:'其他支出',icon:'📝',default:true}
+          ])">
+            <span class="delete-dot">×</span>
             <div class="icon" style="background:#f5f5f5;">💰</div>
             <span class="name">其他</span>
-            <span class="sub-count">0个子分类</span>
+            <span class="sub-count">1个子分类</span>
+          </div>
+          <!-- 自定义分类（可删除） -->
+          <div class="category-item custom" onclick="showSub('宠物','#fff8e1','🐱',[
+            {name:'猫粮',icon:'🐱',default:false},
+            {name:'医疗',icon:'💉',default:false}
+          ])">
+            <span class="delete-dot" onclick="event.stopPropagation();alert('删除自定义分类:宠物')">×</span>
+            <span class="custom-badge">自</span>
+            <div class="icon" style="background:#fff8e1;">🐱</div>
+            <span class="name">宠物</span>
+            <span class="sub-count">2个子分类</span>
           </div>
           <div class="add-category" onclick="alert('添加支出分类')">
             <div class="icon">+</div>
             <span class="name">添加</span>
           </div>
         </div>
-        <div class="tip">长按分类可拖拽排序 · 点击✏️进入编辑模式</div>
+        <div class="tip">点击分类查看子分类 · 自定义分类可删除</div>
       </div>
 
       <!-- ========== 收入分类 ========== -->
       <div class="view-container" id="incomeView">
         <div class="category-grid" id="incomeGrid">
-          <div class="category-item">
-            <span class="edit-dot">×</span>
+          <div class="category-item" onclick="showSub('工资','#e8f5e9','💰',[
+            {name:'月薪',icon:'💰',default:true},
+            {name:'日结',icon:'💵',default:true}
+          ])">
+            <span class="delete-dot">×</span>
             <div class="icon" style="background:#e8f5e9;">💰</div>
             <span class="name">工资</span>
-            <span class="sub-count">0个子分类</span>
+            <span class="sub-count">2个子分类</span>
           </div>
-          <div class="category-item">
-            <span class="edit-dot">×</span>
+          <div class="category-item" onclick="showSub('奖金','#fff3e0','🎁',[
+            {name:'年终奖',icon:'🎄',default:true},
+            {name:'绩效',icon:'⭐',default:true}
+          ])">
+            <span class="delete-dot">×</span>
             <div class="icon" style="background:#fff3e0;">🎁</div>
             <span class="name">奖金</span>
-            <span class="sub-count">0个子分类</span>
+            <span class="sub-count">2个子分类</span>
           </div>
-          <div class="category-item">
-            <span class="edit-dot">×</span>
+          <div class="category-item" onclick="showSub('投资收益','#e3f2fd','📈',[
+            {name:'股票',icon:'📈',default:true},
+            {name:'基金',icon:'💹',default:true}
+          ])">
+            <span class="delete-dot">×</span>
             <div class="icon" style="background:#e3f2fd;">📈</div>
             <span class="name">投资收益</span>
-            <span class="sub-count">0个子分类</span>
+            <span class="sub-count">2个子分类</span>
           </div>
-          <div class="category-item">
-            <span class="edit-dot">×</span>
+          <div class="category-item" onclick="showSub('退款','#f3e5f5','🔄',[
+            {name:'退款',icon:'🔄',default:true}
+          ])">
+            <span class="delete-dot">×</span>
             <div class="icon" style="background:#f3e5f5;">🔄</div>
             <span class="name">退款</span>
-            <span class="sub-count">0个子分类</span>
+            <span class="sub-count">1个子分类</span>
           </div>
-          <div class="category-item">
-            <span class="edit-dot">×</span>
+          <div class="category-item" onclick="showSub('兼职','#f5f5f5','💼',[
+            {name:'兼职',icon:'💼',default:true}
+          ])">
+            <span class="delete-dot">×</span>
             <div class="icon" style="background:#f5f5f5;">💼</div>
             <span class="name">兼职</span>
-            <span class="sub-count">0个子分类</span>
+            <span class="sub-count">1个子分类</span>
           </div>
           <div class="add-category" onclick="alert('添加收入分类')">
             <div class="icon">+</div>
             <span class="name">添加</span>
           </div>
         </div>
-        <div class="tip">长按分类可拖拽排序 · 点击✏️进入编辑模式</div>
+        <div class="tip">点击分类查看子分类 · 自定义分类可删除</div>
       </div>
     </div>
 
-    <!-- 编辑模式底部栏 -->
+    <!-- 二级分类子页面 -->
+    <div class="sub-view" id="subView">
+      <div class="sub-header">
+        <button class="back-btn" onclick="hideSub()">←</button>
+        <div class="parent-icon" id="subIcon"></div>
+        <span class="parent-name" id="subName"></span>
+      </div>
+      <div class="sub-list" id="subList"></div>
+      <div class="sub-add" onclick="alert('添加子分类')">+ 添加子分类</div>
+    </div>
+
+    <!-- 编辑模式底栏 -->
     <div class="edit-bar" id="editBar">
       <button class="done-btn" onclick="toggleEdit()">完成</button>
     </div>
@@ -310,6 +469,29 @@
     function toggleEdit() {
       document.querySelectorAll('.category-grid').forEach(g => g.classList.toggle('edit-mode'));
       document.getElementById('editBar').classList.toggle('show');
+    }
+
+    function showSub(name, color, emoji, subs) {
+      document.getElementById('subIcon').style.background = color;
+      document.getElementById('subIcon').textContent = emoji;
+      document.getElementById('subName').textContent = name;
+
+      let html = '';
+      subs.forEach(s => {
+        const isCustom = !s.default;
+        html += `<div class="sub-item ${isCustom ? 'custom' : ''}">
+          <div class="icon" style="background:${color};">${s.icon}</div>
+          <span class="name">${s.name}</span>
+          <span class="custom-tag">自定义</span>
+          <span class="delete-btn" onclick="event.stopPropagation();alert('删除:${s.name}')">删除</span>
+        </div>`;
+      });
+      document.getElementById('subList').innerHTML = html;
+      document.getElementById('subView').classList.add('show');
+    }
+
+    function hideSub() {
+      document.getElementById('subView').classList.remove('show');
     }
   </script>
 </body>
