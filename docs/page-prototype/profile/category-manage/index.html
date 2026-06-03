@@ -32,7 +32,7 @@
       background: #4caf50; border-radius: 2px;
     }
 
-    /* 分类网格 */
+    /* 一级分类网格 */
     .category-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
@@ -69,7 +69,6 @@
       font-size: 9px;
       color: #bdbdbd;
     }
-    /* 自定义标记 */
     .category-item .custom-badge {
       position: absolute;
       top: 6px; right: 10px;
@@ -81,7 +80,6 @@
       display: none;
     }
     .category-item.custom .custom-badge { display: block; }
-    /* 删除角标 - 仅编辑模式下自定义分类显示 */
     .category-item .delete-dot {
       display: none;
       position: absolute;
@@ -98,7 +96,6 @@
     .edit-mode .category-item.custom .delete-dot { display: block; }
     .edit-mode .category-item.custom .custom-badge { display: none; }
 
-    /* 添加按钮 */
     .add-category {
       display: flex;
       flex-direction: column;
@@ -122,9 +119,6 @@
     }
     .add-category .name { font-size: 11px; color: #bdbdbd; }
 
-    .view-container { display: none; }
-    .view-container.active { display: block; }
-
     .tip {
       padding: 12px 16px;
       font-size: 12px;
@@ -132,17 +126,11 @@
       text-align: center;
     }
 
-    /* 二级分类页面 */
-    .sub-view {
-      display: none;
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: #fafafa;
-      z-index: 60;
-      flex-direction: column;
-    }
-    .sub-view.show { display: flex; }
-    .sub-view .sub-header {
+    /* 二级分类列表（同页面内替换） */
+    .sub-section { display: none; }
+    .sub-section.active { display: block; }
+
+    .sub-header {
       display: flex;
       align-items: center;
       gap: 12px;
@@ -150,14 +138,15 @@
       background: #fff;
       border-bottom: 1px solid #f0f0f0;
     }
-    .sub-view .sub-header .back-btn {
+    .sub-header .back-btn {
       font-size: 20px;
       cursor: pointer;
       color: #757575;
       border: none;
       background: none;
+      padding: 4px;
     }
-    .sub-view .sub-header .parent-icon {
+    .sub-header .parent-icon {
       width: 36px; height: 36px;
       border-radius: 10px;
       display: flex;
@@ -165,23 +154,20 @@
       justify-content: center;
       font-size: 18px;
     }
-    .sub-view .sub-header .parent-name {
+    .sub-header .parent-name {
       font-size: 16px;
       font-weight: 600;
       color: #212121;
     }
-    .sub-view .sub-list {
-      flex: 1;
-      overflow-y: auto;
-    }
+
+    .sub-list { background: #fff; }
     .sub-item {
       display: flex;
       align-items: center;
       padding: 14px 16px;
-      background: #fff;
       border-bottom: 1px solid #f5f5f5;
-      position: relative;
     }
+    .sub-item:last-child { border-bottom: none; }
     .sub-item .icon {
       width: 36px; height: 36px;
       border-radius: 10px;
@@ -208,11 +194,13 @@
     .sub-item.custom .custom-tag { display: inline-block; }
     .sub-item .delete-btn {
       display: none;
-      font-size: 14px;
+      font-size: 13px;
       color: #f44336;
       cursor: pointer;
+      padding: 4px 8px;
     }
     .edit-mode .sub-item.custom .delete-btn { display: inline; }
+
     .sub-add {
       display: flex;
       align-items: center;
@@ -224,10 +212,13 @@
       border-radius: 12px;
       color: #4caf50;
       font-size: 14px;
+      font-weight: 500;
       cursor: pointer;
     }
 
-    /* 编辑模式底栏 */
+    .view-container { display: none; }
+    .view-container.active { display: block; }
+
     .edit-bar {
       display: none;
       position: fixed;
@@ -238,7 +229,7 @@
       padding: 12px 16px;
       border-top: 1px solid #f0f0f0;
       text-align: center;
-      z-index: 70;
+      z-index: 50;
     }
     .edit-bar.show { display: block; }
     .edit-bar .done-btn {
@@ -260,22 +251,28 @@
       <span></span>
     </div>
 
-    <div class="nav-bar">
+    <!-- 导航栏：一级时显示"分类管理"，二级时显示"← 分类名" -->
+    <div class="nav-bar" id="mainNav">
       <a href="../index.html" class="nav-icon">←</a>
       <h1>分类管理</h1>
       <span class="nav-icon" onclick="toggleEdit()">✏️</span>
     </div>
+    <div class="nav-bar" id="subNav" style="display:none;">
+      <span class="nav-icon" onclick="hideSub()">←</span>
+      <h1 id="subNavTitle">餐饮</h1>
+      <span class="nav-icon" onclick="toggleEdit()">✏️</span>
+    </div>
 
-    <div class="type-tabs">
+    <!-- 支出/收入切换 -->
+    <div class="type-tabs" id="typeTabs">
       <button class="tab active" onclick="switchType('expense')">支出</button>
       <button class="tab" onclick="switchType('income')">收入</button>
     </div>
 
     <div class="content">
-      <!-- ========== 支出分类 ========== -->
+      <!-- ========== 支出一级分类 ========== -->
       <div class="view-container active" id="expenseView">
         <div class="category-grid" id="expenseGrid">
-          <!-- 默认分类（不可删除） -->
           <div class="category-item" onclick="showSub('餐饮','#fff3e0','🍜',[
             {name:'早餐',icon:'🥐',default:true},
             {name:'午餐',icon:'🍱',default:true},
@@ -362,12 +359,11 @@
             <span class="name">其他</span>
             <span class="sub-count">1个子分类</span>
           </div>
-          <!-- 自定义分类（可删除） -->
           <div class="category-item custom" onclick="showSub('宠物','#fff8e1','🐱',[
             {name:'猫粮',icon:'🐱',default:false},
             {name:'医疗',icon:'💉',default:false}
           ])">
-            <span class="delete-dot" onclick="event.stopPropagation();alert('删除自定义分类:宠物')">×</span>
+            <span class="delete-dot" onclick="event.stopPropagation();alert('删除:宠物')">×</span>
             <span class="custom-badge">自</span>
             <div class="icon" style="background:#fff8e1;">🐱</div>
             <span class="name">宠物</span>
@@ -381,7 +377,7 @@
         <div class="tip">点击分类查看子分类 · 自定义分类可删除</div>
       </div>
 
-      <!-- ========== 收入分类 ========== -->
+      <!-- ========== 收入一级分类 ========== -->
       <div class="view-container" id="incomeView">
         <div class="category-grid" id="incomeGrid">
           <div class="category-item" onclick="showSub('工资','#e8f5e9','💰',[
@@ -434,26 +430,22 @@
         </div>
         <div class="tip">点击分类查看子分类 · 自定义分类可删除</div>
       </div>
-    </div>
 
-    <!-- 二级分类子页面 -->
-    <div class="sub-view" id="subView">
-      <div class="sub-header">
-        <button class="back-btn" onclick="hideSub()">←</button>
-        <div class="parent-icon" id="subIcon"></div>
-        <span class="parent-name" id="subName"></span>
+      <!-- ========== 二级分类（替换内容区） ========== -->
+      <div class="sub-section" id="subSection">
+        <div class="sub-list" id="subList"></div>
+        <div class="sub-add" onclick="alert('添加子分类')">+ 添加子分类</div>
       </div>
-      <div class="sub-list" id="subList"></div>
-      <div class="sub-add" onclick="alert('添加子分类')">+ 添加子分类</div>
     </div>
 
-    <!-- 编辑模式底栏 -->
     <div class="edit-bar" id="editBar">
       <button class="done-btn" onclick="toggleEdit()">完成</button>
     </div>
   </div>
 
   <script>
+    let currentSubColor = '#fff3e0';
+
     function switchType(type) {
       document.querySelectorAll('.type-tabs .tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
@@ -468,13 +460,21 @@
 
     function toggleEdit() {
       document.querySelectorAll('.category-grid').forEach(g => g.classList.toggle('edit-mode'));
+      document.getElementById('subSection').classList.toggle('edit-mode');
       document.getElementById('editBar').classList.toggle('show');
     }
 
     function showSub(name, color, emoji, subs) {
-      document.getElementById('subIcon').style.background = color;
-      document.getElementById('subIcon').textContent = emoji;
-      document.getElementById('subName').textContent = name;
+      currentSubColor = color;
+      // 切换导航栏
+      document.getElementById('mainNav').style.display = 'none';
+      document.getElementById('subNav').style.display = 'flex';
+      document.getElementById('subNavTitle').textContent = name;
+      // 隐藏收入/支出切换
+      document.getElementById('typeTabs').style.display = 'none';
+      // 隐藏一级视图，显示二级
+      document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
+      document.getElementById('subSection').classList.add('active');
 
       let html = '';
       subs.forEach(s => {
@@ -487,11 +487,18 @@
         </div>`;
       });
       document.getElementById('subList').innerHTML = html;
-      document.getElementById('subView').classList.add('show');
     }
 
     function hideSub() {
-      document.getElementById('subView').classList.remove('show');
+      // 恢复导航栏
+      document.getElementById('mainNav').style.display = 'flex';
+      document.getElementById('subNav').style.display = 'none';
+      // 显示收入/支出切换
+      document.getElementById('typeTabs').style.display = 'flex';
+      // 隐藏二级，恢复一级
+      document.getElementById('subSection').classList.remove('active');
+      const isExpense = document.querySelector('.type-tabs .tab:first-child').classList.contains('active');
+      document.getElementById(isExpense ? 'expenseView' : 'incomeView').classList.add('active');
     }
   </script>
 </body>
