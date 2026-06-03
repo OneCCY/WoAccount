@@ -230,9 +230,9 @@
       <button class="tab" onclick="switchTab('income')">收入</button>
       <button class="tab" onclick="switchTab('other')">其他</button>
     </div>
-    <div class="type-tabs" id="subTabs" style="display:none;">
-      <button class="tab" onclick="hideSub()">支出</button>
-      <button class="tab active" id="subTabName">餐饮</button>
+    <div class="type-tabs" id="subTabs" style="display:none; position:relative;">
+      <div style="position:absolute; left:16px; top:50%; transform:translateY(-50%); font-size:18px; color:#757575; cursor:pointer; padding:4px 8px;" onclick="hideSub()">‹</div>
+      <div style="flex:1; text-align:center; padding:12px; font-size:15px; font-weight:500; color:#4caf50;" id="subTabLabel">支出 / 餐饮</div>
     </div>
 
     <div class="content">
@@ -473,9 +473,10 @@
 
     function showSub(parentName, color, emoji, subs) {
       // 切换到二级标签栏
+      const typeLabel = currentTab === 'expense' ? '支出' : currentTab === 'income' ? '收入' : '其他';
       document.getElementById('typeTabs').style.display = 'none';
       document.getElementById('subTabs').style.display = 'flex';
-      document.getElementById('subTabName').textContent = parentName;
+      document.getElementById('subTabLabel').textContent = typeLabel + ' / ' + parentName;
       // 隐藏所有一级，显示二级
       document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
       document.getElementById('subView').classList.add('active');
