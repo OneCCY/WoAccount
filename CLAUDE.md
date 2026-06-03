@@ -9,6 +9,7 @@
 1. `git diff` 检查变更
 2. `git add` 暂存文件（绝不提交 .env、密钥等敏感文件）
 3. 生成规范的 commit message 并提交
+4. `git push` 推送到远程仓库并同步
 
 ### Commit 格式
 
