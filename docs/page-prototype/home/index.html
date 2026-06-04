@@ -54,6 +54,20 @@
     .input-bar .text-input:focus { border-color: #4caf50; }
     .input-bar .text-input::placeholder { color: #bdbdbd; }
 
+    /* 预算提醒卡片 */
+    .insight-card {
+      background: #fff3e0;
+      margin: 8px 16px;
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .insight-card .icon { font-size: 20px; }
+    .insight-card .text { flex: 1; font-size: 13px; color: #e65100; }
+    .insight-card .action { font-size: 13px; color: #ff9800; font-weight: 500; cursor: pointer; }
+
     /* AI 助手入口 */
     .ai-entry {
       margin: 16px 16px 12px;
@@ -110,6 +124,13 @@
     </div>
 
     <div class="content">
+      <!-- 预算提醒 -->
+      <div class="insight-card">
+        <span class="icon">💡</span>
+        <span class="text">今日消费已超过日均预算的80%</span>
+        <a href="../profile/budget/index.html" class="action">详情</a>
+      </div>
+
       <!-- AI 助手入口 -->
       <a href="../profile/index.html" class="ai-entry">
         <span class="icon">🤖</span>
