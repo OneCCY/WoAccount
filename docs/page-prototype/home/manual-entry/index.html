@@ -148,17 +148,15 @@
       z-index: 2;
     }
 
-    /* 二级分类浮层 */
+    /* 二级分类浮层 - 覆盖在分类区域上方 */
     .sub-overlay {
       display: none;
       position: absolute;
-      bottom: 0; left: 0; right: 0;
-      background: #fff;
-      border-top: 1px solid #f0f0f0;
-      border-radius: 16px 16px 0 0;
-      box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255,255,255,0.97);
       z-index: 50;
       padding: 16px;
+      overflow-y: auto;
     }
     .sub-overlay.show { display: block; }
     .sub-overlay .sub-header {
@@ -241,6 +239,16 @@
       outline: none;
     }
     .input-row .note-input::placeholder { color: #bdbdbd; }
+    /* 已选分类显示 */
+    .selected-category {
+      display: none;
+      padding: 6px 16px;
+      background: #e8f5e9;
+      font-size: 13px;
+      color: #4caf50;
+      font-weight: 500;
+    }
+    .selected-category.show { display: block; }
     .input-row .amount-display {
       font-size: 28px;
       font-weight: 700;
@@ -481,6 +489,9 @@
         <div class="cal-days" id="calDays"></div>
       </div>
     </div>
+
+    <!-- 已选分类显示 -->
+    <div class="selected-category" id="selectedCategoryDisplay">餐饮/午餐</div>
 
     <!-- 备注+金额 -->
     <div class="input-row">
