@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WoAccount - 手动记账</title>
+  <link rel="stylesheet" href="../../shared/style.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #fff;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .page {
+      width: 375px;
+      min-height: 812px;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+    }
+
+    /* 顶部栏 */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      height: 48px;
+    }
+    .top-bar .cancel { font-size: 15px; color: #757575; cursor: pointer; border: none; background: none; }
+    .top-bar .save {
+      font-size: 15px;
+      color: #fff;
+      background: #4caf50;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 20px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .top-bar .save:disabled { background: #e0e0e0; }
+
+    /* 类型切换 */
+    .type-tabs {
+      display: flex;
+      padding: 0 16px;
+      gap: 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .type-tabs .tab {
+      flex: 1;
+      padding: 12px;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 500;
+      color: #9e9e9e;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      position: relative;
+      transition: color 0.2s;
+    }
+    .type-tabs .tab.active { color: #212121; }
+    .type-tabs .tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 25%; width: 50%; height: 3px;
+      background: #4caf50;
+      border-radius: 2px;
+    }
+
+    /* 金额显示 */
+    .amount-display {
+      padding: 20px 16px 12px;
+      text-align: right;
+    }
+    .amount-display .currency { font-size: 20px; color: #212121; font-weight: 600; }
+    .amount-display .amount {
+      font-size: 40px;
+      font-weight: 700;
+      color: #212121;
+      letter-spacing: -1px;
+    }
+    .amount-display .amount.expense { color: #f44336; }
+    .amount-display .amount.income { color: #4caf50; }
+    .amount-display .amount.other { color: #757575; }
+    .amount-display .cursor {
+      display: inline-block;
+      width: 2px;
+      height: 36px;
+      background: #4caf50;
+      margin-left: 2px;
+      animation: blink 1s infinite;
+      vertical-align: middle;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* 分类网格 */
+    .category-section {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 8px;
+    }
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px 0;
+      padding: 8px 0;
+    }
+    .category-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 4px;
+      cursor: pointer;
+      border-radius: 12px;
+      transition: background 0.2s;
+    }
+    .category-item:hover { background: #f5f5f5; }
+    .category-item.selected { background: #e8f5e9; }
+    .category-item .icon {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+    .category-item .name {
+      font-size: 11px;
+      color: #212121;
+      text-align: center;
+    }
+    .category-item.selected .name { color: #4caf50; font-weight: 600; }
+
+    /* 备注行 */
+    .note-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-top: 1px solid #f5f5f5;
+    }
+    .note-row input {
+      flex: 1;
+      border: none;
+      font-size: 14px;
+      color: #212121;
+      outline: none;
+    }
+    .note-row input::placeholder { color: #bdbdbd; }
+    .note-row .date-btn {
+      font-size: 13px;
+      color: #757575;
+      padding: 4px 10px;
+      background: #f5f5f5;
+      border-radius: 6px;
+      cursor: pointer;
+      border: none;
+    }
+
+    /* 数字键盘 */
+    .numpad {
+      background: #f5f5f5;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+    }
+    .numpad .key {
+      padding: 16px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 500;
+      color: #212121;
+      background: #fff;
+      cursor: pointer;
+      border: none;
+      transition: background 0.1s;
+      user-select: none;
+    }
+    .numpad .key:active { background: #e0e0e0; }
+    .numpad .key.func { color: #757575; font-size: 16px; }
+    .numpad .key.confirm {
+      background: #4caf50;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .numpad .key.confirm:active { background: #43a047; }
+    .numpad .key.delete { font-size: 18px; }
+
+    .view-container { display: none; }
+    .view-container.active { display: block; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- 顶部栏 -->
+    <div class="top-bar">
+      <button class="cancel" onclick="history.back()">取消</button>
+      <button class="save" id="saveBtn" disabled>保存</button>
+    </div>
+
+    <!-- 类型切换 -->
+    <div class="type-tabs">
+      <button class="tab active" onclick="switchType('expense')">支出</button>
+      <button class="tab" onclick="switchType('income')">收入</button>
+      <button class="tab" onclick="switchType('other')">其他</button>
+    </div>
+
+    <!-- 金额显示 -->
+    <div class="amount-display">
+      <span class="currency">¥</span>
+      <span class="amount expense" id="amountText">0</span>
+      <span class="cursor"></span>
+    </div>
+
+    <!-- ========== 支出分类 ========== -->
+    <div class="category-section view-container active" id="expenseView">
+      <div class="category-grid">
+        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#fff3e0;">🍜</div><span class="name">餐饮</span></div>
+        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#e3f2fd;">🚗</div><span class="name">交通</span></div>
+        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#fce4ec;">🛒</div><span class="name">购物</span></div>
+        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#f3e5f5;">🏠</div><span class="name">住房</span></div>
+        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#e8f5e9;">🎮</div><span class="name">娱乐</span></div>
+        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#e0f7fa;">📚</div><span class="name">教育</span></div>
+        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#ffebee;">💊</div><span class="name">医疗</span></div>
+        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#fbe9e7;">👤</div><span class="name">社交</span></div>
+        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#f5f5f5;">🐱</div><span class="name">宠物</span></div>
+        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#f5f5f5;">💰</div><span class="name">其他</span></div>
+      </div>
+    </div>
+
+    <!-- ========== 收入分类 ========== -->
+    <div class="category-section view-container" id="incomeView">
+      <div class="category-grid">
+        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#e8f5e9;">💰</div><span class="name">工资</span></div>
+        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#fff3e0;">🎁</div><span class="name">奖金</span></div>
+        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#e3f2fd;">📈</div><span class="name">投资收益</span></div>
+        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#f3e5f5;">🔄</div><span class="name">退款</span></div>
+        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#f5f5f5;">💼</div><span class="name">兼职</span></div>
+      </div>
+    </div>
+
+    <!-- ========== 其他分类 ========== -->
+    <div class="category-section view-container" id="otherView">
+      <div class="category-grid">
+        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#e0f2f1;">🔄</div><span class="name">转账</span></div>
+        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#fce4ec;">💳</div><span class="name">还款</span></div>
+        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#fff8e1;">🤝</div><span class="name">人情</span></div>
+      </div>
+    </div>
+
+    <!-- 备注行 -->
+    <div class="note-row">
+      <input type="text" placeholder="添加备注...">
+      <button class="date-btn" onclick="alert('选择日期')">今天</button>
+    </div>
+
+    <!-- 数字键盘 -->
+    <div class="numpad">
+      <button class="key" onclick="inputKey('1')">1</button>
+      <button class="key" onclick="inputKey('2')">2</button>
+      <button class="key" onclick="inputKey('3')">3</button>
+      <button class="key delete" onclick="inputKey('delete')">⌫</button>
+      <button class="key" onclick="inputKey('4')">4</button>
+      <button class="key" onclick="inputKey('5')">5</button>
+      <button class="key" onclick="inputKey('6')">6</button>
+      <button class="key func" onclick="inputKey('clear')">清空</button>
+      <button class="key" onclick="inputKey('7')">7</button>
+      <button class="key" onclick="inputKey('8')">8</button>
+      <button class="key" onclick="inputKey('9')">9</button>
+      <button class="key confirm" rowspan="2" onclick="inputKey('confirm')">记账</button>
+      <button class="key func" onclick="inputKey('date')">日期</button>
+      <button class="key" onclick="inputKey('0')">0</button>
+      <button class="key" onclick="inputKey('.')">.</button>
+    </div>
+  </div>
+
+  <script>
+    let currentType = 'expense';
+    let amount = '0';
+    let selectedCategory = null;
+
+    function switchType(type) {
+      currentType = type;
+      document.querySelectorAll('.type-tabs .tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.category-section').forEach(v => v.classList.remove('active'));
+      const tabs = document.querySelectorAll('.type-tabs .tab');
+      if (type === 'expense') { tabs[0].classList.add('active'); document.getElementById('expenseView').classList.add('active'); }
+      else if (type === 'income') { tabs[1].classList.add('active'); document.getElementById('incomeView').classList.add('active'); }
+      else { tabs[2].classList.add('active'); document.getElementById('otherView').classList.add('active'); }
+      // 重置分类选择
+      selectedCategory = null;
+      document.querySelectorAll('.category-item').forEach(c => c.classList.remove('selected'));
+      updateAmountColor();
+    }
+
+    function updateAmountColor() {
+      const el = document.getElementById('amountText');
+      el.className = 'amount ' + currentType;
+    }
+
+    function selectCategory(el) {
+      document.querySelectorAll('.category-item').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedCategory = el.querySelector('.name').textContent;
+      checkSaveable();
+    }
+
+    function inputKey(key) {
+      if (key === 'delete') {
+        amount = amount.length > 1 ? amount.slice(0, -1) : '0';
+      } else if (key === 'clear') {
+        amount = '0';
+      } else if (key === '.') {
+        if (!amount.includes('.')) amount += '.';
+      } else if (key === 'confirm') {
+        if (amount !== '0' && selectedCategory) {
+          alert('记账成功！\n类型: ' + currentType + '\n金额: ¥' + amount + '\n分类: ' + selectedCategory);
+        }
+        return;
+      } else if (key === 'date') {
+        alert('选择日期');
+        return;
+      } else {
+        // 数字
+        if (amount === '0' && key !== '.') {
+          amount = key;
+        } else {
+          // 限制小数点后2位
+          if (amount.includes('.')) {
+            const parts = amount.split('.');
+            if (parts[1].length >= 2) return;
+          }
+          // 限制最大长度
+          if (amount.length >= 10) return;
+          amount += key;
+        }
+      }
+      document.getElementById('amountText').textContent = amount;
+      checkSaveable();
+    }
+
+    function checkSaveable() {
+      const saveBtn = document.getElementById('saveBtn');
+      saveBtn.disabled = !(amount !== '0' && selectedCategory);
+    }
+  </script>
+</body>
+</html>

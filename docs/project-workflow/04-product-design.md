@@ -25,9 +25,16 @@
 │  ├── HomePage (记账 - 中Tab，核心入口)                          │
 │  │   ├── AiEntryWidget (AI助手入口卡片)                        │
 │  │   └── TransactionInputWidget (记账输入栏 - 固定底部)        │
-│  │       ├── ManualEntryButton (手动记账 - 左侧)               │
+│  │       ├── ManualEntryButton (手动记账→全屏记账页)            │
 │  │       ├── TextInputField (文本输入 - 中间)                  │
 │  │       └── PhotoUploadButton (拍照识别 - 右侧)               │
+│  │                                                              │
+│  ├── ManualEntryPage (手动记账 - 全屏页面)                      │
+│  │   ├── TypeTabs (支出/收入/其他)                             │
+│  │   ├── AmountDisplay (金额显示)                              │
+│  │   ├── CategoryGrid (分类网格 - 跟随类型切换)                │
+│  │   ├── NoteRow (备注+日期)                                   │
+│  │   └── NumPad (数字键盘)                                     │
 │  │                                                              │
 │  └── ProfilePage (我的 - 右Tab)                                │
 │      ├── UserInfoWidget (用户信息)                              │
