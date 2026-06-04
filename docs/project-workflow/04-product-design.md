@@ -2,6 +2,21 @@
 
 > **版本**: v4.0 | **更新日期**: 2026-06-03 | **状态**: AI深度整合，智能记账体验
 
+---
+
+## ⚠️ 重要说明
+
+本文档为**高层产品设计**，详细的技术实现文档请参考：
+
+| 模块 | 详细文档 | 内容 |
+|------|----------|------|
+| UI规范 | [ui-design-system.md](../superpowers/specs/2026-06-04-ui-design-system.md) | 设计原则、字体系统、颜色系统、组件规范、动画规范 |
+| 交互流程 | [interaction-flow.md](../superpowers/ux/interaction-flow.md) | 页面导航、手势交互、动画设计、反馈设计 |
+| AI能力 | [ai-overview.md](../superpowers/ai/ai-overview.md) | AI能力矩阵、处理流程、数据流 |
+| Prompt设计 | [prompt-design.md](../superpowers/llm/prompt-design.md) | 记账解析、AI对话、消费洞察 |
+
+---
+
 ## 4.1 信息架构
 
 ### 4.1.1 页面层级结构

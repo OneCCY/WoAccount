@@ -8,6 +8,8 @@
 
 ## 📚 详细文档
 
+### 项目工作流文档（高层规划）
+
 | 章节 | 文档 | 描述 | 状态 |
 |------|------|------|------|
 | 01 | [需求分析](01-requirements.md) | 项目背景、目标用户、功能清单、用户故事、用例、验收标准 | ✅ 已细化 |
@@ -19,6 +21,22 @@
 | 07 | [测试策略](07-testing-strategy.md) | 测试金字塔、测试用例、AI准确率测试 | ✅ 完成 |
 | 08 | [部署发布](08-deployment.md) | CI/CD、应用商店发布、监控配置 | ✅ 完成 |
 | 09 | [迭代运营](09-iteration.md) | 版本规划、用户增长、商业化策略 | ✅ 完成 |
+
+### 技术实现文档（详细设计）⚠️ 开发时遵循此目录
+
+| 模块 | 文档 | 描述 | 状态 |
+|------|------|------|------|
+| 前端架构 | [frontend-architecture.md](../superpowers/architecture/frontend-architecture.md) | Feature-First结构、Riverpod详解、GoRouter配置、组件规范 | ✅ 完成 |
+| 后端架构 | [backend-architecture.md](../superpowers/architecture/backend-architecture.md) | Drift数据库设计、Repository模式、Provider依赖注入 | ✅ 完成 |
+| AI能力 | [ai-overview.md](../superpowers/ai/ai-overview.md) | AI能力矩阵、处理流程、数据流、演进路线 | ✅ 完成 |
+| LLM架构 | [llm-overview.md](../superpowers/llm/llm-overview.md) | 多提供商支持、离线策略、图片识别、错误处理 | ✅ 完成 |
+| LLM配置 | [llm-config.md](../superpowers/llm/llm-config.md) | 用户配置方案、预设提供商、安全存储 | ✅ 完成 |
+| Prompt设计 | [prompt-design.md](../superpowers/llm/prompt-design.md) | 记账解析、AI对话、消费洞察、月末报告 | ✅ 完成 |
+| 测试策略 | [testing-strategy.md](../superpowers/testing/testing-strategy.md) | 测试金字塔、AI准确率测试、Widget测试、E2E测试 | ✅ 完成 |
+| 数据安全 | [data-security.md](../superpowers/security/data-security.md) | 数据库加密、安全存储、权限管理、备份恢复 | ✅ 完成 |
+| 交互流程 | [interaction-flow.md](../superpowers/ux/interaction-flow.md) | 页面导航、手势交互、动画设计、反馈设计 | ✅ 完成 |
+| 性能优化 | [performance-optimization.md](../superpowers/performance/performance-optimization.md) | 启动优化、列表优化、内存优化、网络优化 | ✅ 完成 |
+| UI规范 | [ui-design-system.md](../superpowers/specs/2026-06-04-ui-design-system.md) | 设计原则、字体系统、颜色系统、组件规范、动画规范 | ✅ 完成 |
 
 ---
 

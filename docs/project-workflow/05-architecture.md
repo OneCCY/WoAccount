@@ -4,6 +4,20 @@
 
 ---
 
+## ⚠️ 重要说明
+
+本文档为**高层架构概述**，详细的技术实现文档请参考：
+
+| 模块 | 详细文档 | 内容 |
+|------|----------|------|
+| 前端架构 | [frontend-architecture.md](../superpowers/architecture/frontend-architecture.md) | Riverpod详解、组件规范、GoRouter配置 |
+| 后端架构 | [backend-architecture.md](../superpowers/architecture/backend-architecture.md) | Drift数据库设计、Repository模式 |
+| LLM架构 | [llm-overview.md](../superpowers/llm/llm-overview.md) | 多提供商支持、离线策略、图片识别 |
+| 数据安全 | [data-security.md](../superpowers/security/data-security.md) | 加密存储、权限管理 |
+| 性能优化 | [performance-optimization.md](../superpowers/performance/performance-optimization.md) | 启动优化、列表优化 |
+
+---
+
 ## 5.1 架构概述
 
 ### 5.1.1 架构原则

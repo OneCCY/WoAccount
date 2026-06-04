@@ -2,6 +2,22 @@
 
 > **版本**: v3.1 | **更新日期**: 2026-06-02 | **状态**: 结合01需求/02竞品分析深化
 
+---
+
+## ⚠️ 重要说明
+
+本文档为**高层技术选型**，详细的技术实现文档请参考：
+
+| 模块 | 详细文档 | 内容 |
+|------|----------|------|
+| 前端架构 | [frontend-architecture.md](../superpowers/architecture/frontend-architecture.md) | Riverpod详解、组件规范、GoRouter配置 |
+| 后端架构 | [backend-architecture.md](../superpowers/architecture/backend-architecture.md) | Drift数据库设计、Repository模式 |
+| LLM架构 | [llm-overview.md](../superpowers/llm/llm-overview.md) | 多提供商支持、离线策略、图片识别 |
+| LLM配置 | [llm-config.md](../superpowers/llm/llm-config.md) | 用户配置方案、预设提供商 |
+| 数据安全 | [data-security.md](../superpowers/security/data-security.md) | 数据库加密、安全存储 |
+
+---
+
 ## 3.0 架构策略说明
 
 ### 3.0.1 当前阶段: 本地优先 (Local-First)

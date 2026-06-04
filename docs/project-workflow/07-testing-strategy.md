@@ -4,6 +4,18 @@
 
 ---
 
+## ⚠️ 重要说明
+
+本文档为**高层测试策略**，详细的技术实现文档请参考：
+
+| 模块 | 详细文档 | 内容 |
+|------|----------|------|
+| 测试策略 | [testing-strategy.md](../superpowers/testing/testing-strategy.md) | 测试金字塔、AI准确率测试、Widget测试、E2E测试 |
+| 数据安全 | [data-security.md](../superpowers/security/data-security.md) | 数据库加密、安全存储 |
+| 性能优化 | [performance-optimization.md](../superpowers/performance/performance-optimization.md) | 启动优化、内存优化 |
+
+---
+
 ## 7.1 测试概述
 
 ### 7.1.1 测试目标
