@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WoAccount - 预算管理</title>
+  <link rel="stylesheet" href="../../shared/style.css">
+  <style>
+    /* 总预算卡片 */
+    .total-budget {
+      margin: 12px 16px;
+      background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+      border-radius: 16px;
+      padding: 20px;
+    }
+    .total-budget .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .total-budget .header .title { font-size: 14px; color: #e65100; }
+    .total-budget .header .edit-btn {
+      font-size: 12px;
+      color: #ff9800;
+      cursor: pointer;
+      padding: 4px 10px;
+      border: 1px solid #ff9800;
+      border-radius: 12px;
+      background: transparent;
+    }
+    .total-budget .amounts {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .total-budget .amounts .item .label { font-size: 11px; color: #e65100; margin-bottom: 2px; }
+    .total-budget .amounts .item .value { font-size: 22px; font-weight: 700; color: #e65100; }
+    .total-budget .progress-wrap {
+      background: rgba(255,255,255,0.5);
+      border-radius: 6px;
+      height: 10px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+    .total-budget .progress-wrap .fill {
+      height: 100%;
+      background: #ff9800;
+      border-radius: 6px;
+      transition: width 0.3s;
+    }
+    .total-budget .progress-text {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #e65100;
+    }
+
+    /* 周期切换 */
+    .period-tabs {
+      display: flex;
+      background: #fff;
+      margin: 0 16px 12px;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .period-tabs .tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 500;
+      color: #9e9e9e;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      transition: all 0.2s;
+    }
+    .period-tabs .tab.active { color: #ff9800; background: #fff3e0; }
+
+    /* 分类预算列表 */
+    .category-budget {
+      margin: 0 16px 12px;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .category-budget .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+    }
+    .category-budget .header .title { font-size: 14px; font-weight: 600; color: #212121; }
+    .category-budget .header .add-btn {
+      font-size: 13px;
+      color: #4caf50;
+      cursor: pointer;
+    }
+    .budget-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      border-top: 1px solid #f5f5f5;
+    }
+    .budget-item .icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      margin-right: 12px;
+    }
+    .budget-item .info { flex: 1; min-width: 0; }
+    .budget-item .info .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .budget-item .info .top .name { font-size: 14px; color: #212121; }
+    .budget-item .info .top .amount { font-size: 13px; color: #9e9e9e; }
+    .budget-item .info .progress-bar {
+      height: 6px;
+      background: #f5f5f5;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .budget-item .info .progress-bar .fill { height: 100%; border-radius: 3px; }
+    .budget-item .info .bottom {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+    }
+    .budget-item .info .bottom .spent { font-size: 11px; color: #9e9e9e; }
+    .budget-item .info .bottom .percent { font-size: 11px; font-weight: 600; }
+    .budget-item .info .bottom .percent.normal { color: #4caf50; }
+    .budget-item .info .bottom .percent.warning { color: #ff9800; }
+    .budget-item .info .bottom .percent.danger { color: #f44336; }
+
+    /* 超支提示 */
+    .over-budget-tip {
+      margin: 0 16px 12px;
+      background: #ffebee;
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .over-budget-tip .icon { font-size: 20px; }
+    .over-budget-tip .text { font-size: 13px; color: #c62828; }
+
+    .view-container { display: none; }
+    .view-container.active { display: block; }
+  </style>
+</head>
+<body>
+  <div class="phone-frame">
+    <div class="status-bar">
+      <span>9:41</span>
+      <span>预算管理</span>
+      <span></span>
+    </div>
+
+    <div class="nav-bar">
+      <a href="../index.html" class="nav-icon">←</a>
+      <h1>预算管理</h1>
+      <span></span>
+    </div>
+
+    <div class="content">
+      <!-- 总预算卡片 -->
+      <div class="total-budget">
+        <div class="header">
+          <span class="title">本月总预算</span>
+          <button class="edit-btn" onclick="alert('编辑总预算')">编辑</button>
+        </div>
+        <div class="amounts">
+          <div class="item">
+            <div class="label">已花费</div>
+            <div class="value">¥3,280</div>
+          </div>
+          <div class="item" style="text-align:right;">
+            <div class="label">预算总额</div>
+            <div class="value">¥5,000</div>
+          </div>
+        </div>
+        <div class="progress-wrap">
+          <div class="fill" style="width:65.6%;"></div>
+        </div>
+        <div class="progress-text">
+          <span>已用 65.6%</span>
+          <span>剩余 ¥1,720</span>
+        </div>
+      </div>
+
+      <!-- 超支提示 -->
+      <div class="over-budget-tip">
+        <span class="icon">⚠️</span>
+        <span class="text">餐饮预算已超支 ¥340，建议控制支出</span>
+      </div>
+
+      <!-- 周期切换 -->
+      <div class="period-tabs">
+        <button class="tab active" onclick="switchPeriod('month')">月预算</button>
+        <button class="tab" onclick="switchPeriod('week')">周预算</button>
+        <button class="tab" onclick="switchPeriod('day')">日预算</button>
+      </div>
+
+      <!-- ========== 月预算 ========== -->
+      <div class="view-container active" id="monthView">
+        <div class="category-budget">
+          <div class="header">
+            <span class="title">分类预算</span>
+            <span class="add-btn" onclick="alert('添加分类预算')">+ 添加</span>
+          </div>
+          <div class="budget-item">
+            <div class="icon" style="background:#fff3e0;">🍜</div>
+            <div class="info">
+              <div class="top"><span class="name">餐饮</span><span class="amount">¥2,000 / ¥1,500</span></div>
+              <div class="progress-bar"><div class="fill" style="width:100%; background:#f44336;"></div></div>
+              <div class="bottom"><span class="spent">超支 ¥500</span><span class="percent danger">133%</span></div>
+            </div>
+          </div>
+          <div class="budget-item">
+            <div class="icon" style="background:#e3f2fd;">🚗</div>
+            <div class="info">
+              <div class="top"><span class="name">交通</span><span class="amount">¥328 / ¥500</span></div>
+              <div class="progress-bar"><div class="fill" style="width:65.6%; background:#4caf50;"></div></div>
+              <div class="bottom"><span class="spent">剩余 ¥172</span><span class="percent normal">65.6%</span></div>
+            </div>
+          </div>
+          <div class="budget-item">
+            <div class="icon" style="background:#fce4ec;">🛒</div>
+            <div class="info">
+              <div class="top"><span class="name">购物</span><span class="amount">¥680 / ¥1,000</span></div>
+              <div class="progress-bar"><div class="fill" style="width:68%; background:#ff9800;"></div></div>
+              <div class="bottom"><span class="spent">剩余 ¥320</span><span class="percent warning">68%</span></div>
+            </div>
+          </div>
+          <div class="budget-item">
+            <div class="icon" style="background:#e8f5e9;">🎮</div>
+            <div class="info">
+              <div class="top"><span class="name">娱乐</span><span class="amount">¥156 / ¥300</span></div>
+              <div class="progress-bar"><div class="fill" style="width:52%; background:#4caf50;"></div></div>
+              <div class="bottom"><span class="spent">剩余 ¥144</span><span class="percent normal">52%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== 周预算 ========== -->
+      <div class="view-container" id="weekView">
+        <div class="category-budget">
+          <div class="header">
+            <span class="title">本周预算</span>
+            <span class="add-btn" onclick="alert('编辑周预算')">编辑</span>
+          </div>
+          <div class="budget-item">
+            <div class="icon" style="background:#fff3e0;">🍜</div>
+            <div class="info">
+              <div class="top"><span class="name">餐饮</span><span class="amount">¥420 / ¥350</span></div>
+              <div class="progress-bar"><div class="fill" style="width:100%; background:#f44336;"></div></div>
+              <div class="bottom"><span class="spent">超支 ¥70</span><span class="percent danger">120%</span></div>
+            </div>
+          </div>
+          <div class="budget-item">
+            <div class="icon" style="background:#e3f2fd;">🚗</div>
+            <div class="info">
+              <div class="top"><span class="name">交通</span><span class="amount">¥56 / ¥120</span></div>
+              <div class="progress-bar"><div class="fill" style="width:46.7%; background:#4caf50;"></div></div>
+              <div class="bottom"><span class="spent">剩余 ¥64</span><span class="percent normal">46.7%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== 日预算 ========== -->
+      <div class="view-container" id="dayView">
+        <div class="category-budget">
+          <div class="header">
+            <span class="title">今日预算</span>
+            <span class="add-btn" onclick="alert('编辑日预算')">编辑</span>
+          </div>
+          <div class="budget-item">
+            <div class="icon" style="background:#fff3e0;">🍜</div>
+            <div class="info">
+              <div class="top"><span class="name">餐饮</span><span class="amount">¥43 / ¥50</span></div>
+              <div class="progress-bar"><div class="fill" style="width:86%; background:#ff9800;"></div></div>
+              <div class="bottom"><span class="spent">剩余 ¥7</span><span class="percent warning">86%</span></div>
+            </div>
+          </div>
+          <div class="budget-item">
+            <div class="icon" style="background:#e3f2fd;">🚗</div>
+            <div class="info">
+              <div class="top"><span class="name">交通</span><span class="amount">¥28 / ¥40</span></div>
+              <div class="progress-bar"><div class="fill" style="width:70%; background:#ff9800;"></div></div>
+              <div class="bottom"><span class="spent">剩余 ¥12</span><span class="percent warning">70%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function switchPeriod(period) {
+      document.querySelectorAll('.period-tabs .tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
+      const tabs = document.querySelectorAll('.period-tabs .tab');
+      if (period === 'month') { tabs[0].classList.add('active'); document.getElementById('monthView').classList.add('active'); }
+      else if (period === 'week') { tabs[1].classList.add('active'); document.getElementById('weekView').classList.add('active'); }
+      else { tabs[2].classList.add('active'); document.getElementById('dayView').classList.add('active'); }
+    }
+  </script>
+</body>
+</html>
