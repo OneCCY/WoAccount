@@ -4,7 +4,31 @@
       "WebSearch",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:roadmap.sh)",
-      "Bash(git pull *)"
+      "Bash(git pull *)",
+      "Bash(git fetch *)",
+      "Bash(claude *)",
+      "Bash(npm list *)",
+      "Bash(git config *)",
+      "Bash(npm --version)",
+      "Bash(npm cache *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" https://api.deepseek.com/anthropic)",
+      "Bash(npm outdated *)",
+      "Bash(curl *)",
+      "Bash(where claude *)",
+      "Bash(tasklist /FI \"IMAGENAME eq node.exe\")",
+      "Bash(echo \"---EXIT:$?---\")",
+      "Bash(git add *)",
+      "Bash(git commit -m 'fix\\(config\\): enable 1M context window for ANTHROPIC_MODEL *)",
+      "Bash(flutter --version)",
+      "Bash(dart --version)",
+      "Bash(git --version)",
+      "Bash(wmic logicaldisk *)",
+      "Read(//e//**)",
+      "Read(//d//**)",
+      "Read(//c//**)",
+      "Bash(winget --version)",
+      "Bash(choco --version)",
+      "Bash(scoop --version)"
     ]
   }
 }
