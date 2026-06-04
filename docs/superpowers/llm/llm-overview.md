@@ -522,7 +522,426 @@ final chatWithAiUseCaseProvider = Provider<ChatWithAiUseCase>((ref) {
 
 ---
 
-## 6. 性能优化
+## 6. 离线策略
+
+### 6.1 整体方案
+
+WoAccount采用**本地OCR + 规则引擎**的离线方案，确保无网络时仍可使用核心功能。
+
+```
+用户输入
+    │
+    ▼
+┌─────────────────┐
+│  检查网络状态   │
+└────────┬────────┘
+         │
+    有网络？├─ 是 → 调用LLM API
+         │
+    否   ▼
+┌─────────────────┐
+│  检查缓存       │
+└────────┬────────┘
+         │
+    命中？├─ 是 → 返回缓存结果
+         │
+    否   ▼
+┌─────────────────┐
+│  规则引擎       │
+│  关键词匹配     │
+└────────┬────────┘
+         │
+    命中？├─ 是 → 返回结果（置信度较低）
+         │
+    否   ▼
+┌─────────────────┐
+│  延迟同步模式   │
+│  保存原始输入   │
+│  提示用户       │
+└─────────────────┘
+```
+
+### 6.2 离线能力矩阵
+
+| 功能 | 在线 | 离线 | 降级方案 |
+|------|------|------|----------|
+| 自然语言记账 | LLM解析 | 规则引擎 | 置信度降低 |
+| 语音记账 | 语音识别+LLM | 不可用 | 提示需要网络 |
+| 图片识别 | 本地OCR+LLM | 本地OCR+规则 | 准确率降低 |
+| AI对话 | LLM对话 | 不可用 | 提示需要网络 |
+| 消费洞察 | LLM分析 | 统计计算 | 简单统计 |
+
+### 6.3 网络状态检测
+
+```dart
+// lib/core/network/network_info.dart
+
+import 'package:connectivity_plus/connectivity_plus.dart';
+
+class NetworkInfo {
+  final Connectivity _connectivity;
+  
+  NetworkInfo(this._connectivity);
+  
+  Future<bool> get isConnected async {
+    final result = await _connectivity.checkConnectivity();
+    return result != ConnectivityResult.none;
+  }
+  
+  Stream<bool> get onConnectivityChanged {
+    return _connectivity.onConnectivityChanged.map(
+      (result) => result != ConnectivityResult.none,
+    );
+  }
+}
+```
+
+### 6.4 规则引擎
+
+```dart
+// lib/core/ai/rule_engine.dart
+
+class RuleEngine {
+  // 关键词→分类映射表
+  static final Map<String, CategoryRule> _rules = {
+    // 餐饮
+    '饭': CategoryRule('餐饮', '餐食', 0.8),
+    '面': CategoryRule('餐饮', '面食', 0.8),
+    '火锅': CategoryRule('餐饮', '火锅', 0.9),
+    '烧烤': CategoryRule('餐饮', '烧烤', 0.9),
+    '奶茶': CategoryRule('餐饮', '饮料', 0.9),
+    '咖啡': CategoryRule('餐饮', '饮料', 0.9),
+    '外卖': CategoryRule('餐饮', '外卖', 0.9),
+    '早餐': CategoryRule('餐饮', '早餐', 0.9),
+    '午餐': CategoryRule('餐饮', '午餐', 0.9),
+    '晚餐': CategoryRule('餐饮', '晚餐', 0.9),
+    
+    // 交通
+    '打车': CategoryRule('交通', '打车', 0.9),
+    '滴滴': CategoryRule('交通', '打车', 0.9),
+    '地铁': CategoryRule('交通', '公交地铁', 0.9),
+    '公交': CategoryRule('交通', '公交地铁', 0.9),
+    '加油': CategoryRule('交通', '加油', 0.9),
+    '停车': CategoryRule('交通', '停车', 0.9),
+    
+    // 购物
+    '超市': CategoryRule('购物', '日用品', 0.8),
+    '淘宝': CategoryRule('购物', '网购', 0.9),
+    '京东': CategoryRule('购物', '网购', 0.9),
+    '衣服': CategoryRule('购物', '衣物', 0.9),
+    
+    // 住房
+    '房租': CategoryRule('住房', '房租', 0.95),
+    '水电': CategoryRule('住房', '水电燃气', 0.9),
+    '物业': CategoryRule('住房', '物业', 0.9),
+    
+    // 娱乐
+    '电影': CategoryRule('娱乐', '电影', 0.9),
+    '游戏': CategoryRule('娱乐', '游戏', 0.9),
+    '旅游': CategoryRule('娱乐', '旅游', 0.9),
+    
+    // 医疗
+    '医院': CategoryRule('医疗', '看病', 0.9),
+    '药': CategoryRule('医疗', '药品', 0.8),
+    
+    // 社交
+    '红包': CategoryRule('社交', '红包', 0.9),
+    '礼物': CategoryRule('社交', '礼物', 0.9),
+    '份子钱': CategoryRule('社交', '份子钱', 0.9),
+    
+    // 收入
+    '工资': CategoryRule('工资', null, 0.95, type: 'income'),
+    '发工资': CategoryRule('工资', null, 0.95, type: 'income'),
+    '奖金': CategoryRule('奖金', null, 0.9, type: 'income'),
+    '退款': CategoryRule('退款', null, 0.9, type: 'income'),
+  };
+  
+  /// 规则引擎解析
+  static TransactionParseResult? parse(String input) {
+    // 1. 提取金额
+    final amount = _extractAmount(input);
+    if (amount == null) return null;
+    
+    // 2. 匹配分类
+    CategoryRule? matchedRule;
+    for (final entry in _rules.entries) {
+      if (input.contains(entry.key)) {
+        if (matchedRule == null || entry.value.confidence > matchedRule.confidence) {
+          matchedRule = entry.value;
+        }
+      }
+    }
+    
+    if (matchedRule == null) return null;
+    
+    // 3. 解析时间
+    DateTime? date;
+    for (final entry in _timeWords.entries) {
+      if (input.contains(entry.key)) {
+        date = entry.value();
+        break;
+      }
+    }
+    
+    // 4. 返回结果
+    return TransactionParseResult(
+      amount: amount,
+      category: matchedRule.category,
+      subcategory: matchedRule.subcategory,
+      description: _cleanDescription(input),
+      confidence: matchedRule.confidence,
+      date: date?.toIso8601String().split('T')[0],
+      type: matchedRule.type ?? 'expense',
+    );
+  }
+  
+  /// 添加用户自定义规则
+  static void addRule(String keyword, CategoryRule rule) {
+    _rules[keyword] = rule;
+    // 可以持久化到数据库
+  }
+}
+
+class CategoryRule {
+  final String category;
+  final String? subcategory;
+  final double confidence;
+  final String? type;
+  
+  const CategoryRule(this.category, this.subcategory, this.confidence, {this.type});
+}
+```
+
+---
+
+## 7. 图片识别方案
+
+### 7.1 方案选择
+
+采用**本地OCR + LLM**方案：
+
+- 本地OCR：使用Google ML Kit（支持中文）
+- LLM：有网络时调用云端LLM解析，无网络时用规则引擎
+
+### 7.2 识别流程
+
+```
+拍照/选择图片
+       │
+       ▼
+┌─────────────────┐
+│  图片预处理     │
+│  - 裁剪         │
+│  - 旋转校正     │
+│  - 增强对比度   │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  本地OCR        │
+│  (ML Kit)       │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  检查网络状态   │
+└────────┬────────┘
+         │
+    有网络？├─ 是 → LLM结构化解析
+         │
+    否   ▼
+┌─────────────────┐
+│  规则引擎解析   │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  确认卡片       │
+│  - 展示结果     │
+│  - 用户修改     │
+└─────────────────┘
+```
+
+### 7.3 本地OCR实现
+
+```dart
+// lib/features/scan/data/services/local_ocr_service.dart
+
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+
+class LocalOcrService {
+  final _textRecognizer = TextRecognizer(script: TextRecognitionScript.chinese);
+  
+  /// 识别图片中的文字
+  Future<String> recognizeText(String imagePath) async {
+    final inputImage = InputImage.fromFilePath(imagePath);
+    final recognizedText = await _textRecognizer.processImage(inputImage);
+    return recognizedText.text;
+  }
+  
+  /// 释放资源
+  void dispose() {
+    _textRecognizer.close();
+  }
+}
+```
+
+### 7.4 图片识别服务
+
+```dart
+// lib/features/scan/data/services/receipt_recognition_service.dart
+
+class ReceiptRecognitionService {
+  final LocalOcrService _ocrService;
+  final LlmRepository _llmRepository;
+  final NetworkInfo _networkInfo;
+  
+  ReceiptRecognitionService(
+    this._ocrService,
+    this._llmRepository,
+    this._networkInfo,
+  );
+  
+  /// 识别小票
+  Future<TransactionParseResult> recognizeReceipt(String imagePath) async {
+    // 1. 本地OCR识别文字
+    final ocrText = await _ocrService.recognizeText(imagePath);
+    
+    if (ocrText.isEmpty) {
+      throw RecognitionException('无法识别图片中的文字');
+    }
+    
+    // 2. 检查网络
+    final isConnected = await _networkInfo.isConnected;
+    
+    if (isConnected) {
+      // 3a. 有网络：调用LLM解析
+      return await _llmRepository.parseTransaction(ocrText);
+    } else {
+      // 3b. 无网络：使用规则引擎
+      final result = RuleEngine.parse(ocrText);
+      if (result != null) {
+        return result;
+      }
+      throw RecognitionException('无网络且无法识别，请稍后重试');
+    }
+  }
+  
+  /// 识别发票
+  Future<TransactionParseResult> recognizeInvoice(String imagePath) async {
+    // 类似逻辑，但使用不同的Prompt
+    final ocrText = await _ocrService.recognizeText(imagePath);
+    
+    if (ocrText.isEmpty) {
+      throw RecognitionException('无法识别图片中的文字');
+    }
+    
+    final isConnected = await _networkInfo.isConnected;
+    
+    if (isConnected) {
+      return await _llmRepository.parseInvoice(ocrText);
+    } else {
+      final result = RuleEngine.parse(ocrText);
+      if (result != null) {
+        return result;
+      }
+      throw RecognitionException('无网络且无法识别，请稍后重试');
+    }
+  }
+}
+
+class RecognitionException implements Exception {
+  final String message;
+  const RecognitionException(this.message);
+}
+```
+
+### 7.5 小票识别Prompt
+
+```
+你是一个小票/发票识别专家。请识别以下OCR文字中的消费信息。
+
+## OCR文字内容
+
+{ocr_text}
+
+## 识别内容
+
+1. 商家名称
+2. 消费时间
+3. 消费项目
+4. 总金额
+5. 支付方式
+
+## 输出格式
+
+{
+  "type": "expense",
+  "amount": 总金额,
+  "category": "推断分类",
+  "subcategory": "子分类",
+  "description": "精简描述",
+  "merchant": "商家名称",
+  "datetime": "YYYY-MM-DD HH:MM",
+  "payment_method": "支付方式",
+  "confidence": 0.0-1.0
+}
+
+## 分类推断
+
+根据商家名称推断分类：
+- 餐厅/饭店/外卖/奶茶/咖啡 → 餐饮
+- 超市/便利店/商场 → 购物
+- 加油站/停车场 → 交通
+- 药店/医院 → 医疗
+- 电影院/游戏厅 → 娱乐
+```
+
+### 7.6 Provider配置
+
+```dart
+// lib/config/di/scan_providers.dart
+
+// 本地OCR服务
+final localOcrServiceProvider = Provider<LocalOcrService>((ref) {
+  return LocalOcrService();
+});
+
+// 网络信息
+final networkInfoProvider = Provider<NetworkInfo>((ref) {
+  return NetworkInfo(Connectivity());
+});
+
+// 小票识别服务
+final receiptRecognitionServiceProvider = Provider<ReceiptRecognitionService>((ref) {
+  return ReceiptRecognitionService(
+    ref.watch(localOcrServiceProvider),
+    ref.watch(llmRepositoryProvider),
+    ref.watch(networkInfoProvider),
+  );
+});
+```
+
+### 7.7 依赖配置
+
+```yaml
+# pubspec.yaml
+
+dependencies:
+  # 本地OCR
+  google_mlkit_text_recognition: ^0.14.0
+  
+  # 网络状态检测
+  connectivity_plus: ^6.0.0
+  
+  # 图片处理
+  image_picker: ^1.0.0
+  image: ^4.0.0
+```
+
+---
+
+## 8. 性能优化
 
 ### 6.1 缓存策略
 
@@ -566,7 +985,7 @@ class CacheEntry {
 
 ---
 
-## 7. 文件结构
+## 9. 文件结构
 
 ```
 lib/features/ai/
@@ -590,8 +1009,22 @@ lib/features/ai/
     └── pages/
         └── ai_assistant_page.dart
 
-lib/core/ai/
-├── prompt_templates.dart
-├── rule_engine.dart
-└── llm_cache.dart
+lib/features/scan/
+├── data/
+│   └── services/
+│       ├── local_ocr_service.dart
+│       └── receipt_recognition_service.dart
+└── presentation/
+    ├── providers/
+    │   └── scan_providers.dart
+    └── pages/
+        └── scan_page.dart
+
+lib/core/
+├── ai/
+│   ├── prompt_templates.dart
+│   ├── rule_engine.dart
+│   └── llm_cache.dart
+└── network/
+    └── network_info.dart
 ```
