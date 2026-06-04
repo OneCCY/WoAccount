@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import '../../core/widgets/navigation/main_shell.dart';
 import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/transaction/presentation/pages/transaction_list_page.dart';
 
 /// WoAccount 路由配置
 /// 使用 GoRouter 声明式路由
@@ -69,17 +70,6 @@ class AppRouter {
 }
 
 // === 临时占位页面（后续替换为正式实现） ===
-
-class TransactionListPage extends StatelessWidget {
-  const TransactionListPage({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('账单')),
-      body: const Center(child: Text('账单列表 - 待实现')),
-    );
-  }
-}
 
 class TransactionDetailPage extends StatelessWidget {
   final int transactionId;

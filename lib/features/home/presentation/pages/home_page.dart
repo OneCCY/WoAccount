@@ -3,15 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' hide Column;
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_dimensions.dart';
-import '../../../../core/theme/app_text_styles.dart';
 import '../../../transaction/domain/repositories/transaction_repository.dart';
 import '../../../category/domain/repositories/category_repository.dart';
 import '../widgets/ai_input_bar.dart';
-import '../widgets/today_transactions.dart';
+import '../widgets/budget_insight_card.dart';
+import '../widgets/ai_assistant_entry.dart';
+import '../widgets/ai_confirm_sheet.dart';
 
 /// 首页（记账入口）
+/// 布局：预算提醒 → AI 助手入口 → 留白 → 底部输入栏
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
@@ -36,35 +36,55 @@ class _HomePageState extends ConsumerState<HomePage> {
     setState(() => _isLoading = true);
 
     try {
-      // TODO: 接入 AI 解析引擎，当前使用简单规则提取金额
       final amount = _extractAmount(input);
       if (amount == null) {
         _showSnackBar('未识别到金额，请输入如"午饭拉面25"');
         return;
       }
 
-      // 获取默认分类（餐饮）
       final categories = await _categoryRepo.getAll();
       final defaultCategory = categories.firstWhere(
         (c) => c.name == '餐饮',
         orElse: () => categories.first,
       );
 
-      // 保存交易
-      await _transactionRepo.insert(TransactionsCompanion.insert(
+      // 显示确认卡片
+      if (!mounted) return;
+      await AiConfirmSheet.show(
+        context,
+        originalInput: input,
         amount: amount,
+        category: defaultCategory.name,
         description: input.replaceAll(RegExp(r'\d+\.?\d*'), '').trim(),
-        categoryId: defaultCategory.id,
-        transactionDate: DateTime.now(),
-        originalInput: Value(input),
-        aiSource: const Value('rule'),
-      ));
-
-      _showSnackBar('记账成功：¥${amount.toStringAsFixed(2)}');
+        date: DateTime.now(),
+        confidence: 0.85,
+        parseTimeMs: 120,
+        onCancel: () => Navigator.of(context).pop(),
+        onConfirm: () async {
+          Navigator.of(context).pop();
+          await _saveTransaction(input, amount, defaultCategory.id);
+        },
+      );
     } catch (e) {
       _showSnackBar('记账失败：$e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _saveTransaction(String input, double amount, int categoryId) async {
+    try {
+      await _transactionRepo.insert(TransactionsCompanion.insert(
+        amount: amount,
+        description: input.replaceAll(RegExp(r'\d+\.?\d*'), '').trim(),
+        categoryId: categoryId,
+        transactionDate: DateTime.now(),
+        originalInput: Value(input),
+        aiSource: const Value('rule'),
+      ));
+      _showSnackBar('记账成功：¥${amount.toStringAsFixed(2)}');
+    } catch (e) {
+      _showSnackBar('保存失败：$e');
     }
   }
 
@@ -81,7 +101,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         content: Text(message),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+          borderRadius: BorderRadius.circular(8),
         ),
         duration: const Duration(seconds: 2),
       ),
@@ -91,69 +111,40 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('记账'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.auto_awesome_outlined),
-            onPressed: () {
-              // TODO: 打开 AI 助手页面
-            },
-            tooltip: 'AI 助手',
-          ),
-        ],
-      ),
+      // 无 AppBar，匹配原型
       body: Column(
         children: [
-          // AI 输入框
-          AiInputBar(
-            onSubmit: _handleAiInput,
-            isLoading: _isLoading,
+          // 安全区留白
+          SizedBox(height: MediaQuery.of(context).padding.top),
+
+          // 预算提醒卡片
+          const BudgetInsightCard(
+            message: '今日消费已超过日均预算的80%',
           ),
-          // 今日账单标题
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppDimensions.md,
-              AppDimensions.md,
-              AppDimensions.md,
-              AppDimensions.sm,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '今日账单',
-                  style: AppTextStyles.h3.copyWith(
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                Text(
-                  _formatDate(DateTime.now()),
-                  style: AppTextStyles.footnote.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
+
+          // AI 助手入口
+          AiAssistantEntry(
+            onTap: () {
+              // TODO: 跳转到 AI 助手页面
+            },
           ),
-          // 今日账单列表
-          Expanded(
-            child: SingleChildScrollView(
-              child: TodayTransactions(repository: _transactionRepo),
-            ),
-          ),
+
+          // 中间留白
+          const Spacer(),
         ],
       ),
+
+      // 底部固定输入栏
+      bottomNavigationBar: AiInputBar(
+        onSubmit: _handleAiInput,
+        isLoading: _isLoading,
+        onManualEntry: () {
+          // TODO: 跳转到手动记账页面
+        },
+        onCamera: () {
+          // TODO: 拍照识别
+        },
+      ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final target = DateTime(date.year, date.month, date.day);
-
-    if (target == today) return '今天';
-    if (target == today.subtract(const Duration(days: 1))) return '昨天';
-    return '${date.month}月${date.day}日';
   }
 }

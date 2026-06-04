@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
-import '../../../../core/theme/app_text_styles.dart';
 
-/// AI 自然语言输入框
-/// 用户输入描述，AI 自动解析金额和分类
+/// 底部固定记账输入栏
+/// 左: ➕ 手动记账  |  中: 文本输入框  |  右: 📷 拍照识别
 class AiInputBar extends StatefulWidget {
   final Function(String) onSubmit;
+  final VoidCallback onManualEntry;
+  final VoidCallback onCamera;
   final bool isLoading;
 
   const AiInputBar({
     super.key,
     required this.onSubmit,
+    required this.onManualEntry,
+    required this.onCamera,
     this.isLoading = false,
   });
 
@@ -41,29 +44,35 @@ class _AiInputBarState extends State<AiInputBar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDimensions.md,
-        vertical: AppDimensions.sm,
+      padding: const EdgeInsets.fromLTRB(
+        AppDimensions.md,
+        AppDimensions.sm,
+        AppDimensions.md,
+        AppDimensions.sm,
       ),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.surface,
         border: Border(
-          bottom: BorderSide(
-            color: AppColors.separatorOpaque.withValues(alpha: 0.5),
-            width: 0.5,
-          ),
+          top: BorderSide(color: AppColors.separatorOpaque, width: 0.5),
         ),
       ),
       child: SafeArea(
-        bottom: false,
+        top: false,
         child: Row(
           children: [
-            // 输入框
+            // 左侧 ➕ 手动记账按钮
+            _SideButton(
+              icon: Icons.add,
+              onPressed: widget.onManualEntry,
+              tooltip: '手动记账',
+            ),
+            const SizedBox(width: 10),
+            // 中间文本输入框
             Expanded(
               child: Container(
                 height: AppDimensions.inputHeight,
                 decoration: BoxDecoration(
-                  color: AppColors.background,
+                  border: Border.all(color: AppColors.separator, width: 1),
                   borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
                 ),
                 child: TextField(
@@ -72,70 +81,82 @@ class _AiInputBarState extends State<AiInputBar> {
                   enabled: !widget.isLoading,
                   textInputAction: TextInputAction.send,
                   onSubmitted: (_) => _handleSubmit(),
-                  style: AppTextStyles.body,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: AppColors.textPrimary,
+                  ),
                   decoration: InputDecoration(
-                    hintText: '记一笔账... 如：午饭拉面25',
-                    hintStyle: AppTextStyles.body.copyWith(
+                    hintText: '午饭吃了碗拉面25元',
+                    hintStyle: const TextStyle(
+                      fontSize: 15,
                       color: AppColors.textTertiary,
                     ),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(
-                      horizontal: AppDimensions.md,
+                      horizontal: 14,
                       vertical: 10,
                     ),
-                    prefixIcon: widget.isLoading
+                    suffixIcon: widget.isLoading
                         ? const Padding(
                             padding: EdgeInsets.all(12),
                             child: SizedBox(
-                              width: 20,
-                              height: 20,
+                              width: 18,
+                              height: 18,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
                                 color: AppColors.primary,
                               ),
                             ),
                           )
-                        : const Icon(
-                            Icons.auto_awesome,
-                            color: AppColors.primary,
-                            size: 20,
-                          ),
-                    prefixIconConstraints: const BoxConstraints(
-                      minWidth: 44,
-                      minHeight: 44,
-                    ),
+                        : null,
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: AppDimensions.sm),
-            // 发送按钮
-            SizedBox(
-              height: AppDimensions.inputHeight,
-              child: ElevatedButton(
-                onPressed: widget.isLoading ? null : _handleSubmit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.textOnPrimary,
-                  disabledBackgroundColor: AppColors.textTertiary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                ),
-                child: widget.isLoading
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: AppColors.textOnPrimary,
-                        ),
-                      )
-                    : const Text('记账', style: AppTextStyles.h3),
-              ),
+            const SizedBox(width: 10),
+            // 右侧 📷 拍照按钮
+            _SideButton(
+              icon: Icons.camera_alt_outlined,
+              onPressed: widget.onCamera,
+              tooltip: '拍照识别',
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 侧边按钮（➕ 或 📷）
+class _SideButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onPressed;
+  final String tooltip;
+
+  const _SideButton({
+    required this.icon,
+    required this.onPressed,
+    required this.tooltip,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 44,
+      height: 44,
+      child: Material(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColors.separator, width: 1),
+              borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+            ),
+            child: Icon(icon, size: 20, color: AppColors.textPrimary),
+          ),
         ),
       ),
     );
