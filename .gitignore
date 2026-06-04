@@ -47,10 +47,6 @@ app.*.map.json
 # Android SDK (local.properties contains SDK path)
 android/local.properties
 
-# Generated files (run `dart run build_runner build` to regenerate)
-*.g.dart
-*.freezed.dart
-
 # Key store (never commit signing keys)
 *.jks
 *.keystore

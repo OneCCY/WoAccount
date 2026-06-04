@@ -88,6 +88,9 @@ class ConversationMessages extends Table {
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
+  /// 测试用构造函数，接受自定义 QueryExecutor（如内存数据库）
+  AppDatabase.forTesting(super.e);
+
   @override
   int get schemaVersion => 1;
 
