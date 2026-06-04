@@ -539,6 +539,8 @@
       else { tabs[2].classList.add('active'); document.getElementById('otherTrack').classList.add('active'); }
       selectedCategory = null;
       document.querySelectorAll('.category-item').forEach(c => c.classList.remove('selected'));
+      // 隐藏已选分类显示
+      document.getElementById('selectedCategoryDisplay').classList.remove('show');
       updateAmountColor();
     }
 
@@ -552,6 +554,10 @@
       document.querySelectorAll('.category-item').forEach(c => c.classList.remove('selected'));
       el.classList.add('selected');
       selectedCategory = el.querySelector('.name').textContent;
+      // 更新显示区域
+      const display = document.getElementById('selectedCategoryDisplay');
+      display.textContent = selectedCategory;
+      display.classList.add('show');
     }
 
     // 二级分类
@@ -574,6 +580,10 @@
       document.querySelectorAll('.sub-item').forEach(s => s.classList.remove('selected'));
       el.classList.add('selected');
       selectedCategory = fullName;
+      // 更新显示区域
+      const display = document.getElementById('selectedCategoryDisplay');
+      display.textContent = fullName;
+      display.classList.add('show');
       // 同时选中父分类
       document.querySelectorAll('.category-item').forEach(c => c.classList.remove('selected'));
       hideSub();
