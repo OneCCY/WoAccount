@@ -19,6 +19,7 @@
 │  │   │   └── MonthView (月视图 - 日历网格)                    │
 │  │   ├── PeriodNavigator (周期导航)                           │
 │  │   ├── InsightCardWidget (洞察卡片)                         │
+│  │   ├── BudgetEntryWidget (预算入口 - 搜索栏右侧)            │
 │  │   └── TransactionDetailPage (账单详情)                     │
 │  │                                                              │
 │  ├── HomePage (记账 - 中Tab，核心入口)                          │
@@ -30,10 +31,15 @@
 │  │                                                              │
 │  └── ProfilePage (我的 - 右Tab)                                │
 │      ├── UserInfoWidget (用户信息)                              │
-│      ├── FuncButtonBar (功能按钮栏)                            │
+│      ├── FuncButtonBar (功能按钮栏 - 6个)                      │
 │      │   ├── PasswordLockPage (密码锁)                         │
 │      │   ├── ThemeSwitchSheet (主题切换)                       │
 │      │   ├── AccountBookPage (我的账本)                        │
+│      │   ├── BudgetManagePage (预算管理)                       │
+│      │   │   ├── TotalBudgetCard (总预算卡片)                 │
+│      │   │   ├── MonthBudgetView (月预算)                     │
+│      │   │   ├── WeekBudgetView (周预算)                      │
+│      │   │   └── DayBudgetView (日预算)                       │
 │      │   ├── CategoryManagePage (分类管理)                     │
 │      │   └── MorePage (更多)                                   │
 │      ├── AiAssistantPage (AI助手 - 全屏对话)                   │
@@ -41,7 +47,8 @@
 │      │   ├── ChatInputWidget (输入框)                          │
 │      │   └── QuickQueryWidget (快捷查询)                      │
 │      ├── DataBackupPage (数据备份)                              │
-│      ├── DataExportPage (导入导出)                              │
+│      ├── BillImportPage (账单导入)                              │
+│      ├── BillExportPage (账单导出)                              │
 │      ├── FeedbackPage (用户反馈)                               │
 │      ├── RecycleBinPage (账本回收站)                           │
 │      └── SettingsPage (设置)                                    │
@@ -348,13 +355,14 @@ final appRouter = GoRouter(
 └─────────────────────────────────────────┘
 ```
 
-**功能按钮栏规格**:
+**功能按钮栏规格** (6个):
 
 | 按钮 | 图标 | 功能 | 跳转 |
 |------|------|------|------|
 | 密码锁 | 🔒 | 设置App密码锁 | 密码锁设置页 |
 | 主题切换 | 🎨 | 切换亮色/暗色主题 | BottomSheet选择 |
 | 我的账本 | 📒 | 多账本管理 | 账本列表页 |
+| 预算管理 | 💰 | 月/周/日预算设置 | 预算管理页 |
 | 分类管理 | 📂 | 管理收支分类 | 分类管理页 |
 | 更多 | ⋯ | 更多功能入口 | 更多页面 |
 
