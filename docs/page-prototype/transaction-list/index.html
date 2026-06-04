@@ -3,9 +3,61 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WoAccount - 账单列表</title>
+  <title>WoAccount - 账单</title>
   <link rel="stylesheet" href="../shared/style.css">
   <style>
+    /* 顶部视图切换 */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: #fff;
+    }
+    .view-switcher {
+      display: flex;
+      background: #f5f5f5;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .view-switcher .tab {
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #9e9e9e;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      transition: all 0.2s;
+    }
+    .view-switcher .tab.active { background: #4caf50; color: #fff; }
+    .period-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .period-nav .arrow-btn {
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #757575;
+      cursor: pointer;
+    }
+    .period-nav .arrow-btn:hover { background: #f5f5f5; }
+    .period-nav .period-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #212121;
+      min-width: 100px;
+      text-align: center;
+    }
+
+    /* 搜索栏 */
     .search-bar {
       padding: 8px 16px;
       background: #fff;
@@ -25,185 +77,310 @@
       font-size: 14px;
       outline: none;
     }
-    .search-input .icon {
-      color: #bdbdbd;
-      font-size: 16px;
-    }
-    .filter-bar {
+    .search-input .icon { color: #bdbdbd; font-size: 16px; }
+
+    /* 周视图 - 日期卡片 */
+    .week-summary {
       display: flex;
-      gap: 8px;
-      padding: 8px 16px;
+      gap: 6px;
+      padding: 12px 16px;
       overflow-x: auto;
     }
-    .filter-tag {
-      padding: 6px 14px;
-      border-radius: 16px;
-      background: #f5f5f5;
-      font-size: 13px;
-      color: #757575;
-      white-space: nowrap;
+    .week-day-card {
+      flex: 1;
+      min-width: 44px;
+      padding: 10px 4px;
+      border-radius: 10px;
+      text-align: center;
       cursor: pointer;
-      border: none;
+      transition: all 0.2s;
+      background: #fafafa;
     }
-    .filter-tag.active {
-      background: #e8f5e9;
-      color: #4caf50;
-    }
-    .summary-bar {
+    .week-day-card:hover { background: #f0f0f0; }
+    .week-day-card.today { background: #e8f5e9; border: 2px solid #4caf50; }
+    .week-day-card .weekday { font-size: 11px; color: #9e9e9e; margin-bottom: 4px; }
+    .week-day-card .day { font-size: 15px; font-weight: 600; color: #212121; }
+    .week-day-card.today .day { color: #4caf50; }
+
+    /* 周统计 */
+    .week-stats {
       display: flex;
-      padding: 12px 16px;
-      gap: 16px;
-      background: #fff;
-      margin: 8px 16px;
-      border-radius: 12px;
+      gap: 12px;
+      padding: 0 16px 12px;
     }
-    .summary-item {
+    .week-stats .stat-item {
       flex: 1;
       text-align: center;
+      padding: 10px;
+      background: #fafafa;
+      border-radius: 8px;
     }
-    .summary-item .label {
-      font-size: 12px;
-      color: #9e9e9e;
-      margin-bottom: 4px;
+    .week-stats .stat-item .label { font-size: 11px; color: #9e9e9e; margin-bottom: 4px; }
+    .week-stats .stat-item .value { font-size: 16px; font-weight: 700; }
+    .week-stats .stat-item .value.expense { color: #f44336; }
+    .week-stats .stat-item .value.income { color: #4caf50; }
+
+    /* 日分组 */
+    .day-group { border-bottom: 1px solid #f5f5f5; }
+    .day-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: #fafafa;
     }
-    .summary-item .value {
-      font-size: 16px;
-      font-weight: 700;
-      color: #212121;
+    .day-header .date { font-size: 13px; font-weight: 600; color: #212121; }
+    .day-header .weekday { font-size: 12px; color: #9e9e9e; margin-left: 6px; }
+    .day-header .day-total { font-size: 13px; color: #9e9e9e; }
+    .day-header .day-total .expense { color: #f44336; font-weight: 600; }
+
+    /* 月视图 */
+    .month-summary {
+      display: flex;
+      gap: 12px;
+      padding: 12px 16px;
     }
-    .summary-item .value.expense { color: #f44336; }
-    .summary-item .value.income { color: #4caf50; }
+    .month-summary .summary-item {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+      background: #fafafa;
+      border-radius: 8px;
+    }
+    .month-summary .summary-item .label { font-size: 11px; color: #9e9e9e; margin-bottom: 4px; }
+    .month-summary .summary-item .value { font-size: 16px; font-weight: 700; }
+    .month-summary .summary-item .value.expense { color: #f44336; }
+    .month-summary .summary-item .value.income { color: #4caf50; }
+    .month-summary .summary-item .value.balance { color: #212121; }
+    .calendar-header {
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 16px;
+      background: #fafafa;
+    }
+    .calendar-header .weekday-cell {
+      flex: 1; text-align: center;
+      font-size: 12px; color: #9e9e9e; font-weight: 500;
+    }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      background: #fff;
+    }
+    .calendar-cell {
+      min-height: 56px;
+      padding: 4px;
+      border: 1px solid #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .calendar-cell:hover { background: #fafafa; }
+    .calendar-cell.today { background: #e8f5e9; }
+    .calendar-cell.other-month { opacity: 0.3; }
+    .calendar-cell .day-num { font-size: 13px; font-weight: 500; color: #212121; margin-bottom: 1px; }
+    .calendar-cell.today .day-num { color: #4caf50; font-weight: 700; }
+    .calendar-cell .day-expense { font-size: 9px; color: #f44336; line-height: 1.2; }
+    .calendar-cell .day-income { font-size: 9px; color: #4caf50; line-height: 1.2; }
+
+    /* 洞察 */
+    .insight-card {
+      background: #fff3e0;
+      margin: 12px 16px;
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .insight-card .icon { font-size: 24px; }
+    .insight-card .text { flex: 1; font-size: 13px; color: #e65100; }
+    .insight-card .action { font-size: 13px; color: #ff9800; font-weight: 500; cursor: pointer; }
+
+    .view-container { display: none; }
+    .view-container.active { display: block; }
   </style>
 </head>
 <body>
   <div class="phone-frame">
     <div class="status-bar">
       <span>9:41</span>
-      <span>账单列表</span>
+      <span>账单</span>
       <span></span>
     </div>
 
-    <div class="nav-bar">
-      <span></span>
-      <h1>账单列表</h1>
-      <span class="nav-icon">🔍</span>
+    <!-- 顶部切换 -->
+    <div class="top-bar">
+      <div class="view-switcher">
+        <button class="tab" onclick="switchView('day')">日</button>
+        <button class="tab active" onclick="switchView('week')">周</button>
+        <button class="tab" onclick="switchView('month')">月</button>
+      </div>
+      <div class="period-nav">
+        <button class="arrow-btn" onclick="changePeriod(-1)">‹</button>
+        <span class="period-label" id="periodLabel">6月2日 - 6月8日</span>
+        <button class="arrow-btn" onclick="changePeriod(1)">›</button>
+      </div>
+    </div>
+
+    <!-- 搜索栏 -->
+    <div class="search-bar">
+      <div class="search-input">
+        <span class="icon">🔍</span>
+        <input type="text" placeholder="搜索账单...">
+      </div>
     </div>
 
     <div class="content">
-      <!-- 搜索栏 -->
-      <div class="search-bar">
-        <div class="search-input">
-          <span class="icon">🔍</span>
-          <input type="text" placeholder="搜索账单...">
+      <!-- ========== 日视图 ========== -->
+      <div class="view-container" id="dayView">
+        <div class="day-header" style="background:#fff; margin-top:8px;">
+          <div><span class="date">6月2日</span><span class="weekday">周一</span></div>
+          <span class="day-total">支出 <span class="expense">¥71.00</span></span>
         </div>
+        <a href="detail/index.html" class="list-item">
+          <div class="icon" style="background:#fff3e0;">🍜</div>
+          <div class="info"><div class="title">午饭拉面</div><div class="subtitle">12:30 · 餐饮 > 午餐</div></div>
+          <div class="amount expense">-¥25.00</div>
+        </a>
+        <a href="detail/index.html" class="list-item">
+          <div class="icon" style="background:#e3f2fd;">🚗</div>
+          <div class="info"><div class="title">打车去公司</div><div class="subtitle">09:15 · 交通 > 打车</div></div>
+          <div class="amount expense">-¥28.00</div>
+        </a>
+        <a href="detail/index.html" class="list-item">
+          <div class="icon" style="background:#fff3e0;">☕</div>
+          <div class="info"><div class="title">下午茶咖啡</div><div class="subtitle">15:45 · 餐饮 > 饮料</div></div>
+          <div class="amount expense">-¥18.00</div>
+        </a>
+        <div class="insight-card">
+          <span class="icon">💡</span>
+          <span class="text">今日消费已超过日均预算的80%</span>
+          <span class="action">详情</span>
+        </div>
+        <div style="height:16px;"></div>
       </div>
 
-      <!-- 筛选栏 -->
-      <div class="filter-bar">
-        <button class="filter-tag active">全部</button>
-        <button class="filter-tag">餐饮</button>
-        <button class="filter-tag">交通</button>
-        <button class="filter-tag">购物</button>
-        <button class="filter-tag">娱乐</button>
-        <button class="filter-tag">住房</button>
+      <!-- ========== 周视图 ========== -->
+      <div class="view-container active" id="weekView">
+        <div class="week-summary">
+          <div class="week-day-card" onclick="switchView('day')"><div class="weekday">日</div><div class="day">1</div></div>
+          <div class="week-day-card today" onclick="switchView('day')"><div class="weekday">一</div><div class="day">2</div></div>
+          <div class="week-day-card" onclick="switchView('day')"><div class="weekday">二</div><div class="day">3</div></div>
+          <div class="week-day-card" onclick="switchView('day')"><div class="weekday">三</div><div class="day">4</div></div>
+          <div class="week-day-card" onclick="switchView('day')"><div class="weekday">四</div><div class="day">5</div></div>
+          <div class="week-day-card" onclick="switchView('day')"><div class="weekday">五</div><div class="day">6</div></div>
+          <div class="week-day-card" onclick="switchView('day')"><div class="weekday">六</div><div class="day">7</div></div>
+        </div>
+        <div class="week-stats">
+          <div class="stat-item"><div class="label">本周支出</div><div class="value expense">¥227</div></div>
+          <div class="stat-item"><div class="label">本周收入</div><div class="value income">¥0</div></div>
+        </div>
+        <div class="day-group">
+          <div class="day-header">
+            <div><span class="date">6月2日</span><span class="weekday">周一</span></div>
+            <span class="day-total">支出 <span class="expense">¥71.00</span></span>
+          </div>
+          <a href="detail/index.html" class="list-item">
+            <div class="icon" style="background:#fff3e0;">🍜</div>
+            <div class="info"><div class="title">午饭拉面</div><div class="subtitle">12:30 · 餐饮</div></div>
+            <div class="amount expense">-¥25.00</div>
+          </a>
+          <a href="detail/index.html" class="list-item">
+            <div class="icon" style="background:#e3f2fd;">🚗</div>
+            <div class="info"><div class="title">打车去公司</div><div class="subtitle">09:15 · 交通</div></div>
+            <div class="amount expense">-¥28.00</div>
+          </a>
+          <a href="detail/index.html" class="list-item">
+            <div class="icon" style="background:#fff3e0;">☕</div>
+            <div class="info"><div class="title">下午茶咖啡</div><div class="subtitle">15:45 · 餐饮</div></div>
+            <div class="amount expense">-¥18.00</div>
+          </a>
+        </div>
+        <div class="day-group">
+          <div class="day-header">
+            <div><span class="date">6月1日</span><span class="weekday">周日</span></div>
+            <span class="day-total">支出 <span class="expense">¥156.00</span></span>
+          </div>
+          <a href="detail/index.html" class="list-item">
+            <div class="icon" style="background:#fce4ec;">🛒</div>
+            <div class="info"><div class="title">超市购物</div><div class="subtitle">18:30 · 购物</div></div>
+            <div class="amount expense">-¥156.00</div>
+          </a>
+        </div>
+        <div class="insight-card">
+          <span class="icon">💡</span>
+          <span class="text">本周餐饮支出占比最高，达45%</span>
+          <span class="action">详情</span>
+        </div>
+        <div style="height:16px;"></div>
       </div>
 
-      <!-- 本月概览 -->
-      <div class="summary-bar">
-        <div class="summary-item">
-          <div class="label">本月支出</div>
-          <div class="value expense">¥6,540</div>
+      <!-- ========== 月视图 ========== -->
+      <div class="view-container" id="monthView">
+        <div class="month-summary">
+          <div class="summary-item"><div class="label">总支出</div><div class="value expense">¥3,280</div></div>
+          <div class="summary-item"><div class="label">总收入</div><div class="value income">¥12,000</div></div>
+          <div class="summary-item"><div class="label">结余</div><div class="value balance">¥8,720</div></div>
         </div>
-        <div class="summary-item">
-          <div class="label">本月收入</div>
-          <div class="value income">¥12,000</div>
+        <div class="calendar-header">
+          <span class="weekday-cell">日</span><span class="weekday-cell">一</span>
+          <span class="weekday-cell">二</span><span class="weekday-cell">三</span>
+          <span class="weekday-cell">四</span><span class="weekday-cell">五</span>
+          <span class="weekday-cell">六</span>
         </div>
-        <div class="summary-item">
-          <div class="label">结余</div>
-          <div class="value">¥5,460</div>
+        <div class="calendar-grid">
+          <div class="calendar-cell other-month"><span class="day-num">26</span></div>
+          <div class="calendar-cell other-month"><span class="day-num">27</span></div>
+          <div class="calendar-cell other-month"><span class="day-num">28</span></div>
+          <div class="calendar-cell other-month"><span class="day-num">29</span></div>
+          <div class="calendar-cell other-month"><span class="day-num">30</span></div>
+          <div class="calendar-cell other-month"><span class="day-num">31</span></div>
+          <div class="calendar-cell"><span class="day-num">1</span><span class="day-expense">-156</span></div>
+          <div class="calendar-cell today"><span class="day-num">2</span><span class="day-expense">-71</span></div>
+          <div class="calendar-cell"><span class="day-num">3</span></div>
+          <div class="calendar-cell"><span class="day-num">4</span></div>
+          <div class="calendar-cell"><span class="day-num">5</span></div>
+          <div class="calendar-cell"><span class="day-num">6</span></div>
+          <div class="calendar-cell"><span class="day-num">7</span></div>
+          <div class="calendar-cell"><span class="day-num">8</span></div>
+          <div class="calendar-cell"><span class="day-num">9</span><span class="day-expense">-320</span></div>
+          <div class="calendar-cell"><span class="day-num">10</span><span class="day-expense">-45</span></div>
+          <div class="calendar-cell"><span class="day-num">11</span></div>
+          <div class="calendar-cell"><span class="day-num">12</span><span class="day-expense">-128</span></div>
+          <div class="calendar-cell"><span class="day-num">13</span></div>
+          <div class="calendar-cell"><span class="day-num">14</span></div>
+          <div class="calendar-cell"><span class="day-num">15</span><span class="day-income">+12000</span></div>
+          <div class="calendar-cell"><span class="day-num">16</span><span class="day-expense">-890</span></div>
+          <div class="calendar-cell"><span class="day-num">17</span><span class="day-expense">-56</span></div>
+          <div class="calendar-cell"><span class="day-num">18</span></div>
+          <div class="calendar-cell"><span class="day-num">19</span><span class="day-expense">-210</span></div>
+          <div class="calendar-cell"><span class="day-num">20</span></div>
+          <div class="calendar-cell"><span class="day-num">21</span></div>
+          <div class="calendar-cell"><span class="day-num">22</span><span class="day-expense">-178</span></div>
+          <div class="calendar-cell"><span class="day-num">23</span></div>
+          <div class="calendar-cell"><span class="day-num">24</span><span class="day-expense">-67</span></div>
+          <div class="calendar-cell"><span class="day-num">25</span></div>
+          <div class="calendar-cell"><span class="day-num">26</span></div>
+          <div class="calendar-cell"><span class="day-num">27</span><span class="day-expense">-430</span></div>
+          <div class="calendar-cell"><span class="day-num">28</span></div>
+          <div class="calendar-cell"><span class="day-num">29</span></div>
+          <div class="calendar-cell"><span class="day-num">30</span><span class="day-expense">-605</span></div>
+          <div class="calendar-cell other-month"><span class="day-num">1</span></div>
+          <div class="calendar-cell other-month"><span class="day-num">2</span></div>
+          <div class="calendar-cell other-month"><span class="day-num">3</span></div>
+          <div class="calendar-cell other-month"><span class="day-num">4</span></div>
+          <div class="calendar-cell other-month"><span class="day-num">5</span></div>
         </div>
+        <div class="insight-card">
+          <span class="icon">💡</span>
+          <span class="text">本月日均支出¥109，低于上月12%</span>
+          <span class="action">详情</span>
+        </div>
+        <div style="height:16px;"></div>
       </div>
-
-      <!-- 今日 -->
-      <div class="group-header">今天 · 1月15日</div>
-
-      <a href="detail/index.html" class="list-item">
-        <div class="icon" style="background:#fff3e0;">🍜</div>
-        <div class="info">
-          <div class="title">午饭拉面</div>
-          <div class="subtitle">12:30 · 餐饮 > 午餐</div>
-        </div>
-        <div class="amount expense">-¥25.00</div>
-      </a>
-
-      <a href="detail/index.html" class="list-item">
-        <div class="icon" style="background:#e3f2fd;">🚗</div>
-        <div class="info">
-          <div class="title">打车去公司</div>
-          <div class="subtitle">09:15 · 交通 > 打车</div>
-        </div>
-        <div class="amount expense">-¥28.00</div>
-      </a>
-
-      <a href="detail/index.html" class="list-item">
-        <div class="icon" style="background:#fff3e0;">☕</div>
-        <div class="info">
-          <div class="title">下午茶咖啡</div>
-          <div class="subtitle">15:45 · 餐饮 > 饮料</div>
-        </div>
-        <div class="amount expense">-¥18.00</div>
-      </a>
-
-      <!-- 昨日 -->
-      <div class="group-header">昨天 · 1月14日</div>
-
-      <a href="detail/index.html" class="list-item">
-        <div class="icon" style="background:#e8f5e9;">💰</div>
-        <div class="info">
-          <div class="title">工资到账</div>
-          <div class="subtitle">10:00 · 收入 > 工资</div>
-        </div>
-        <div class="amount income">+¥12,000</div>
-      </a>
-
-      <a href="detail/index.html" class="list-item">
-        <div class="icon" style="background:#fce4ec;">🛒</div>
-        <div class="info">
-          <div class="title">超市采购</div>
-          <div class="subtitle">18:30 · 购物 > 日用品</div>
-        </div>
-        <div class="amount expense">-¥156.50</div>
-      </a>
-
-      <a href="detail/index.html" class="list-item">
-        <div class="icon" style="background:#e3f2fd;">🚗</div>
-        <div class="info">
-          <div class="title">地铁充值</div>
-          <div class="subtitle">08:00 · 交通 > 地铁</div>
-        </div>
-        <div class="amount expense">-¥100.00</div>
-      </a>
-
-      <!-- 1月13日 -->
-      <div class="group-header">1月13日 · 周一</div>
-
-      <a href="detail/index.html" class="list-item">
-        <div class="icon" style="background:#fff3e0;">🍜</div>
-        <div class="info">
-          <div class="title">外卖晚餐</div>
-          <div class="subtitle">19:00 · 餐饮 > 外卖</div>
-        </div>
-        <div class="amount expense">-¥42.00</div>
-      </a>
-
-      <a href="detail/index.html" class="list-item">
-        <div class="icon" style="background:#f3e5f5;">🎮</div>
-        <div class="info">
-          <div class="title">游戏充值</div>
-          <div class="subtitle">21:00 · 娱乐 > 游戏</div>
-        </div>
-        <div class="amount expense">-¥68.00</div>
-      </a>
     </div>
 
     <!-- 底部导航 -->
@@ -222,5 +399,32 @@
       </a>
     </div>
   </div>
+
+  <script>
+    const periods = {
+      day: ['6月1日 周日', '6月2日 周一', '6月3日 周二'],
+      week: ['5月26日 - 6月1日', '6月2日 - 6月8日', '6月9日 - 6月15日'],
+      month: ['2025年4月', '2025年5月', '2025年6月', '2025年7月']
+    };
+    let currentView = 'week';
+    let periodIdx = { day: 1, week: 1, month: 2 };
+
+    function switchView(view) {
+      currentView = view;
+      document.querySelectorAll('.view-switcher .tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
+      const tabs = document.querySelectorAll('.view-switcher .tab');
+      if (view === 'day') { tabs[0].classList.add('active'); document.getElementById('dayView').classList.add('active'); }
+      else if (view === 'week') { tabs[1].classList.add('active'); document.getElementById('weekView').classList.add('active'); }
+      else { tabs[2].classList.add('active'); document.getElementById('monthView').classList.add('active'); }
+      document.getElementById('periodLabel').textContent = periods[currentView][periodIdx[currentView]];
+    }
+
+    function changePeriod(dir) {
+      const arr = periods[currentView];
+      periodIdx[currentView] = Math.max(0, Math.min(arr.length - 1, periodIdx[currentView] + dir));
+      document.getElementById('periodLabel').textContent = arr[periodIdx[currentView]];
+    }
+  </script>
 </body>
 </html>
