@@ -1,5 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
+import '../../core/widgets/navigation/main_shell.dart';
+import '../../features/home/presentation/pages/home_page.dart';
 
 /// WoAccount 路由配置
 /// 使用 GoRouter 声明式路由
@@ -66,60 +68,16 @@ class AppRouter {
   );
 }
 
-// === 临时占位页面 ===
-
-/// 主 Shell（底部导航栏）
-class MainShell extends StatelessWidget {
-  final Widget child;
-  const MainShell({super.key, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: child,
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex(context),
-        onTap: (index) => _onTap(context, index),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: '账单'),
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: '记账'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: '我的'),
-        ],
-      ),
-    );
-  }
-
-  int _currentIndex(BuildContext context) {
-    final location = GoRouterState.of(context).uri.path;
-    if (location.startsWith('/transactions')) return 0;
-    if (location == '/') return 1;
-    if (location.startsWith('/profile')) return 2;
-    return 1;
-  }
-
-  void _onTap(BuildContext context, int index) {
-    switch (index) {
-      case 0: context.go('/transactions');
-      case 1: context.go('/');
-      case 2: context.go('/profile');
-    }
-  }
-}
-
-// 占位页面
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: Text('记账首页')));
-  }
-}
+// === 临时占位页面（后续替换为正式实现） ===
 
 class TransactionListPage extends StatelessWidget {
   const TransactionListPage({super.key});
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: Text('账单列表')));
+    return Scaffold(
+      appBar: AppBar(title: const Text('账单')),
+      body: const Center(child: Text('账单列表 - 待实现')),
+    );
   }
 }
 
@@ -128,7 +86,10 @@ class TransactionDetailPage extends StatelessWidget {
   const TransactionDetailPage({super.key, required this.transactionId});
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: Center(child: Text('账单详情 #$transactionId')));
+    return Scaffold(
+      appBar: AppBar(title: const Text('账单详情')),
+      body: Center(child: Text('账单详情 #$transactionId')),
+    );
   }
 }
 
@@ -136,7 +97,10 @@ class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: Text('我的')));
+    return Scaffold(
+      appBar: AppBar(title: const Text('我的')),
+      body: const Center(child: Text('我的 - 待实现')),
+    );
   }
 }
 
