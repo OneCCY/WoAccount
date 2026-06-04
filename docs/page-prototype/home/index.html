@@ -7,7 +7,12 @@
   <link rel="stylesheet" href="../shared/style.css">
   <style>
     .phone-frame { position: relative; }
-    .content { padding-bottom: 0; }
+    .content {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      padding-bottom: 0;
+    }
 
     /* 记账输入栏 */
     .input-section {
@@ -70,90 +75,8 @@
     .ai-entry .info .desc { font-size: 13px; color: #66bb6a; margin-top: 4px; }
     .ai-entry .arrow { font-size: 22px; color: #66bb6a; }
 
-    /* 快捷操作 */
-    .quick-section {
-      padding: 0 16px 12px;
-    }
-    .quick-section .title {
-      font-size: 13px;
-      font-weight: 500;
-      color: #9e9e9e;
-      margin-bottom: 10px;
-    }
-    .quick-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-    }
-    .quick-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      padding: 14px 8px;
-      background: #fff;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-decoration: none;
-      color: inherit;
-    }
-    .quick-btn:hover { background: #f5f5f5; transform: translateY(-2px); }
-    .quick-btn .icon {
-      width: 44px; height: 44px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-    }
-    .quick-btn .label { font-size: 12px; color: #757575; }
-    .icon-red { background: #ffebee; }
-    .icon-blue { background: #e3f2fd; }
-    .icon-green { background: #e8f5e9; }
-    .icon-orange { background: #fff3e0; }
-
-    /* 今日洞察 */
-    .insight-card {
-      background: #fff3e0;
-      margin: 0 16px 12px;
-      border-radius: 12px;
-      padding: 14px 16px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .insight-card .icon { font-size: 24px; }
-    .insight-card .text { flex: 1; font-size: 13px; color: #e65100; }
-    .insight-card .action { font-size: 13px; color: #ff9800; font-weight: 500; cursor: pointer; }
-
-    /* 本月概览 */
-    .overview-card {
-      margin: 0 16px 12px;
-      background: #fff;
-      border-radius: 12px;
-      padding: 16px;
-    }
-    .overview-card .title {
-      font-size: 13px;
-      font-weight: 500;
-      color: #9e9e9e;
-      margin-bottom: 12px;
-    }
-    .overview-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
-    .overview-item {
-      text-align: center;
-    }
-    .overview-item .label { font-size: 11px; color: #9e9e9e; margin-bottom: 4px; }
-    .overview-item .value { font-size: 20px; font-weight: 700; }
-    .overview-item .value.expense { color: #f44336; }
-    .overview-item .value.income { color: #4caf50; }
-    .overview-item .value.balance { color: #212121; }
-    .overview-item .value.count { color: #757575; }
+    /* 中间留白区域 */
+    .spacer { flex: 1; }
 
     /* 语音浮层 */
     .voice-overlay {
@@ -197,60 +120,7 @@
         <span class="arrow">›</span>
       </a>
 
-      <!-- 快捷操作 -->
-      <div class="quick-section">
-        <div class="title">💡 快捷操作</div>
-        <div class="quick-grid">
-          <div class="quick-btn" onclick="alert('语音记账')">
-            <div class="icon icon-red">🎤</div>
-            <span class="label">语音</span>
-          </div>
-          <div class="quick-btn" onclick="alert('拍照识别')">
-            <div class="icon icon-blue">📷</div>
-            <span class="label">拍照</span>
-          </div>
-          <div class="quick-btn" onclick="alert('手动记账')">
-            <div class="icon icon-green">➕</div>
-            <span class="label">手动</span>
-          </div>
-          <a href="../profile/index.html" class="quick-btn">
-            <div class="icon icon-orange">📊</div>
-            <span class="label">统计</span>
-          </a>
-        </div>
-      </div>
-
-      <!-- 今日洞察 -->
-      <div class="insight-card">
-        <span class="icon">💡</span>
-        <span class="text">今日消费 ¥71，已超过日均预算的80%</span>
-        <span class="action">详情</span>
-      </div>
-
-      <!-- 本月概览 -->
-      <div class="overview-card">
-        <div class="title">📊 本月概览</div>
-        <div class="overview-grid">
-          <div class="overview-item">
-            <div class="label">总支出</div>
-            <div class="value expense">¥3,280</div>
-          </div>
-          <div class="overview-item">
-            <div class="label">总收入</div>
-            <div class="value income">¥12,000</div>
-          </div>
-          <div class="overview-item">
-            <div class="label">结余</div>
-            <div class="value balance">¥8,720</div>
-          </div>
-          <div class="overview-item">
-            <div class="label">笔数</div>
-            <div class="value count">96</div>
-          </div>
-        </div>
-      </div>
-
-      <div style="height:16px;"></div>
+      <div class="spacer"></div>
     </div>
 
     <!-- 记账输入栏 -->
