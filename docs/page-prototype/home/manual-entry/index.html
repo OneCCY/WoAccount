@@ -30,24 +30,20 @@
       padding: 8px 16px;
       height: 48px;
     }
-    .top-bar .cancel { font-size: 15px; color: #757575; cursor: pointer; border: none; background: none; }
-    .top-bar .save {
-      font-size: 15px;
-      color: #fff;
-      background: #4caf50;
-      border: none;
-      border-radius: 8px;
-      padding: 6px 20px;
+    .top-bar .left { font-size: 16px; font-weight: 600; color: #212121; }
+    .top-bar .right {
+      font-size: 13px;
+      color: #757575;
+      display: flex;
+      align-items: center;
+      gap: 4px;
       cursor: pointer;
-      font-weight: 500;
     }
-    .top-bar .save:disabled { background: #e0e0e0; }
 
     /* 类型切换 */
     .type-tabs {
       display: flex;
       padding: 0 16px;
-      gap: 0;
       border-bottom: 1px solid #f0f0f0;
     }
     .type-tabs .tab {
@@ -72,43 +68,25 @@
       border-radius: 2px;
     }
 
-    /* 金额显示 */
-    .amount-display {
-      padding: 20px 16px 12px;
-      text-align: right;
-    }
-    .amount-display .currency { font-size: 20px; color: #212121; font-weight: 600; }
-    .amount-display .amount {
-      font-size: 40px;
-      font-weight: 700;
-      color: #212121;
-      letter-spacing: -1px;
-    }
-    .amount-display .amount.expense { color: #f44336; }
-    .amount-display .amount.income { color: #4caf50; }
-    .amount-display .amount.other { color: #757575; }
-    .amount-display .cursor {
-      display: inline-block;
-      width: 2px;
-      height: 36px;
-      background: #4caf50;
-      margin-left: 2px;
-      animation: blink 1s infinite;
-      vertical-align: middle;
-    }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-
-    /* 分类网格 */
+    /* 分类区域 */
     .category-section {
       flex: 1;
-      overflow-y: auto;
-      padding: 0 8px;
+      overflow: hidden;
+      position: relative;
+    }
+    .category-track {
+      display: flex;
+      transition: transform 0.3s ease;
+      height: 100%;
+    }
+    .category-page {
+      min-width: 100%;
+      padding: 8px;
     }
     .category-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       gap: 4px 0;
-      padding: 8px 0;
     }
     .category-item {
       display: flex;
@@ -119,6 +97,7 @@
       cursor: pointer;
       border-radius: 12px;
       transition: background 0.2s;
+      position: relative;
     }
     .category-item:hover { background: #f5f5f5; }
     .category-item.selected { background: #e8f5e9; }
@@ -136,32 +115,200 @@
       text-align: center;
     }
     .category-item.selected .name { color: #4caf50; font-weight: 600; }
-
-    /* 备注行 */
-    .note-row {
+    /* 二级分类角标 */
+    .category-item .sub-dot {
+      position: absolute;
+      bottom: 22px;
+      right: 6px;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: #4caf50;
+      color: #fff;
+      font-size: 8px;
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 10px 16px;
-      border-top: 1px solid #f5f5f5;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 2;
     }
-    .note-row input {
+    /* 设置按钮 */
+    .category-item .settings-btn {
+      position: absolute;
+      bottom: 22px;
+      right: 6px;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: #bdbdbd;
+      color: #fff;
+      font-size: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 2;
+    }
+
+    /* 二级分类浮层 */
+    .sub-overlay {
+      display: none;
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: #fff;
+      border-top: 1px solid #f0f0f0;
+      border-radius: 16px 16px 0 0;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+      z-index: 50;
+      padding: 16px;
+    }
+    .sub-overlay.show { display: block; }
+    .sub-overlay .sub-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .sub-overlay .sub-header .title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #212121;
+    }
+    .sub-overlay .sub-header .close {
+      font-size: 18px;
+      color: #9e9e9e;
+      cursor: pointer;
+      border: none;
+      background: none;
+    }
+    .sub-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px 0;
+    }
+    .sub-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 4px;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: background 0.2s;
+    }
+    .sub-item:hover { background: #f5f5f5; }
+    .sub-item.selected { background: #e8f5e9; }
+    .sub-item .icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .sub-item .name { font-size: 10px; color: #212121; }
+
+    /* 页码指示器 */
+    .page-dots {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 0;
+    }
+    .page-dots .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #e0e0e0;
+      transition: all 0.2s;
+    }
+    .page-dots .dot.active {
+      background: #4caf50;
+      width: 18px;
+      border-radius: 3px;
+    }
+
+    /* 备注+金额行 */
+    .input-row {
+      display: flex;
+      align-items: center;
+      padding: 10px 16px;
+      border-top: 1px solid #f0f0f0;
+      gap: 12px;
+    }
+    .input-row .note-input {
       flex: 1;
       border: none;
       font-size: 14px;
       color: #212121;
       outline: none;
     }
-    .note-row input::placeholder { color: #bdbdbd; }
-    .note-row .date-btn {
-      font-size: 13px;
-      color: #757575;
-      padding: 4px 10px;
-      background: #f5f5f5;
-      border-radius: 6px;
-      cursor: pointer;
-      border: none;
+    .input-row .note-input::placeholder { color: #bdbdbd; }
+    .input-row .amount-display {
+      font-size: 28px;
+      font-weight: 700;
+      color: #212121;
+      letter-spacing: -0.5px;
+      min-width: 120px;
+      text-align: right;
     }
+    .input-row .amount-display.expense { color: #f44336; }
+    .input-row .amount-display.income { color: #4caf50; }
+    .input-row .amount-display.other { color: #757575; }
+    .input-row .cursor {
+      display: inline-block;
+      width: 2px;
+      height: 24px;
+      background: #4caf50;
+      margin-left: 1px;
+      animation: blink 1s infinite;
+      vertical-align: middle;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* 日历浮层 */
+    .calendar-overlay {
+      display: none;
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: #fff;
+      border-top: 1px solid #f0f0f0;
+      border-radius: 16px 16px 0 0;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+      z-index: 50;
+      padding: 16px;
+    }
+    .calendar-overlay.show { display: block; }
+    .calendar-overlay .cal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .calendar-overlay .cal-header .title { font-size: 15px; font-weight: 600; }
+    .calendar-overlay .cal-header .close { font-size: 18px; color: #9e9e9e; cursor: pointer; border: none; background: none; }
+    .cal-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      font-size: 12px;
+      color: #9e9e9e;
+      margin-bottom: 8px;
+    }
+    .cal-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+    .cal-day {
+      padding: 8px;
+      text-align: center;
+      font-size: 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: #212121;
+    }
+    .cal-day:hover { background: #f5f5f5; }
+    .cal-day.today { background: #e8f5e9; color: #4caf50; font-weight: 700; }
+    .cal-day.selected { background: #4caf50; color: #fff; }
+    .cal-day.other { color: #bdbdbd; }
 
     /* 数字键盘 */
     .numpad {
@@ -171,7 +318,7 @@
       gap: 1px;
     }
     .numpad .key {
-      padding: 16px;
+      padding: 14px;
       text-align: center;
       font-size: 22px;
       font-weight: 500;
@@ -183,14 +330,17 @@
       user-select: none;
     }
     .numpad .key:active { background: #e0e0e0; }
-    .numpad .key.func { color: #757575; font-size: 16px; }
-    .numpad .key.confirm {
+    .numpad .key.func { color: #757575; font-size: 14px; }
+    .numpad .key.func-today { color: #4caf50; font-size: 13px; font-weight: 600; }
+    .numpad .key.func-calc { color: #ff9800; font-size: 18px; font-weight: 600; }
+    .numpad .key.finish {
       background: #4caf50;
       color: #fff;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 600;
     }
-    .numpad .key.confirm:active { background: #43a047; }
+    .numpad .key.finish:active { background: #43a047; }
+    .numpad .key.finish.disabled { background: #e0e0e0; color: #bdbdbd; }
     .numpad .key.delete { font-size: 18px; }
 
     .view-container { display: none; }
@@ -201,8 +351,8 @@
   <div class="page">
     <!-- 顶部栏 -->
     <div class="top-bar">
-      <button class="cancel" onclick="history.back()">取消</button>
-      <button class="save" id="saveBtn" disabled>保存</button>
+      <span class="left">首页</span>
+      <span class="right" onclick="alert('切换账本')">📒 日常记账 ▾</span>
     </div>
 
     <!-- 类型切换 -->
@@ -212,53 +362,132 @@
       <button class="tab" onclick="switchType('other')">其他</button>
     </div>
 
-    <!-- 金额显示 -->
-    <div class="amount-display">
-      <span class="currency">¥</span>
-      <span class="amount expense" id="amountText">0</span>
-      <span class="cursor"></span>
-    </div>
+    <!-- 分类区域（支持左右滑动翻页） -->
+    <div class="category-section" id="categorySection">
+      <!-- ========== 支出分类 ========== -->
+      <div class="category-track view-container active" id="expenseTrack">
+        <div class="category-page">
+          <div class="category-grid">
+            <div class="category-item" onclick="selectCategory(this)" data-sub='[{"n":"早餐","i":"🥐"},{"n":"午餐","i":"🍱"},{"n":"晚餐","i":"🍲"},{"n":"饮料","i":"☕"},{"n":"零食","i":"🍪"}]'>
+              <span class="sub-dot" onclick="event.stopPropagation();showSub(this.parentElement)">+</span>
+              <div class="icon" style="background:#fff3e0;">🍜</div><span class="name">餐饮</span>
+            </div>
+            <div class="category-item" onclick="selectCategory(this)" data-sub='[{"n":"公交地铁","i":"🚇"},{"n":"打车","i":"🚕"},{"n":"加油","i":"⛽"}]'>
+              <span class="sub-dot" onclick="event.stopPropagation();showSub(this.parentElement)">+</span>
+              <div class="icon" style="background:#e3f2fd;">🚗</div><span class="name">交通</span>
+            </div>
+            <div class="category-item" onclick="selectCategory(this)" data-sub='[{"n":"日用品","i":"🧴"},{"n":"衣物","i":"👕"},{"n":"数码","i":"📱"}]'>
+              <span class="sub-dot" onclick="event.stopPropagation();showSub(this.parentElement)">+</span>
+              <div class="icon" style="background:#fce4ec;">🛒</div><span class="name">购物</span>
+            </div>
+            <div class="category-item" onclick="selectCategory(this)" data-sub='[{"n":"房租","i":"🏠"},{"n":"水电燃气","i":"💡"},{"n":"物业","i":"🏢"}]'>
+              <span class="sub-dot" onclick="event.stopPropagation();showSub(this.parentElement)">+</span>
+              <div class="icon" style="background:#f3e5f5;">🏠</div><span class="name">住房</span>
+            </div>
+            <div class="category-item" onclick="selectCategory(this)" data-sub='[{"n":"电影","i":"🎬"},{"n":"游戏","i":"🎮"}]'>
+              <span class="sub-dot" onclick="event.stopPropagation();showSub(this.parentElement)">+</span>
+              <div class="icon" style="background:#e8f5e9;">🎮</div><span class="name">娱乐</span>
+            </div>
+            <div class="category-item" onclick="selectCategory(this)" data-sub='[{"n":"书籍","i":"📖"},{"n":"课程","i":"🎓"}]'>
+              <span class="sub-dot" onclick="event.stopPropagation();showSub(this.parentElement)">+</span>
+              <div class="icon" style="background:#e0f7fa;">📚</div><span class="name">教育</span>
+            </div>
+            <div class="category-item" onclick="selectCategory(this)" data-sub='[{"n":"看病","i":"🏥"},{"n":"药品","i":"💊"}]'>
+              <span class="sub-dot" onclick="event.stopPropagation();showSub(this.parentElement)">+</span>
+              <div class="icon" style="background:#ffebee;">💊</div><span class="name">医疗</span>
+            </div>
+            <div class="category-item" onclick="selectCategory(this)" data-sub='[{"n":"聚餐","i":"🍽️"},{"n":"礼物","i":"🎁"}]'>
+              <span class="sub-dot" onclick="event.stopPropagation();showSub(this.parentElement)">+</span>
+              <div class="icon" style="background:#fbe9e7;">👤</div><span class="name">社交</span>
+            </div>
+            <div class="category-item" onclick="selectCategory(this)" data-sub='[{"n":"猫粮","i":"🐱"},{"n":"医疗","i":"💉"}]'>
+              <span class="sub-dot" onclick="event.stopPropagation();showSub(this.parentElement)">+</span>
+              <div class="icon" style="background:#fff8e1;">🐱</div><span class="name">宠物</span>
+            </div>
+            <div class="category-item" onclick="selectCategory(this)">
+              <span class="settings-btn" onclick="event.stopPropagation();alert('管理分类')">⚙</span>
+              <div class="icon" style="background:#f5f5f5;">💰</div><span class="name">其他</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-    <!-- ========== 支出分类 ========== -->
-    <div class="category-section view-container active" id="expenseView">
-      <div class="category-grid">
-        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#fff3e0;">🍜</div><span class="name">餐饮</span></div>
-        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#e3f2fd;">🚗</div><span class="name">交通</span></div>
-        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#fce4ec;">🛒</div><span class="name">购物</span></div>
-        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#f3e5f5;">🏠</div><span class="name">住房</span></div>
-        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#e8f5e9;">🎮</div><span class="name">娱乐</span></div>
-        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#e0f7fa;">📚</div><span class="name">教育</span></div>
-        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#ffebee;">💊</div><span class="name">医疗</span></div>
-        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#fbe9e7;">👤</div><span class="name">社交</span></div>
-        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#f5f5f5;">🐱</div><span class="name">宠物</span></div>
-        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#f5f5f5;">💰</div><span class="name">其他</span></div>
+      <!-- ========== 收入分类 ========== -->
+      <div class="category-track view-container" id="incomeTrack">
+        <div class="category-page">
+          <div class="category-grid">
+            <div class="category-item" onclick="selectCategory(this)" data-sub='[{"n":"月薪","i":"💰"},{"n":"日结","i":"💵"}]'>
+              <span class="sub-dot" onclick="event.stopPropagation();showSub(this.parentElement)">+</span>
+              <div class="icon" style="background:#e8f5e9;">💰</div><span class="name">工资</span>
+            </div>
+            <div class="category-item" onclick="selectCategory(this)" data-sub='[{"n":"年终奖","i":"🎄"},{"n":"绩效","i":"⭐"}]'>
+              <span class="sub-dot" onclick="event.stopPropagation();showSub(this.parentElement)">+</span>
+              <div class="icon" style="background:#fff3e0;">🎁</div><span class="name">奖金</span>
+            </div>
+            <div class="category-item" onclick="selectCategory(this)" data-sub='[{"n":"股票","i":"📈"},{"n":"基金","i":"💹"}]'>
+              <span class="sub-dot" onclick="event.stopPropagation();showSub(this.parentElement)">+</span>
+              <div class="icon" style="background:#e3f2fd;">📈</div><span class="name">投资收益</span>
+            </div>
+            <div class="category-item" onclick="selectCategory(this)">
+              <span class="settings-btn" onclick="event.stopPropagation();alert('管理分类')">⚙</span>
+              <div class="icon" style="background:#f3e5f5;">🔄</div><span class="name">退款</span>
+            </div>
+            <div class="category-item" onclick="selectCategory(this)">
+              <span class="settings-btn" onclick="event.stopPropagation();alert('管理分类')">⚙</span>
+              <div class="icon" style="background:#f5f5f5;">💼</div><span class="name">兼职</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== 其他分类 ========== -->
+      <div class="category-track view-container" id="otherTrack">
+        <div class="category-page">
+          <div class="category-grid">
+            <div class="category-item" onclick="selectCategory(this)">
+              <span class="settings-btn" onclick="event.stopPropagation();alert('管理分类')">⚙</span>
+              <div class="icon" style="background:#e0f2f1;">🔄</div><span class="name">转账</span>
+            </div>
+            <div class="category-item" onclick="selectCategory(this)">
+              <span class="settings-btn" onclick="event.stopPropagation();alert('管理分类')">⚙</span>
+              <div class="icon" style="background:#fce4ec;">💳</div><span class="name">还款</span>
+            </div>
+            <div class="category-item" onclick="selectCategory(this)">
+              <span class="settings-btn" onclick="event.stopPropagation();alert('管理分类')">⚙</span>
+              <div class="icon" style="background:#fff8e1;">🤝</div><span class="name">人情</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 二级分类浮层 -->
+      <div class="sub-overlay" id="subOverlay">
+        <div class="sub-header">
+          <span class="title" id="subTitle">餐饮</span>
+          <button class="close" onclick="hideSub()">✕</button>
+        </div>
+        <div class="sub-grid" id="subGrid"></div>
+      </div>
+
+      <!-- 日历浮层 -->
+      <div class="calendar-overlay" id="calendarOverlay">
+        <div class="cal-header">
+          <span class="title">选择日期</span>
+          <button class="close" onclick="hideCalendar()">✕</button>
+        </div>
+        <div class="cal-weekdays">
+          <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+        </div>
+        <div class="cal-days" id="calDays"></div>
       </div>
     </div>
 
-    <!-- ========== 收入分类 ========== -->
-    <div class="category-section view-container" id="incomeView">
-      <div class="category-grid">
-        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#e8f5e9;">💰</div><span class="name">工资</span></div>
-        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#fff3e0;">🎁</div><span class="name">奖金</span></div>
-        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#e3f2fd;">📈</div><span class="name">投资收益</span></div>
-        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#f3e5f5;">🔄</div><span class="name">退款</span></div>
-        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#f5f5f5;">💼</div><span class="name">兼职</span></div>
+    <!-- 备注+金额 -->
+    <div class="input-row">
+      <input type="text" class="note-input" placeholder="添加备注...">
+      <div class="amount-display expense" id="amountDisplay">
+        <span id="amountText">0</span><span class="cursor"></span>
       </div>
-    </div>
-
-    <!-- ========== 其他分类 ========== -->
-    <div class="category-section view-container" id="otherView">
-      <div class="category-grid">
-        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#e0f2f1;">🔄</div><span class="name">转账</span></div>
-        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#fce4ec;">💳</div><span class="name">还款</span></div>
-        <div class="category-item" onclick="selectCategory(this)"><div class="icon" style="background:#fff8e1;">🤝</div><span class="name">人情</span></div>
-      </div>
-    </div>
-
-    <!-- 备注行 -->
-    <div class="note-row">
-      <input type="text" placeholder="添加备注...">
-      <button class="date-btn" onclick="alert('选择日期')">今天</button>
     </div>
 
     <!-- 数字键盘 -->
@@ -266,18 +495,19 @@
       <button class="key" onclick="inputKey('1')">1</button>
       <button class="key" onclick="inputKey('2')">2</button>
       <button class="key" onclick="inputKey('3')">3</button>
-      <button class="key delete" onclick="inputKey('delete')">⌫</button>
+      <button class="key func-today" onclick="showCalendar()">今天</button>
       <button class="key" onclick="inputKey('4')">4</button>
       <button class="key" onclick="inputKey('5')">5</button>
       <button class="key" onclick="inputKey('6')">6</button>
-      <button class="key func" onclick="inputKey('clear')">清空</button>
+      <button class="key func-calc" onclick="inputKey('+')">+</button>
       <button class="key" onclick="inputKey('7')">7</button>
       <button class="key" onclick="inputKey('8')">8</button>
       <button class="key" onclick="inputKey('9')">9</button>
-      <button class="key confirm" rowspan="2" onclick="inputKey('confirm')">记账</button>
-      <button class="key func" onclick="inputKey('date')">日期</button>
-      <button class="key" onclick="inputKey('0')">0</button>
+      <button class="key func-calc" onclick="inputKey('-')">−</button>
       <button class="key" onclick="inputKey('.')">.</button>
+      <button class="key" onclick="inputKey('0')">0</button>
+      <button class="key delete" onclick="inputKey('delete')">⌫</button>
+      <button class="key finish" id="finishBtn" onclick="inputKey('finish')">完成</button>
     </div>
   </div>
 
@@ -285,70 +515,123 @@
     let currentType = 'expense';
     let amount = '0';
     let selectedCategory = null;
+    let selectedDate = '今天';
 
+    // 类型切换
     function switchType(type) {
       currentType = type;
       document.querySelectorAll('.type-tabs .tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.category-section').forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('.category-track').forEach(v => v.classList.remove('active'));
       const tabs = document.querySelectorAll('.type-tabs .tab');
-      if (type === 'expense') { tabs[0].classList.add('active'); document.getElementById('expenseView').classList.add('active'); }
-      else if (type === 'income') { tabs[1].classList.add('active'); document.getElementById('incomeView').classList.add('active'); }
-      else { tabs[2].classList.add('active'); document.getElementById('otherView').classList.add('active'); }
-      // 重置分类选择
+      if (type === 'expense') { tabs[0].classList.add('active'); document.getElementById('expenseTrack').classList.add('active'); }
+      else if (type === 'income') { tabs[1].classList.add('active'); document.getElementById('incomeTrack').classList.add('active'); }
+      else { tabs[2].classList.add('active'); document.getElementById('otherTrack').classList.add('active'); }
       selectedCategory = null;
       document.querySelectorAll('.category-item').forEach(c => c.classList.remove('selected'));
       updateAmountColor();
     }
 
     function updateAmountColor() {
-      const el = document.getElementById('amountText');
-      el.className = 'amount ' + currentType;
+      const el = document.getElementById('amountDisplay');
+      el.className = 'amount-display ' + currentType;
     }
 
+    // 分类选择
     function selectCategory(el) {
       document.querySelectorAll('.category-item').forEach(c => c.classList.remove('selected'));
       el.classList.add('selected');
       selectedCategory = el.querySelector('.name').textContent;
-      checkSaveable();
     }
 
+    // 二级分类
+    function showSub(parentEl) {
+      const subs = JSON.parse(parentEl.getAttribute('data-sub') || '[]');
+      const name = parentEl.querySelector('.name').textContent;
+      document.getElementById('subTitle').textContent = name;
+      let html = '';
+      subs.forEach(s => {
+        html += `<div class="sub-item" onclick="selectSub(this,'${name}/${s.n}')">
+          <div class="icon" style="background:#f5f5f5;">${s.i}</div>
+          <span class="name">${s.n}</span>
+        </div>`;
+      });
+      document.getElementById('subGrid').innerHTML = html;
+      document.getElementById('subOverlay').classList.add('show');
+    }
+    function hideSub() { document.getElementById('subOverlay').classList.remove('show'); }
+    function selectSub(el, fullName) {
+      document.querySelectorAll('.sub-item').forEach(s => s.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedCategory = fullName;
+      // 同时选中父分类
+      document.querySelectorAll('.category-item').forEach(c => c.classList.remove('selected'));
+      hideSub();
+    }
+
+    // 日历
+    function showCalendar() {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = today.getMonth();
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const daysInPrev = new Date(year, month, 0).getDate();
+
+      let html = '';
+      // 上月
+      for (let i = firstDay - 1; i >= 0; i--) {
+        html += `<div class="cal-day other">${daysInPrev - i}</div>`;
+      }
+      // 本月
+      for (let d = 1; d <= daysInMonth; d++) {
+        const isToday = d === today.getDate();
+        html += `<div class="cal-day ${isToday ? 'today' : ''}" onclick="selectDate(${d})">${d}</div>`;
+      }
+      // 下月
+      const remaining = 42 - firstDay - daysInMonth;
+      for (let d = 1; d <= remaining; d++) {
+        html += `<div class="cal-day other">${d}</div>`;
+      }
+      document.getElementById('calDays').innerHTML = html;
+      document.getElementById('calendarOverlay').classList.add('show');
+    }
+    function hideCalendar() { document.getElementById('calendarOverlay').classList.remove('show'); }
+    function selectDate(day) {
+      selectedDate = `${new Date().getMonth() + 1}月${day}日`;
+      hideCalendar();
+    }
+
+    // 数字键盘
     function inputKey(key) {
       if (key === 'delete') {
         amount = amount.length > 1 ? amount.slice(0, -1) : '0';
-      } else if (key === 'clear') {
-        amount = '0';
       } else if (key === '.') {
         if (!amount.includes('.')) amount += '.';
-      } else if (key === 'confirm') {
-        if (amount !== '0' && selectedCategory) {
-          alert('记账成功！\n类型: ' + currentType + '\n金额: ¥' + amount + '\n分类: ' + selectedCategory);
+      } else if (key === '+' || key === '-') {
+        // 计算器功能（简化处理：追加运算符）
+        if (!amount.endsWith('+') && !amount.endsWith('-')) {
+          amount += key;
+        }
+      } else if (key === 'finish') {
+        if (amount !== '0' && amount !== '0.' && selectedCategory) {
+          alert('记账成功！\n类型: ' + currentType + '\n金额: ¥' + amount + '\n分类: ' + selectedCategory + '\n日期: ' + selectedDate);
         }
         return;
-      } else if (key === 'date') {
-        alert('选择日期');
-        return;
       } else {
-        // 数字
-        if (amount === '0' && key !== '.') {
-          amount = key;
-        } else {
-          // 限制小数点后2位
+        if (amount === '0') { amount = key; }
+        else {
           if (amount.includes('.')) {
             const parts = amount.split('.');
-            if (parts[1].length >= 2) return;
+            if (parts[1] && parts[1].length >= 2) return;
           }
-          // 限制最大长度
-          if (amount.length >= 10) return;
+          if (amount.length >= 12) return;
           amount += key;
         }
       }
       document.getElementById('amountText').textContent = amount;
-      checkSaveable();
-    }
-
-    function checkSaveable() {
-      const saveBtn = document.getElementById('saveBtn');
-      saveBtn.disabled = !(amount !== '0' && selectedCategory);
+      // 完成按钮状态
+      const finishBtn = document.getElementById('finishBtn');
+      finishBtn.className = (amount !== '0' && selectedCategory) ? 'key finish' : 'key finish disabled';
     }
   </script>
 </body>
