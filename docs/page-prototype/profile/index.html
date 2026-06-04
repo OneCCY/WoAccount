@@ -34,10 +34,11 @@
       margin-top: 4px;
     }
 
-    /* 功能按钮栏 */
+    /* 功能按钮栏 - 网格布局，每行5个 */
     .func-bar {
-      display: flex;
-      justify-content: space-around;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px 0;
       padding: 16px 8px;
       background: #fff;
       margin-top: 1px;
@@ -50,8 +51,16 @@
       cursor: pointer;
       text-decoration: none;
       color: inherit;
-      min-width: 56px;
     }
+    /* 展开区域 */
+    .extra-bar {
+      display: none;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px 0;
+      padding: 0 8px 16px;
+      background: #fff;
+    }
+    .extra-bar.show { display: grid; }
     .func-btn .icon-wrap {
       width: 44px;
       height: 44px;
@@ -127,7 +136,7 @@
         </div>
       </div>
 
-      <!-- 功能按钮栏 -->
+      <!-- 功能按钮栏（每行最多5个） -->
       <div class="func-bar">
         <a href="#" class="func-btn" onclick="alert('密码锁设置'); return false;">
           <div class="icon-wrap icon-green">🔒</div>
@@ -145,13 +154,16 @@
           <div class="icon-wrap" style="background:#fff8e1;">💰</div>
           <span class="label">预算管理</span>
         </a>
+        <a href="#" class="func-btn" id="moreBtn" onclick="toggleMore(); return false;">
+          <div class="icon-wrap icon-grey">⋯</div>
+          <span class="label">更多</span>
+        </a>
+      </div>
+      <!-- 展开区域（点击更多后显示） -->
+      <div class="extra-bar" id="extraBar">
         <a href="category-manage/index.html" class="func-btn">
           <div class="icon-wrap icon-purple">📂</div>
           <span class="label">分类管理</span>
-        </a>
-        <a href="#" class="func-btn" onclick="alert('更多功能'); return false;">
-          <div class="icon-wrap icon-grey">⋯</div>
-          <span class="label">更多</span>
         </a>
       </div>
 
@@ -234,5 +246,10 @@
       </a>
     </div>
   </div>
+  <script>
+    function toggleMore() {
+      document.getElementById('extraBar').classList.toggle('show');
+    }
+  </script>
 </body>
 </html>
