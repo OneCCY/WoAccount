@@ -79,24 +79,10 @@
     }
     .search-input .icon { color: #bdbdbd; font-size: 16px; }
 
-    /* 洞察卡片 - 位于账单上方 */
-    .insight-card {
-      background: #fff3e0;
-      margin: 8px 16px;
-      border-radius: 12px;
-      padding: 12px 16px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .insight-card .icon { font-size: 20px; }
-    .insight-card .text { flex: 1; font-size: 13px; color: #e65100; }
-    .insight-card .action { font-size: 13px; color: #ff9800; font-weight: 500; cursor: pointer; }
-
     /* 日统计栏 */
     .day-stats {
       display: flex;
-      gap: 12px;
+      gap: 8px;
       padding: 12px 16px;
     }
     .day-stats .stat-item {
@@ -145,8 +131,8 @@
     /* 周统计 */
     .week-stats {
       display: flex;
-      gap: 12px;
-      padding: 0 16px 12px;
+      gap: 8px;
+      padding: 12px 16px;
     }
     .week-stats .stat-item {
       flex: 1;
@@ -319,22 +305,23 @@
         <div class="day-stats">
           <div class="stat-item"><div class="label">本日支出</div><div class="value expense">¥71</div></div>
           <div class="stat-item"><div class="label">本日收入</div><div class="value income">¥0</div></div>
+          <div class="stat-item"><div class="label">结余</div><div class="value">¥-71</div></div>
         </div>
-        <!-- 交易列表（无日期头部，左滑删除） -->
-        <div class="swipe-item" ontouchstart="swipeStart(event,this)" ontouchmove="swipeMove(event,this)" ontouchend="swipeEnd(event,this)">
-          <div class="swipe-actions"><button class="delete-btn" onclick="deleteItem(this)">删除</button></div>
-          <a href="detail/index.html" class="swipe-content">
-            <div class="icon" style="background:#fff3e0;">🍜</div>
-            <div class="info"><div class="title">午饭拉面</div><div class="subtitle">12:30 · 餐饮 > 午餐</div></div>
-            <div class="amount expense">-¥25.00</div>
-          </a>
-        </div>
+        <!-- 交易列表（按时间从早到晚排序） -->
         <div class="swipe-item" ontouchstart="swipeStart(event,this)" ontouchmove="swipeMove(event,this)" ontouchend="swipeEnd(event,this)">
           <div class="swipe-actions"><button class="delete-btn" onclick="deleteItem(this)">删除</button></div>
           <a href="detail/index.html" class="swipe-content">
             <div class="icon" style="background:#e3f2fd;">🚗</div>
             <div class="info"><div class="title">打车去公司</div><div class="subtitle">09:15 · 交通 > 打车</div></div>
             <div class="amount expense">-¥28.00</div>
+          </a>
+        </div>
+        <div class="swipe-item" ontouchstart="swipeStart(event,this)" ontouchmove="swipeMove(event,this)" ontouchend="swipeEnd(event,this)">
+          <div class="swipe-actions"><button class="delete-btn" onclick="deleteItem(this)">删除</button></div>
+          <a href="detail/index.html" class="swipe-content">
+            <div class="icon" style="background:#fff3e0;">🍜</div>
+            <div class="info"><div class="title">午饭拉面</div><div class="subtitle">12:30 · 餐饮 > 午餐</div></div>
+            <div class="amount expense">-¥25.00</div>
           </a>
         </div>
         <div class="swipe-item" ontouchstart="swipeStart(event,this)" ontouchmove="swipeMove(event,this)" ontouchend="swipeEnd(event,this)">
@@ -350,39 +337,41 @@
 
       <!-- ========== 周视图 ========== -->
       <div class="view-container active" id="weekView">
-        <!-- 洞察卡片 - 账单上方 -->
-        <div class="insight-card">
-          <span class="icon">💡</span>
-          <span class="text">本周餐饮支出占比最高，达45%</span>
-          <span class="action">详情</span>
-        </div>
-        <!-- 7天卡片（响应式等分） -->
-        <div class="week-summary">
-          <div class="week-day-card" onclick="switchView('day')"><div class="weekday">日</div><div class="day">1</div></div>
-          <div class="week-day-card today" onclick="switchView('day')"><div class="weekday">一</div><div class="day">2</div></div>
-          <div class="week-day-card" onclick="switchView('day')"><div class="weekday">二</div><div class="day">3</div></div>
-          <div class="week-day-card" onclick="switchView('day')"><div class="weekday">三</div><div class="day">4</div></div>
-          <div class="week-day-card" onclick="switchView('day')"><div class="weekday">四</div><div class="day">5</div></div>
-          <div class="week-day-card" onclick="switchView('day')"><div class="weekday">五</div><div class="day">6</div></div>
-          <div class="week-day-card" onclick="switchView('day')"><div class="weekday">六</div><div class="day">7</div></div>
-        </div>
+        <!-- 周统计（移至顶部，添加结余） -->
         <div class="week-stats">
           <div class="stat-item"><div class="label">本周支出</div><div class="value expense">¥227</div></div>
           <div class="stat-item"><div class="label">本周收入</div><div class="value income">¥0</div></div>
+          <div class="stat-item"><div class="label">结余</div><div class="value">¥-227</div></div>
+        </div>
+        <!-- 7天卡片（响应式等分，周一到周日） -->
+        <div class="week-summary">
+          <div class="week-day-card" onclick="switchView('day')"><div class="weekday">一</div><div class="day">1</div></div>
+          <div class="week-day-card" onclick="switchView('day')"><div class="weekday">二</div><div class="day">2</div></div>
+          <div class="week-day-card today" onclick="switchView('day')"><div class="weekday">三</div><div class="day">3</div></div>
+          <div class="week-day-card" onclick="switchView('day')"><div class="weekday">四</div><div class="day">4</div></div>
+          <div class="week-day-card" onclick="switchView('day')"><div class="weekday">五</div><div class="day">5</div></div>
+          <div class="week-day-card" onclick="switchView('day')"><div class="weekday">六</div><div class="day">6</div></div>
+          <div class="week-day-card" onclick="switchView('day')"><div class="weekday">日</div><div class="day">7</div></div>
         </div>
         <!-- 按日分组列表 -->
         <div class="day-group">
           <div class="day-header">
-            <div><span class="date">6月2日</span><span class="weekday">周一</span></div>
-            <span class="day-total">支出 <span class="expense">¥71.00</span></span>
+            <div><span class="date">6月1日</span><span class="weekday">周一</span></div>
+            <span class="day-total">支出 <span class="expense">¥156.00</span></span>
           </div>
           <div class="swipe-item" ontouchstart="swipeStart(event,this)" ontouchmove="swipeMove(event,this)" ontouchend="swipeEnd(event,this)">
             <div class="swipe-actions"><button class="delete-btn" onclick="deleteItem(this)">删除</button></div>
             <a href="detail/index.html" class="swipe-content">
-              <div class="icon" style="background:#fff3e0;">🍜</div>
-              <div class="info"><div class="title">午饭拉面</div><div class="subtitle">12:30 · 餐饮</div></div>
-              <div class="amount expense">-¥25.00</div>
+              <div class="icon" style="background:#fce4ec;">🛒</div>
+              <div class="info"><div class="title">超市购物</div><div class="subtitle">18:30 · 购物</div></div>
+              <div class="amount expense">-¥156.00</div>
             </a>
+          </div>
+        </div>
+        <div class="day-group">
+          <div class="day-header">
+            <div><span class="date">6月2日</span><span class="weekday">周二</span></div>
+            <span class="day-total">支出 <span class="expense">¥71.00</span></span>
           </div>
           <div class="swipe-item" ontouchstart="swipeStart(event,this)" ontouchmove="swipeMove(event,this)" ontouchend="swipeEnd(event,this)">
             <div class="swipe-actions"><button class="delete-btn" onclick="deleteItem(this)">删除</button></div>
@@ -395,23 +384,17 @@
           <div class="swipe-item" ontouchstart="swipeStart(event,this)" ontouchmove="swipeMove(event,this)" ontouchend="swipeEnd(event,this)">
             <div class="swipe-actions"><button class="delete-btn" onclick="deleteItem(this)">删除</button></div>
             <a href="detail/index.html" class="swipe-content">
-              <div class="icon" style="background:#fff3e0;">☕</div>
-              <div class="info"><div class="title">下午茶咖啡</div><div class="subtitle">15:45 · 餐饮</div></div>
-              <div class="amount expense">-¥18.00</div>
+              <div class="icon" style="background:#fff3e0;">🍜</div>
+              <div class="info"><div class="title">午饭拉面</div><div class="subtitle">12:30 · 餐饮</div></div>
+              <div class="amount expense">-¥25.00</div>
             </a>
-          </div>
-        </div>
-        <div class="day-group">
-          <div class="day-header">
-            <div><span class="date">6月1日</span><span class="weekday">周日</span></div>
-            <span class="day-total">支出 <span class="expense">¥156.00</span></span>
           </div>
           <div class="swipe-item" ontouchstart="swipeStart(event,this)" ontouchmove="swipeMove(event,this)" ontouchend="swipeEnd(event,this)">
             <div class="swipe-actions"><button class="delete-btn" onclick="deleteItem(this)">删除</button></div>
             <a href="detail/index.html" class="swipe-content">
-              <div class="icon" style="background:#fce4ec;">🛒</div>
-              <div class="info"><div class="title">超市购物</div><div class="subtitle">18:30 · 购物</div></div>
-              <div class="amount expense">-¥156.00</div>
+              <div class="icon" style="background:#fff3e0;">☕</div>
+              <div class="info"><div class="title">下午茶咖啡</div><div class="subtitle">15:45 · 餐饮</div></div>
+              <div class="amount expense">-¥18.00</div>
             </a>
           </div>
         </div>
@@ -420,12 +403,6 @@
 
       <!-- ========== 月视图 ========== -->
       <div class="view-container" id="monthView">
-        <!-- 洞察卡片 - 账单上方 -->
-        <div class="insight-card">
-          <span class="icon">💡</span>
-          <span class="text">本月日均支出¥109，低于上月12%</span>
-          <span class="action">详情</span>
-        </div>
         <div class="month-summary">
           <div class="summary-item"><div class="label">总支出</div><div class="value expense">¥3,280</div></div>
           <div class="summary-item"><div class="label">总收入</div><div class="value income">¥12,000</div></div>
@@ -503,8 +480,8 @@
 
   <script>
     const periods = {
-      day: ['6月1日 周日', '6月2日 周一', '6月3日 周二'],
-      week: ['5月26日 - 6月1日', '6月2日 - 6月8日', '6月9日 - 6月15日'],
+      day: ['6月1日 周一', '6月2日 周二', '6月3日 周三', '6月4日 周四', '6月5日 周五', '6月6日 周六', '6月7日 周日'],
+      week: ['5月25日 - 5月31日', '6月1日 - 6月7日', '6月8日 - 6月14日'],
       month: ['2025年4月', '2025年5月', '2025年6月', '2025年7月']
     };
     let currentView = 'week';
