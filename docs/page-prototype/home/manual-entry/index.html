@@ -6,20 +6,16 @@
   <title>WoAccount - 手动记账</title>
   <link rel="stylesheet" href="../../shared/style.css">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #fff;
-      display: flex;
-      justify-content: center;
-      min-height: 100vh;
-    }
-    .page {
+    .phone-frame {
       width: 375px;
       min-height: 812px;
+      background: #fff;
+      border-radius: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      overflow: hidden;
+      position: relative;
       display: flex;
       flex-direction: column;
-      background: #fff;
     }
 
     /* 顶部栏 */
@@ -356,7 +352,14 @@
   </style>
 </head>
 <body>
-  <div class="page">
+  <div class="phone-frame">
+    <!-- 状态栏 -->
+    <div class="status-bar">
+      <span>9:41</span>
+      <span>WoAccount</span>
+      <span>⚙️</span>
+    </div>
+
     <!-- 顶部栏 -->
     <div class="top-bar">
       <span class="left">首页</span>
