@@ -1,5 +1,5 @@
 /// WoAccount 间距与圆角常量
-/// 基于 UI 设计系统规范
+/// 基于原型设计系统规范
 class AppDimensions {
   AppDimensions._();
 
@@ -15,14 +15,18 @@ class AppDimensions {
   static const double radiusMd = 12;
   static const double radiusLg = 16;
   static const double radiusXl = 20;
+  static const double radiusRound = 999; // 胶囊形
 
   // === 组件尺寸 ===
   static const double buttonHeight = 50;
   static const double inputHeight = 44;
-  static const double iconNav = 25;
+  static const double iconNav = 24;
   static const double iconList = 20;
   static const double iconButton = 18;
   static const double iconSmall = 15;
   static const double listItemHeight = 64;
   static const double bottomNavHeight = 83;
+  static const double sideButtonSize = 44;
+  static const double categoryIconSize = 40;
+  static const double avatarSize = 60;
 }

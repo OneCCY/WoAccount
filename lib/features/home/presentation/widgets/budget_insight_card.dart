@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 /// 预算提醒卡片
-/// 橙色背景，显示预算超支提醒
+/// 橙色背景，圆角设计，显示预算超支提醒
 class BudgetInsightCard extends StatelessWidget {
   final String message;
   final VoidCallback? onTap;
@@ -35,22 +37,24 @@ class BudgetInsightCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                const Text('💡', style: TextStyle(fontSize: 20)),
+                const Icon(
+                  Icons.lightbulb_outline,
+                  size: 20,
+                  color: Color(0xFFE65100),
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     message,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Color(0xFFE65100),
+                    style: AppTextStyles.footnote.copyWith(
+                      color: const Color(0xFFE65100),
                     ),
                   ),
                 ),
-                const Text(
+                Text(
                   '详情',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFFFF9800),
+                  style: AppTextStyles.footnote.copyWith(
+                    color: AppColors.warning,
                     fontWeight: FontWeight.w500,
                   ),
                 ),

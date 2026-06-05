@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart' hide Column;
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
@@ -125,7 +126,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           // AI 助手入口
           AiAssistantEntry(
             onTap: () {
-              // TODO: 跳转到 AI 助手页面
+              context.push('/ai-assistant');
             },
           ),
 
@@ -139,7 +140,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         onSubmit: _handleAiInput,
         isLoading: _isLoading,
         onManualEntry: () {
-          // TODO: 跳转到手动记账页面
+          context.push('/manual-entry');
         },
         onCamera: () {
           // TODO: 拍照识别

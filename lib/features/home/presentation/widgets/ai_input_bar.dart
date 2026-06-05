@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 /// 底部固定记账输入栏
 /// 左: ➕ 手动记账  |  中: 文本输入框  |  右: 📷 拍照识别
@@ -46,15 +47,22 @@ class _AiInputBarState extends State<AiInputBar> {
     return Container(
       padding: const EdgeInsets.fromLTRB(
         AppDimensions.md,
-        AppDimensions.sm,
+        12,
         AppDimensions.md,
-        AppDimensions.sm,
+        12,
       ),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.surface,
-        border: Border(
+        border: const Border(
           top: BorderSide(color: AppColors.separatorOpaque, width: 0.5),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0x0A000000),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
       child: SafeArea(
         top: false,
@@ -72,7 +80,7 @@ class _AiInputBarState extends State<AiInputBar> {
               child: Container(
                 height: AppDimensions.inputHeight,
                 decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.separator, width: 1),
+                  color: AppColors.surfaceSecondary,
                   borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
                 ),
                 child: TextField(
@@ -81,15 +89,11 @@ class _AiInputBarState extends State<AiInputBar> {
                   enabled: !widget.isLoading,
                   textInputAction: TextInputAction.send,
                   onSubmitted: (_) => _handleSubmit(),
-                  style: const TextStyle(
-                    fontSize: 15,
-                    color: AppColors.textPrimary,
-                  ),
+                  style: AppTextStyles.body,
                   decoration: InputDecoration(
                     hintText: '午饭吃了碗拉面25元',
-                    hintStyle: const TextStyle(
-                      fontSize: 15,
-                      color: AppColors.textTertiary,
+                    hintStyle: AppTextStyles.body.copyWith(
+                      color: AppColors.textHint,
                     ),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(
@@ -141,22 +145,20 @@ class _SideButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 44,
-      height: 44,
+    return Container(
+      width: AppDimensions.sideButtonSize,
+      height: AppDimensions.sideButtonSize,
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.separator, width: 1),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+      ),
       child: Material(
-        color: AppColors.surface,
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
         child: InkWell(
           onTap: onPressed,
           borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.separator, width: 1),
-              borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-            ),
-            child: Icon(icon, size: 20, color: AppColors.textPrimary),
-          ),
+          child: Icon(icon, size: 20, color: AppColors.textPrimary),
         ),
       ),
     );

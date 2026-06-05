@@ -5,6 +5,8 @@ import '../../features/transaction/domain/repositories/transaction_repository.da
 import '../../features/transaction/data/repositories/transaction_repository_impl.dart';
 import '../../features/category/domain/repositories/category_repository.dart';
 import '../../features/category/data/repositories/category_repository_impl.dart';
+import '../../features/budget/domain/repositories/budget_repository.dart';
+import '../../features/budget/data/repositories/budget_repository_impl.dart';
 
 part 'providers.g.dart';
 
@@ -28,4 +30,11 @@ TransactionRepository transactionRepository(Ref ref) {
 CategoryRepository categoryRepository(Ref ref) {
   final db = ref.watch(appDatabaseProvider);
   return CategoryRepositoryImpl(db);
+}
+
+/// 预算 Repository Provider
+@riverpod
+BudgetRepository budgetRepository(Ref ref) {
+  final db = ref.watch(appDatabaseProvider);
+  return BudgetRepositoryImpl(db);
 }

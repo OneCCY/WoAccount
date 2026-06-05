@@ -3,9 +3,27 @@ import 'app_colors.dart';
 import 'app_text_styles.dart';
 
 /// WoAccount 主题定义
-/// Cupertino 风格为主，融合 Material 组件
+/// 绿色主题，温暖友好，卡片化设计
 class AppTheme {
   AppTheme._();
+
+  /// 通用卡片阴影
+  static const List<BoxShadow> cardShadow = [
+    BoxShadow(
+      color: Color(0x0A000000),
+      blurRadius: 8,
+      offset: Offset(0, 2),
+    ),
+  ];
+
+  /// 浮动元素阴影（底部导航、输入栏）
+  static const List<BoxShadow> floatingShadow = [
+    BoxShadow(
+      color: Color(0x0D000000),
+      blurRadius: 12,
+      offset: Offset(0, -2),
+    ),
+  ];
 
   static ThemeData get lightTheme {
     return ThemeData(
@@ -29,7 +47,7 @@ class AppTheme {
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
-        scrolledUnderElevation: 0.5,
+        scrolledUnderElevation: 0,
         centerTitle: true,
         titleTextStyle: AppTextStyles.h3,
       ),
@@ -53,7 +71,7 @@ class AppTheme {
           borderSide: BorderSide.none,
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        hintStyle: AppTextStyles.body.copyWith(color: AppColors.textTertiary),
+        hintStyle: AppTextStyles.body.copyWith(color: AppColors.textHint),
       ),
 
       // 按钮主题
@@ -74,7 +92,7 @@ class AppTheme {
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.surface,
         selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.textSecondary,
+        unselectedItemColor: AppColors.textTertiary,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
       ),

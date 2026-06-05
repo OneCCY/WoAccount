@@ -103,18 +103,38 @@ class TransactionRepositoryImpl implements TransactionRepository {
 
   @override
   Future<TransactionStats> getStats(DateTime start, DateTime end) async {
-    final transactions = await getByDateRange(start, end);
+    // 通过 join Categories 区分收入/支出
+    final query = _db.select(_db.transactions).join([
+      innerJoin(
+        _db.categories,
+        _db.categories.id.equalsExp(_db.transactions.categoryId),
+      ),
+    ])
+      ..where(
+        _db.transactions.transactionDate.isBetweenValues(start, end) &
+            _db.transactions.isDeleted.equals(false),
+      );
+
+    final results = await query.get();
 
     double totalExpense = 0;
-    for (final t in transactions) {
-      totalExpense += t.amount;
+    double totalIncome = 0;
+
+    for (final row in results) {
+      final amount = row.readTable(_db.transactions).amount;
+      final isExpense = row.readTable(_db.categories).isExpense;
+      if (isExpense) {
+        totalExpense += amount;
+      } else {
+        totalIncome += amount;
+      }
     }
 
     return TransactionStats(
       totalExpense: totalExpense,
-      totalIncome: 0,
-      balance: -totalExpense,
-      count: transactions.length,
+      totalIncome: totalIncome,
+      balance: totalIncome - totalExpense,
+      count: results.length,
     );
   }
 }

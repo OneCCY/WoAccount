@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../category/domain/repositories/category_repository.dart';
 import '../../domain/repositories/transaction_repository.dart';
 import '../widgets/view_switcher.dart';
 import '../widgets/transaction_group.dart';
@@ -31,6 +34,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
   @override
   Widget build(BuildContext context) {
     final repo = ref.read(transactionRepositoryProvider);
+    final catRepo = ref.read(categoryRepositoryProvider);
 
     return Scaffold(
       body: Column(
@@ -45,11 +49,11 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
           _buildSearchBar(),
 
           // 统计栏
-          _buildStatsBar(repo),
+          _buildStatsBar(repo, catRepo),
 
           // 交易列表
           Expanded(
-            child: _buildTransactionList(repo),
+            child: _buildTransactionList(repo, catRepo),
           ),
         ],
       ),
@@ -92,10 +96,8 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Text(
             _getPeriodLabel(),
-            style: const TextStyle(
-              fontSize: 14,
+            style: AppTextStyles.callout.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
             ),
           ),
         ),
@@ -109,22 +111,20 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
   }
 
   Widget _buildArrowButton(IconData icon, VoidCallback onPressed) {
-    return SizedBox(
+    return Container(
       width: 28,
       height: 28,
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.separator, width: 1),
+        borderRadius: BorderRadius.circular(6),
+      ),
       child: Material(
-        color: AppColors.surface,
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(6),
         child: InkWell(
           onTap: onPressed,
           borderRadius: BorderRadius.circular(6),
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.separator, width: 1),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Icon(icon, size: 14, color: AppColors.textSecondary),
-          ),
+          child: Icon(icon, size: 14, color: AppColors.textSecondary),
         ),
       ),
     );
@@ -147,23 +147,28 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
 
   Widget _buildSearchBar() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      padding: const EdgeInsets.fromLTRB(
+        AppDimensions.md,
+        8,
+        AppDimensions.md,
+        8,
+      ),
       child: Row(
         children: [
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: AppColors.background,
-                borderRadius: BorderRadius.circular(10),
+                color: AppColors.surfaceSecondary,
+                borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
               ),
               child: Row(
-                children: const [
-                  Icon(Icons.search, size: 16, color: AppColors.textTertiary),
-                  SizedBox(width: 8),
+                children: [
+                  const Icon(Icons.search, size: 16, color: AppColors.textHint),
+                  const SizedBox(width: 8),
                   Text(
                     '搜索账单...',
-                    style: TextStyle(fontSize: 14, color: AppColors.textTertiary),
+                    style: AppTextStyles.body.copyWith(color: AppColors.textHint),
                   ),
                 ],
               ),
@@ -176,10 +181,14 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
             height: 40,
             decoration: BoxDecoration(
               color: const Color(0xFFFFF3E0),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
             ),
             child: const Center(
-              child: Text('💰', style: TextStyle(fontSize: 20)),
+              child: Icon(
+                Icons.account_balance_wallet_outlined,
+                size: 20,
+                color: AppColors.warning,
+              ),
             ),
           ),
         ],
@@ -187,28 +196,54 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
     );
   }
 
-  Widget _buildStatsBar(TransactionRepository repo) {
-    return StreamBuilder<List<Transaction>>(
-      stream: repo.watchAll(),
+  Widget _buildStatsBar(TransactionRepository repo, CategoryRepository catRepo) {
+    return FutureBuilder<TransactionStats>(
+      future: _getCurrentPeriodStats(repo),
       builder: (context, snapshot) {
-        final transactions = snapshot.data ?? [];
-        double totalExpense = 0;
-        for (final t in transactions) {
-          totalExpense += t.amount;
-        }
+        final stats = snapshot.data;
+        final totalExpense = stats?.totalExpense ?? 0;
+        final totalIncome = stats?.totalIncome ?? 0;
+        final balance = stats?.balance ?? 0;
+
+        final periodLabel = _currentView == ViewType.day
+            ? '本日'
+            : _currentView == ViewType.week
+                ? '本周'
+                : '本月';
 
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDimensions.md,
+            vertical: 4,
+          ),
           child: Row(
             children: [
-              _buildStatItem('本日支出', '¥${totalExpense.toStringAsFixed(0)}', AppColors.error),
-              _buildStatItem('本日收入', '¥0', AppColors.success),
-              _buildStatItem('结余', '¥${(-totalExpense).toStringAsFixed(0)}', AppColors.textPrimary),
+              _buildStatItem('$periodLabel支出', '¥${totalExpense.toStringAsFixed(0)}', AppColors.expense),
+              _buildStatItem('$periodLabel收入', '¥${totalIncome.toStringAsFixed(0)}', AppColors.income),
+              _buildStatItem('结余', '¥${balance.toStringAsFixed(0)}', AppColors.textPrimary),
             ],
           ),
         );
       },
     );
+  }
+
+  Future<TransactionStats> _getCurrentPeriodStats(TransactionRepository repo) {
+    final now = _currentDate;
+    DateTime start, end;
+    switch (_currentView) {
+      case ViewType.day:
+        start = DateTime(now.year, now.month, now.day);
+        end = start.add(const Duration(days: 1));
+      case ViewType.week:
+        start = now.subtract(Duration(days: now.weekday - 1));
+        start = DateTime(start.year, start.month, start.day);
+        end = start.add(const Duration(days: 7));
+      case ViewType.month:
+        start = DateTime(now.year, now.month, 1);
+        end = DateTime(now.year, now.month + 1, 1);
+    }
+    return repo.getStats(start, end);
   }
 
   Widget _buildStatItem(String label, String value, Color valueColor) {
@@ -217,20 +252,16 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
         padding: const EdgeInsets.symmetric(vertical: 10),
         margin: const EdgeInsets.symmetric(horizontal: 4),
         decoration: BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.circular(8),
+          color: AppColors.surfaceSecondary,
+          borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
         ),
         child: Column(
           children: [
-            Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+            Text(label, style: AppTextStyles.caption),
             const SizedBox(height: 4),
             Text(
               value,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: valueColor,
-              ),
+              style: AppTextStyles.amountList.copyWith(color: valueColor),
             ),
           ],
         ),
@@ -238,7 +269,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
     );
   }
 
-  Widget _buildTransactionList(TransactionRepository repo) {
+  Widget _buildTransactionList(TransactionRepository repo, CategoryRepository catRepo) {
     return StreamBuilder<List<Transaction>>(
       stream: repo.watchAll(),
       builder: (context, snapshot) {
@@ -253,18 +284,33 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
           return _buildEmptyState();
         }
 
-        // 按日期分组
-        final grouped = _groupByDate(transactions);
+        // 加载分类映射
+        return FutureBuilder<List<Category>>(
+          future: catRepo.getAll(),
+          builder: (context, catSnapshot) {
+            final categories = catSnapshot.data ?? [];
+            final categoryMap = <int, Category>{
+              for (final c in categories) c.id: c,
+            };
 
-        return ListView.builder(
-          padding: const EdgeInsets.only(bottom: 16),
-          itemCount: grouped.length,
-          itemBuilder: (context, index) {
-            final entry = grouped.entries.elementAt(index);
-            return TransactionGroup(
-              date: entry.key,
-              transactions: entry.value,
-              onDelete: (id) => repo.delete(id),
+            // 按日期分组
+            final grouped = _groupByDate(transactions);
+
+            return ListView.builder(
+              padding: const EdgeInsets.only(bottom: 16),
+              itemCount: grouped.length,
+              itemBuilder: (context, index) {
+                final entry = grouped.entries.elementAt(index);
+                return TransactionGroup(
+                  date: entry.key,
+                  transactions: entry.value,
+                  categoryMap: categoryMap,
+                  onDelete: (id) => repo.delete(id),
+                  onTap: (transaction) {
+                    context.push('/transactions/${transaction.id}');
+                  },
+                );
+              },
             );
           },
         );
@@ -289,12 +335,12 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
           Icon(
             Icons.receipt_long_outlined,
             size: 48,
-            color: AppColors.textTertiary.withValues(alpha: 0.5),
+            color: AppColors.textTertiary,
           ),
           const SizedBox(height: AppDimensions.md),
-          const Text(
+          Text(
             '暂无账单记录',
-            style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
+            style: AppTextStyles.callout.copyWith(color: AppColors.textSecondary),
           ),
         ],
       ),

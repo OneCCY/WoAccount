@@ -3,6 +3,14 @@ import 'package:flutter/material.dart';
 import '../../core/widgets/navigation/main_shell.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/transaction/presentation/pages/transaction_list_page.dart';
+import '../../features/transaction/presentation/pages/manual_entry_page.dart';
+import '../../features/transaction/presentation/pages/transaction_detail_page.dart';
+import '../../features/profile/presentation/pages/profile_page.dart';
+import '../../features/settings/presentation/pages/settings_page.dart';
+import '../../features/settings/presentation/pages/llm_settings_page.dart';
+import '../../features/budget/presentation/pages/budget_page.dart';
+import '../../features/budget/presentation/pages/budget_setting_page.dart';
+import '../../features/category/presentation/pages/category_manage_page.dart';
 
 /// WoAccount 路由配置
 /// 使用 GoRouter 声明式路由
@@ -65,42 +73,27 @@ class AppRouter {
         path: '/settings/llm',
         builder: (context, state) => const LlmSettingsPage(),
       ),
+      GoRoute(
+        path: '/budget',
+        builder: (context, state) => const BudgetPage(),
+      ),
+      GoRoute(
+        path: '/budget/setting',
+        builder: (context, state) => const BudgetSettingPage(),
+      ),
+      GoRoute(
+        path: '/categories/manage',
+        builder: (context, state) => const CategoryManagePage(),
+      ),
     ],
   );
 }
 
 // === 临时占位页面（后续替换为正式实现） ===
 
-class TransactionDetailPage extends StatelessWidget {
-  final int transactionId;
-  const TransactionDetailPage({super.key, required this.transactionId});
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('账单详情')),
-      body: Center(child: Text('账单详情 #$transactionId')),
-    );
-  }
-}
+// TransactionDetailPage 已移至 features/transaction/presentation/pages/transaction_detail_page.dart
 
-class ProfilePage extends StatelessWidget {
-  const ProfilePage({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('我的')),
-      body: const Center(child: Text('我的 - 待实现')),
-    );
-  }
-}
-
-class ManualEntryPage extends StatelessWidget {
-  const ManualEntryPage({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: Text('手动记账')));
-  }
-}
+// ManualEntryPage 已移至 features/transaction/presentation/pages/manual_entry_page.dart
 
 class AiAssistantPage extends StatelessWidget {
   const AiAssistantPage({super.key});
@@ -110,18 +103,5 @@ class AiAssistantPage extends StatelessWidget {
   }
 }
 
-class SettingsPage extends StatelessWidget {
-  const SettingsPage({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: Text('设置')));
-  }
-}
-
-class LlmSettingsPage extends StatelessWidget {
-  const LlmSettingsPage({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: Text('LLM 配置')));
-  }
-}
+// SettingsPage 已移至 features/settings/presentation/pages/settings_page.dart
+// LlmSettingsPage 已移至 features/settings/presentation/pages/llm_settings_page.dart

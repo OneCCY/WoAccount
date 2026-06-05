@@ -107,20 +107,38 @@ class AppDatabase extends _$AppDatabase {
 
   /// 初始化系统分类
   Future<void> _seedCategories() async {
-    final categories = [
-      CategoriesCompanion.insert(name: '餐饮', icon: const Value('🍜'), color: const Value('#FF9800'), level: const Value(1), isSystem: const Value(true), sortOrder: const Value(1)),
-      CategoriesCompanion.insert(name: '交通', icon: const Value('🚗'), color: const Value('#2196F3'), level: const Value(1), isSystem: const Value(true), sortOrder: const Value(2)),
-      CategoriesCompanion.insert(name: '购物', icon: const Value('🛒'), color: const Value('#E91E63'), level: const Value(1), isSystem: const Value(true), sortOrder: const Value(3)),
-      CategoriesCompanion.insert(name: '住房', icon: const Value('🏠'), color: const Value('#9C27B0'), level: const Value(1), isSystem: const Value(true), sortOrder: const Value(4)),
-      CategoriesCompanion.insert(name: '娱乐', icon: const Value('🎮'), color: const Value('#4CAF50'), level: const Value(1), isSystem: const Value(true), sortOrder: const Value(5)),
-      CategoriesCompanion.insert(name: '教育', icon: const Value('📚'), color: const Value('#00BCD4'), level: const Value(1), isSystem: const Value(true), sortOrder: const Value(6)),
-      CategoriesCompanion.insert(name: '医疗', icon: const Value('💊'), color: const Value('#F44336'), level: const Value(1), isSystem: const Value(true), sortOrder: const Value(7)),
-      CategoriesCompanion.insert(name: '社交', icon: const Value('👤'), color: const Value('#FF5722'), level: const Value(1), isSystem: const Value(true), sortOrder: const Value(8)),
-      CategoriesCompanion.insert(name: '其他', icon: const Value('💰'), color: const Value('#607D8B'), level: const Value(1), isSystem: const Value(true), sortOrder: const Value(9)),
+    // 支出分类
+    final expenseCategories = [
+      CategoriesCompanion.insert(name: '餐饮', icon: const Value('🍜'), color: const Value('#FF9800'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(true), sortOrder: const Value(1)),
+      CategoriesCompanion.insert(name: '交通', icon: const Value('🚗'), color: const Value('#2196F3'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(true), sortOrder: const Value(2)),
+      CategoriesCompanion.insert(name: '购物', icon: const Value('🛒'), color: const Value('#E91E63'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(true), sortOrder: const Value(3)),
+      CategoriesCompanion.insert(name: '住房', icon: const Value('🏠'), color: const Value('#9C27B0'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(true), sortOrder: const Value(4)),
+      CategoriesCompanion.insert(name: '娱乐', icon: const Value('🎮'), color: const Value('#4CAF50'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(true), sortOrder: const Value(5)),
+      CategoriesCompanion.insert(name: '教育', icon: const Value('📚'), color: const Value('#00BCD4'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(true), sortOrder: const Value(6)),
+      CategoriesCompanion.insert(name: '医疗', icon: const Value('💊'), color: const Value('#F44336'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(true), sortOrder: const Value(7)),
+      CategoriesCompanion.insert(name: '社交', icon: const Value('👤'), color: const Value('#FF5722'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(true), sortOrder: const Value(8)),
+      CategoriesCompanion.insert(name: '宠物', icon: const Value('🐾'), color: const Value('#795548'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(true), sortOrder: const Value(9)),
+      CategoriesCompanion.insert(name: '其他支出', icon: const Value('💰'), color: const Value('#607D8B'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(true), sortOrder: const Value(10)),
     ];
 
-    for (final category in categories) {
-      await into(this.categories).insert(category);
+    // 收入分类
+    final incomeCategories = [
+      CategoriesCompanion.insert(name: '工资', icon: const Value('💼'), color: const Value('#4CAF50'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(false), sortOrder: const Value(1)),
+      CategoriesCompanion.insert(name: '奖金', icon: const Value('🎁'), color: const Value('#FF9800'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(false), sortOrder: const Value(2)),
+      CategoriesCompanion.insert(name: '投资收益', icon: const Value('📈'), color: const Value('#2196F3'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(false), sortOrder: const Value(3)),
+      CategoriesCompanion.insert(name: '退款', icon: const Value('↩️'), color: const Value('#9C27B0'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(false), sortOrder: const Value(4)),
+      CategoriesCompanion.insert(name: '兼职', icon: const Value('💻'), color: const Value('#00BCD4'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(false), sortOrder: const Value(5)),
+    ];
+
+    // 其他类型（非支出非收入）
+    final otherCategories = [
+      CategoriesCompanion.insert(name: '转账', icon: const Value('🔄'), color: const Value('#607D8B'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(false), sortOrder: const Value(1)),
+      CategoriesCompanion.insert(name: '还款', icon: const Value('💳'), color: const Value('#F44336'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(false), sortOrder: const Value(2)),
+      CategoriesCompanion.insert(name: '人情', icon: const Value('🤝'), color: const Value('#FF5722'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(false), sortOrder: const Value(3)),
+    ];
+
+    for (final category in [...expenseCategories, ...incomeCategories, ...otherCategories]) {
+      await into(categories).insert(category);
     }
   }
 }
