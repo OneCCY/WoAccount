@@ -42,8 +42,8 @@ class _HomePageState extends ConsumerState<HomePage> {
   /// 检查 AI 服务是否已配置
   Future<void> _checkAiConfig() async {
     final llmRepo = ref.read(llmRepositoryProvider);
-    final config = await llmRepo.getConfig();
-    if (!config.isConfigured && mounted) {
+    final provider = await llmRepo.getActiveProvider();
+    if ((provider == null || !provider.isComplete) && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('尚未配置 AI 服务，将使用基础规则解析'),

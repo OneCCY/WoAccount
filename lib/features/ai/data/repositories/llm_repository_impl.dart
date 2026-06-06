@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/ai/prompt_templates.dart';
 import '../../../../core/ai/rule_engine.dart';
 import '../../domain/repositories/llm_repository.dart';
@@ -9,60 +8,38 @@ import '../models/llm_config.dart';
 /// LLM 服务实现（Data 层）
 class LlmRepositoryImpl implements LlmRepository {
   final Dio _dio;
-  LlmConfig? _cachedConfig;
 
   LlmRepositoryImpl(this._dio);
 
   @override
-  Future<LlmConfig> getConfig() async {
-    if (_cachedConfig != null) return _cachedConfig!;
-
-    final prefs = await SharedPreferences.getInstance();
-    final settings = <String, String>{};
-    for (final key in [
-      'llm_provider', 'llm_api_key', 'llm_base_url', 'llm_model',
-      'llm_temperature', 'llm_max_tokens', 'llm_timeout',
-    ]) {
-      settings[key] = prefs.getString(key) ?? '';
-    }
-
-    _cachedConfig = LlmConfig.fromSettings(settings);
-    return _cachedConfig!;
-  }
-
-  @override
-  Future<void> updateConfig(LlmConfig config) async {
-    final prefs = await SharedPreferences.getInstance();
-    for (final entry in config.toSettings().entries) {
-      await prefs.setString(entry.key, entry.value);
-    }
-    _cachedConfig = config;
+  Future<LlmProvider?> getActiveProvider() async {
+    return await LlmConfigManager.getActiveProvider();
   }
 
   @override
   Future<LlmResponse> chat(LlmRequest request) async {
-    final config = await getConfig();
+    final provider = await LlmConfigManager.getActiveProvider();
 
-    if (!config.isConfigured) {
-      throw const LlmException('请先在设置中配置 AI 服务（API Key）');
+    if (provider == null || !provider.isComplete) {
+      throw const LlmException('请先在设置中添加并配置 AI 服务商');
     }
 
     try {
       final response = await _dio.post(
-        '${config.baseUrl}/chat/completions',
+        '${provider.baseUrl}/chat/completions',
         options: Options(
           headers: {
-            'Authorization': 'Bearer ${config.apiKey}',
+            'Authorization': 'Bearer ${provider.apiKey}',
             'Content-Type': 'application/json',
           },
-          sendTimeout: Duration(seconds: config.timeoutSeconds),
-          receiveTimeout: Duration(seconds: config.timeoutSeconds),
+          sendTimeout: Duration(seconds: provider.timeoutSeconds),
+          receiveTimeout: Duration(seconds: provider.timeoutSeconds),
         ),
         data: {
-          'model': request.model ?? config.model,
+          'model': request.model ?? provider.model,
           'messages': request.messages.map((m) => m.toJson()).toList(),
-          'temperature': request.temperature ?? config.temperature,
-          'max_tokens': request.maxTokens ?? config.maxTokens,
+          'temperature': request.temperature ?? provider.temperature,
+          'max_tokens': request.maxTokens ?? provider.maxTokens,
         },
       );
 
@@ -74,7 +51,7 @@ class LlmRepositoryImpl implements LlmRepository {
 
       return LlmResponse(
         content: messageContent,
-        model: data['model'] as String? ?? config.model,
+        model: data['model'] as String? ?? provider.model,
         promptTokens: usage['prompt_tokens'] as int? ?? 0,
         completionTokens: usage['completion_tokens'] as int? ?? 0,
         totalTokens: usage['total_tokens'] as int? ?? 0,
@@ -88,12 +65,12 @@ class LlmRepositoryImpl implements LlmRepository {
   Future<TransactionParseResult> parseTransaction(String input) async {
     // 降级策略：先尝试 LLM，失败后用规则引擎
     try {
-      final config = await getConfig();
-      if (!config.isConfigured) {
+      final provider = await LlmConfigManager.getActiveProvider();
+      if (provider == null || !provider.isComplete) {
         // 未配置 LLM，直接用规则引擎
         final ruleResult = RuleEngine.parse(input);
         if (ruleResult != null) return ruleResult;
-        throw const LlmException('请先在设置中配置 AI 服务，或输入更明确的描述（如"午饭拉面25"）');
+        throw const LlmException('请先在设置中添加 AI 服务商，或输入更明确的描述（如"午饭拉面25"）');
       }
 
       // 调用 LLM
@@ -115,16 +92,28 @@ class LlmRepositoryImpl implements LlmRepository {
   }
 
   @override
-  Future<bool> testConnection() async {
+  Future<bool> testConnection(LlmProvider provider) async {
     try {
-      final response = await chat(LlmRequest(
-        messages: const [
-          ChatMessage(role: 'user', content: 'Hello'),
-        ],
-        maxTokens: 10,
-      ));
-      return response.content.isNotEmpty;
-    } catch (e) {
+      final response = await _dio.post(
+        '${provider.baseUrl}/chat/completions',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer ${provider.apiKey}',
+            'Content-Type': 'application/json',
+          },
+          sendTimeout: Duration(seconds: provider.timeoutSeconds),
+          receiveTimeout: Duration(seconds: provider.timeoutSeconds),
+        ),
+        data: {
+          'model': provider.model,
+          'messages': [
+            {'role': 'user', 'content': 'Hello'}
+          ],
+          'max_tokens': 10,
+        },
+      );
+      return response.statusCode == 200;
+    } catch (_) {
       return false;
     }
   }
@@ -132,7 +121,6 @@ class LlmRepositoryImpl implements LlmRepository {
   /// 解析 LLM 返回的交易 JSON
   TransactionParseResult _parseTransactionResponse(String content) {
     try {
-      // 提取 JSON（可能被 markdown 代码块包裹）
       final jsonMatch = RegExp(r'\{[\s\S]*\}').firstMatch(content);
       if (jsonMatch == null) {
         throw const LlmException('无法解析 AI 响应');

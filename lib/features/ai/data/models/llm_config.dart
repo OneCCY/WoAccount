@@ -1,15 +1,20 @@
-/// LLM 配置模型
-class LlmConfig {
-  final String providerId;
-  final String apiKey;
-  final String baseUrl;
-  final String model;
-  final double temperature;
-  final int maxTokens;
-  final int timeoutSeconds;
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
-  const LlmConfig({
-    required this.providerId,
+/// 用户自定义的 LLM 服务商配置
+class LlmProvider {
+  final String id; // 唯一标识
+  final String name; // 服务商名称（如 "DeepSeek"、"通义千问"）
+  final String apiKey; // API Key
+  final String baseUrl; // 请求地址（如 https://api.deepseek.com/v1）
+  final String model; // 模型名称（如 deepseek-chat）
+  final double temperature; // 温度参数 0.0-1.0
+  final int maxTokens; // 最大 token 数
+  final int timeoutSeconds; // 超时时间（秒）
+
+  const LlmProvider({
+    required this.id,
+    required this.name,
     required this.apiKey,
     required this.baseUrl,
     required this.model,
@@ -18,37 +23,37 @@ class LlmConfig {
     this.timeoutSeconds = 30,
   });
 
-  /// 是否已配置（API Key 非空）
-  bool get isConfigured => apiKey.isNotEmpty;
+  /// 是否配置完整（名称、API Key、地址、模型都非空）
+  bool get isComplete =>
+      name.isNotEmpty &&
+      apiKey.isNotEmpty &&
+      baseUrl.isNotEmpty &&
+      model.isNotEmpty;
 
-  /// 从 SharedPreferences 构建
-  factory LlmConfig.fromSettings(Map<String, String> settings) {
-    return LlmConfig(
-      providerId: settings['llm_provider'] ?? 'deepseek',
-      apiKey: settings['llm_api_key'] ?? '',
-      baseUrl: settings['llm_base_url'] ?? '',
-      model: settings['llm_model'] ?? '',
-      temperature: double.tryParse(settings['llm_temperature'] ?? '0') ?? 0.0,
-      maxTokens: int.tryParse(settings['llm_max_tokens'] ?? '1000') ?? 1000,
-      timeoutSeconds: int.tryParse(settings['llm_timeout'] ?? '30') ?? 30,
-    );
-  }
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'apiKey': apiKey,
+        'baseUrl': baseUrl,
+        'model': model,
+        'temperature': temperature,
+        'maxTokens': maxTokens,
+        'timeoutSeconds': timeoutSeconds,
+      };
 
-  /// 转为 Map 用于存储
-  Map<String, String> toSettings() {
-    return {
-      'llm_provider': providerId,
-      'llm_api_key': apiKey,
-      'llm_base_url': baseUrl,
-      'llm_model': model,
-      'llm_temperature': temperature.toString(),
-      'llm_max_tokens': maxTokens.toString(),
-      'llm_timeout': timeoutSeconds.toString(),
-    };
-  }
+  factory LlmProvider.fromJson(Map<String, dynamic> json) => LlmProvider(
+        id: json['id'] as String,
+        name: json['name'] as String? ?? '',
+        apiKey: json['apiKey'] as String? ?? '',
+        baseUrl: json['baseUrl'] as String? ?? '',
+        model: json['model'] as String? ?? '',
+        temperature: (json['temperature'] as num?)?.toDouble() ?? 0.0,
+        maxTokens: json['maxTokens'] as int? ?? 1000,
+        timeoutSeconds: json['timeoutSeconds'] as int? ?? 30,
+      );
 
-  LlmConfig copyWith({
-    String? providerId,
+  LlmProvider copyWith({
+    String? name,
     String? apiKey,
     String? baseUrl,
     String? model,
@@ -56,8 +61,9 @@ class LlmConfig {
     int? maxTokens,
     int? timeoutSeconds,
   }) {
-    return LlmConfig(
-      providerId: providerId ?? this.providerId,
+    return LlmProvider(
+      id: id,
+      name: name ?? this.name,
       apiKey: apiKey ?? this.apiKey,
       baseUrl: baseUrl ?? this.baseUrl,
       model: model ?? this.model,
@@ -68,95 +74,94 @@ class LlmConfig {
   }
 }
 
-/// 预设 LLM 提供商
-class LlmProvider {
-  final String id;
-  final String name;
-  final String defaultBaseUrl;
-  final String defaultModel;
-  final List<String> availableModels;
+/// LLM 服务配置管理（本地存储）
+class LlmConfigManager {
+  static const _keyProviders = 'llm_providers';
+  static const _keyActiveId = 'llm_active_provider_id';
 
-  const LlmProvider({
-    required this.id,
-    required this.name,
-    required this.defaultBaseUrl,
-    required this.defaultModel,
-    required this.availableModels,
-  });
-}
+  /// 加载所有用户配置的服务商
+  static Future<List<LlmProvider>> loadProviders() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonStr = prefs.getString(_keyProviders);
+    if (jsonStr == null || jsonStr.isEmpty) return [];
 
-/// 预设提供商列表
-class LlmProviders {
-  static const qwen = LlmProvider(
-    id: 'qwen',
-    name: '通义千问',
-    defaultBaseUrl: 'https://dashscope.aliyuncs.com/api/v1',
-    defaultModel: 'qwen-turbo',
-    availableModels: ['qwen-turbo', 'qwen-plus', 'qwen-max'],
-  );
+    try {
+      final list = jsonDecode(jsonStr) as List<dynamic>;
+      return list
+          .map((e) => LlmProvider.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
 
-  static const deepseek = LlmProvider(
-    id: 'deepseek',
-    name: 'DeepSeek',
-    defaultBaseUrl: 'https://api.deepseek.com/v1',
-    defaultModel: 'deepseek-chat',
-    availableModels: ['deepseek-chat', 'deepseek-coder'],
-  );
+  /// 保存所有服务商配置
+  static Future<void> saveProviders(List<LlmProvider> providers) async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonStr = jsonEncode(providers.map((p) => p.toJson()).toList());
+    await prefs.setString(_keyProviders, jsonStr);
+  }
 
-  static const zhipu = LlmProvider(
-    id: 'zhipu',
-    name: '智谱AI',
-    defaultBaseUrl: 'https://open.bigmodel.cn/api/paas/v4',
-    defaultModel: 'glm-4-flash',
-    availableModels: ['glm-4-flash', 'glm-4', 'glm-4v'],
-  );
+  /// 获取当前激活的服务商 ID
+  static Future<String?> getActiveProviderId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyActiveId);
+  }
 
-  static const moonshot = LlmProvider(
-    id: 'moonshot',
-    name: '月之暗面',
-    defaultBaseUrl: 'https://api.moonshot.cn/v1',
-    defaultModel: 'moonshot-v1-8k',
-    availableModels: ['moonshot-v1-8k', 'moonshot-v1-32k', 'moonshot-v1-128k'],
-  );
+  /// 设置当前激活的服务商
+  static Future<void> setActiveProviderId(String id) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyActiveId, id);
+  }
 
-  static const xunfei = LlmProvider(
-    id: 'xunfei',
-    name: '讯飞星火',
-    defaultBaseUrl: 'https://spark-api-open.xf-yun.com/v1',
-    defaultModel: 'generalv3.5',
-    availableModels: ['generalv3.5', 'generalv3', 'pro-128k'],
-  );
+  /// 获取当前激活的服务商配置
+  static Future<LlmProvider?> getActiveProvider() async {
+    final providers = await loadProviders();
+    if (providers.isEmpty) return null;
 
-  static const openai = LlmProvider(
-    id: 'openai',
-    name: 'OpenAI',
-    defaultBaseUrl: 'https://api.openai.com/v1',
-    defaultModel: 'gpt-4o-mini',
-    availableModels: ['gpt-4o-mini', 'gpt-4o', 'gpt-3.5-turbo'],
-  );
+    final activeId = await getActiveProviderId();
+    if (activeId != null) {
+      final match = providers.where((p) => p.id == activeId);
+      if (match.isNotEmpty) return match.first;
+    }
 
-  static const custom = LlmProvider(
-    id: 'custom',
-    name: '自定义',
-    defaultBaseUrl: '',
-    defaultModel: '',
-    availableModels: [],
-  );
+    // 返回第一个配置完整的服务商
+    return providers.where((p) => p.isComplete).firstOrNull ?? providers.first;
+  }
 
-  /// 所有预设提供商
-  static const List<LlmProvider> all = [
-    deepseek,
-    qwen,
-    zhipu,
-    moonshot,
-    xunfei,
-    openai,
-    custom,
-  ];
+  /// 添加服务商
+  static Future<void> addProvider(LlmProvider provider) async {
+    final providers = await loadProviders();
+    providers.add(provider);
+    await saveProviders(providers);
 
-  /// 根据 ID 获取提供商
-  static LlmProvider? getById(String id) {
-    return all.where((p) => p.id == id).firstOrNull;
+    // 如果是第一个，自动设为激活
+    if (providers.length == 1) {
+      await setActiveProviderId(provider.id);
+    }
+  }
+
+  /// 更新服务商
+  static Future<void> updateProvider(LlmProvider provider) async {
+    final providers = await loadProviders();
+    final index = providers.indexWhere((p) => p.id == provider.id);
+    if (index != -1) {
+      providers[index] = provider;
+      await saveProviders(providers);
+    }
+  }
+
+  /// 删除服务商
+  static Future<void> deleteProvider(String id) async {
+    final providers = await loadProviders();
+    providers.removeWhere((p) => p.id == id);
+    await saveProviders(providers);
+
+    // 如果删除的是当前激活的，切换到第一个
+    final activeId = await getActiveProviderId();
+    if (activeId == id && providers.isNotEmpty) {
+      await setActiveProviderId(providers.first.id);
+    }
   }
 }
 
