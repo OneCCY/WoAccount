@@ -6,25 +6,7 @@ part of 'providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$appDatabaseHash() => r'63ee888947c6b70ff7ffbf17b8b09651fda53b06';
-
-/// 全局数据库 Provider
-///
-/// Copied from [appDatabase].
-@ProviderFor(appDatabase)
-final appDatabaseProvider = AutoDisposeProvider<AppDatabase>.internal(
-  appDatabase,
-  name: r'appDatabaseProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$appDatabaseHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef AppDatabaseRef = AutoDisposeProviderRef<AppDatabase>;
+// appDatabaseProvider is manually defined in providers.dart as a keep-alive Provider
 String _$transactionRepositoryHash() =>
     r'f82396b1d830a3ff7ceaa0f3b51dfa6bc08d0c37';
 

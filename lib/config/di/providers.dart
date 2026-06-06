@@ -10,13 +10,12 @@ import '../../features/budget/data/repositories/budget_repository_impl.dart';
 
 part 'providers.g.dart';
 
-/// 全局数据库 Provider
-@riverpod
-AppDatabase appDatabase(Ref ref) {
+/// 全局数据库 Provider（keepAlive: 应用生命周期内单例，避免页面切换时数据库重建导致数据丢失）
+final appDatabaseProvider = Provider<AppDatabase>((ref) {
   final db = AppDatabase();
   ref.onDispose(() => db.close());
   return db;
-}
+});
 
 /// 交易记录 Repository Provider
 @riverpod
