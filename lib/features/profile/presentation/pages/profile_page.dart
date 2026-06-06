@@ -5,12 +5,40 @@ import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
 /// 我的页面
-/// 用户卡片 + 功能按钮 + 菜单列表
-class ProfilePage extends StatelessWidget {
+/// 用户卡片 + 功能网格（默认2行，可展开）+ 菜单列表
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
   @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  bool _isExpanded = false;
+
+  /// 所有功能按钮
+  static const _allFuncItems = [
+    _FuncItem(Icons.lock_outline, '密码锁', Color(0xFFE8F5E9)),
+    _FuncItem(Icons.palette_outlined, '主题切换', Color(0xFFE3F2FD)),
+    _FuncItem(Icons.book_outlined, '我的账本', Color(0xFFFFF3E0)),
+    _FuncItem(Icons.account_balance_wallet_outlined, '预算管理', Color(0xFFFFF8E1)),
+    _FuncItem(Icons.category_outlined, '分类管理', Color(0xFFF3E5F5)),
+    _FuncItem(Icons.smart_toy_outlined, 'AI 配置', Color(0xFFE0F7FA)),
+    _FuncItem(Icons.bar_chart_outlined, '报表分析', Color(0xFFFFF9C4)),
+  ];
+
+  /// 每行显示5个
+  static const int _itemsPerRow = 5;
+
+  /// 默认显示2行
+  static const int _defaultRows = 2;
+
+  @override
   Widget build(BuildContext context) {
+    final defaultCount = _itemsPerRow * _defaultRows;
+    final visibleItems = _isExpanded ? _allFuncItems : _allFuncItems.take(defaultCount).toList();
+    final hasMore = _allFuncItems.length > defaultCount;
+
     return Scaffold(
       body: Column(
         children: [
@@ -20,12 +48,13 @@ class ProfilePage extends StatelessWidget {
               child: Column(
                 children: [
                   _buildUserCard(),
-                  _buildFuncBar(context),
+                  _buildFuncGrid(context, visibleItems, hasMore),
                   const SizedBox(height: 12),
                   _buildMenuGroup(
                     title: '数据与服务',
                     context: context,
                     items: [
+                      _MenuItem(Icons.bar_chart_outlined, '报表分析'),
                       _MenuItem(Icons.cloud_outlined, '数据备份'),
                       _MenuItem(Icons.file_download_outlined, '账单导入'),
                       _MenuItem(Icons.file_upload_outlined, '账单导出'),
@@ -87,22 +116,41 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  /// 功能按钮栏
-  Widget _buildFuncBar(BuildContext context) {
-    final items = [
-      _FuncItem(Icons.lock_outline, '密码锁', const Color(0xFFE8F5E9)),
-      _FuncItem(Icons.palette_outlined, '主题切换', const Color(0xFFE3F2FD)),
-      _FuncItem(Icons.book_outlined, '我的账本', const Color(0xFFFFF3E0)),
-      _FuncItem(Icons.account_balance_wallet_outlined, '预算管理', const Color(0xFFFFF8E1)),
-      _FuncItem(Icons.more_horiz, '更多', AppColors.surfaceSecondary),
-    ];
-
+  /// 功能按钮网格（默认2行，点击更多展开）
+  Widget _buildFuncGrid(BuildContext context, List<_FuncItem> visibleItems, bool hasMore) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
       color: AppColors.surface,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: items.map((item) => _buildFuncButton(item, context)).toList(),
+      child: Column(
+        children: [
+          // 按钮网格
+          Wrap(
+            alignment: WrapAlignment.spaceAround,
+            children: visibleItems.map((item) => _buildFuncButton(item, context)).toList(),
+          ),
+          // 更多/收起按钮
+          if (hasMore)
+            GestureDetector(
+              onTap: () => setState(() => _isExpanded = !_isExpanded),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      _isExpanded ? '收起' : '更多',
+                      style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary),
+                    ),
+                    Icon(
+                      _isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                      size: 16,
+                      color: AppColors.textTertiary,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -183,6 +231,64 @@ class ProfilePage extends StatelessWidget {
       ),
     );
   }
+
+  void _onFuncTap(BuildContext context, String label) {
+    switch (label) {
+      case '密码锁':
+        context.push('/lock-settings');
+        break;
+      case '主题切换':
+        _showThemePicker(context);
+        break;
+      case '我的账本':
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('账本功能即将推出'), behavior: SnackBarBehavior.floating, duration: Duration(milliseconds: 500)),
+        );
+        break;
+      case '预算管理':
+        context.push('/budget');
+        break;
+      case '分类管理':
+        context.push('/categories/manage');
+        break;
+      case 'AI 配置':
+        context.push('/settings/llm');
+        break;
+      case '报表分析':
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('报表分析功能即将推出'), behavior: SnackBarBehavior.floating, duration: Duration(milliseconds: 500)),
+        );
+        break;
+    }
+  }
+
+  void _onMenuTap(BuildContext context, String label) {
+    switch (label) {
+      case '设置':
+        context.push('/settings');
+        break;
+      case 'AI 服务配置':
+        context.push('/settings/llm');
+        break;
+      case '分类管理':
+        context.push('/categories/manage');
+        break;
+      case '报表分析':
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('报表分析功能即将推出'), behavior: SnackBarBehavior.floating, duration: Duration(milliseconds: 500)),
+        );
+        break;
+      case '账单导入':
+      case '账单导出':
+      case '数据备份':
+      case '用户反馈':
+      case '账本回收站':
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$label功能即将推出'), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 500)),
+        );
+        break;
+    }
+  }
 }
 
 class _FuncItem {
@@ -196,102 +302,6 @@ class _MenuItem {
   final IconData icon;
   final String label;
   const _MenuItem(this.icon, this.label);
-}
-
-void _onFuncTap(BuildContext context, String label) {
-  switch (label) {
-    case '密码锁':
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('密码锁功能即将推出'), behavior: SnackBarBehavior.floating),
-      );
-      break;
-    case '主题切换':
-      _showThemePicker(context);
-      break;
-    case '我的账本':
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('账本功能即将推出'), behavior: SnackBarBehavior.floating),
-      );
-      break;
-    case '预算管理':
-      context.push('/budget');
-      break;
-    case '更多':
-      _showMoreOptions(context);
-      break;
-  }
-}
-
-void _onMenuTap(BuildContext context, String label) {
-  switch (label) {
-    case '设置':
-      context.push('/settings');
-      break;
-    case 'AI 服务配置':
-      context.push('/settings/llm');
-      break;
-    case '分类管理':
-      context.push('/categories/manage');
-      break;
-    case '账单导入':
-    case '账单导出':
-    case '数据备份':
-    case '用户反馈':
-    case '账本回收站':
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$label功能即将推出'), behavior: SnackBarBehavior.floating),
-      );
-      break;
-  }
-}
-
-/// 展开更多选项
-void _showMoreOptions(BuildContext context) {
-  showModalBottomSheet(
-    context: context,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-    ),
-    builder: (ctx) => SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Text('更多功能', style: AppTextStyles.h3.copyWith(fontSize: 16)),
-            ),
-            _moreItem(ctx, Icons.category_outlined, '分类管理', () {
-              Navigator.pop(ctx);
-              context.push('/categories/manage');
-            }),
-            _moreItem(ctx, Icons.smart_toy_outlined, 'AI 服务配置', () {
-              Navigator.pop(ctx);
-              context.push('/settings/llm');
-            }),
-            _moreItem(ctx, Icons.settings_outlined, '设置', () {
-              Navigator.pop(ctx);
-              context.push('/settings');
-            }),
-            _moreItem(ctx, Icons.account_balance_wallet_outlined, '预算管理', () {
-              Navigator.pop(ctx);
-              context.push('/budget');
-            }),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
-Widget _moreItem(BuildContext context, IconData icon, String label, VoidCallback onTap) {
-  return ListTile(
-    leading: Icon(icon, color: AppColors.textPrimary),
-    title: Text(label, style: AppTextStyles.body),
-    trailing: const Icon(Icons.chevron_right, size: 20, color: AppColors.textTertiary),
-    onTap: onTap,
-  );
 }
 
 void _showThemePicker(BuildContext context) {

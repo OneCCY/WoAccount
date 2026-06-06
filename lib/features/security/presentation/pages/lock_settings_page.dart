@@ -1,0 +1,267 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:local_auth/local_auth.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_text_styles.dart';
+
+/// 密码锁设置页
+/// 支持：指纹解锁、图案解锁、密码解锁（四位数字）
+class LockSettingsPage extends StatefulWidget {
+  const LockSettingsPage({super.key});
+
+  @override
+  State<LockSettingsPage> createState() => _LockSettingsPageState();
+}
+
+class _LockSettingsPageState extends State<LockSettingsPage> {
+  final LocalAuthentication _localAuth = LocalAuthentication();
+
+  bool _lockEnabled = false;
+  String _lockType = 'none'; // 'none', 'pin', 'pattern', 'biometric'
+  bool _biometricAvailable = false;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+    _checkBiometric();
+  }
+
+  Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _lockEnabled = prefs.getBool('lock_enabled') ?? false;
+      _lockType = prefs.getString('lock_type') ?? 'none';
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _checkBiometric() async {
+    try {
+      final canCheck = await _localAuth.canCheckBiometrics;
+      final isDeviceSupported = await _localAuth.isDeviceSupported();
+      setState(() {
+        _biometricAvailable = canCheck && isDeviceSupported;
+      });
+    } catch (_) {
+      setState(() => _biometricAvailable = false);
+    }
+  }
+
+  Future<void> _saveSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('lock_enabled', _lockEnabled);
+    await prefs.setString('lock_type', _lockType);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('密码锁设置')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(title: const Text('密码锁设置')),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            const SizedBox(height: 16),
+
+            // 启用/关闭密码锁
+            _buildSection(
+              children: [
+                _buildSwitchItem(
+                  icon: Icons.lock_outline,
+                  title: '启用密码锁',
+                  value: _lockEnabled,
+                  onChanged: (v) {
+                    setState(() => _lockEnabled = v);
+                    if (!v) {
+                      _lockType = 'none';
+                    }
+                    _saveSettings();
+                  },
+                ),
+              ],
+            ),
+
+            if (_lockEnabled) ...[
+              const SizedBox(height: 16),
+
+              // 解锁方式选择
+              _buildSection(
+                title: '解锁方式',
+                children: [
+                  _buildLockTypeItem(
+                    icon: Icons.pin_outlined,
+                    title: '数字密码',
+                    subtitle: '四位数字密码解锁',
+                    type: 'pin',
+                  ),
+                  if (_biometricAvailable)
+                    _buildLockTypeItem(
+                      icon: Icons.fingerprint,
+                      title: '指纹解锁',
+                      subtitle: '使用设备指纹快速解锁',
+                      type: 'biometric',
+                    ),
+                  _buildLockTypeItem(
+                    icon: Icons.gesture_outlined,
+                    title: '图案解锁',
+                    subtitle: '绘制图案解锁',
+                    type: 'pattern',
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // 提示信息
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
+                child: Text(
+                  '启用密码锁后，每次打开应用需要验证身份。指纹解锁需要设备支持生物识别功能。',
+                  style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary),
+                ),
+              ),
+            ],
+
+            const SizedBox(height: 40),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSection({String? title, required List<Widget> children}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (title != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                child: Text(title, style: AppTextStyles.footnote.copyWith(color: AppColors.textTertiary)),
+              ),
+            ...children,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSwitchItem({
+    required IconData icon,
+    required String title,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        children: [
+          Icon(icon, size: 22, color: AppColors.textPrimary),
+          const SizedBox(width: 12),
+          Expanded(child: Text(title, style: AppTextStyles.body)),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeThumbColor: AppColors.primary,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLockTypeItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required String type,
+  }) {
+    final isSelected = _lockType == type;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () async {
+          // 如果选择PIN或图案，需要先设置
+          if (type == 'pin') {
+            final result = await context.push('/pin-lock', extra: {'mode': 'setup'});
+            if (result == true) {
+              setState(() => _lockType = type);
+              _saveSettings();
+            }
+          } else if (type == 'pattern') {
+            final result = await context.push('/pattern-lock', extra: {'mode': 'setup'});
+            if (result == true) {
+              setState(() => _lockType = type);
+              _saveSettings();
+            }
+          } else if (type == 'biometric') {
+            // 测试指纹
+            try {
+              final didAuth = await _localAuth.authenticate(
+                localizedReason: '验证指纹以启用指纹解锁',
+                options: const AuthenticationOptions(
+                  stickyAuth: true,
+                  biometricOnly: true,
+                ),
+              );
+              if (didAuth) {
+                setState(() => _lockType = type);
+                _saveSettings();
+              }
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('指纹验证失败: $e'), duration: const Duration(milliseconds: 500)),
+                );
+              }
+            }
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: const BoxDecoration(
+            border: Border(bottom: BorderSide(color: AppColors.separatorOpaque, width: 0.5)),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: 22, color: AppColors.textPrimary),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: AppTextStyles.body),
+                    const SizedBox(height: 2),
+                    Text(subtitle, style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
+                  ],
+                ),
+              ),
+              if (isSelected)
+                Icon(Icons.check_circle, size: 20, color: AppColors.primary)
+              else
+                Icon(Icons.radio_button_unchecked, size: 20, color: AppColors.textTertiary),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

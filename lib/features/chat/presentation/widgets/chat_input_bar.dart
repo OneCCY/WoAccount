@@ -93,7 +93,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
       const SnackBar(
         content: Text('语音识别功能开发中，请使用文字输入'),
         behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 2),
+        duration: Duration(milliseconds: 500),
       ),
     );
   }

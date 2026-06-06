@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:drift/drift.dart' hide Column;
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -231,16 +232,52 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
   }
 
   void _onAddCategory() {
-    // TODO: 添加分类对话框
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('添加分类功能开发中'), behavior: SnackBarBehavior.floating),
+    final isExpense = _type == CategoryManageType.expense;
+    final isOther = _type == CategoryManageType.other;
+    showDialog(
+      context: context,
+      builder: (ctx) => _AddCategoryDialog(
+        isExpense: isExpense,
+        isOther: isOther,
+        onConfirm: (name, icon, color) async {
+          final categories = await _catRepo.getTopLevel();
+          final maxSort = categories.isEmpty ? 0 : categories.map((c) => c.sortOrder).reduce((a, b) => a > b ? a : b);
+          await _catRepo.insert(CategoriesCompanion.insert(
+            name: name,
+            icon: Value(icon),
+            color: Value(color),
+            level: const Value(1),
+            isSystem: const Value(false),
+            isExpense: Value(isExpense && !isOther),
+            sortOrder: Value(maxSort + 1),
+          ));
+          setState(() {});
+        },
+      ),
     );
   }
 
   void _onAddSubCategory() {
-    // TODO: 添加子分类对话框
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('添加子分类功能开发中'), behavior: SnackBarBehavior.floating),
+    showDialog(
+      context: context,
+      builder: (ctx) => _AddSubCategoryDialog(
+        parentName: _selectedParent!.name,
+        onConfirm: (name, icon) async {
+          final children = await _catRepo.getChildren(_selectedParent!.id);
+          final maxSort = children.isEmpty ? 0 : children.map((c) => c.sortOrder).reduce((a, b) => a > b ? a : b);
+          await _catRepo.insert(CategoriesCompanion.insert(
+            name: name,
+            icon: Value(icon),
+            color: Value(_selectedParent!.color),
+            parentId: Value(_selectedParent!.id),
+            level: const Value(2),
+            isSystem: const Value(false),
+            isExpense: Value(_selectedParent!.isExpense),
+            sortOrder: Value(maxSort + 1),
+          ));
+          setState(() {});
+        },
+      ),
     );
   }
 
@@ -410,6 +447,238 @@ class _SubCategoryListItem extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+// ==================== 添加分类对话框 ====================
+
+const _emojiOptions = [
+  '🍜', '🚗', '🛒', '🏠', '🎮', '📚', '💊', '👤', '🐾', '💰',
+  '💼', '🎁', '📈', '↩️', '💻', '🔄', '💳', '🤝', '🍔', '☕',
+  '🎬', '✈️', '🏋️', '🎵', '📱', '👕', '💄', '🔧', '📦', '🌟',
+];
+
+const _colorOptions = [
+  '#FF9800', '#2196F3', '#E91E63', '#9C27B0', '#4CAF50',
+  '#00BCD4', '#F44336', '#FF5722', '#795548', '#607D8B',
+  '#3F51B5', '#009688', '#FFC107', '#795548', '#9E9E9E',
+];
+
+class _AddCategoryDialog extends StatefulWidget {
+  final bool isExpense;
+  final bool isOther;
+  final Function(String name, String icon, String color) onConfirm;
+
+  const _AddCategoryDialog({
+    required this.isExpense,
+    required this.isOther,
+    required this.onConfirm,
+  });
+
+  @override
+  State<_AddCategoryDialog> createState() => _AddCategoryDialogState();
+}
+
+class _AddCategoryDialogState extends State<_AddCategoryDialog> {
+  final _nameController = TextEditingController();
+  String _selectedIcon = '📦';
+  String _selectedColor = '#607D8B';
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final typeLabel = widget.isOther ? '其他' : (widget.isExpense ? '支出' : '收入');
+
+    return AlertDialog(
+      title: Text('添加$typeLabel分类'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 名称输入
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(
+                labelText: '分类名称',
+                hintText: '请输入分类名称',
+              ),
+              maxLength: 20,
+            ),
+            const SizedBox(height: 16),
+            // 图标选择
+            Text('选择图标', style: AppTextStyles.footnote.copyWith(color: AppColors.textTertiary)),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _emojiOptions.map((emoji) {
+                final isSelected = _selectedIcon == emoji;
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedIcon = emoji),
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.primarySurface : AppColors.surfaceSecondary,
+                      borderRadius: BorderRadius.circular(8),
+                      border: isSelected ? Border.all(color: AppColors.primary, width: 2) : null,
+                    ),
+                    child: Center(child: Text(emoji, style: const TextStyle(fontSize: 20))),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 16),
+            // 颜色选择
+            Text('选择颜色', style: AppTextStyles.footnote.copyWith(color: AppColors.textTertiary)),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _colorOptions.map((hex) {
+                final color = Color(int.parse('FF${hex.replaceFirst('#', '')}', radix: 16));
+                final isSelected = _selectedColor == hex;
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedColor = hex),
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                      border: isSelected
+                          ? Border.all(color: AppColors.textPrimary, width: 3)
+                          : null,
+                    ),
+                    child: isSelected
+                        ? const Icon(Icons.check, size: 16, color: Colors.white)
+                        : null,
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('取消'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            final name = _nameController.text.trim();
+            if (name.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('请输入分类名称'), duration: Duration(milliseconds: 500)),
+              );
+              return;
+            }
+            Navigator.of(context).pop();
+            widget.onConfirm(name, _selectedIcon, _selectedColor);
+          },
+          child: const Text('确定'),
+        ),
+      ],
+    );
+  }
+}
+
+// ==================== 添加子分类对话框 ====================
+
+class _AddSubCategoryDialog extends StatefulWidget {
+  final String parentName;
+  final Function(String name, String icon) onConfirm;
+
+  const _AddSubCategoryDialog({
+    required this.parentName,
+    required this.onConfirm,
+  });
+
+  @override
+  State<_AddSubCategoryDialog> createState() => _AddSubCategoryDialogState();
+}
+
+class _AddSubCategoryDialogState extends State<_AddSubCategoryDialog> {
+  final _nameController = TextEditingController();
+  String _selectedIcon = '📦';
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('添加子分类 - ${widget.parentName}'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(
+                labelText: '子分类名称',
+                hintText: '请输入子分类名称',
+              ),
+              maxLength: 20,
+            ),
+            const SizedBox(height: 16),
+            Text('选择图标', style: AppTextStyles.footnote.copyWith(color: AppColors.textTertiary)),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _emojiOptions.map((emoji) {
+                final isSelected = _selectedIcon == emoji;
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedIcon = emoji),
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.primarySurface : AppColors.surfaceSecondary,
+                      borderRadius: BorderRadius.circular(8),
+                      border: isSelected ? Border.all(color: AppColors.primary, width: 2) : null,
+                    ),
+                    child: Center(child: Text(emoji, style: const TextStyle(fontSize: 20))),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('取消'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            final name = _nameController.text.trim();
+            if (name.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('请输入子分类名称'), duration: Duration(milliseconds: 500)),
+              );
+              return;
+            }
+            Navigator.of(context).pop();
+            widget.onConfirm(name, _selectedIcon);
+          },
+          child: const Text('确定'),
+        ),
+      ],
     );
   }
 }

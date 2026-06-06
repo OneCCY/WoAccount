@@ -204,14 +204,14 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> {
   void _onAddCategoryBudget() {
     // TODO: 显示分类选择 + 金额输入对话框
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('添加分类预算功能开发中'), behavior: SnackBarBehavior.floating),
+      const SnackBar(content: Text('添加分类预算功能开发中'), behavior: SnackBarBehavior.floating, duration: Duration(milliseconds: 500)),
     );
   }
 
   void _onEditBudget(BudgetProgress progress) {
     // TODO: 编辑预算金额
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('编辑预算功能开发中'), behavior: SnackBarBehavior.floating),
+      const SnackBar(content: Text('编辑预算功能开发中'), behavior: SnackBarBehavior.floating, duration: Duration(milliseconds: 500)),
     );
   }
 

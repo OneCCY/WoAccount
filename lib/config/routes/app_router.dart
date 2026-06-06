@@ -11,6 +11,9 @@ import '../../features/settings/presentation/pages/llm_settings_page.dart';
 import '../../features/budget/presentation/pages/budget_page.dart';
 import '../../features/budget/presentation/pages/budget_setting_page.dart';
 import '../../features/category/presentation/pages/category_manage_page.dart';
+import '../../features/security/presentation/pages/lock_settings_page.dart';
+import '../../features/security/presentation/pages/pin_lock_page.dart';
+import '../../features/security/presentation/pages/pattern_lock_page.dart';
 
 /// WoAccount 路由配置
 /// 使用 GoRouter 声明式路由
@@ -84,6 +87,26 @@ class AppRouter {
       GoRoute(
         path: '/categories/manage',
         builder: (context, state) => const CategoryManagePage(),
+      ),
+      GoRoute(
+        path: '/lock-settings',
+        builder: (context, state) => const LockSettingsPage(),
+      ),
+      GoRoute(
+        path: '/pin-lock',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          final mode = extra?['mode'] as String? ?? 'verify';
+          return PinLockPage(mode: mode);
+        },
+      ),
+      GoRoute(
+        path: '/pattern-lock',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          final mode = extra?['mode'] as String? ?? 'verify';
+          return PatternLockPage(mode: mode);
+        },
       ),
     ],
   );

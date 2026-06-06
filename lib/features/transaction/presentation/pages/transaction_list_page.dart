@@ -335,7 +335,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
         }
         final allTxns = snapshot.data ?? [];
         final dayTxns = allTxns.where((t) =>
-            t.transactionDate.isAfter(start) && t.transactionDate.isBefore(end)).toList();
+            !t.transactionDate.isBefore(start) && t.transactionDate.isBefore(end)).toList();
 
         if (dayTxns.isEmpty) return _buildEmptyState();
 
@@ -461,7 +461,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
         }
         final allTxns = snapshot.data ?? [];
         final dayTxns = allTxns.where((t) =>
-            t.transactionDate.isAfter(dayStart) && t.transactionDate.isBefore(dayEnd)).toList();
+            !t.transactionDate.isBefore(dayStart) && t.transactionDate.isBefore(dayEnd)).toList();
 
         if (dayTxns.isEmpty) return _buildEmptyState();
 
@@ -502,7 +502,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
       builder: (context, snapshot) {
         final allTxns = snapshot.data ?? [];
         final monthTxns = allTxns.where((t) =>
-            t.transactionDate.isAfter(start) && t.transactionDate.isBefore(end)).toList();
+            !t.transactionDate.isBefore(start) && t.transactionDate.isBefore(end)).toList();
 
         // 计算每日收支汇总
         final dailyTotals = <int, ({double expense, double income})>{};

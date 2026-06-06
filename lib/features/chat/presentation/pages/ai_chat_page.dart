@@ -308,7 +308,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
             onManualEntry: () => context.push('/manual-entry'),
             onCamera: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('拍照识别功能开发中'), behavior: SnackBarBehavior.floating),
+                const SnackBar(content: Text('拍照识别功能开发中'), behavior: SnackBarBehavior.floating, duration: Duration(milliseconds: 500)),
               );
             },
           ),
