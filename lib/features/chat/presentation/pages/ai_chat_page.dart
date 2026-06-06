@@ -105,7 +105,35 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
     });
   }
 
-  /// 发送文本 → AI 解析 → 显示确认卡片
+  /// 智能匹配分类
+  Future<Category> _matchCategory(String categoryName, String type) async {
+    final categories = await _catRepo.getAll();
+    if (categories.isEmpty) {
+      throw Exception('没有可用分类，请先在分类管理中添加分类');
+    }
+
+    // 精确匹配
+    for (final c in categories) {
+      if (c.name == categoryName) return c;
+    }
+
+    // 模糊匹配（包含关系）
+    for (final c in categories) {
+      if (c.name.contains(categoryName) || categoryName.contains(c.name)) {
+        return c;
+      }
+    }
+
+    // 按类型匹配
+    final isExpense = type == 'expense';
+    for (final c in categories) {
+      if (c.isExpense == isExpense) return c;
+    }
+
+    return categories.first;
+  }
+
+  /// 发送文本 → AI 解析 → 显示确认卡片（支持多笔）
   Future<void> _sendMessage(String text) async {
     if (text.trim().isEmpty || _isAiResponding) return;
 
@@ -132,26 +160,23 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
     // 2. AI 解析
     try {
       final llmRepo = ref.read(llmRepositoryProvider);
-      final result = await llmRepo.parseTransaction(text);
+      final results = await llmRepo.parseTransaction(text);
 
-      // 3. 匹配分类
-      final categories = await _catRepo.getAll();
-      final matchedCategory = categories.firstWhere(
-        (c) => c.name == result.category,
-        orElse: () => categories.firstWhere(
-          (c) => c.isExpense == (result.type == 'expense'),
-          orElse: () => categories.first,
-        ),
-      );
+      // 3. 为每笔交易匹配分类并生成确认卡片
+      final confirmCards = <ConfirmData>[];
+      for (final result in results) {
+        final matchedCategory = await _matchCategory(result.category, result.type);
 
-      DateTime txnDate = DateTime.now();
-      if (result.date != null) {
-        try { txnDate = DateTime.parse(result.date!); } catch (_) {}
-      }
+        DateTime txnDate = DateTime.now();
+        if (result.date != null && result.date!.isNotEmpty) {
+          try {
+            txnDate = DateTime.parse(result.date!);
+          } catch (_) {
+            // 解析失败用今天
+          }
+        }
 
-      // 4. 显示确认卡片（不自动保存）
-      setState(() {
-        _items.add(_ChatItem.confirm(ConfirmData(
+        confirmCards.add(ConfirmData(
           originalInput: text,
           amount: result.amount,
           type: result.type,
@@ -163,11 +188,17 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
               : text.replaceAll(RegExp(r'\d+\.?\d*'), '').trim(),
           date: txnDate,
           confidence: result.confidence,
-        )));
+        ));
+      }
+
+      // 4. 显示确认卡片
+      setState(() {
+        for (final card in confirmCards) {
+          _items.add(_ChatItem.confirm(card));
+        }
         _isAiResponding = false;
       });
     } catch (e) {
-      // 解析失败，保存错误消息
       final errorMsg = '❌ 解析失败：$e\n\n请尝试更明确的描述，如"午饭拉面25"';
       final aiMsgId = await _chatRepo.insertMessage(
         ConversationMessagesCompanion.insert(
@@ -190,58 +221,71 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
     _scrollToBottom();
   }
 
-  /// 用户确认保存
+  /// 用户确认保存单笔
   Future<void> _confirmSave(ConfirmData data) async {
-    // 保存交易
-    await _txnRepo.insert(TransactionsCompanion.insert(
-      amount: data.amount,
-      description: data.description,
-      categoryId: data.categoryId,
-      transactionDate: data.date,
-      originalInput: Value(data.originalInput),
-      aiSource: Value(data.confidence > 0.85 ? 'llm' : 'rule'),
-      aiConfidence: Value(data.confidence),
-    ));
+    try {
+      await _txnRepo.insert(TransactionsCompanion.insert(
+        amount: data.amount,
+        description: data.description,
+        categoryId: data.categoryId,
+        transactionDate: data.date,
+        originalInput: Value(data.originalInput),
+        aiSource: Value(data.confidence > 0.85 ? 'llm' : 'rule'),
+        aiConfidence: Value(data.confidence),
+      ));
 
-    // 保存 AI 确认消息
-    final amountPrefix = data.type == 'expense' ? '-' : '+';
-    final summary = '✅ 已保存\n'
-        '$amountPrefix¥${data.amount.toStringAsFixed(2)} · ${data.category}\n'
-        '${data.description} · ${DateFormat('MM/dd').format(data.date)}';
+      final amountPrefix = data.type == 'expense' ? '-' : '+';
+      final summary = '✅ 已保存\n'
+          '$amountPrefix¥${data.amount.toStringAsFixed(2)} · ${data.category}\n'
+          '${data.description} · ${DateFormat('MM/dd').format(data.date)}';
 
-    final aiMsgId = await _chatRepo.insertMessage(
-      ConversationMessagesCompanion.insert(
-        conversationId: _conversationId,
-        role: 'assistant',
-        content: summary,
-      ),
-    );
+      final aiMsgId = await _chatRepo.insertMessage(
+        ConversationMessagesCompanion.insert(
+          conversationId: _conversationId,
+          role: 'assistant',
+          content: summary,
+        ),
+      );
 
-    setState(() {
-      // 移除确认卡片，替换为保存成功消息
-      _items.removeWhere((i) => i.isConfirm);
-      _items.add(_ChatItem.assistant(ConversationMessage(
-        id: aiMsgId,
-        conversationId: _conversationId,
-        role: 'assistant',
-        content: summary,
-        createdAt: DateTime.now(),
-      )));
-    });
-    _scrollToBottom();
+      setState(() {
+        // 只移除当前这条确认卡片
+        final idx = _items.indexWhere((i) => i.isConfirm && i.confirmData == data);
+        if (idx != -1) _items.removeAt(idx);
+
+        _items.add(_ChatItem.assistant(ConversationMessage(
+          id: aiMsgId,
+          conversationId: _conversationId,
+          role: 'assistant',
+          content: summary,
+          createdAt: DateTime.now(),
+        )));
+      });
+      _scrollToBottom();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('保存失败: $e'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
   }
 
   /// 用户取消确认
-  void _cancelConfirm() {
+  void _cancelConfirm(ConfirmData data) {
     setState(() {
-      _items.removeWhere((i) => i.isConfirm);
+      final idx = _items.indexWhere((i) => i.isConfirm && i.confirmData == data);
+      if (idx != -1) _items.removeAt(idx);
     });
   }
 
   /// 修改确认数据
-  void _updateConfirm(ConfirmData newData) {
+  void _updateConfirm(ConfirmData oldData, ConfirmData newData) {
     setState(() {
-      final idx = _items.indexWhere((i) => i.isConfirm);
+      final idx = _items.indexWhere((i) => i.isConfirm && i.confirmData == oldData);
       if (idx != -1) {
         _items[idx] = _ChatItem.confirm(newData);
       }
@@ -300,7 +344,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
           const Spacer(),
           Text('AI 记账', style: AppTextStyles.h3.copyWith(fontSize: 16)),
           const Spacer(),
-          const SizedBox(width: 56), // 占位保持居中
+          const SizedBox(width: 56),
         ],
       ),
     );
@@ -310,7 +354,6 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator(color: AppColors.primary));
     }
-
     if (_items.isEmpty) return _buildEmptyState();
 
     return GestureDetector(
@@ -333,11 +376,12 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
           final item = _items[itemIndex];
 
           if (item.isConfirm && item.confirmData != null) {
+            final data = item.confirmData!;
             return ConfirmCard(
-              data: item.confirmData!,
-              onConfirm: () => _confirmSave(item.confirmData!),
-              onCancel: _cancelConfirm,
-              onEdit: _updateConfirm,
+              data: data,
+              onConfirm: () => _confirmSave(data),
+              onCancel: () => _cancelConfirm(data),
+              onEdit: (newData) => _updateConfirm(data, newData),
             );
           }
 
@@ -364,7 +408,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
           const SizedBox(height: 16),
           Text('开始记账吧', style: AppTextStyles.h3.copyWith(color: AppColors.textSecondary)),
           const SizedBox(height: 8),
-          Text('试试输入 "午饭拉面25" 或 "打车去公司28"',
+          Text('试试输入 "午饭拉面25" 或 "吃饭24，洗衣服34"',
               style: AppTextStyles.body.copyWith(color: AppColors.textTertiary)),
           const SizedBox(height: 4),
           Text('长按记账按钮可语音输入 🎤',
@@ -417,7 +461,7 @@ class _ChatItem {
 class ConfirmData {
   final String originalInput;
   double amount;
-  String type; // expense / income
+  String type;
   String category;
   int categoryId;
   String? subcategory;

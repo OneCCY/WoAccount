@@ -4,8 +4,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 
 /// 底部导航 Shell
-/// 3 个 Tab：账单（左）、记账（中）、我的（右）
-/// 自定义实现，匹配原型设计
+/// 左: 账单 | 中: 记账（突出大按钮） | 右: 我的
 class MainShell extends StatelessWidget {
   final Widget child;
   const MainShell({super.key, required this.child});
@@ -33,9 +32,10 @@ class MainShell extends StatelessWidget {
         child: SafeArea(
           top: false,
           child: SizedBox(
-            height: 60,
+            height: 72,
             child: Row(
               children: [
+                // 左：账单
                 _NavItem(
                   icon: Icons.receipt_long_outlined,
                   activeIcon: Icons.receipt_long,
@@ -43,13 +43,14 @@ class MainShell extends StatelessWidget {
                   isActive: currentIndex == 0,
                   onTap: () => _onTap(context, 0),
                 ),
-                _NavItem(
-                  icon: Icons.edit_outlined,
-                  activeIcon: Icons.edit,
-                  label: '记账',
+
+                // 中：记账按钮（突出）
+                _RecordButton(
                   isActive: currentIndex == 1,
                   onTap: () => _onTap(context, 1),
                 ),
+
+                // 右：我的
                 _NavItem(
                   icon: Icons.person_outline,
                   activeIcon: Icons.person,
@@ -113,15 +114,59 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              isActive ? activeIcon : icon,
-              size: 24,
-              color: color,
-            ),
+            Icon(isActive ? activeIcon : icon, size: 24, color: color),
             const SizedBox(height: 4),
-            Text(
-              label,
-              style: AppTextStyles.navLabel.copyWith(color: color),
+            Text(label, style: AppTextStyles.navLabel.copyWith(color: color)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 中间突出的记账按钮
+class _RecordButton extends StatelessWidget {
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _RecordButton({required this.isActive, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // 突出的圆形按钮
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: isActive
+                      ? [AppColors.primary, const Color(0xFF2E7D32)]
+                      : [const Color(0xFF66BB6A), const Color(0xFF43A047)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.mic, size: 24, color: AppColors.textOnPrimary),
+                  Text('记账', style: TextStyle(fontSize: 9, color: AppColors.textOnPrimary, fontWeight: FontWeight.w600, height: 1)),
+                ],
+              ),
             ),
           ],
         ),

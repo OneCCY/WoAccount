@@ -31,18 +31,22 @@ class PromptTemplates {
 
 ## 输出格式
 
-请严格按照以下JSON格式输出，不要输出其他内容：
+请严格按照以下JSON格式输出，不要输出其他内容。
+如果用户描述了多笔消费，请输出JSON数组（包含多个对象）。
+如果只有一笔，也用数组包裹。
 
-{
-  "type": "expense" 或 "income",
-  "amount": 数字（必填）,
-  "category": "分类名称"（必填）,
-  "subcategory": "子分类"（可选）,
-  "description": "精简描述"（必填）,
-  "date": "YYYY-MM-DD"（可选，默认今天）,
-  "note": "备注"（可选）,
-  "confidence": 0.0-1.0（必填）
-}
+[
+  {
+    "type": "expense" 或 "income",
+    "amount": 数字（必填）,
+    "category": "分类名称"（必填）,
+    "subcategory": "子分类"（可选）,
+    "description": "精简描述"（必填）,
+    "date": "YYYY-MM-DD"（必填，根据今天日期计算，不要省略）,
+    "note": "备注"（可选）,
+    "confidence": 0.0-1.0（必填）
+  }
+]
 
 ## 特殊规则
 
@@ -64,9 +68,12 @@ class PromptTemplates {
    - 推断匹配：0.7-0.9
    - 不确定：0.5-0.7''';
 
-  /// 记账解析 User Prompt
+  /// 记账解析 User Prompt（注入今天的日期以计算相对日期）
   static String parseTransactionUser(String input) {
-    return '请分析以下消费描述：\n\n"$input"';
+    final now = DateTime.now();
+    final today = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    final weekday = ['一', '二', '三', '四', '五', '六', '日'][now.weekday - 1];
+    return '今天是 $today 星期$weekday。\n\n请分析以下消费描述：\n\n"$input"';
   }
 
   /// AI 对话助手 System Prompt

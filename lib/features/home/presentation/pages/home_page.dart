@@ -65,8 +65,15 @@ class _HomePageState extends ConsumerState<HomePage> {
     try {
       // 使用 AI 服务解析（含降级策略：LLM → 规则引擎）
       final llmRepo = ref.read(llmRepositoryProvider);
-      final result = await llmRepo.parseTransaction(input);
+      final results = await llmRepo.parseTransaction(input);
       stopwatch.stop();
+
+      if (results.isEmpty) {
+        _showSnackBar('未识别到内容');
+        return;
+      }
+
+      final result = results.first;
 
       // 根据分类名称匹配数据库中的分类
       final categories = await _categoryRepo.getAll();

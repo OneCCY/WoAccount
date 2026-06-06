@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
@@ -17,8 +16,6 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   bool _darkMode = false;
   bool _autoBackup = true;
-  bool _autoClassify = true;
-  bool _spendingInsights = true;
 
   @override
   void initState() {
@@ -31,8 +28,6 @@ class _SettingsPageState extends State<SettingsPage> {
     setState(() {
       _darkMode = prefs.getBool('darkMode') ?? false;
       _autoBackup = prefs.getBool('autoBackup') ?? true;
-      _autoClassify = prefs.getBool('autoClassify') ?? true;
-      _spendingInsights = prefs.getBool('spendingInsights') ?? true;
     });
   }
 
@@ -75,24 +70,6 @@ class _SettingsPageState extends State<SettingsPage> {
                 _buildInfoRow('备份频率', '每天'),
                 _buildNavRow('恢复数据', () {
                   // TODO: 恢复数据
-                }),
-              ],
-            ),
-
-            // AI 助手设置
-            _buildGroup(
-              title: 'AI 助手',
-              children: [
-                _buildNavRow('AI 服务', () {
-                  context.push('/settings/llm');
-                }),
-                _buildSwitchRow('自动分类', _autoClassify, (v) {
-                  setState(() => _autoClassify = v);
-                  _saveBool('autoClassify', v);
-                }),
-                _buildSwitchRow('消费洞察', _spendingInsights, (v) {
-                  setState(() => _spendingInsights = v);
-                  _saveBool('spendingInsights', v);
                 }),
               ],
             ),

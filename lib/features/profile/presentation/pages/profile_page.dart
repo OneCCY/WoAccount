@@ -5,7 +5,7 @@ import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
 /// 我的页面
-/// 用户卡片 + 功能网格 + AI入口 + 菜单列表
+/// 用户卡片 + 功能按钮 + 菜单列表
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
@@ -14,26 +14,14 @@ class ProfilePage extends StatelessWidget {
     return Scaffold(
       body: Column(
         children: [
-          // 安全区留白
           SizedBox(height: MediaQuery.of(context).padding.top),
-
-          // 内容区
           Expanded(
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  // 用户卡片
                   _buildUserCard(),
-
-                  // 功能按钮栏
                   _buildFuncBar(context),
-
                   const SizedBox(height: 12),
-
-                  // AI 助手入口
-                  _buildAiEntry(context),
-
-                  // 数据与服务菜单
                   _buildMenuGroup(
                     title: '数据与服务',
                     context: context,
@@ -45,16 +33,15 @@ class ProfilePage extends StatelessWidget {
                       _MenuItem(Icons.delete_outline, '账本回收站'),
                     ],
                   ),
-
-                  // 设置菜单
                   _buildMenuGroup(
                     title: null,
                     context: context,
                     items: [
+                      _MenuItem(Icons.smart_toy_outlined, 'AI 服务配置'),
+                      _MenuItem(Icons.category_outlined, '分类管理'),
                       _MenuItem(Icons.settings_outlined, '设置'),
                     ],
                   ),
-
                   const SizedBox(height: 20),
                 ],
               ),
@@ -68,16 +55,10 @@ class ProfilePage extends StatelessWidget {
   /// 用户卡片
   Widget _buildUserCard() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(
-        AppDimensions.md,
-        24,
-        AppDimensions.md,
-        24,
-      ),
+      padding: const EdgeInsets.fromLTRB(AppDimensions.md, 24, AppDimensions.md, 24),
       color: AppColors.surface,
       child: Row(
         children: [
-          // 头像
           Container(
             width: AppDimensions.avatarSize,
             height: AppDimensions.avatarSize,
@@ -86,43 +67,27 @@ class ProfilePage extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: const Center(
-              child: Icon(
-                Icons.person_outline,
-                size: 28,
-                color: AppColors.primaryDark,
-              ),
+              child: Icon(Icons.person_outline, size: 28, color: AppColors.primaryDark),
             ),
           ),
           const SizedBox(width: 16),
-          // 信息
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '用户昵称',
-                  style: AppTextStyles.h3,
-                ),
+                Text('用户昵称', style: AppTextStyles.h3),
                 const SizedBox(height: 4),
-                Text(
-                  '记账达人 · 已连续记账 15 天',
-                  style: AppTextStyles.footnote,
-                ),
+                Text('记账达人 · 已连续记账 15 天', style: AppTextStyles.footnote),
               ],
             ),
           ),
-          // 箭头
-          const Icon(
-            Icons.chevron_right,
-            size: 24,
-            color: AppColors.textTertiary,
-          ),
+          const Icon(Icons.chevron_right, size: 24, color: AppColors.textTertiary),
         ],
       ),
     );
   }
 
-  /// 功能按钮栏（每行5个）
+  /// 功能按钮栏
   Widget _buildFuncBar(BuildContext context) {
     final items = [
       _FuncItem(Icons.lock_outline, '密码锁', const Color(0xFFE8F5E9)),
@@ -133,10 +98,7 @@ class ProfilePage extends StatelessWidget {
     ];
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 8,
-        vertical: 16,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
       color: AppColors.surface,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -160,83 +122,11 @@ class ProfilePage extends StatelessWidget {
                 color: item.bgColor,
                 borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
               ),
-              child: Center(
-                child: Icon(item.icon, size: 22, color: AppColors.textPrimary),
-              ),
+              child: Center(child: Icon(item.icon, size: 22, color: AppColors.textPrimary)),
             ),
             const SizedBox(height: 6),
-            Text(
-              item.label,
-              style: AppTextStyles.caption,
-              textAlign: TextAlign.center,
-            ),
+            Text(item.label, style: AppTextStyles.caption, textAlign: TextAlign.center),
           ],
-        ),
-      ),
-    );
-  }
-
-  /// AI 助手入口
-  Widget _buildAiEntry(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-        child: InkWell(
-          onTap: () => context.push('/ai-assistant'),
-          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: AppColors.aiEntryGradient,
-              borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: const Color(0x99FFFFFF),
-                    borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-                  ),
-                  child: const Icon(
-                    Icons.smart_toy_outlined,
-                    size: 24,
-                    color: AppColors.primaryDark,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'AI 助手',
-                        style: AppTextStyles.callout.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primaryDark,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '智能记账 · 消费分析 · 问答查询',
-                        style: AppTextStyles.caption.copyWith(
-                          color: AppColors.primaryLight,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Icon(
-                  Icons.chevron_right,
-                  size: 20,
-                  color: AppColors.primaryLight,
-                ),
-              ],
-            ),
-          ),
         ),
       ),
     );
@@ -249,12 +139,7 @@ class ProfilePage extends StatelessWidget {
     required List<_MenuItem> items,
   }) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppDimensions.md,
-        12,
-        AppDimensions.md,
-        0,
-      ),
+      padding: const EdgeInsets.fromLTRB(AppDimensions.md, 12, AppDimensions.md, 0),
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.surface,
@@ -267,12 +152,7 @@ class ProfilePage extends StatelessWidget {
             if (title != null)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                child: Text(
-                  title,
-                  style: AppTextStyles.footnote.copyWith(
-                    color: AppColors.textTertiary,
-                  ),
-                ),
+                child: Text(title, style: AppTextStyles.footnote.copyWith(color: AppColors.textTertiary)),
               ),
             ...items.map((item) => _buildMenuItem(item, context)),
           ],
@@ -287,33 +167,16 @@ class ProfilePage extends StatelessWidget {
       child: InkWell(
         onTap: () => _onMenuTap(context, item.label),
         child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 14,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: const BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: AppColors.separatorOpaque,
-                width: 0.5,
-              ),
-            ),
+            border: Border(bottom: BorderSide(color: AppColors.separatorOpaque, width: 0.5)),
           ),
           child: Row(
             children: [
               Icon(item.icon, size: 20, color: AppColors.textPrimary),
               const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  item.label,
-                  style: AppTextStyles.body,
-                ),
-              ),
-              const Icon(
-                Icons.chevron_right,
-                size: 16,
-                color: AppColors.textTertiary,
-              ),
+              Expanded(child: Text(item.label, style: AppTextStyles.body)),
+              const Icon(Icons.chevron_right, size: 16, color: AppColors.textTertiary),
             ],
           ),
         ),
@@ -322,24 +185,19 @@ class ProfilePage extends StatelessWidget {
   }
 }
 
-/// 功能按钮数据
 class _FuncItem {
   final IconData icon;
   final String label;
   final Color bgColor;
-
   const _FuncItem(this.icon, this.label, this.bgColor);
 }
 
-/// 菜单项数据
 class _MenuItem {
   final IconData icon;
   final String label;
-
   const _MenuItem(this.icon, this.label);
 }
 
-// ignore: unused_element
 void _onFuncTap(BuildContext context, String label) {
   switch (label) {
     case '密码锁':
@@ -359,7 +217,7 @@ void _onFuncTap(BuildContext context, String label) {
       context.push('/budget');
       break;
     case '更多':
-      context.push('/categories/manage');
+      _showMoreOptions(context);
       break;
   }
 }
@@ -368,6 +226,12 @@ void _onMenuTap(BuildContext context, String label) {
   switch (label) {
     case '设置':
       context.push('/settings');
+      break;
+    case 'AI 服务配置':
+      context.push('/settings/llm');
+      break;
+    case '分类管理':
+      context.push('/categories/manage');
       break;
     case '账单导入':
     case '账单导出':
@@ -381,6 +245,55 @@ void _onMenuTap(BuildContext context, String label) {
   }
 }
 
+/// 展开更多选项
+void _showMoreOptions(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    ),
+    builder: (ctx) => SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text('更多功能', style: AppTextStyles.h3.copyWith(fontSize: 16)),
+            ),
+            _moreItem(ctx, Icons.category_outlined, '分类管理', () {
+              Navigator.pop(ctx);
+              context.push('/categories/manage');
+            }),
+            _moreItem(ctx, Icons.smart_toy_outlined, 'AI 服务配置', () {
+              Navigator.pop(ctx);
+              context.push('/settings/llm');
+            }),
+            _moreItem(ctx, Icons.settings_outlined, '设置', () {
+              Navigator.pop(ctx);
+              context.push('/settings');
+            }),
+            _moreItem(ctx, Icons.account_balance_wallet_outlined, '预算管理', () {
+              Navigator.pop(ctx);
+              context.push('/budget');
+            }),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+Widget _moreItem(BuildContext context, IconData icon, String label, VoidCallback onTap) {
+  return ListTile(
+    leading: Icon(icon, color: AppColors.textPrimary),
+    title: Text(label, style: AppTextStyles.body),
+    trailing: const Icon(Icons.chevron_right, size: 20, color: AppColors.textTertiary),
+    onTap: onTap,
+  );
+}
+
 void _showThemePicker(BuildContext context) {
   showModalBottomSheet(
     context: context,
@@ -388,21 +301,9 @@ void _showThemePicker(BuildContext context) {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          ListTile(
-            leading: const Icon(Icons.light_mode),
-            title: const Text('浅色模式'),
-            onTap: () => Navigator.of(ctx).pop(),
-          ),
-          ListTile(
-            leading: const Icon(Icons.dark_mode),
-            title: const Text('深色模式'),
-            onTap: () => Navigator.of(ctx).pop(),
-          ),
-          ListTile(
-            leading: const Icon(Icons.settings_brightness),
-            title: const Text('跟随系统'),
-            onTap: () => Navigator.of(ctx).pop(),
-          ),
+          ListTile(leading: const Icon(Icons.light_mode), title: const Text('浅色模式'), onTap: () => Navigator.pop(ctx)),
+          ListTile(leading: const Icon(Icons.dark_mode), title: const Text('深色模式'), onTap: () => Navigator.pop(ctx)),
+          ListTile(leading: const Icon(Icons.settings_brightness), title: const Text('跟随系统'), onTap: () => Navigator.pop(ctx)),
         ],
       ),
     ),

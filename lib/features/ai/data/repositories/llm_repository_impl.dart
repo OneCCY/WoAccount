@@ -62,14 +62,14 @@ class LlmRepositoryImpl implements LlmRepository {
   }
 
   @override
-  Future<TransactionParseResult> parseTransaction(String input) async {
+  Future<List<TransactionParseResult>> parseTransaction(String input) async {
     // 降级策略：先尝试 LLM，失败后用规则引擎
     try {
       final provider = await LlmConfigManager.getActiveProvider();
       if (provider == null || !provider.isComplete) {
         // 未配置 LLM，直接用规则引擎
         final ruleResult = RuleEngine.parse(input);
-        if (ruleResult != null) return ruleResult;
+        if (ruleResult != null) return [ruleResult];
         throw const LlmException('请先在设置中添加 AI 服务商，或输入更明确的描述（如"午饭拉面25"）');
       }
 
@@ -86,7 +86,7 @@ class LlmRepositoryImpl implements LlmRepository {
     } on LlmException {
       // LLM 失败，降级到规则引擎
       final ruleResult = RuleEngine.parse(input);
-      if (ruleResult != null) return ruleResult;
+      if (ruleResult != null) return [ruleResult];
       rethrow;
     }
   }
@@ -118,30 +118,45 @@ class LlmRepositoryImpl implements LlmRepository {
     }
   }
 
-  /// 解析 LLM 返回的交易 JSON
-  TransactionParseResult _parseTransactionResponse(String content) {
+  /// 解析 LLM 返回的交易 JSON（支持单笔和多笔）
+  List<TransactionParseResult> _parseTransactionResponse(String content) {
     try {
-      final jsonMatch = RegExp(r'\{[\s\S]*\}').firstMatch(content);
+      // 提取 JSON（可能是对象或数组）
+      final jsonMatch = RegExp(r'(\[[\s\S]*\]|\{[\s\S]*\})').firstMatch(content);
       if (jsonMatch == null) {
         throw const LlmException('无法解析 AI 响应');
       }
 
-      final json = jsonDecode(jsonMatch.group(0)!) as Map<String, dynamic>;
+      final raw = jsonDecode(jsonMatch.group(0)!);
 
-      return TransactionParseResult(
-        type: json['type'] as String? ?? 'expense',
-        amount: (json['amount'] as num).toDouble(),
-        category: json['category'] as String,
-        subcategory: json['subcategory'] as String?,
-        description: json['description'] as String? ?? '',
-        confidence: (json['confidence'] as num?)?.toDouble() ?? 0.8,
-        date: json['date'] as String?,
-        note: json['note'] as String?,
-      );
+      // 处理数组格式（多笔交易）
+      if (raw is List) {
+        return raw.map((item) => _parseSingleTransaction(item as Map<String, dynamic>)).toList();
+      }
+
+      // 处理单对象格式（兼容旧格式）
+      if (raw is Map<String, dynamic>) {
+        return [_parseSingleTransaction(raw)];
+      }
+
+      throw const LlmException('AI 响应格式不正确');
     } catch (e) {
       if (e is LlmException) rethrow;
       throw LlmException('解析 AI 响应失败: $e');
     }
+  }
+
+  TransactionParseResult _parseSingleTransaction(Map<String, dynamic> json) {
+    return TransactionParseResult(
+      type: json['type'] as String? ?? 'expense',
+      amount: (json['amount'] as num).toDouble(),
+      category: json['category'] as String,
+      subcategory: json['subcategory'] as String?,
+      description: json['description'] as String? ?? '',
+      confidence: (json['confidence'] as num?)?.toDouble() ?? 0.8,
+      date: json['date'] as String?,
+      note: json['note'] as String?,
+    );
   }
 
   /// 解析 Dio 错误

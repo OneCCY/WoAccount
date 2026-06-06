@@ -9,7 +9,8 @@ abstract class LlmRepository {
   Future<LlmResponse> chat(LlmRequest request);
 
   /// 解析记账输入（带降级策略：LLM → 规则引擎）
-  Future<TransactionParseResult> parseTransaction(String input);
+  /// 返回列表支持多笔交易（如 "吃饭24，洗衣服34"）
+  Future<List<TransactionParseResult>> parseTransaction(String input);
 
   /// 测试指定服务商的连接
   Future<bool> testConnection(LlmProvider provider);
