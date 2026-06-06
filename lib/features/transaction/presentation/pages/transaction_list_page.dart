@@ -593,7 +593,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
               padding: EdgeInsets.symmetric(horizontal: Responsive.s(context, AppDimensions.sm)),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 7,
-                childAspectRatio: 0.85, // 稍高以容纳金额文字
+                childAspectRatio: 0.78, // 稍高以容纳金额文字
               ),
               itemCount: startWeekday + lastDay.day,
               itemBuilder: (context, index) {
