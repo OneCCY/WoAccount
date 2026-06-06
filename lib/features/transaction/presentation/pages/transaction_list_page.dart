@@ -85,22 +85,24 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildArrowButton(Icons.chevron_left, _goPrevious),
-        ConstrainedBox(
-          constraints: BoxConstraints(
-            minWidth: Responsive.s(context, 80),
-            maxWidth: Responsive.s(context, 160),
-          ),
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: Responsive.s(context, 4)),
-            child: Text(
-              _getPeriodLabel(),
-              style: AppTextStyles.footnote.copyWith(
-                fontWeight: FontWeight.w600,
-                fontSize: Responsive.fs(context, 13),
+        Flexible(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minWidth: Responsive.s(context, 60),
+              maxWidth: Responsive.s(context, 140),
+            ),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: Responsive.s(context, 4)),
+              child: Text(
+                _getPeriodLabel(),
+                style: AppTextStyles.footnote.copyWith(
+                  fontWeight: FontWeight.w600,
+                  fontSize: Responsive.fs(context, 13),
+                ),
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                maxLines: 1,
               ),
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              maxLines: 1,
             ),
           ),
         ),
