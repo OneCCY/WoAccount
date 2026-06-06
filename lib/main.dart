@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'core/theme/app_theme.dart';
 import 'config/routes/app_router.dart';
+import 'features/security/presentation/widgets/auth_wrapper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,7 +18,9 @@ void main() async {
 
   runApp(
     const ProviderScope(
-      child: WoAccountApp(),
+      child: AuthWrapper(
+        child: WoAccountApp(),
+      ),
     ),
   );
 }

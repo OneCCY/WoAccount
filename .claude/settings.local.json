@@ -28,7 +28,16 @@
       "Read(//c//**)",
       "Bash(winget --version)",
       "Bash(choco --version)",
-      "Bash(scoop --version)"
+      "Bash(scoop --version)",
+      "PowerShell(flutter run -d windows 2>&1)",
+      "Bash(flutter analyze *)",
+      "Bash(flutter devices *)",
+      "Bash(flutter doctor *)",
+      "PowerShell(Stop-Process -Name wo_account -Force -ErrorAction SilentlyContinue)",
+      "Bash(flutter run *)",
+      "Bash(flutter clean *)",
+      "Bash(flutter pub *)",
+      "Bash(git commit -m '@ *)"
     ]
   }
 }

@@ -8,8 +8,9 @@ import '../../../../core/theme/app_text_styles.dart';
 /// 支持设置模式（设置新密码）和验证模式（输入密码解锁）
 class PinLockPage extends StatefulWidget {
   final String mode; // 'setup' or 'verify'
+  final VoidCallback? onAuthenticated;
 
-  const PinLockPage({super.key, required this.mode});
+  const PinLockPage({super.key, required this.mode, this.onAuthenticated});
 
   @override
   State<PinLockPage> createState() => _PinLockPageState();
@@ -204,7 +205,11 @@ class _PinLockPageState extends State<PinLockPage> {
 
     if (_pin == savedPin) {
       // 验证成功
-      if (mounted) Navigator.of(context).pop(true);
+      if (widget.onAuthenticated != null) {
+        widget.onAuthenticated!();
+      } else if (mounted) {
+        Navigator.of(context).pop(true);
+      }
     } else {
       setState(() {
         _error = '密码错误，请重试';

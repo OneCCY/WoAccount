@@ -66,8 +66,6 @@ class _ProfilePageState extends State<ProfilePage> {
                     title: null,
                     context: context,
                     items: [
-                      _MenuItem(Icons.smart_toy_outlined, 'AI 服务配置'),
-                      _MenuItem(Icons.category_outlined, '分类管理'),
                       _MenuItem(Icons.settings_outlined, '设置'),
                     ],
                   ),

@@ -8,8 +8,9 @@ import '../../../../core/theme/app_text_styles.dart';
 /// 支持设置模式和验证模式
 class PatternLockPage extends StatefulWidget {
   final String mode; // 'setup' or 'verify'
+  final VoidCallback? onAuthenticated;
 
-  const PatternLockPage({super.key, required this.mode});
+  const PatternLockPage({super.key, required this.mode, this.onAuthenticated});
 
   @override
   State<PatternLockPage> createState() => _PatternLockPageState();
@@ -161,7 +162,11 @@ class _PatternLockPageState extends State<PatternLockPage> {
     final savedPattern = prefs.getString('lock_pattern') ?? '';
 
     if (pattern.join(',') == savedPattern) {
-      if (mounted) Navigator.of(context).pop(true);
+      if (widget.onAuthenticated != null) {
+        widget.onAuthenticated!();
+      } else if (mounted) {
+        Navigator.of(context).pop(true);
+      }
     } else {
       setState(() {
         _error = '图案错误，请重试';
