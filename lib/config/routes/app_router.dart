@@ -1,7 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import '../../core/widgets/navigation/main_shell.dart';
-import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/chat/presentation/pages/ai_chat_page.dart';
 import '../../features/transaction/presentation/pages/transaction_list_page.dart';
 import '../../features/transaction/presentation/pages/manual_entry_page.dart';
 import '../../features/transaction/presentation/pages/transaction_detail_page.dart';
@@ -39,11 +39,11 @@ class AppRouter {
               ),
             ],
           ),
-          // 记账首页（中 Tab）
+          // 记账首页（中 Tab）- AI 对话记账
           GoRoute(
             path: '/',
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: HomePage(),
+              child: AiChatPage(),
             ),
           ),
           // 我的（右 Tab）

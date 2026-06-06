@@ -7,6 +7,8 @@ import '../../features/category/domain/repositories/category_repository.dart';
 import '../../features/category/data/repositories/category_repository_impl.dart';
 import '../../features/budget/domain/repositories/budget_repository.dart';
 import '../../features/budget/data/repositories/budget_repository_impl.dart';
+import '../../features/chat/domain/repositories/chat_repository.dart';
+import '../../features/chat/data/repositories/chat_repository_impl.dart';
 
 part 'providers.g.dart';
 
@@ -36,4 +38,11 @@ CategoryRepository categoryRepository(Ref ref) {
 BudgetRepository budgetRepository(Ref ref) {
   final db = ref.watch(appDatabaseProvider);
   return BudgetRepositoryImpl(db);
+}
+
+/// 对话记录 Repository Provider
+@riverpod
+ChatRepository chatRepository(Ref ref) {
+  final db = ref.watch(appDatabaseProvider);
+  return ChatRepositoryImpl(db);
 }
