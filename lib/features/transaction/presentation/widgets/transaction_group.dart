@@ -24,17 +24,23 @@ class TransactionGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final totalExpense = transactions.fold<double>(0, (sum, t) => sum + t.amount);
+    double totalExpense = 0;
+    double totalIncome = 0;
+    for (final t in transactions) {
+      final cat = categoryMap[t.categoryId];
+      if (cat?.isExpense ?? true) {
+        totalExpense += t.amount;
+      } else {
+        totalIncome += t.amount;
+      }
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // 日期头
         Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppDimensions.md,
-            vertical: 10,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 10),
           color: AppColors.surfaceSecondary,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -49,15 +55,12 @@ class TransactionGroup extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 6),
-                  Text(
-                    _getWeekday(date),
-                    style: AppTextStyles.caption,
-                  ),
+                  Text(_getWeekday(date), style: AppTextStyles.caption),
                 ],
               ),
               Text(
-                '支出 ¥${totalExpense.toStringAsFixed(2)}',
-                style: AppTextStyles.footnote,
+                '支出 ¥${totalExpense.toStringAsFixed(2)}  收入 ¥${totalIncome.toStringAsFixed(2)}',
+                style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary),
               ),
             ],
           ),
@@ -66,6 +69,7 @@ class TransactionGroup extends StatelessWidget {
         ...transactions.map((t) => _TransactionItem(
               transaction: t,
               category: categoryMap[t.categoryId],
+              subcategory: t.subcategoryId != null ? categoryMap[t.subcategoryId] : null,
               onDelete: () => onDelete(t.id),
               onTap: onTap != null ? () => onTap!(t) : null,
             )),
@@ -83,12 +87,14 @@ class TransactionGroup extends StatelessWidget {
 class _TransactionItem extends StatefulWidget {
   final Transaction transaction;
   final Category? category;
+  final Category? subcategory;
   final VoidCallback onDelete;
   final VoidCallback? onTap;
 
   const _TransactionItem({
     required this.transaction,
     this.category,
+    this.subcategory,
     required this.onDelete,
     this.onTap,
   });
@@ -104,7 +110,7 @@ class _TransactionItemState extends State<_TransactionItem>
   double _dragExtent = 0;
   bool _isDragging = false;
 
-  static const double _deleteThreshold = 0.2; // 20% 宽度触发删除
+  static const double _deleteThreshold = 0.2;
 
   @override
   void initState() {
@@ -129,13 +135,10 @@ class _TransactionItemState extends State<_TransactionItem>
 
   void _handleDragUpdate(DragUpdateDetails details) {
     if (!_isDragging) return;
-
     final delta = details.primaryDelta ?? 0;
-    // 只允许向左滑动（负值）
     if (delta < 0 || _dragExtent < 0) {
       setState(() {
         _dragExtent += delta;
-        // 限制最大滑动距离
         final maxDrag = -MediaQuery.of(context).size.width * _deleteThreshold;
         _dragExtent = _dragExtent.clamp(maxDrag, 0);
       });
@@ -150,40 +153,26 @@ class _TransactionItemState extends State<_TransactionItem>
     final threshold = -screenWidth * _deleteThreshold * 0.5;
 
     if (_dragExtent < threshold) {
-      // 滑动超过阈值，显示删除按钮
       _animateTo(-screenWidth * _deleteThreshold);
     } else {
-      // 未超过阈值，回弹
       _animateTo(0);
     }
   }
 
   void _animateTo(double target) {
-    _animation = Tween<double>(
-      begin: _dragExtent,
-      end: target,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOut,
-    ));
-
+    _animation = Tween<double>(begin: _dragExtent, end: target).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
     _controller.reset();
     _controller.forward().then((_) {
-      setState(() {
-        _dragExtent = target;
-      });
+      setState(() => _dragExtent = target);
     });
-
     _controller.addListener(() {
-      setState(() {
-        _dragExtent = _animation.value;
-      });
+      setState(() => _dragExtent = _animation.value);
     });
   }
 
-  void _resetPosition() {
-    _animateTo(0);
-  }
+  void _resetPosition() => _animateTo(0);
 
   @override
   Widget build(BuildContext context) {
@@ -194,12 +183,15 @@ class _TransactionItemState extends State<_TransactionItem>
     final amountColor = isExpense ? AppColors.expense : AppColors.income;
     final screenWidth = MediaQuery.of(context).size.width;
 
+    // 二级分类
+    final subName = widget.subcategory?.name ?? '暂无';
+
     return GestureDetector(
       onHorizontalDragStart: _handleDragStart,
       onHorizontalDragUpdate: _handleDragUpdate,
       onHorizontalDragEnd: _handleDragEnd,
       child: SizedBox(
-        height: 64,
+        height: 68,
         child: Stack(
           children: [
             // 删除按钮（底层，右侧 20%）
@@ -228,7 +220,7 @@ class _TransactionItemState extends State<_TransactionItem>
                 ),
               ),
             ),
-            // 交易内容（上层，可滑动）
+            // 交易内容（上层，可滑动，80%宽度）
             Transform.translate(
               offset: Offset(_dragExtent, 0),
               child: GestureDetector(
@@ -236,14 +228,9 @@ class _TransactionItemState extends State<_TransactionItem>
                 child: Container(
                   color: AppColors.surface,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppDimensions.md,
-                      vertical: 12,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 10),
                     decoration: const BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(color: AppColors.separatorOpaque, width: 0.5),
-                      ),
+                      border: Border(bottom: BorderSide(color: AppColors.separatorOpaque, width: 0.5)),
                     ),
                     child: Row(
                       children: [
@@ -260,7 +247,7 @@ class _TransactionItemState extends State<_TransactionItem>
                           ),
                         ),
                         const SizedBox(width: 12),
-                        // 信息
+                        // 信息（分类 + 二级分类 + 时间）
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -274,8 +261,10 @@ class _TransactionItemState extends State<_TransactionItem>
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                '${DateFormat('HH:mm').format(widget.transaction.transactionDate)} · ${categoryName ?? '未分类'}',
+                                '${DateFormat('HH:mm:ss').format(widget.transaction.transactionDate)} · ${categoryName ?? '未分类'} · $subName',
                                 style: AppTextStyles.caption,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
@@ -297,7 +286,6 @@ class _TransactionItemState extends State<_TransactionItem>
     );
   }
 
-  /// 根据分类名称获取图标和背景色
   (IconData, Color) _getCategoryStyle(String? categoryName) {
     switch (categoryName) {
       case '餐饮':

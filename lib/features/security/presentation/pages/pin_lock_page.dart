@@ -21,6 +21,7 @@ class _PinLockPageState extends State<PinLockPage> {
   String _confirmPin = '';
   bool _isConfirming = false;
   String _error = '';
+  bool _isVerifying = false; // 正在验证中（最后一位已显示）
   static const int _pinLength = 4;
 
   @override
@@ -32,14 +33,17 @@ class _PinLockPageState extends State<PinLockPage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(isSetup ? '设置密码锁' : '解锁'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      appBar: isSetup
+          ? AppBar(
+              title: const Text('设置密码锁'),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+            )
+          : null,
       body: SafeArea(
         child: Column(
           children: [
+            if (!isSetup) SizedBox(height: MediaQuery.of(context).padding.top + 20),
             const Spacer(flex: 1),
 
             // 标题
@@ -73,7 +77,7 @@ class _PinLockPageState extends State<PinLockPage> {
     );
   }
 
-  /// PIN 圆点显示
+  /// PIN 圆点显示 - 最后一位也显示绿色
   Widget _buildPinDots() {
     final currentPin = _isConfirming ? _confirmPin : _pin;
 
@@ -81,7 +85,8 @@ class _PinLockPageState extends State<PinLockPage> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(_pinLength, (index) {
         final filled = index < currentPin.length;
-        return Container(
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
           width: 20,
           height: 20,
           margin: const EdgeInsets.symmetric(horizontal: 12),
@@ -129,7 +134,7 @@ class _PinLockPageState extends State<PinLockPage> {
     final isBackspace = key == 'backspace';
 
     return GestureDetector(
-      onTap: () {
+      onTap: _isVerifying ? null : () {
         HapticFeedback.lightImpact();
         if (isBackspace) {
           _onBackspace();
@@ -157,6 +162,7 @@ class _PinLockPageState extends State<PinLockPage> {
   }
 
   void _onDigitInput(String digit) {
+    if (_isVerifying) return;
     setState(() => _error = '');
 
     if (_isConfirming) {
@@ -164,7 +170,11 @@ class _PinLockPageState extends State<PinLockPage> {
         setState(() => _confirmPin += digit);
 
         if (_confirmPin.length == _pinLength) {
-          _verifyConfirmPin();
+          // 先显示最后一个绿点，再验证
+          setState(() => _isVerifying = true);
+          Future.delayed(const Duration(milliseconds: 200), () {
+            _verifyConfirmPin();
+          });
         }
       }
     } else {
@@ -172,22 +182,26 @@ class _PinLockPageState extends State<PinLockPage> {
         setState(() => _pin += digit);
 
         if (_pin.length == _pinLength) {
-          if (widget.mode == 'setup') {
-            // 设置模式：进入确认
-            setState(() {
-              _isConfirming = true;
-              _confirmPin = '';
-            });
-          } else {
-            // 验证模式：校验密码
-            _verifyPin();
-          }
+          // 先显示最后一个绿点，再验证
+          setState(() => _isVerifying = true);
+          Future.delayed(const Duration(milliseconds: 200), () {
+            if (widget.mode == 'setup') {
+              setState(() {
+                _isConfirming = true;
+                _confirmPin = '';
+                _isVerifying = false;
+              });
+            } else {
+              _verifyPin();
+            }
+          });
         }
       }
     }
   }
 
   void _onBackspace() {
+    if (_isVerifying) return;
     if (_isConfirming) {
       if (_confirmPin.isNotEmpty) {
         setState(() => _confirmPin = _confirmPin.substring(0, _confirmPin.length - 1));
@@ -204,7 +218,6 @@ class _PinLockPageState extends State<PinLockPage> {
     final savedPin = prefs.getString('lock_pin') ?? '';
 
     if (_pin == savedPin) {
-      // 验证成功
       if (widget.onAuthenticated != null) {
         widget.onAuthenticated!();
       } else if (mounted) {
@@ -214,6 +227,7 @@ class _PinLockPageState extends State<PinLockPage> {
       setState(() {
         _error = '密码错误，请重试';
         _pin = '';
+        _isVerifying = false;
       });
       HapticFeedback.heavyImpact();
     }
@@ -221,10 +235,15 @@ class _PinLockPageState extends State<PinLockPage> {
 
   Future<void> _verifyConfirmPin() async {
     if (_pin == _confirmPin) {
-      // 两次输入一致，保存密码
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('lock_pin', _pin);
       await prefs.setBool('lock_enabled', true);
+      // 添加到 lock_types 列表
+      final types = prefs.getStringList('lock_types') ?? [];
+      if (!types.contains('pin')) {
+        types.add('pin');
+        await prefs.setStringList('lock_types', types);
+      }
       await prefs.setString('lock_type', 'pin');
 
       if (mounted) {
@@ -239,6 +258,7 @@ class _PinLockPageState extends State<PinLockPage> {
         _pin = '';
         _confirmPin = '';
         _isConfirming = false;
+        _isVerifying = false;
       });
       HapticFeedback.heavyImpact();
     }

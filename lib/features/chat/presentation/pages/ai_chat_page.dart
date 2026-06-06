@@ -105,32 +105,69 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
     });
   }
 
-  /// 智能匹配分类
+  /// 智能匹配分类（一级分类）
   Future<Category> _matchCategory(String categoryName, String type) async {
-    final categories = await _catRepo.getAll();
+    final categories = await _catRepo.getTopLevel();
     if (categories.isEmpty) {
       throw Exception('没有可用分类，请先在分类管理中添加分类');
     }
 
+    final isExpense = type == 'expense';
+
     // 精确匹配
     for (final c in categories) {
-      if (c.name == categoryName) return c;
+      if (c.name == categoryName && c.isExpense == isExpense) return c;
     }
 
     // 模糊匹配（包含关系）
     for (final c in categories) {
-      if (c.name.contains(categoryName) || categoryName.contains(c.name)) {
+      if ((c.name.contains(categoryName) || categoryName.contains(c.name)) && c.isExpense == isExpense) {
         return c;
       }
     }
 
-    // 按类型匹配
-    final isExpense = type == 'expense';
+    // 按类型匹配第一个
     for (final c in categories) {
       if (c.isExpense == isExpense) return c;
     }
 
     return categories.first;
+  }
+
+  /// 智能匹配二级分类
+  Future<Category?> _matchSubcategory(int parentId, String? subcategoryName) async {
+    if (subcategoryName == null || subcategoryName.isEmpty) return null;
+
+    final children = await _catRepo.getChildren(parentId);
+
+    // 精确匹配
+    for (final c in children) {
+      if (c.name == subcategoryName) return c;
+    }
+
+    // 模糊匹配
+    for (final c in children) {
+      if (c.name.contains(subcategoryName) || subcategoryName.contains(c.name)) {
+        return c;
+      }
+    }
+
+    // 未找到，自动创建
+    try {
+      final newId = await _catRepo.insert(CategoriesCompanion.insert(
+        name: subcategoryName,
+        icon: const Value('📦'),
+        color: const Value('#607D8B'),
+        parentId: Value(parentId),
+        level: const Value(2),
+        isSystem: const Value(false),
+        isExpense: Value(true), // 继承父分类
+        sortOrder: Value(children.length + 1),
+      ));
+      return await _catRepo.getById(newId);
+    } catch (_) {
+      return null; // 创建失败返回null
+    }
   }
 
   /// 发送文本 → AI 解析 → 显示确认卡片（支持多笔）
@@ -166,6 +203,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
       final confirmCards = <ConfirmData>[];
       for (final result in results) {
         final matchedCategory = await _matchCategory(result.category, result.type);
+        final matchedSub = await _matchSubcategory(matchedCategory.id, result.subcategory);
 
         DateTime txnDate = DateTime.now();
         if (result.date != null && result.date!.isNotEmpty) {
@@ -182,7 +220,8 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
           type: result.type,
           category: matchedCategory.name,
           categoryId: matchedCategory.id,
-          subcategory: result.subcategory,
+          subcategory: matchedSub?.name ?? '暂无',
+          subcategoryId: matchedSub?.id,
           description: result.description.isNotEmpty
               ? result.description
               : text.replaceAll(RegExp(r'\d+\.?\d*'), '').trim(),
@@ -228,6 +267,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
         amount: data.amount,
         description: data.description,
         categoryId: data.categoryId,
+        subcategoryId: Value(data.subcategoryId),
         transactionDate: data.date,
         originalInput: Value(data.originalInput),
         aiSource: Value(data.confidence > 0.85 ? 'llm' : 'rule'),
@@ -465,6 +505,7 @@ class ConfirmData {
   String category;
   int categoryId;
   String? subcategory;
+  int? subcategoryId;
   String description;
   DateTime date;
   final double confidence;
@@ -476,6 +517,7 @@ class ConfirmData {
     required this.category,
     required this.categoryId,
     this.subcategory,
+    this.subcategoryId,
     required this.description,
     required this.date,
     required this.confidence,
@@ -487,6 +529,7 @@ class ConfirmData {
     String? category,
     int? categoryId,
     String? subcategory,
+    int? subcategoryId,
     String? description,
     DateTime? date,
   }) {
@@ -497,6 +540,7 @@ class ConfirmData {
       category: category ?? this.category,
       categoryId: categoryId ?? this.categoryId,
       subcategory: subcategory ?? this.subcategory,
+      subcategoryId: subcategoryId ?? this.subcategoryId,
       description: description ?? this.description,
       date: date ?? this.date,
       confidence: confidence,

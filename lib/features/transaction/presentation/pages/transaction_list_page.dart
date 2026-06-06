@@ -13,8 +13,10 @@ import '../../domain/repositories/transaction_repository.dart';
 import '../widgets/view_switcher.dart';
 import '../widgets/transaction_group.dart';
 
-/// 账单列表页（左Tab）
-/// 顶部切换器（日/周/月）+ 搜索栏 + 统计栏 + 按日分组列表
+/// 排序方式
+enum SortType { time, amount }
+
+/// 账单列表页
 class TransactionListPage extends ConsumerStatefulWidget {
   const TransactionListPage({super.key});
 
@@ -25,14 +27,28 @@ class TransactionListPage extends ConsumerStatefulWidget {
 class _TransactionListPageState extends ConsumerState<TransactionListPage> {
   ViewType _currentView = ViewType.week;
   late DateTime _currentDate;
-
-  /// 周视图中选中的日期（null 表示显示整周）
   DateTime? _selectedWeekDay;
+
+  // 筛选和排序
+  String? _filterType; // null=全部, 'expense', 'income'
+  SortType _sortType = SortType.time;
+
+  // 刷新key
+  int _refreshKey = 0;
 
   @override
   void initState() {
     super.initState();
     _currentDate = DateTime.now();
+  }
+
+  /// 触发刷新
+  void _triggerRefresh() {
+    setState(() {
+      _refreshKey++;
+      _filterType = null;
+      _sortType = SortType.time;
+    });
   }
 
   @override
@@ -45,7 +61,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
         children: [
           SizedBox(height: MediaQuery.of(context).padding.top),
           _buildTopBar(),
-          _buildSearchBar(),
+          _buildFilterSortBar(),
           _buildStatsBar(repo),
           Expanded(child: _buildContent(repo, catRepo)),
         ],
@@ -55,7 +71,6 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
 
   // ==================== 顶部栏 ====================
 
-  /// 顶部栏：切换器 + 周期导航（修复溢出）
   Widget _buildTopBar() {
     return Container(
       padding: EdgeInsets.symmetric(
@@ -69,7 +84,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
             currentView: _currentView,
             onViewChanged: (view) => setState(() {
               _currentView = view;
-              _selectedWeekDay = null; // 切换视图时重置选中日期
+              _selectedWeekDay = null;
             }),
           ),
           const Spacer(),
@@ -79,7 +94,6 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
     );
   }
 
-  /// 周期导航：左右箭头 + 日期标签（响应式，防溢出）
   Widget _buildPeriodNav() {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -176,58 +190,69 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
     );
   }
 
-  // ==================== 搜索栏 ====================
+  // ==================== 筛选排序栏 ====================
 
-  Widget _buildSearchBar() {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        Responsive.s(context, AppDimensions.md),
-        Responsive.s(context, 8),
-        Responsive.s(context, AppDimensions.md),
-        Responsive.s(context, 8),
+  Widget _buildFilterSortBar() {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.s(context, AppDimensions.md),
+        vertical: 6,
       ),
+      color: AppColors.surface,
       child: Row(
         children: [
-          Expanded(
-            child: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: Responsive.s(context, 14),
-                vertical: Responsive.s(context, 10),
-              ),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceSecondary,
-                borderRadius: BorderRadius.circular(Responsive.s(context, AppDimensions.radiusMd)),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.search, size: Responsive.s(context, 16), color: AppColors.textHint),
-                  SizedBox(width: Responsive.s(context, 8)),
-                  Text('搜索账单...',
-                      style: AppTextStyles.body.copyWith(
-                        color: AppColors.textHint,
-                        fontSize: Responsive.fs(context, 14),
-                      )),
-                ],
-              ),
-            ),
-          ),
-          SizedBox(width: Responsive.s(context, 8)),
+          // 筛选标签
+          _buildFilterChip(null, '全部'),
+          const SizedBox(width: 8),
+          _buildFilterChip('expense', '支出'),
+          const SizedBox(width: 8),
+          _buildFilterChip('income', '收入'),
+          const Spacer(),
+          // 排序切换
           GestureDetector(
-            onTap: () => context.push('/budget'),
-            child: Container(
-              width: Responsive.s(context, 40),
-              height: Responsive.s(context, 40),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF3E0),
-                borderRadius: BorderRadius.circular(Responsive.s(context, AppDimensions.radiusMd)),
-              ),
-              child: Center(
-                child: Icon(Icons.account_balance_wallet_outlined,
-                    size: Responsive.s(context, 20), color: AppColors.warning),
-              ),
+            onTap: () {
+              setState(() {
+                _sortType = _sortType == SortType.time ? SortType.amount : SortType.time;
+              });
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  _sortType == SortType.time ? Icons.access_time : Icons.sort,
+                  size: 14,
+                  color: AppColors.textTertiary,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  _sortType == SortType.time ? '按时间' : '按金额',
+                  style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary),
+                ),
+              ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String? type, String label) {
+    final isActive = _filterType == type;
+    return GestureDetector(
+      onTap: () => setState(() => _filterType = type),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.primary : AppColors.surfaceSecondary,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(
+          label,
+          style: AppTextStyles.caption.copyWith(
+            color: isActive ? AppColors.textOnPrimary : AppColors.textSecondary,
+            fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+          ),
+        ),
       ),
     );
   }
@@ -236,6 +261,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
 
   Widget _buildStatsBar(TransactionRepository repo) {
     return FutureBuilder<TransactionStats>(
+      key: ValueKey(_refreshKey),
       future: _getCurrentPeriodStats(repo),
       builder: (context, snapshot) {
         final stats = snapshot.data;
@@ -321,46 +347,82 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
     }
   }
 
+  /// 应用筛选和排序
+  List<Transaction> _applyFilterAndSort(List<Transaction> txns, Map<int, Category> catMap) {
+    var filtered = txns;
+
+    // 筛选
+    if (_filterType != null) {
+      filtered = txns.where((t) {
+        final cat = catMap[t.categoryId];
+        if (_filterType == 'expense') return cat?.isExpense ?? true;
+        if (_filterType == 'income') return !(cat?.isExpense ?? true);
+        return true;
+      }).toList();
+    }
+
+    // 排序
+    if (_sortType == SortType.amount) {
+      filtered.sort((a, b) => b.amount.compareTo(a.amount));
+    }
+    // time排序已在watchAll中按transactionDate desc处理，这里改为asc
+    if (_sortType == SortType.time) {
+      filtered.sort((a, b) => a.transactionDate.compareTo(b.transactionDate));
+    }
+
+    return filtered;
+  }
+
   // ==================== 日视图 ====================
 
   Widget _buildDayView(TransactionRepository repo, CategoryRepository catRepo) {
     final start = DateTime(_currentDate.year, _currentDate.month, _currentDate.day);
     final end = start.add(const Duration(days: 1));
 
-    return StreamBuilder<List<Transaction>>(
-      stream: repo.watchAll(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator(color: AppColors.primary));
-        }
-        final allTxns = snapshot.data ?? [];
-        final dayTxns = allTxns.where((t) =>
-            !t.transactionDate.isBefore(start) && t.transactionDate.isBefore(end)).toList();
+    return RefreshIndicator(
+      onRefresh: () async { _triggerRefresh(); },
+      child: StreamBuilder<List<Transaction>>(
+        key: ValueKey('day_$_refreshKey'),
+        stream: repo.watchAll(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+          }
+          final allTxns = snapshot.data ?? [];
+          final dayTxns = allTxns.where((t) =>
+              !t.transactionDate.isBefore(start) && t.transactionDate.isBefore(end)).toList();
 
-        if (dayTxns.isEmpty) return _buildEmptyState();
+          return FutureBuilder<List<Category>>(
+            future: catRepo.getAll(),
+            builder: (context, catSnap) {
+              final categoryMap = <int, Category>{for (final c in (catSnap.data ?? [])) c.id: c};
+              final filtered = _applyFilterAndSort(dayTxns, categoryMap);
 
-        return FutureBuilder<List<Category>>(
-          future: catRepo.getAll(),
-          builder: (context, catSnap) {
-            final categoryMap = <int, Category>{for (final c in (catSnap.data ?? [])) c.id: c};
-            final grouped = _groupByDate(dayTxns);
-            return ListView.builder(
-              padding: EdgeInsets.only(bottom: Responsive.s(context, 16)),
-              itemCount: grouped.length,
-              itemBuilder: (context, index) {
-                final entry = grouped.entries.elementAt(index);
-                return TransactionGroup(
-                  date: entry.key,
-                  transactions: entry.value,
-                  categoryMap: categoryMap,
-                  onDelete: (id) => repo.delete(id),
-                  onTap: (t) => context.push('/transactions/${t.id}'),
-                );
-              },
-            );
-          },
-        );
-      },
+              if (filtered.isEmpty) return _buildEmptyState();
+
+              final grouped = _groupByDate(filtered);
+              return ListView.builder(
+                padding: EdgeInsets.only(bottom: Responsive.s(context, 16)),
+                itemCount: grouped.length,
+                itemBuilder: (context, index) {
+                  final entry = grouped.entries.elementAt(index);
+                  return TransactionGroup(
+                    date: entry.key,
+                    transactions: entry.value,
+                    categoryMap: categoryMap,
+                    onDelete: (id) async {
+                      final result = await repo.delete(id);
+                      setState(() {});
+                      return result;
+                    },
+                    onTap: (t) => context.push('/transactions/${t.id}'),
+                  );
+                },
+              );
+            },
+          );
+        },
+      ),
     );
   }
 
@@ -370,21 +432,19 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
     final weekStart = _currentDate.subtract(Duration(days: _currentDate.weekday - 1));
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-
-    // 默认选中今天（如果在本周范围内）
     final selectedDay = _selectedWeekDay ?? today;
 
-    return Column(
-      children: [
-        // 7天日期卡片
-        _buildWeekDayCards(weekStart, selectedDay),
-        // 选中日期的交易列表
-        Expanded(child: _buildWeekTransactionList(repo, catRepo, selectedDay)),
-      ],
+    return RefreshIndicator(
+      onRefresh: () async { _triggerRefresh(); },
+      child: Column(
+        children: [
+          _buildWeekDayCards(weekStart, selectedDay),
+          Expanded(child: _buildWeekTransactionList(repo, catRepo, selectedDay)),
+        ],
+      ),
     );
   }
 
-  /// 7天日期卡片（点击选中，不跳转视图）
   Widget _buildWeekDayCards(DateTime weekStart, DateTime selectedDay) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -405,11 +465,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
 
           return Expanded(
             child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _selectedWeekDay = date;
-                });
-              },
+              onTap: () => setState(() => _selectedWeekDay = date),
               child: Container(
                 margin: EdgeInsets.symmetric(horizontal: Responsive.s(context, 2)),
                 padding: EdgeInsets.symmetric(vertical: Responsive.s(context, 8)),
@@ -448,12 +504,12 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
     );
   }
 
-  /// 周视图交易列表（显示选中日期的交易）
   Widget _buildWeekTransactionList(TransactionRepository repo, CategoryRepository catRepo, DateTime selectedDay) {
     final dayStart = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
     final dayEnd = dayStart.add(const Duration(days: 1));
 
     return StreamBuilder<List<Transaction>>(
+      key: ValueKey('week_$_refreshKey'),
       stream: repo.watchAll(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -463,13 +519,15 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
         final dayTxns = allTxns.where((t) =>
             !t.transactionDate.isBefore(dayStart) && t.transactionDate.isBefore(dayEnd)).toList();
 
-        if (dayTxns.isEmpty) return _buildEmptyState();
-
         return FutureBuilder<List<Category>>(
           future: catRepo.getAll(),
           builder: (context, catSnap) {
             final categoryMap = <int, Category>{for (final c in (catSnap.data ?? [])) c.id: c};
-            final grouped = _groupByDate(dayTxns);
+            final filtered = _applyFilterAndSort(dayTxns, categoryMap);
+
+            if (filtered.isEmpty) return _buildEmptyState();
+
+            final grouped = _groupByDate(filtered);
             return ListView.builder(
               padding: EdgeInsets.only(bottom: Responsive.s(context, 16)),
               itemCount: grouped.length,
@@ -479,7 +537,11 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
                   date: entry.key,
                   transactions: entry.value,
                   categoryMap: categoryMap,
-                  onDelete: (id) => repo.delete(id),
+                  onDelete: (id) async {
+                    final result = await repo.delete(id);
+                    setState(() {});
+                    return result;
+                  },
                   onTap: (t) => context.push('/transactions/${t.id}'),
                 );
               },
@@ -490,75 +552,81 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
     );
   }
 
-  // ==================== 月视图 ====================
+  // ==================== 月视图（支持左右滑动切换月份） ====================
 
-  /// 月视图：仅显示日历（含每日收支），不显示交易列表
   Widget _buildMonthView(TransactionRepository repo, CategoryRepository catRepo) {
-    final start = DateTime(_currentDate.year, _currentDate.month, 1);
-    final end = DateTime(_currentDate.year, _currentDate.month + 1, 1);
-
-    return StreamBuilder<List<Transaction>>(
-      stream: repo.watchAll(),
-      builder: (context, snapshot) {
-        final allTxns = snapshot.data ?? [];
-        final monthTxns = allTxns.where((t) =>
-            !t.transactionDate.isBefore(start) && t.transactionDate.isBefore(end)).toList();
-
-        // 计算每日收支汇总
-        final dailyTotals = <int, ({double expense, double income})>{};
-        for (final t in monthTxns) {
-          final day = t.transactionDate.day;
-          final existing = dailyTotals[day];
-          // 需要通过 category 判断收支类型，这里简化处理：amount > 0 为支出
-          // 实际应通过 category.isExpense 判断，但此处使用 amount 正负约定
-          // 由于当前 amount 总是正数，需要查 category
-          dailyTotals[day] = (
-            expense: (existing?.expense ?? 0) + t.amount, // 暂时全算支出，下面用 category 修正
-            income: existing?.income ?? 0,
-          );
+    return GestureDetector(
+      onHorizontalDragEnd: (details) {
+        if (details.primaryVelocity == null) return;
+        if (details.primaryVelocity! > 300) {
+          // 右滑 - 上个月
+          setState(() {
+            _currentDate = DateTime(_currentDate.year, _currentDate.month - 1, 1);
+          });
+        } else if (details.primaryVelocity! < -300) {
+          // 左滑 - 下个月
+          setState(() {
+            _currentDate = DateTime(_currentDate.year, _currentDate.month + 1, 1);
+          });
         }
-
-        // 用 FutureBuilder 获取分类信息以区分收支
-        return FutureBuilder<List<Category>>(
-          future: catRepo.getAll(),
-          builder: (context, catSnap) {
-            final categories = catSnap.data ?? [];
-            final categoryMap = <int, Category>{for (final c in categories) c.id: c};
-
-            // 重新计算每日收支（使用 category.isExpense）
-            final correctedTotals = <int, ({double expense, double income})>{};
-            for (final t in monthTxns) {
-              final day = t.transactionDate.day;
-              final cat = categoryMap[t.categoryId];
-              final isExpense = cat?.isExpense ?? true;
-              final existing = correctedTotals[day];
-              if (isExpense) {
-                correctedTotals[day] = (
-                  expense: (existing?.expense ?? 0) + t.amount,
-                  income: existing?.income ?? 0,
-                );
-              } else {
-                correctedTotals[day] = (
-                  expense: existing?.expense ?? 0,
-                  income: (existing?.income ?? 0) + t.amount,
-                );
-              }
-            }
-
-            return _buildCalendar(correctedTotals);
-          },
-        );
       },
+      child: _buildMonthContent(repo, catRepo),
     );
   }
 
-  /// 月历（含每日收支金额，模仿原型）
+  Widget _buildMonthContent(TransactionRepository repo, CategoryRepository catRepo) {
+    final start = DateTime(_currentDate.year, _currentDate.month, 1);
+    final end = DateTime(_currentDate.year, _currentDate.month + 1, 1);
+
+    return RefreshIndicator(
+      onRefresh: () async { _triggerRefresh(); },
+      child: StreamBuilder<List<Transaction>>(
+        key: ValueKey('month_$_refreshKey'),
+        stream: repo.watchAll(),
+        builder: (context, snapshot) {
+          final allTxns = snapshot.data ?? [];
+          final monthTxns = allTxns.where((t) =>
+              !t.transactionDate.isBefore(start) && t.transactionDate.isBefore(end)).toList();
+
+          return FutureBuilder<List<Category>>(
+            future: catRepo.getAll(),
+            builder: (context, catSnap) {
+              final categories = catSnap.data ?? [];
+              final categoryMap = <int, Category>{for (final c in categories) c.id: c};
+
+              final correctedTotals = <int, ({double expense, double income})>{};
+              for (final t in monthTxns) {
+                final day = t.transactionDate.day;
+                final cat = categoryMap[t.categoryId];
+                final isExpense = cat?.isExpense ?? true;
+                final existing = correctedTotals[day];
+                if (isExpense) {
+                  correctedTotals[day] = (
+                    expense: (existing?.expense ?? 0) + t.amount,
+                    income: existing?.income ?? 0,
+                  );
+                } else {
+                  correctedTotals[day] = (
+                    expense: existing?.expense ?? 0,
+                    income: (existing?.income ?? 0) + t.amount,
+                  );
+                }
+              }
+
+              return _buildCalendar(correctedTotals);
+            },
+          );
+        },
+      ),
+    );
+  }
+
   Widget _buildCalendar(Map<int, ({double expense, double income})> dailyTotals) {
     final year = _currentDate.year;
     final month = _currentDate.month;
     final firstDay = DateTime(year, month, 1);
     final lastDay = DateTime(year, month + 1, 0);
-    final startWeekday = firstDay.weekday % 7; // 0=Sunday
+    final startWeekday = firstDay.weekday % 7;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
@@ -569,7 +637,6 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
       color: AppColors.surface,
       child: Column(
         children: [
-          // 星期标题
           Padding(
             padding: EdgeInsets.symmetric(
               vertical: Responsive.s(context, 8),
@@ -589,13 +656,12 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
                   .toList(),
             ),
           ),
-          // 日期网格
           Expanded(
             child: GridView.builder(
               padding: EdgeInsets.symmetric(horizontal: Responsive.s(context, AppDimensions.sm)),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 7,
-                childAspectRatio: 0.78, // 稍高以容纳金额文字
+                childAspectRatio: 0.78,
               ),
               itemCount: startWeekday + lastDay.day,
               itemBuilder: (context, index) {
@@ -609,11 +675,15 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
 
                 return GestureDetector(
                   onTap: () {
-                    // 点击日期切换到日视图
-                    setState(() {
-                      _currentDate = date;
-                      _currentView = ViewType.day;
-                    });
+                    // 点击日期跳转到日明细页
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => _DayDetailPage(
+                          date: date,
+                          categoryMap: const {},
+                        ),
+                      ),
+                    );
                   },
                   child: Container(
                     margin: EdgeInsets.all(Responsive.s(context, 1)),
@@ -625,7 +695,6 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // 日期数字
                         Text(
                           '$day',
                           style: TextStyle(
@@ -634,29 +703,18 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
                             color: isToday ? AppColors.primary : AppColors.textPrimary,
                           ),
                         ),
-                        // 支出金额
                         if (hasExpense)
                           Text(
                             _formatAmount(totals.expense),
-                            style: TextStyle(
-                              fontSize: amountFontSize,
-                              color: AppColors.expense,
-                              height: 1.2,
-                            ),
+                            style: TextStyle(fontSize: amountFontSize, color: AppColors.expense, height: 1.2),
                             overflow: TextOverflow.ellipsis,
                           ),
-                        // 收入金额
                         if (hasIncome)
                           Text(
                             '+${_formatAmount(totals.income)}',
-                            style: TextStyle(
-                              fontSize: amountFontSize,
-                              color: AppColors.income,
-                              height: 1.2,
-                            ),
+                            style: TextStyle(fontSize: amountFontSize, color: AppColors.income, height: 1.2),
                             overflow: TextOverflow.ellipsis,
                           ),
-                        // 无数据时的占位
                         if (!hasExpense && !hasIncome)
                           SizedBox(height: amountFontSize * 1.2),
                       ],
@@ -672,7 +730,6 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
     );
   }
 
-  /// 格式化金额（简洁显示，如 156、1.2k）
   String _formatAmount(double amount) {
     if (amount >= 10000) {
       return '-${(amount / 10000).toStringAsFixed(1)}w';
@@ -701,8 +758,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.receipt_long_outlined,
-              size: Responsive.s(context, 48), color: AppColors.textTertiary),
+          Icon(Icons.receipt_long_outlined, size: Responsive.s(context, 48), color: AppColors.textTertiary),
           SizedBox(height: Responsive.s(context, AppDimensions.md)),
           Text('暂无账单记录',
               style: AppTextStyles.callout.copyWith(
@@ -710,6 +766,82 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
                 fontSize: Responsive.fs(context, 16),
               )),
         ],
+      ),
+    );
+  }
+}
+
+/// 日明细页（从月视图点击某日进入）
+class _DayDetailPage extends ConsumerWidget {
+  final DateTime date;
+  final Map<int, Category> categoryMap;
+
+  const _DayDetailPage({required this.date, required this.categoryMap});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final repo = ref.read(transactionRepositoryProvider);
+    final catRepo = ref.read(categoryRepositoryProvider);
+    final start = DateTime(date.year, date.month, date.day);
+    final end = start.add(const Duration(days: 1));
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: Text(DateFormat('M月d日', 'zh_CN').format(date)),
+        backgroundColor: AppColors.surface,
+      ),
+      body: StreamBuilder<List<Transaction>>(
+        stream: repo.watchAll(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+          }
+          final allTxns = snapshot.data ?? [];
+          final dayTxns = allTxns.where((t) =>
+              !t.transactionDate.isBefore(start) && t.transactionDate.isBefore(end)).toList();
+
+          if (dayTxns.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.receipt_long_outlined, size: 48, color: AppColors.textTertiary),
+                  const SizedBox(height: 16),
+                  Text('当日无账单记录', style: AppTextStyles.callout.copyWith(color: AppColors.textSecondary)),
+                ],
+              ),
+            );
+          }
+
+          return FutureBuilder<List<Category>>(
+            future: catRepo.getAll(),
+            builder: (context, catSnap) {
+              final catMap = <int, Category>{for (final c in (catSnap.data ?? [])) c.id: c};
+              final grouped = <DateTime, List<Transaction>>{};
+              for (final t in dayTxns) {
+                final dk = DateTime(t.transactionDate.year, t.transactionDate.month, t.transactionDate.day);
+                grouped.putIfAbsent(dk, () => []).add(t);
+              }
+              return ListView.builder(
+                padding: const EdgeInsets.only(bottom: 16),
+                itemCount: grouped.length,
+                itemBuilder: (context, index) {
+                  final entry = grouped.entries.elementAt(index);
+                  return TransactionGroup(
+                    date: entry.key,
+                    transactions: entry.value,
+                    categoryMap: catMap,
+                    onDelete: (id) async {
+                      return await repo.delete(id);
+                    },
+                    onTap: (t) => context.push('/transactions/${t.id}'),
+                  );
+                },
+              );
+            },
+          );
+        },
       ),
     );
   }

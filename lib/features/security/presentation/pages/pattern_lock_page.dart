@@ -33,57 +33,60 @@ class _PatternLockPageState extends State<PatternLockPage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(isSetup ? '设置图案锁' : '图案解锁'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      appBar: isSetup
+          ? AppBar(
+              title: const Text('设置图案锁'),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+            )
+          : null,
       body: SafeArea(
-        child: Column(
-          children: [
-            const Spacer(flex: 1),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (!isSetup) SizedBox(height: MediaQuery.of(context).padding.top),
 
-            // 标题
-            Text(title, style: AppTextStyles.h3.copyWith(fontSize: 18)),
-            if (subtitle.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(subtitle, style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
-            ],
-            const SizedBox(height: 40),
+              // 标题
+              Text(title, style: AppTextStyles.h3.copyWith(fontSize: 18)),
+              if (subtitle.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(subtitle, style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
+              ],
+              const SizedBox(height: 40),
 
-            // 图案绘制区域
-            _buildPatternGrid(),
+              // 图案绘制区域（居中）
+              _buildPatternGrid(),
 
-            const SizedBox(height: 16),
+              const SizedBox(height: 24),
 
-            // 错误提示
-            if (_error.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 40),
-                child: Text(
-                  _error,
-                  style: AppTextStyles.caption.copyWith(color: AppColors.error),
-                  textAlign: TextAlign.center,
+              // 错误提示
+              if (_error.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: Text(
+                    _error,
+                    style: AppTextStyles.caption.copyWith(color: AppColors.error),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
-              ),
 
-            const Spacer(flex: 2),
+              const SizedBox(height: 40),
 
-            // 重置按钮
-            if (isSetup)
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    _currentPattern = [];
-                    _isConfirming = false;
-                    _error = '';
-                  });
-                },
-                child: Text('重新绘制', style: AppTextStyles.body.copyWith(color: AppColors.primary)),
-              ),
-
-            const SizedBox(height: 40),
-          ],
+              // 重置按钮
+              if (isSetup)
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _currentPattern = [];
+                      _isConfirming = false;
+                      _error = '';
+                    });
+                  },
+                  child: Text('重新绘制', style: AppTextStyles.body.copyWith(color: AppColors.primary)),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -110,15 +113,12 @@ class _PatternLockPageState extends State<PatternLockPage> {
 
     if (widget.mode == 'setup') {
       if (!_isConfirming) {
-        // 第一次绘制
         setState(() {
           _currentPattern = List.from(pattern);
           _isConfirming = true;
         });
       } else {
-        // 确认绘制
         if (_listEquals(pattern, _currentPattern)) {
-          // 两次一致，保存
           _savePattern(pattern);
         } else {
           setState(() {
@@ -130,7 +130,6 @@ class _PatternLockPageState extends State<PatternLockPage> {
         }
       }
     } else {
-      // 验证模式
       _verifyPattern(pattern);
     }
   }
@@ -147,6 +146,11 @@ class _PatternLockPageState extends State<PatternLockPage> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('lock_pattern', pattern.join(','));
     await prefs.setBool('lock_enabled', true);
+    final types = prefs.getStringList('lock_types') ?? [];
+    if (!types.contains('pattern')) {
+      types.add('pattern');
+      await prefs.setStringList('lock_types', types);
+    }
     await prefs.setString('lock_type', 'pattern');
 
     if (mounted) {
@@ -198,7 +202,6 @@ class _PatternGridWidgetState extends State<_PatternGridWidget> {
   static const double _dotRadius = 12;
   static const double _cellSize = _gridSize / _cols;
 
-  /// 获取每个圆点的中心位置
   Offset _getDotCenter(int index) {
     final row = index ~/ _cols;
     final col = index % _cols;
@@ -208,7 +211,6 @@ class _PatternGridWidgetState extends State<_PatternGridWidget> {
     );
   }
 
-  /// 根据触摸位置找到最近的圆点
   int? _findNearestDot(Offset position) {
     for (int i = 0; i < _cols * _rows; i++) {
       final center = _getDotCenter(i);
@@ -253,7 +255,6 @@ class _PatternGridWidgetState extends State<_PatternGridWidget> {
       setState(() {
         _isDrawing = false;
         _currentPosition = null;
-        // 延迟清除，让用户看到结果
         Future.delayed(const Duration(milliseconds: 500), () {
           if (mounted) setState(() => _selectedDots = []);
         });
@@ -280,7 +281,6 @@ class _PatternGridWidgetState extends State<_PatternGridWidget> {
   }
 }
 
-/// 图案绘制画笔
 class _PatternPainter extends CustomPainter {
   final List<int> selectedDots;
   final Offset? currentPosition;
@@ -298,19 +298,16 @@ class _PatternPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     const int totalDots = 9;
 
-    // 画所有圆点
     for (int i = 0; i < totalDots; i++) {
       final center = getDotCenter(i);
       final isSelected = selectedDots.contains(i);
 
-      // 外圈
       final outerPaint = Paint()
         ..color = isSelected ? AppColors.primary : AppColors.textTertiary.withValues(alpha: 0.3)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2;
       canvas.drawCircle(center, _PatternGridWidgetState._dotRadius, outerPaint);
 
-      // 内圈（选中时填充）
       if (isSelected) {
         final innerPaint = Paint()
           ..color = AppColors.primary
@@ -319,7 +316,6 @@ class _PatternPainter extends CustomPainter {
       }
     }
 
-    // 画连接线
     if (selectedDots.length >= 2) {
       final linePaint = Paint()
         ..color = AppColors.primary.withValues(alpha: 0.6)
@@ -332,7 +328,6 @@ class _PatternPainter extends CustomPainter {
         canvas.drawLine(start, end, linePaint);
       }
 
-      // 画到当前位置的线
       if (isDrawing && currentPosition != null) {
         final lastDot = getDotCenter(selectedDots.last);
         canvas.drawLine(lastDot, currentPosition!, linePaint);
