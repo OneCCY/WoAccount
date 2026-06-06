@@ -169,7 +169,6 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 名称 + 状态
                   Row(
                     children: [
                       Expanded(
@@ -199,36 +198,16 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
                     ],
                   ),
                   const SizedBox(height: 8),
-
-                  // 信息行
-                  if (p.baseUrl.isNotEmpty)
-                    _infoRow('地址', p.baseUrl),
-                  if (p.model.isNotEmpty)
-                    _infoRow('模型', p.model),
-
+                  if (p.baseUrl.isNotEmpty) _infoRow('地址', p.baseUrl),
+                  if (p.model.isNotEmpty) _infoRow('模型', p.model),
                   const SizedBox(height: 12),
-
-                  // 操作按钮
                   Row(
                     children: [
-                      _actionButton(
-                        icon: Icons.wifi_tethering,
-                        label: '测试',
-                        onTap: () => _testProvider(p),
-                      ),
+                      _actionButton(icon: Icons.wifi_tethering, label: '测试', onTap: () => _testProvider(p)),
                       const SizedBox(width: 8),
-                      _actionButton(
-                        icon: Icons.edit_outlined,
-                        label: '编辑',
-                        onTap: () => _editProvider(p),
-                      ),
+                      _actionButton(icon: Icons.edit_outlined, label: '编辑', onTap: () => _editProvider(p)),
                       const SizedBox(width: 8),
-                      _actionButton(
-                        icon: Icons.delete_outline,
-                        label: '删除',
-                        color: AppColors.error,
-                        onTap: () => _delete(p),
-                      ),
+                      _actionButton(icon: Icons.delete_outline, label: '删除', color: AppColors.error, onTap: () => _delete(p)),
                     ],
                   ),
                 ],
@@ -245,24 +224,14 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
       padding: const EdgeInsets.only(bottom: 4),
       child: Row(
         children: [
-          SizedBox(
-            width: 40,
-            child: Text(label, style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
-          ),
-          Expanded(
-            child: Text(value, style: AppTextStyles.footnote, overflow: TextOverflow.ellipsis),
-          ),
+          SizedBox(width: 40, child: Text(label, style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary))),
+          Expanded(child: Text(value, style: AppTextStyles.footnote, overflow: TextOverflow.ellipsis)),
         ],
       ),
     );
   }
 
-  Widget _actionButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    Color? color,
-  }) {
+  Widget _actionButton({required IconData icon, required String label, required VoidCallback onTap, Color? color}) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(6),
@@ -288,21 +257,16 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
       return;
     }
 
-    // 显示测试中
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator()),
-    );
+    showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator()));
 
     final repo = LlmRepositoryImpl(Dio());
     final success = await repo.testConnection(provider);
 
     if (mounted) {
-      Navigator.pop(context); // 关闭 loading
+      Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(success ? '✅ 连接成功' : '❌ 连接失败，请检查配置'),
+          content: Text(success ? '✅ 连接成功' : '❌ 连接失败，请检查地址、Key 和模型名称'),
           behavior: SnackBarBehavior.floating,
           backgroundColor: success ? AppColors.success : AppColors.error,
         ),
@@ -311,7 +275,64 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
   }
 }
 
-/// 服务商编辑页（添加/编辑）
+// ============================================================
+// 服务商编辑页
+// ============================================================
+
+/// 各大模型服务商配置参考
+const _providerExamples = [
+  _ProviderExample(
+    name: 'DeepSeek',
+    baseUrl: 'https://api.deepseek.com',
+    model: 'deepseek-v3',
+    note: '不要加 /v1 后缀，官方已自动处理',
+  ),
+  _ProviderExample(
+    name: '通义千问 (阿里)',
+    baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+    model: 'qwen-plus',
+    note: '使用兼容模式地址，模型可选 qwen-turbo / qwen-plus / qwen-max',
+  ),
+  _ProviderExample(
+    name: 'OpenAI',
+    baseUrl: 'https://api.openai.com/v1',
+    model: 'gpt-4o-mini',
+    note: '需要海外网络访问',
+  ),
+  _ProviderExample(
+    name: '豆包 (字节)',
+    baseUrl: 'https://ark.cn-beijing.volces.com/api/v3',
+    model: 'doubao-pro-32k',
+    note: '需要在火山方舟创建推理接入点，模型名使用接入点 ID',
+  ),
+  _ProviderExample(
+    name: '智谱AI',
+    baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
+    model: 'glm-4-flash',
+    note: 'glm-4-flash 免费额度',
+  ),
+  _ProviderExample(
+    name: '月之暗面 (Kimi)',
+    baseUrl: 'https://api.moonshot.cn/v1',
+    model: 'moonshot-v1-8k',
+    note: '',
+  ),
+  _ProviderExample(
+    name: 'Ollama (本地)',
+    baseUrl: 'http://localhost:11434/v1',
+    model: 'qwen2.5:7b',
+    note: '需要本地运行 Ollama 服务',
+  ),
+];
+
+class _ProviderExample {
+  final String name;
+  final String baseUrl;
+  final String model;
+  final String note;
+  const _ProviderExample({required this.name, required this.baseUrl, required this.model, required this.note});
+}
+
 class _ProviderEditPage extends StatefulWidget {
   final LlmProvider? provider;
   const _ProviderEditPage({this.provider});
@@ -328,6 +349,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
   double _temperature = 0.0;
   int _maxTokens = 1000;
   int _timeout = 30;
+  bool _showAdvanced = false;
 
   bool get _isEditing => widget.provider != null;
 
@@ -343,6 +365,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
       _temperature = p.temperature;
       _maxTokens = p.maxTokens;
       _timeout = p.timeoutSeconds;
+      _showAdvanced = true;
     }
   }
 
@@ -385,6 +408,15 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
     Navigator.pop(context, provider);
   }
 
+  /// 从配置参考快速填充
+  void _applyExample(_ProviderExample ex) {
+    setState(() {
+      _nameCtrl.text = ex.name;
+      _baseUrlCtrl.text = ex.baseUrl;
+      _modelCtrl.text = ex.model;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -403,97 +435,197 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 配置参考卡片
+            _buildReferenceSection(),
+            const SizedBox(height: 24),
+
+            // 基本配置
+            Text('基本配置', style: AppTextStyles.footnote.copyWith(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 12),
+
             _label('服务商名称'),
-            _field(_nameCtrl, '如：DeepSeek、通义千问、本地 Ollama'),
-            const SizedBox(height: 20),
+            _field(_nameCtrl, '如：DeepSeek、通义千问'),
+            const SizedBox(height: 16),
 
             _label('API Key'),
             _field(_apiKeyCtrl, '输入 API Key', obscure: true),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
 
             _label('请求地址'),
-            _field(_baseUrlCtrl, '如：https://api.deepseek.com/v1'),
-            const SizedBox(height: 8),
-            _hint('所有 OpenAI 兼容接口均可使用（OpenAI、DeepSeek、通义千问、Ollama 等）'),
-            const SizedBox(height: 20),
+            _field(_baseUrlCtrl, '如：https://api.deepseek.com'),
+            const SizedBox(height: 4),
+            _hint('填入 API 的 base_url，不需要手动拼接 /chat/completions'),
+            const SizedBox(height: 16),
 
             _label('模型名称'),
-            _field(_modelCtrl, '如：deepseek-chat、qwen-turbo'),
-            const SizedBox(height: 20),
+            _field(_modelCtrl, '如：deepseek-v3、qwen-plus'),
+            const SizedBox(height: 4),
+            _hint('填写服务商提供的模型 ID'),
+            const SizedBox(height: 24),
 
-            // 高级设置
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-              ),
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('高级设置', style: AppTextStyles.footnote.copyWith(fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 16),
-
-                  // 温度
-                  Row(
-                    children: [
-                      Text('温度参数', style: AppTextStyles.body),
-                      const Spacer(),
-                      Text(_temperature.toStringAsFixed(1),
-                          style: AppTextStyles.body.copyWith(color: AppColors.textSecondary)),
-                    ],
-                  ),
-                  Slider(
-                    value: _temperature,
-                    min: 0.0,
-                    max: 1.0,
-                    divisions: 10,
-                    activeColor: AppColors.primary,
-                    onChanged: (v) => setState(() => _temperature = v),
-                  ),
-
-                  // 最大 Token
-                  Row(
-                    children: [
-                      Text('最大 Token', style: AppTextStyles.body),
-                      const Spacer(),
-                      SizedBox(
-                        width: 80,
-                        child: TextField(
-                          controller: TextEditingController(text: _maxTokens.toString()),
-                          keyboardType: TextInputType.number,
-                          textAlign: TextAlign.right,
-                          style: AppTextStyles.body,
-                          decoration: const InputDecoration(border: InputBorder.none, isDense: true),
-                          onChanged: (v) => _maxTokens = int.tryParse(v) ?? 1000,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Divider(height: 16),
-
-                  // 超时
-                  Row(
-                    children: [
-                      Text('超时（秒）', style: AppTextStyles.body),
-                      const Spacer(),
-                      SizedBox(
-                        width: 60,
-                        child: TextField(
-                          controller: TextEditingController(text: _timeout.toString()),
-                          keyboardType: TextInputType.number,
-                          textAlign: TextAlign.right,
-                          style: AppTextStyles.body,
-                          decoration: const InputDecoration(border: InputBorder.none, isDense: true),
-                          onChanged: (v) => _timeout = int.tryParse(v) ?? 30,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+            // 高级设置（折叠）
+            _buildAdvancedSection(),
             const SizedBox(height: 40),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 配置参考区域
+  Widget _buildReferenceSection() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          title: Row(
+            children: [
+              Icon(Icons.menu_book, size: 18, color: AppColors.primary),
+              const SizedBox(width: 8),
+              Text('配置参考', style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
+            ],
+          ),
+          children: _providerExamples.map((ex) => _buildExampleCard(ex)).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExampleCard(_ProviderExample ex) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+        border: Border.all(color: AppColors.separator),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(child: Text(ex.name, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600))),
+              InkWell(
+                onTap: () => _applyExample(ex),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySurface,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text('使用', style: AppTextStyles.caption.copyWith(color: AppColors.primary)),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          _exampleRow('地址', ex.baseUrl),
+          _exampleRow('模型', ex.model),
+          if (ex.note.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(ex.note, style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _exampleRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 36,
+            child: Text(label, style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
+          ),
+          Expanded(
+            child: Text(value, style: AppTextStyles.caption.copyWith(fontFamily: 'monospace')),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 高级设置区域
+  Widget _buildAdvancedSection() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          initiallyExpanded: _showAdvanced,
+          title: Text('高级设置', style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
+          children: [
+            // 温度
+            Row(
+              children: [
+                Text('温度参数', style: AppTextStyles.body),
+                const Spacer(),
+                Text(_temperature.toStringAsFixed(1), style: AppTextStyles.body.copyWith(color: AppColors.textSecondary)),
+              ],
+            ),
+            Slider(
+              value: _temperature,
+              min: 0.0,
+              max: 1.0,
+              divisions: 10,
+              activeColor: AppColors.primary,
+              onChanged: (v) => setState(() => _temperature = v),
+            ),
+            const SizedBox(height: 8),
+
+            // 最大 Token
+            Row(
+              children: [
+                Text('最大 Token', style: AppTextStyles.body),
+                const Spacer(),
+                SizedBox(
+                  width: 80,
+                  child: TextField(
+                    controller: TextEditingController(text: _maxTokens.toString()),
+                    keyboardType: TextInputType.number,
+                    textAlign: TextAlign.right,
+                    style: AppTextStyles.body,
+                    decoration: const InputDecoration(border: InputBorder.none, isDense: true),
+                    onChanged: (v) => _maxTokens = int.tryParse(v) ?? 1000,
+                  ),
+                ),
+              ],
+            ),
+            const Divider(height: 16),
+
+            // 超时
+            Row(
+              children: [
+                Text('超时（秒）', style: AppTextStyles.body),
+                const Spacer(),
+                SizedBox(
+                  width: 60,
+                  child: TextField(
+                    controller: TextEditingController(text: _timeout.toString()),
+                    keyboardType: TextInputType.number,
+                    textAlign: TextAlign.right,
+                    style: AppTextStyles.body,
+                    decoration: const InputDecoration(border: InputBorder.none, isDense: true),
+                    onChanged: (v) => _timeout = int.tryParse(v) ?? 30,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -502,7 +634,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
 
   Widget _label(String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 6),
       child: Text(text, style: AppTextStyles.footnote),
     );
   }
@@ -528,6 +660,9 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
   }
 
   Widget _hint(String text) {
-    return Text(text, style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary));
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Text(text, style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
+    );
   }
 }
