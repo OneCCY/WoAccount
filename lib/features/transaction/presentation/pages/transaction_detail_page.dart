@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:drift/drift.dart' hide Column;
 import 'package:intl/intl.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
@@ -8,7 +9,7 @@ import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
 /// 账单详情页
-/// 头部（图标+金额）+ 信息卡片 + 编辑/复制/删除
+/// 头部（图标+金额）+ 信息卡片（可点击编辑，自动保存）
 class TransactionDetailPage extends ConsumerStatefulWidget {
   final int transactionId;
   const TransactionDetailPage({super.key, required this.transactionId});
@@ -55,18 +56,66 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
     }
   }
 
+  /// 自动保存修改
+  Future<void> _autoSave({String? description, DateTime? transactionDate, String? originalInput}) async {
+    final txn = _transaction;
+    if (txn == null) return;
+
+    final repo = ref.read(transactionRepositoryProvider);
+    final now = DateTime.now();
+
+    final companion = TransactionsCompanion(
+      id: Value(txn.id),
+      amount: Value(txn.amount),
+      description: Value(description ?? txn.description),
+      categoryId: Value(txn.categoryId),
+      subcategoryId: Value(txn.subcategoryId),
+      transactionDate: Value(transactionDate ?? txn.transactionDate),
+      originalInput: Value(originalInput ?? txn.originalInput),
+      aiConfidence: Value(txn.aiConfidence),
+      aiSource: Value(txn.aiSource),
+      userConfirmed: const Value(true),
+      isDeleted: Value(txn.isDeleted),
+      createdAt: Value(txn.createdAt),
+      updatedAt: Value(now),
+    );
+
+    final success = await repo.update(companion);
+    if (success && mounted) {
+      // 更新本地状态
+      setState(() {
+        _transaction = Transaction(
+          id: txn.id,
+          amount: txn.amount,
+          description: description ?? txn.description,
+          categoryId: txn.categoryId,
+          subcategoryId: txn.subcategoryId,
+          transactionDate: transactionDate ?? txn.transactionDate,
+          originalInput: originalInput ?? txn.originalInput,
+          aiConfidence: txn.aiConfidence,
+          aiSource: txn.aiSource,
+          userConfirmed: true,
+          isDeleted: txn.isDeleted,
+          createdAt: txn.createdAt,
+          updatedAt: now,
+        );
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('已保存'),
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 1),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('账单详情'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit_outlined),
-            onPressed: _onEdit,
-          ),
-        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -94,18 +143,8 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
 
           const SizedBox(height: 24),
 
-          // 信息卡片
+          // 信息卡片（可编辑）
           _buildInfoCard(),
-
-          const SizedBox(height: 24),
-
-          // 操作按钮
-          _buildActionButtons(),
-
-          const SizedBox(height: 16),
-
-          // 删除按钮
-          _buildDeleteButton(),
 
           const SizedBox(height: 40),
         ],
@@ -159,11 +198,28 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
         clipBehavior: Clip.antiAlias,
         child: Column(
           children: [
-            _buildInfoRow('描述', txn.description),
-            _buildInfoRow('日期', DateFormat('yyyy-MM-dd HH:mm').format(txn.transactionDate)),
+            // 描述（点击可编辑）
+            _buildEditableRow(
+              label: '描述',
+              value: txn.description,
+              onTap: () => _editDescription(txn.description),
+            ),
+            // 日期（点击弹出日期时间选择器）
+            _buildEditableRow(
+              label: '日期',
+              value: DateFormat('yyyy-MM-dd HH:mm').format(txn.transactionDate),
+              onTap: _editDate,
+            ),
+            // 分类（只读）
             _buildInfoRow('分类', _category?.name ?? '未分类'),
+            // 原始输入（点击可编辑，条件显示）
             if (txn.originalInput != null && txn.originalInput!.isNotEmpty)
-              _buildInfoRow('原始输入', txn.originalInput!),
+              _buildEditableRow(
+                label: '原始输入',
+                value: txn.originalInput!,
+                onTap: () => _editOriginalInput(txn.originalInput!),
+              ),
+            // 创建时间（只读）
             _buildInfoRow('创建时间', DateFormat('yyyy-MM-dd HH:mm').format(txn.createdAt)),
           ],
         ),
@@ -171,6 +227,39 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
     );
   }
 
+  /// 可点击编辑的行（带箭头提示）
+  Widget _buildEditableRow({
+    required String label,
+    required String value,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: const BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: AppColors.separatorOpaque, width: 0.5),
+          ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 80,
+              child: Text(label, style: AppTextStyles.footnote),
+            ),
+            Expanded(
+              child: Text(value, style: AppTextStyles.body),
+            ),
+            Icon(Icons.chevron_right, size: 18, color: AppColors.textTertiary),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 只读信息行
   Widget _buildInfoRow(String label, String value) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -194,101 +283,107 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
     );
   }
 
-  Widget _buildActionButtons() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: _onEdit,
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                side: const BorderSide(color: AppColors.primary),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                ),
-              ),
-              child: Text(
-                '编辑',
-                style: AppTextStyles.buttonText.copyWith(color: AppColors.primary),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: ElevatedButton(
-              onPressed: _onCopy,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                backgroundColor: AppColors.primary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                ),
-              ),
-              child: Text(
-                '复制',
-                style: AppTextStyles.buttonText.copyWith(color: AppColors.textOnPrimary),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // ==================== 编辑操作 ====================
 
-  Widget _buildDeleteButton() {
-    return TextButton(
-      onPressed: _onDelete,
-      child: Text(
-        '删除此账单',
-        style: AppTextStyles.body.copyWith(color: AppColors.error),
-      ),
-    );
-  }
-
-  void _onEdit() {
-    // TODO: 跳转到手动记账页（编辑模式）
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('编辑功能开发中'), behavior: SnackBarBehavior.floating),
-    );
-  }
-
-  void _onCopy() {
-    // TODO: 复制交易记录
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('复制功能开发中'), behavior: SnackBarBehavior.floating),
-    );
-  }
-
-  void _onDelete() {
-    showDialog(
+  /// 编辑描述（内联弹窗）
+  Future<void> _editDescription(String current) async {
+    final controller = TextEditingController(text: current);
+    final result = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('确认删除'),
-        content: const Text('删除后可在回收站恢复'),
+        title: const Text('编辑描述'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: '输入描述',
+            border: OutlineInputBorder(),
+          ),
+          maxLines: null,
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
             child: const Text('取消'),
           ),
           TextButton(
-            onPressed: () async {
-              Navigator.of(ctx).pop();
-              final repo = ref.read(transactionRepositoryProvider);
-              await repo.delete(widget.transactionId);
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('已删除'), behavior: SnackBarBehavior.floating),
-                );
-                Navigator.of(context).pop();
-              }
-            },
-            child: Text('删除', style: TextStyle(color: AppColors.error)),
+            onPressed: () => Navigator.of(ctx).pop(controller.text),
+            child: const Text('保存'),
           ),
         ],
       ),
     );
+
+    if (result != null && result != current && result.isNotEmpty) {
+      await _autoSave(description: result);
+    }
+  }
+
+  /// 编辑日期（日期+时间选择器）
+  Future<void> _editDate() async {
+    final txn = _transaction!;
+    final currentDate = txn.transactionDate;
+
+    // 弹出日期选择器
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: currentDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now().add(const Duration(days: 1)),
+      locale: const Locale('zh', 'CN'),
+    );
+    if (pickedDate == null || !mounted) return;
+
+    // 弹出时间选择器
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(currentDate),
+    );
+    if (pickedTime == null || !mounted) return;
+
+    final newDate = DateTime(
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      pickedTime.hour,
+      pickedTime.minute,
+    );
+
+    await _autoSave(transactionDate: newDate);
+  }
+
+  /// 编辑原始输入
+  Future<void> _editOriginalInput(String current) async {
+    final controller = TextEditingController(text: current);
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('编辑原始输入'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: '输入原始内容',
+            border: OutlineInputBorder(),
+          ),
+          maxLines: null,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(controller.text),
+            child: const Text('保存'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null && result != current) {
+      await _autoSave(originalInput: result);
+    }
   }
 
   Color _parseColor(String? hex) {
