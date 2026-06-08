@@ -66,7 +66,7 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
     final typeLabel = _typeToLabel(book.type);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('账本详情'),
       ),
@@ -78,9 +78,9 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
             // 账本图标 + 名称
             Text(icon, style: const TextStyle(fontSize: 48)),
             const SizedBox(height: 12),
-            Text(book.name, style: AppTextStyles.h2),
+            Text(book.name, style: context.textStyles.h2),
             const SizedBox(height: 4),
-            Text(typeLabel, style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
+            Text(typeLabel, style: context.textStyles.caption.copyWith(color: context.colors.textTertiary)),
 
             // 月度统计
             if (_stats != null) ...[
@@ -89,11 +89,11 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
                 padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
                 child: Row(
                   children: [
-                    Expanded(child: _buildStatCard('本月支出', '¥${_stats!.totalExpense.toStringAsFixed(0)}', AppColors.error)),
+                    Expanded(child: _buildStatCard(context, '本月支出', '¥${_stats!.totalExpense.toStringAsFixed(0)}', context.colors.error)),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildStatCard('本月收入', '¥${_stats!.totalIncome.toStringAsFixed(0)}', AppColors.success)),
+                    Expanded(child: _buildStatCard(context, '本月收入', '¥${_stats!.totalIncome.toStringAsFixed(0)}', context.colors.success)),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildStatCard('交易笔数', '${_stats!.count}', AppColors.textSecondary)),
+                    Expanded(child: _buildStatCard(context, '交易笔数', '${_stats!.count}', context.colors.textSecondary)),
                   ],
                 ),
               ),
@@ -102,7 +102,7 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
             const SizedBox(height: 32),
 
             // 功能菜单
-            _buildMenuSection('常规操作', [
+            _buildMenuSection(context, '常规操作', [
               if (!book.isDefault)
                 _MenuItemData(Icons.check_circle_outline, '设为默认账本', onTap: () => _onSetDefault(book)),
               _MenuItemData(Icons.swap_horiz, '切换到此账本', onTap: () => _onSwitchToBook(book)),
@@ -111,7 +111,7 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
             const SizedBox(height: 16),
 
             // 危险区域
-            _buildMenuSection('危险操作', [
+            _buildMenuSection(context, '危险操作', [
               _MenuItemData(Icons.delete_sweep_outlined, '清空账本数据', onTap: () => _onClearData(book), isDestructive: true),
               if (!book.isDefault)
                 _MenuItemData(Icons.delete_forever_outlined, '删除账本', onTap: () => _onDeleteBook(book), isDestructive: true),
@@ -126,24 +126,24 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
     );
   }
 
-  Widget _buildStatCard(String label, String value, Color color) {
+  Widget _buildStatCard(BuildContext context, String label, String value, Color color) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
       ),
       child: Column(
         children: [
-          Text(label, style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
+          Text(label, style: context.textStyles.caption.copyWith(color: context.colors.textTertiary)),
           const SizedBox(height: 6),
-          Text(value, style: AppTextStyles.amountSmall.copyWith(color: color)),
+          Text(value, style: context.textStyles.amountSmall.copyWith(color: color)),
         ],
       ),
     );
   }
 
-  Widget _buildMenuSection(String title, List<_MenuItemData> items) {
+  Widget _buildMenuSection(BuildContext context, String title, List<_MenuItemData> items) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
       child: Column(
@@ -151,13 +151,13 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
         children: [
           Padding(
             padding: const EdgeInsets.only(left: 4, bottom: 8),
-            child: Text(title, style: AppTextStyles.footnote.copyWith(
-              color: title == '危险操作' ? AppColors.error : AppColors.textTertiary,
+            child: Text(title, style: context.textStyles.footnote.copyWith(
+              color: title == '危险操作' ? context.colors.error : context.colors.textTertiary,
             )),
           ),
           Container(
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: context.colors.surface,
               borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
             ),
             child: Column(
@@ -167,11 +167,11 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
                 return Column(
                   children: [
                     ListTile(
-                      leading: Icon(item.icon, color: item.isDestructive ? AppColors.error : AppColors.textSecondary, size: 22),
+                      leading: Icon(item.icon, color: item.isDestructive ? context.colors.error : context.colors.textSecondary, size: 22),
                       title: Text(
                         item.label,
-                        style: AppTextStyles.body.copyWith(
-                          color: item.isDestructive ? AppColors.error : null,
+                        style: context.textStyles.body.copyWith(
+                          color: item.isDestructive ? context.colors.error : null,
                         ),
                       ),
                       trailing: item.onTap != null
@@ -180,7 +180,7 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
                       onTap: item.onTap,
                     ),
                     if (!isLast)
-                      Divider(height: 1, indent: 56, color: AppColors.separator),
+                      Divider(height: 1, indent: 56, color: context.colors.separator),
                   ],
                 );
               }).toList(),
@@ -222,7 +222,7 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            style: TextButton.styleFrom(foregroundColor: context.colors.error),
             child: const Text('清空'),
           ),
         ],
@@ -250,7 +250,7 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            style: TextButton.styleFrom(foregroundColor: context.colors.error),
             child: const Text('删除'),
           ),
         ],

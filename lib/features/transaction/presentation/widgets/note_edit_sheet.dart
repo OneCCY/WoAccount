@@ -44,8 +44,8 @@ class _NoteEditSheetState extends State<NoteEditSheet> {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
+      decoration: BoxDecoration(
+        color: context.colors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       padding: EdgeInsets.fromLTRB(24, 0, 24, 24 + bottomInset),
@@ -60,13 +60,13 @@ class _NoteEditSheetState extends State<NoteEditSheet> {
               height: 4,
               margin: const EdgeInsets.only(top: 12, bottom: 20),
               decoration: BoxDecoration(
-                color: AppColors.textTertiary,
+                color: context.colors.textTertiary,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
           ),
           // 标题
-          Text('备注', style: AppTextStyles.h3),
+          Text('备注', style: context.textStyles.h3),
           const SizedBox(height: 16),
           // 输入框
           TextField(
@@ -75,18 +75,18 @@ class _NoteEditSheetState extends State<NoteEditSheet> {
             maxLines: 5,
             minLines: 3,
             maxLength: _maxLength,
-            style: AppTextStyles.body,
+            style: context.textStyles.body,
             decoration: InputDecoration(
               hintText: '添加备注...',
-              hintStyle: AppTextStyles.body.copyWith(color: AppColors.textHint),
+              hintStyle: context.textStyles.body.copyWith(color: context.colors.textHint),
               filled: true,
-              fillColor: AppColors.surfaceSecondary,
+              fillColor: context.colors.surfaceSecondary,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
                 borderSide: BorderSide.none,
               ),
               contentPadding: const EdgeInsets.all(12),
-              counterStyle: AppTextStyles.caption,
+              counterStyle: context.textStyles.caption,
             ),
             onChanged: (_) => setState(() {}),
           ),
@@ -111,7 +111,7 @@ class _NoteEditSheetState extends State<NoteEditSheet> {
                 child: ElevatedButton(
                   onPressed: () => Navigator.of(context).pop(_controller.text.trim()),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: context.colors.primary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppDimensions.radiusMd),

@@ -36,8 +36,8 @@ class _DatetimeEditSheetState extends State<DatetimeEditSheet> {
   Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.45,
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
+      decoration: BoxDecoration(
+        color: context.colors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
@@ -48,7 +48,7 @@ class _DatetimeEditSheetState extends State<DatetimeEditSheet> {
             height: 4,
             margin: const EdgeInsets.only(top: 12, bottom: 8),
             decoration: BoxDecoration(
-              color: AppColors.textTertiary,
+              color: context.colors.textTertiary,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -60,12 +60,12 @@ class _DatetimeEditSheetState extends State<DatetimeEditSheet> {
               children: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: Text('取消', style: AppTextStyles.body.copyWith(color: AppColors.textSecondary)),
+                  child: Text('取消', style: context.textStyles.body.copyWith(color: context.colors.textSecondary)),
                 ),
-                Text('选择日期时间', style: AppTextStyles.footnote.copyWith(fontWeight: FontWeight.w600)),
+                Text('选择日期时间', style: context.textStyles.footnote.copyWith(fontWeight: FontWeight.w600)),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(_selectedDateTime),
-                  child: Text('确认', style: AppTextStyles.body.copyWith(color: AppColors.primary, fontWeight: FontWeight.w600)),
+                  child: Text('确认', style: context.textStyles.body.copyWith(color: context.colors.primary, fontWeight: FontWeight.w600)),
                 ),
               ],
             ),

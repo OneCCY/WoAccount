@@ -140,7 +140,7 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
           TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('取消')),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text('删除', style: TextStyle(color: AppColors.expense)),
+            child: Text('删除', style: TextStyle(color: context.colors.expense)),
           ),
         ],
       ),
@@ -229,18 +229,18 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('账单详情'),
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.colors.surface,
         actions: [
           if (_isDirty)
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: TextButton(
                 onPressed: _save,
-                child: Text('保存', style: AppTextStyles.body.copyWith(
-                  color: AppColors.primary,
+                child: Text('保存', style: context.textStyles.body.copyWith(
+                  color: context.colors.primary,
                   fontWeight: FontWeight.w600,
                 )),
               ),
@@ -266,9 +266,9 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
         AppDimensions.md,
         12 + MediaQuery.of(context).padding.bottom,
       ),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.separatorOpaque, width: 0.5)),
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        border: Border(top: BorderSide(color: context.colors.separatorOpaque, width: 0.5)),
       ),
       child: Row(
         children: [
@@ -276,11 +276,11 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
           Expanded(
             child: OutlinedButton.icon(
               onPressed: _delete,
-              icon: Icon(Icons.delete_outline, size: 18, color: AppColors.expense),
-              label: Text('删除', style: AppTextStyles.buttonText.copyWith(color: AppColors.expense)),
+              icon: Icon(Icons.delete_outline, size: 18, color: context.colors.expense),
+              label: Text('删除', style: AppTextStyles.buttonText.copyWith(color: context.colors.expense)),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                side: BorderSide(color: AppColors.expense.withValues(alpha: 0.3)),
+                side: BorderSide(color: context.colors.expense.withValues(alpha: 0.3)),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
                 ),
@@ -296,8 +296,8 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
               icon: const Icon(Icons.check, size: 18, color: Colors.white),
               label: Text('保存', style: AppTextStyles.buttonText.copyWith(color: Colors.white)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: _isDirty ? AppColors.primary : AppColors.textHint,
-                disabledBackgroundColor: AppColors.textHint,
+                backgroundColor: _isDirty ? context.colors.primary : context.colors.textHint,
+                disabledBackgroundColor: context.colors.textHint,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
@@ -312,7 +312,7 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
 
   Widget _buildContent() {
     final isExpense = _category?.isExpense ?? true;
-    final amountColor = isExpense ? AppColors.expense : AppColors.income;
+    final amountColor = isExpense ? context.colors.expense : context.colors.income;
     final prefix = isExpense ? '-' : '+';
 
     return SingleChildScrollView(
@@ -343,8 +343,8 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
         ? '${_parentCategory!.name} > ${_category!.name}'
         : _category?.name ?? '未分类';
     final bgColor = isExpense
-        ? AppColors.expense.withValues(alpha: 0.05)
-        : AppColors.income.withValues(alpha: 0.05);
+        ? context.colors.expense.withValues(alpha: 0.05)
+        : context.colors.income.withValues(alpha: 0.05);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
@@ -375,7 +375,7 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
               const SizedBox(width: 8),
               Text(
                 catName,
-                style: AppTextStyles.footnote.copyWith(color: AppColors.textSecondary),
+                style: context.textStyles.footnote.copyWith(color: context.colors.textSecondary),
               ),
             ],
           ),
@@ -383,13 +383,13 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
           // 金额
           Text(
             '$prefix¥${_amount.toStringAsFixed(2)}',
-            style: AppTextStyles.amountLarge.copyWith(color: amountColor),
+            style: context.textStyles.amountLarge.copyWith(color: amountColor),
           ),
           const SizedBox(height: 8),
           // 日期
           Text(
             DateFormat('yyyy年M月d日 HH:mm').format(_transactionDate),
-            style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary),
+            style: context.textStyles.caption.copyWith(color: context.colors.textTertiary),
           ),
         ],
       ),
@@ -404,7 +404,7 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
       ),
       clipBehavior: Clip.antiAlias,
@@ -419,24 +419,24 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
           ),
           _buildFormRow(
             icon: Icons.attach_money,
-            iconColor: AppColors.primary,
+            iconColor: context.colors.primary,
             label: '金额',
             value: '¥${_amount.toStringAsFixed(2)}',
             onTap: _editAmount,
           ),
           _buildFormRow(
             icon: Icons.calendar_today_outlined,
-            iconColor: AppColors.primary,
+            iconColor: context.colors.primary,
             label: '日期',
             value: DateFormat('MM/dd HH:mm').format(_transactionDate),
             onTap: _editDatetime,
           ),
           _buildFormRow(
             icon: Icons.notes,
-            iconColor: AppColors.textSecondary,
+            iconColor: context.colors.textSecondary,
             label: '备注',
             value: _description.isEmpty ? '点击添加备注' : _description,
-            valueColor: _description.isEmpty ? AppColors.textHint : null,
+            valueColor: _description.isEmpty ? context.colors.textHint : null,
             onTap: _editNote,
             showDivider: false,
           ),
@@ -459,27 +459,27 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: showDivider
-            ? const BoxDecoration(
-                border: Border(bottom: BorderSide(color: AppColors.separatorOpaque, width: 0.5)),
+            ? BoxDecoration(
+                border: Border(bottom: BorderSide(color: context.colors.separatorOpaque, width: 0.5)),
               )
             : null,
         child: Row(
           children: [
             Icon(icon, size: 20, color: iconColor),
             const SizedBox(width: 12),
-            Text(label, style: AppTextStyles.body),
+            Text(label, style: context.textStyles.body),
             const Spacer(),
             Flexible(
               child: Text(
                 value,
-                style: AppTextStyles.footnote.copyWith(color: valueColor ?? AppColors.textSecondary),
+                style: context.textStyles.footnote.copyWith(color: valueColor ?? context.colors.textSecondary),
                 textAlign: TextAlign.right,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
             const SizedBox(width: 4),
-            Icon(Icons.chevron_right, size: 18, color: AppColors.textTertiary),
+            Icon(Icons.chevron_right, size: 18, color: context.colors.textTertiary),
           ],
         ),
       ),
@@ -490,7 +490,7 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
       ),
       clipBehavior: Clip.antiAlias,
@@ -502,14 +502,14 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               child: Row(
                 children: [
-                  Icon(Icons.auto_awesome, size: 18, color: AppColors.primary),
+                  Icon(Icons.auto_awesome, size: 18, color: context.colors.primary),
                   const SizedBox(width: 8),
-                  Text('AI解析记录', style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w500)),
+                  Text('AI解析记录', style: context.textStyles.body.copyWith(fontWeight: FontWeight.w500)),
                   const Spacer(),
                   AnimatedRotation(
                     turns: _aiExpanded ? 0.5 : 0,
                     duration: const Duration(milliseconds: 200),
-                    child: Icon(Icons.keyboard_arrow_down, size: 20, color: AppColors.textTertiary),
+                    child: Icon(Icons.keyboard_arrow_down, size: 20, color: context.colors.textTertiary),
                   ),
                 ],
               ),
@@ -546,9 +546,9 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
       children: [
         SizedBox(
           width: 70,
-          child: Text(label, style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
+          child: Text(label, style: context.textStyles.caption.copyWith(color: context.colors.textTertiary)),
         ),
-        Expanded(child: Text(value, style: AppTextStyles.footnote)),
+        Expanded(child: Text(value, style: context.textStyles.footnote)),
       ],
     );
   }
@@ -558,18 +558,18 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
       margin: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
       ),
       child: Row(
         children: [
-          Icon(Icons.access_time, size: 16, color: AppColors.textTertiary),
+          Icon(Icons.access_time, size: 16, color: context.colors.textTertiary),
           const SizedBox(width: 8),
-          Text('创建时间', style: AppTextStyles.footnote.copyWith(color: AppColors.textTertiary)),
+          Text('创建时间', style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)),
           const Spacer(),
           Text(
             DateFormat('yyyy-MM-dd HH:mm').format(_transaction!.createdAt),
-            style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary),
+            style: context.textStyles.caption.copyWith(color: context.colors.textTertiary),
           ),
         ],
       ),
@@ -577,7 +577,7 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
   }
 
   Color _parseColor(String? hex) {
-    if (hex == null || hex.isEmpty) return AppColors.textTertiary;
+    if (hex == null || hex.isEmpty) return context.colors.textTertiary;
     final clean = hex.replaceFirst('#', '');
     return Color(int.parse('FF$clean', radix: 16));
   }

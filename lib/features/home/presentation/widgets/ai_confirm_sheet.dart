@@ -72,8 +72,8 @@ class AiConfirmSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
+      decoration: BoxDecoration(
+        color: context.colors.surface,
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(20),
         ),
@@ -88,46 +88,46 @@ class AiConfirmSheet extends StatelessWidget {
             height: 4,
             margin: const EdgeInsets.only(top: 12, bottom: 20),
             decoration: BoxDecoration(
-              color: AppColors.textTertiary,
+              color: context.colors.textTertiary,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
           // 标题
-          const Text(
+          Text(
             '🤖 AI解析结果',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
           const SizedBox(height: 4),
           // 原始输入
           Text(
             '原始输入: $originalInput',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-              color: AppColors.textSecondary,
+              color: context.colors.textSecondary,
             ),
           ),
           const SizedBox(height: 20),
           // 结果网格
-          _buildResultGrid(),
+          _buildResultGrid(context),
           const SizedBox(height: 20),
           // 置信度
-          _buildConfidenceBar(),
+          _buildConfidenceBar(context),
           const SizedBox(height: 20),
           // 编辑标签
-          _buildEditTags(),
+          _buildEditTags(context),
           const SizedBox(height: 20),
           // 按钮行
-          _buildButtonRow(),
+          _buildButtonRow(context),
         ],
       ),
     );
   }
 
-  Widget _buildResultGrid() {
+  Widget _buildResultGrid(BuildContext context) {
     return GridView.count(
       crossAxisCount: 2,
       shrinkWrap: true,
@@ -136,34 +136,35 @@ class AiConfirmSheet extends StatelessWidget {
       mainAxisSpacing: 12,
       childAspectRatio: 2.2,
       children: [
-        _buildResultItem('💰 金额', '¥${amount.toStringAsFixed(2)}'),
+        _buildResultItem(context, '💰 金额', '¥${amount.toStringAsFixed(2)}'),
         _buildResultItem(
+          context,
           '📅 日期',
           '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
         ),
-        _buildResultItem('🍜 分类', category),
-        _buildResultItem('⏱️ 解析耗时', '${parseTimeMs}ms'),
-        _buildResultItem('📝 描述', description, fullWidth: true),
+        _buildResultItem(context, '🍜 分类', category),
+        _buildResultItem(context, '⏱️ 解析耗时', '${parseTimeMs}ms'),
+        _buildResultItem(context, '📝 描述', description, fullWidth: true),
       ],
     );
   }
 
-  Widget _buildResultItem(String label, String value, {bool fullWidth = false}) {
+  Widget _buildResultItem(BuildContext context, String label, String value, {bool fullWidth = false}) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: context.colors.background,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+          Text(label, style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: context.colors.textPrimary),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -172,15 +173,15 @@ class AiConfirmSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildConfidenceBar() {
+  Widget _buildConfidenceBar(BuildContext context) {
     final percent = (confidence * 100).toInt();
     return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('置信度', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-            Text('$percent%', style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+            Text('置信度', style: TextStyle(fontSize: 13, color: context.colors.textSecondary)),
+            Text('$percent%', style: TextStyle(fontSize: 13, color: context.colors.textSecondary)),
           ],
         ),
         const SizedBox(height: 6),
@@ -189,27 +190,27 @@ class AiConfirmSheet extends StatelessWidget {
           child: LinearProgressIndicator(
             value: confidence,
             minHeight: 8,
-            backgroundColor: AppColors.background,
-            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.success),
+            backgroundColor: context.colors.background,
+            valueColor: AlwaysStoppedAnimation<Color>(context.colors.success),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildEditTags() {
+  Widget _buildEditTags(BuildContext context) {
     return Row(
       children: [
-        _buildEditTag('修改分类', onEditCategory),
+        _buildEditTag(context, '修改分类', onEditCategory),
         const SizedBox(width: 8),
-        _buildEditTag('修改金额', onEditAmount),
+        _buildEditTag(context, '修改金额', onEditAmount),
         const SizedBox(width: 8),
-        _buildEditTag('修改日期', onEditDate),
+        _buildEditTag(context, '修改日期', onEditDate),
       ],
     );
   }
 
-  Widget _buildEditTag(String label, VoidCallback? onTap) {
+  Widget _buildEditTag(BuildContext context, String label, VoidCallback? onTap) {
     return Expanded(
       child: InkWell(
         onTap: onTap,
@@ -217,33 +218,33 @@ class AiConfirmSheet extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            border: Border.all(color: AppColors.separator, width: 1),
+            border: Border.all(color: context.colors.separator, width: 1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
             label,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            style: TextStyle(fontSize: 13, color: context.colors.textSecondary),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildButtonRow() {
+  Widget _buildButtonRow(BuildContext context) {
     return Row(
       children: [
         Expanded(
           child: OutlinedButton(
             onPressed: onCancel,
             style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: AppColors.separator),
+              side: BorderSide(color: context.colors.separator),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
               ),
               padding: const EdgeInsets.symmetric(vertical: 14),
             ),
-            child: const Text('取消', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text('取消', style: TextStyle(color: context.colors.textSecondary)),
           ),
         ),
         const SizedBox(width: 12),
@@ -251,8 +252,8 @@ class AiConfirmSheet extends StatelessWidget {
           child: ElevatedButton(
             onPressed: onConfirm,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.textOnPrimary,
+              backgroundColor: context.colors.primary,
+              foregroundColor: context.colors.textOnPrimary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
               ),

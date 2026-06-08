@@ -1,16 +1,22 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:dio/dio.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../config/di/ai_providers.dart';
+import '../../../../core/ai/transaction_pipeline.dart';
+import '../../../../core/media/media_storage_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../ai/data/models/llm_config.dart';
 import '../../../category/domain/repositories/category_repository.dart';
+import '../../../text_ai/data/services/voice_recognition_service.dart';
 import '../../../transaction/domain/repositories/transaction_repository.dart';
+import '../../../vision_ai/data/services/image_recognition_service.dart';
 import '../../domain/repositories/chat_repository.dart';
 import '../widgets/chat_bubble.dart';
 import '../widgets/chat_input_bar.dart';
@@ -39,6 +45,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
   late final TransactionRepository _txnRepo;
   late final CategoryRepository _catRepo;
   late final int _bookId;
+  late final TransactionPipeline _pipeline;
 
   @override
   void initState() {
@@ -47,6 +54,17 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
     _txnRepo = ref.read(transactionRepositoryProvider);
     _catRepo = ref.read(categoryRepositoryProvider);
     _bookId = ref.read(currentBookProvider);
+
+    // 初始化统一记账管线
+    final dio = Dio();
+    final llmRepo = ref.read(llmRepositoryProvider);
+    _pipeline = TransactionPipeline(
+      llmRepo: llmRepo,
+      voiceService: VoiceRecognitionService(dio),
+      imageService: ImageRecognitionService(dio),
+      mediaStorage: MediaStorageService(),
+    );
+
     _scrollController.addListener(_onScroll);
     _loadInitialMessages();
   }
@@ -109,130 +127,155 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
     });
   }
 
-  /// 智能匹配分类（一级分类）
-  Future<Category> _matchCategory(String categoryName, String type) async {
-    final categories = await _catRepo.getTopLevel();
-    if (categories.isEmpty) {
-      throw Exception('没有可用分类，请先在分类管理中添加分类');
+  // ==================== 统一输入处理 ====================
+
+  /// 统一处理入口：文本/语音/图片都走此方法
+  Future<void> _processInput({
+    String? text,
+    String? voicePath,
+    String? imagePath,
+  }) async {
+    if (_isAiResponding) return;
+
+    InputSource source;
+    String displayText;
+    String? mediaFilePath;
+
+    if (text != null && text.trim().isNotEmpty) {
+      source = InputSource.text;
+      displayText = text.trim();
+    } else if (voicePath != null) {
+      source = InputSource.voice;
+      displayText = '🎤 语音消息'; // 先显示占位，转写后更新
+      mediaFilePath = voicePath;
+    } else if (imagePath != null) {
+      source = InputSource.image;
+      displayText = '📷 图片消息';
+      mediaFilePath = imagePath;
+    } else {
+      return;
     }
-
-    final isExpense = type == 'expense';
-
-    // 精确匹配
-    for (final c in categories) {
-      if (c.name == categoryName && c.isExpense == isExpense) return c;
-    }
-
-    // 模糊匹配（包含关系）
-    for (final c in categories) {
-      if ((c.name.contains(categoryName) || categoryName.contains(c.name)) && c.isExpense == isExpense) {
-        return c;
-      }
-    }
-
-    // 按类型匹配第一个
-    for (final c in categories) {
-      if (c.isExpense == isExpense) return c;
-    }
-
-    return categories.first;
-  }
-
-  /// 智能匹配二级分类
-  Future<Category?> _matchSubcategory(int parentId, String? subcategoryName) async {
-    if (subcategoryName == null || subcategoryName.isEmpty) return null;
-
-    final children = await _catRepo.getChildren(parentId);
-
-    // 精确匹配
-    for (final c in children) {
-      if (c.name == subcategoryName) return c;
-    }
-
-    // 模糊匹配
-    for (final c in children) {
-      if (c.name.contains(subcategoryName) || subcategoryName.contains(c.name)) {
-        return c;
-      }
-    }
-
-    // 未找到，自动创建
-    try {
-      final newId = await _catRepo.insert(CategoriesCompanion.insert(
-        name: subcategoryName,
-        icon: const Value('📦'),
-        color: const Value('#607D8B'),
-        parentId: Value(parentId),
-        level: const Value(2),
-        isSystem: const Value(false),
-        isExpense: Value(true), // 继承父分类
-        sortOrder: Value(children.length + 1),
-      ));
-      return await _catRepo.getById(newId);
-    } catch (_) {
-      return null; // 创建失败返回null
-    }
-  }
-
-  /// 发送文本 → AI 解析 → 显示确认卡片（支持多笔）
-  Future<void> _sendMessage(String text) async {
-    if (text.trim().isEmpty || _isAiResponding) return;
 
     // 1. 保存并显示用户消息
     final userMsgId = await _chatRepo.insertMessage(
       ConversationMessagesCompanion.insert(
         conversationId: _conversationId,
         role: 'user',
-        content: text,
+        content: displayText,
         accountBookId: _bookId,
+        mediaType: Value(source == InputSource.text ? null : source.name),
+        mediaFilePath: Value(mediaFilePath),
       ),
     );
+
     setState(() {
       _items.add(_ChatItem.user(ConversationMessage(
         id: userMsgId,
         conversationId: _conversationId,
         role: 'user',
-        content: text,
+        content: displayText,
         accountBookId: _bookId,
         createdAt: DateTime.now(),
+        mediaType: source == InputSource.text ? null : source.name,
+        mediaFilePath: mediaFilePath,
       )));
       _isAiResponding = true;
     });
     _scrollToBottom();
 
-    // 2. AI 解析
+    // 2. 通过统一管线处理
     try {
-      final llmRepo = ref.read(llmRepositoryProvider);
-      final results = await llmRepo.parseTransaction(text);
+      final provider = await ref.read(llmRepositoryProvider).getActiveProvider();
+      if (provider == null || !provider.isComplete) {
+        throw const LlmException('请先在设置中添加并配置 AI 服务商');
+      }
+
+      PipelineResult result;
+      switch (source) {
+        case InputSource.text:
+          result = await _pipeline.processText(displayText);
+          break;
+        case InputSource.voice:
+          result = await _pipeline.processVoice(
+            audioTempPath: voicePath!,
+            provider: provider,
+          );
+          // 更新用户消息为转写文本
+          final transcribedText = '${source.emoji} ${result.normalizedText}';
+          await _chatRepo.insertMessage(
+            ConversationMessagesCompanion.insert(
+              conversationId: _conversationId,
+              role: 'assistant',
+              content: '🎤 语音转文字：${result.normalizedText}',
+              accountBookId: _bookId,
+            ),
+          );
+          setState(() {
+            _items.add(_ChatItem.assistant(ConversationMessage(
+              id: 0,
+              conversationId: _conversationId,
+              role: 'assistant',
+              content: '🎤 语音转文字：${result.normalizedText}',
+              accountBookId: _bookId,
+              createdAt: DateTime.now(),
+            )));
+          });
+          break;
+        case InputSource.image:
+          result = await _pipeline.processImage(
+            imageTempPath: imagePath!,
+            provider: provider,
+          );
+          // 显示图片识别结果
+          await _chatRepo.insertMessage(
+            ConversationMessagesCompanion.insert(
+              conversationId: _conversationId,
+              role: 'assistant',
+              content: '📷 图片识别结果：${result.normalizedText}',
+              accountBookId: _bookId,
+            ),
+          );
+          setState(() {
+            _items.add(_ChatItem.assistant(ConversationMessage(
+              id: 0,
+              conversationId: _conversationId,
+              role: 'assistant',
+              content: '📷 图片识别结果：${result.normalizedText}',
+              accountBookId: _bookId,
+              createdAt: DateTime.now(),
+            )));
+          });
+          break;
+      }
 
       // 3. 为每笔交易匹配分类并生成确认卡片
       final confirmCards = <ConfirmData>[];
-      for (final result in results) {
-        final matchedCategory = await _matchCategory(result.category, result.type);
-        final matchedSub = await _matchSubcategory(matchedCategory.id, result.subcategory);
+      for (final txn in result.transactions) {
+        final matchedCategory = await _matchCategory(txn.category, txn.type);
+        final matchedSub = await _matchSubcategory(matchedCategory.id, txn.subcategory);
 
         DateTime txnDate = DateTime.now();
-        if (result.date != null && result.date!.isNotEmpty) {
+        if (txn.date != null && txn.date!.isNotEmpty) {
           try {
-            txnDate = DateTime.parse(result.date!);
-          } catch (_) {
-            // 解析失败用今天
-          }
+            txnDate = DateTime.parse(txn.date!);
+          } catch (_) {}
         }
 
         confirmCards.add(ConfirmData(
-          originalInput: text,
-          amount: result.amount,
-          type: result.type,
+          originalInput: result.normalizedText,
+          amount: txn.amount,
+          type: txn.type,
           category: matchedCategory.name,
           categoryId: matchedCategory.id,
           subcategory: matchedSub?.name ?? '暂无',
           subcategoryId: matchedSub?.id,
-          description: result.description.isNotEmpty
-              ? result.description
-              : text.replaceAll(RegExp(r'\d+\.?\d*'), '').trim(),
+          description: txn.description.isNotEmpty
+              ? txn.description
+              : result.normalizedText.replaceAll(RegExp(r'\d+\.?\d*'), '').trim(),
           date: txnDate,
-          confidence: result.confidence,
+          confidence: txn.confidence,
+          mediaFilePath: result.mediaFilePath,
+          mediaType: source == InputSource.text ? null : source.name,
         ));
       }
 
@@ -245,7 +288,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
       });
     } catch (e) {
       final errorMsg = '❌ 解析失败：$e\n\n请尝试更明确的描述，如"午饭拉面25"';
-      final aiMsgId = await _chatRepo.insertMessage(
+      await _chatRepo.insertMessage(
         ConversationMessagesCompanion.insert(
           conversationId: _conversationId,
           role: 'assistant',
@@ -255,7 +298,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
       );
       setState(() {
         _items.add(_ChatItem.assistant(ConversationMessage(
-          id: aiMsgId,
+          id: 0,
           conversationId: _conversationId,
           role: 'assistant',
           content: errorMsg,
@@ -268,7 +311,63 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
     _scrollToBottom();
   }
 
-  /// 用户确认保存单笔
+  // ==================== 分类匹配 ====================
+
+  Future<Category> _matchCategory(String categoryName, String type) async {
+    final categories = await _catRepo.getTopLevel();
+    if (categories.isEmpty) {
+      throw Exception('没有可用分类，请先在分类管理中添加分类');
+    }
+
+    final isExpense = type == 'expense';
+
+    for (final c in categories) {
+      if (c.name == categoryName && c.isExpense == isExpense) return c;
+    }
+    for (final c in categories) {
+      if ((c.name.contains(categoryName) || categoryName.contains(c.name)) && c.isExpense == isExpense) {
+        return c;
+      }
+    }
+    for (final c in categories) {
+      if (c.isExpense == isExpense) return c;
+    }
+    return categories.first;
+  }
+
+  Future<Category?> _matchSubcategory(int parentId, String? subcategoryName) async {
+    if (subcategoryName == null || subcategoryName.isEmpty) return null;
+
+    final children = await _catRepo.getChildren(parentId);
+
+    for (final c in children) {
+      if (c.name == subcategoryName) return c;
+    }
+    for (final c in children) {
+      if (c.name.contains(subcategoryName) || subcategoryName.contains(c.name)) {
+        return c;
+      }
+    }
+
+    try {
+      final newId = await _catRepo.insert(CategoriesCompanion.insert(
+        name: subcategoryName,
+        icon: const Value('📦'),
+        color: const Value('#607D8B'),
+        parentId: Value(parentId),
+        level: const Value(2),
+        isSystem: const Value(false),
+        isExpense: Value(true),
+        sortOrder: Value(children.length + 1),
+      ));
+      return await _catRepo.getById(newId);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // ==================== 确认/取消 ====================
+
   Future<void> _confirmSave(ConfirmData data) async {
     try {
       await _txnRepo.insert(TransactionsCompanion.insert(
@@ -281,6 +380,8 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
         aiSource: Value(data.confidence > 0.85 ? 'llm' : 'rule'),
         aiConfidence: Value(data.confidence),
         accountBookId: _bookId,
+        mediaFilePath: Value(data.mediaFilePath),
+        mediaType: Value(data.mediaType),
       ));
 
       final amountPrefix = data.type == 'expense' ? '-' : '+';
@@ -288,7 +389,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
           '$amountPrefix¥${data.amount.toStringAsFixed(2)} · ${data.category}\n'
           '${data.description} · ${DateFormat('MM/dd').format(data.date)}';
 
-      final aiMsgId = await _chatRepo.insertMessage(
+      await _chatRepo.insertMessage(
         ConversationMessagesCompanion.insert(
           conversationId: _conversationId,
           role: 'assistant',
@@ -298,12 +399,11 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
       );
 
       setState(() {
-        // 只移除当前这条确认卡片
         final idx = _items.indexWhere((i) => i.isConfirm && i.confirmData == data);
         if (idx != -1) _items.removeAt(idx);
 
         _items.add(_ChatItem.assistant(ConversationMessage(
-          id: aiMsgId,
+          id: 0,
           conversationId: _conversationId,
           role: 'assistant',
           content: summary,
@@ -325,7 +425,6 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
     }
   }
 
-  /// 用户取消确认
   void _cancelConfirm(ConfirmData data) {
     setState(() {
       final idx = _items.indexWhere((i) => i.isConfirm && i.confirmData == data);
@@ -333,7 +432,6 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
     });
   }
 
-  /// 修改确认数据
   void _updateConfirm(ConfirmData oldData, ConfirmData newData) {
     setState(() {
       final idx = _items.indexWhere((i) => i.isConfirm && i.confirmData == oldData);
@@ -342,6 +440,8 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
       }
     });
   }
+
+  // ==================== UI ====================
 
   @override
   Widget build(BuildContext context) {
@@ -354,14 +454,11 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
           Expanded(child: _buildMessageList()),
           if (_isAiResponding) _buildTypingIndicator(),
           ChatInputBar(
-            onSubmit: _sendMessage,
+            onSubmit: (text) => _processInput(text: text),
+            onVoiceRecorded: (path) => _processInput(voicePath: path),
+            onImageCaptured: (path) => _processInput(imagePath: path),
             isLoading: _isAiResponding,
             onManualEntry: () => context.push('/manual-entry'),
-            onCamera: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('拍照识别功能开发中'), behavior: SnackBarBehavior.floating, duration: Duration(milliseconds: 500)),
-              );
-            },
           ),
         ],
       ),
@@ -403,7 +500,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
 
   Widget _buildMessageList() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+      return Center(child: CircularProgressIndicator(color: AppColors.primary));
     }
     if (_items.isEmpty) return _buildEmptyState();
 
@@ -437,10 +534,13 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
           }
 
           if (item.message != null) {
+            final msg = item.message!;
             return ChatBubble(
-              isUser: item.message!.role == 'user',
-              content: item.message!.content,
-              time: item.message!.createdAt,
+              isUser: msg.role == 'user',
+              content: msg.content,
+              time: msg.createdAt,
+              mediaType: _parseMediaType(msg.mediaType),
+              mediaFilePath: msg.mediaFilePath,
             );
           }
 
@@ -448,6 +548,17 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
         },
       ),
     );
+  }
+
+  MessageMediaType _parseMediaType(String? type) {
+    switch (type) {
+      case 'voice':
+        return MessageMediaType.voice;
+      case 'image':
+        return MessageMediaType.image;
+      default:
+        return MessageMediaType.text;
+    }
   }
 
   Widget _buildEmptyState() {
@@ -462,7 +573,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
           Text('试试输入 "午饭拉面25" 或 "吃饭24，洗衣服34"',
               style: AppTextStyles.body.copyWith(color: AppColors.textTertiary)),
           const SizedBox(height: 4),
-          Text('长按记账按钮可语音输入 🎤',
+          Text('长按记账按钮可语音输入 🎤 · 点击右侧按钮拍照识别 📷',
               style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
         ],
       ),
@@ -520,6 +631,8 @@ class ConfirmData {
   String description;
   DateTime date;
   final double confidence;
+  final String? mediaFilePath;
+  final String? mediaType;
 
   ConfirmData({
     required this.originalInput,
@@ -532,6 +645,8 @@ class ConfirmData {
     required this.description,
     required this.date,
     required this.confidence,
+    this.mediaFilePath,
+    this.mediaType,
   });
 
   ConfirmData copyWith({
@@ -555,6 +670,8 @@ class ConfirmData {
       description: description ?? this.description,
       date: date ?? this.date,
       confidence: confidence,
+      mediaFilePath: mediaFilePath,
+      mediaType: mediaType,
     );
   }
 }

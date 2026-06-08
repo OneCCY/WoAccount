@@ -50,10 +50,10 @@ class _AcCoinRecordsPageState extends ConsumerState<AcCoinRecordsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('AC币记录'),
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.colors.surface,
       ),
       body: Column(
         children: [
@@ -71,7 +71,7 @@ class _AcCoinRecordsPageState extends ConsumerState<AcCoinRecordsPage> {
       margin: const EdgeInsets.all(AppDimensions.md),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.primary,
+        color: context.colors.primary,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
       ),
       child: Row(
@@ -81,9 +81,9 @@ class _AcCoinRecordsPageState extends ConsumerState<AcCoinRecordsPage> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('当前余额', style: AppTextStyles.caption.copyWith(color: Colors.white70)),
+              Text('当前余额', style: context.textStyles.caption.copyWith(color: Colors.white70)),
               const SizedBox(height: 4),
-              Text('$_balance', style: AppTextStyles.h1.copyWith(color: Colors.white)),
+              Text('$_balance', style: context.textStyles.h1.copyWith(color: Colors.white)),
             ],
           ),
         ],
@@ -97,9 +97,9 @@ class _AcCoinRecordsPageState extends ConsumerState<AcCoinRecordsPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.monetization_on_outlined, size: 48, color: AppColors.textTertiary),
+            Icon(Icons.monetization_on_outlined, size: 48, color: context.colors.textTertiary),
             const SizedBox(height: 16),
-            Text('暂无AC币记录', style: AppTextStyles.callout.copyWith(color: AppColors.textSecondary)),
+            Text('暂无AC币记录', style: context.textStyles.callout.copyWith(color: context.colors.textSecondary)),
           ],
         ),
       );
@@ -117,14 +117,14 @@ class _AcCoinRecordsPageState extends ConsumerState<AcCoinRecordsPage> {
 
   Widget _buildTransactionItem(AcCoinTransaction txn) {
     final isPositive = txn.amount > 0;
-    final amountColor = isPositive ? AppColors.income : AppColors.expense;
+    final amountColor = isPositive ? context.colors.income : context.colors.expense;
     final amountText = isPositive ? '+${txn.amount}' : '${txn.amount}';
     final dateStr = DateFormat('yyyy-MM-dd HH:mm').format(txn.createdAt);
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.separatorOpaque, width: 0.5)),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: context.colors.separatorOpaque, width: 0.5)),
       ),
       child: Row(
         children: [
@@ -133,13 +133,13 @@ class _AcCoinRecordsPageState extends ConsumerState<AcCoinRecordsPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(txn.description.isNotEmpty ? txn.description : txn.type,
-                    style: AppTextStyles.body),
+                    style: context.textStyles.body),
                 const SizedBox(height: 4),
-                Text(dateStr, style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
+                Text(dateStr, style: context.textStyles.caption.copyWith(color: context.colors.textTertiary)),
               ],
             ),
           ),
-          Text(amountText, style: AppTextStyles.amountList.copyWith(color: amountColor, fontSize: 16)),
+          Text(amountText, style: context.textStyles.amountList.copyWith(color: amountColor, fontSize: 16)),
         ],
       ),
     );

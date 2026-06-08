@@ -116,7 +116,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
         content: const Text('确定要退出登录吗？'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text('退出', style: TextStyle(color: AppColors.expense))),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text('退出', style: TextStyle(color: context.colors.expense))),
         ],
       ),
     );
@@ -136,7 +136,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
         content: const Text('注销账号后数据将无法恢复，确定要申请注销吗？'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text('申请注销', style: TextStyle(color: AppColors.expense))),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text('申请注销', style: TextStyle(color: context.colors.expense))),
         ],
       ),
     );
@@ -165,7 +165,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(title: const Text('个人资料')),
       body: SingleChildScrollView(
         child: Column(
@@ -194,10 +194,10 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
           children: [
             CircleAvatar(
               radius: 48,
-              backgroundColor: AppColors.primarySurface,
+              backgroundColor: context.colors.primarySurface,
               backgroundImage: profile.avatarPath != null ? FileImage(File(profile.avatarPath!)) : null,
               child: profile.avatarPath == null
-                  ? const Icon(Icons.person_outline, size: 40, color: AppColors.primaryDark)
+                  ? Icon(Icons.person_outline, size: 40, color: context.colors.primaryDark)
                   : null,
             ),
             Positioned(
@@ -205,8 +205,8 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
               right: 0,
               child: Container(
                 padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: AppColors.primary,
+                decoration: BoxDecoration(
+                  color: context.colors.primary,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.camera_alt, size: 16, color: Colors.white),
@@ -222,7 +222,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
       ),
       clipBehavior: Clip.antiAlias,
@@ -256,15 +256,15 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: showDivider
-            ? const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.separatorOpaque, width: 0.5)))
+            ? BoxDecoration(border: Border(bottom: BorderSide(color: context.colors.separatorOpaque, width: 0.5)))
             : null,
         child: Row(
           children: [
-            SizedBox(width: 70, child: Text(label, style: AppTextStyles.body)),
-            Expanded(child: Text(value, style: AppTextStyles.footnote.copyWith(color: AppColors.textSecondary), textAlign: TextAlign.right)),
+            SizedBox(width: 70, child: Text(label, style: context.textStyles.body)),
+            Expanded(child: Text(value, style: context.textStyles.footnote.copyWith(color: context.colors.textSecondary), textAlign: TextAlign.right)),
             if (!readOnly) ...[
               const SizedBox(width: 4),
-              const Icon(Icons.chevron_right, size: 18, color: AppColors.textTertiary),
+              Icon(Icons.chevron_right, size: 18, color: context.colors.textTertiary),
             ],
           ],
         ),
@@ -276,7 +276,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
       ),
       clipBehavior: Clip.antiAlias,
@@ -288,9 +288,9 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               child: Row(
                 children: [
-                  Icon(Icons.logout, size: 20, color: AppColors.expense),
+                  Icon(Icons.logout, size: 20, color: context.colors.expense),
                   const SizedBox(width: 12),
-                  Text('退出登录', style: AppTextStyles.body.copyWith(color: AppColors.expense)),
+                  Text('退出登录', style: context.textStyles.body.copyWith(color: context.colors.expense)),
                 ],
               ),
             ),
@@ -299,12 +299,12 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
             onTap: _deleteAccount,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: const BoxDecoration(border: Border(top: BorderSide(color: AppColors.separatorOpaque, width: 0.5))),
+              decoration: BoxDecoration(border: Border(top: BorderSide(color: context.colors.separatorOpaque, width: 0.5))),
               child: Row(
                 children: [
-                  Icon(Icons.delete_forever_outlined, size: 20, color: AppColors.expense),
+                  Icon(Icons.delete_forever_outlined, size: 20, color: context.colors.expense),
                   const SizedBox(width: 12),
-                  Text('申请注销账号', style: AppTextStyles.body.copyWith(color: AppColors.expense)),
+                  Text('申请注销账号', style: context.textStyles.body.copyWith(color: context.colors.expense)),
                 ],
               ),
             ),

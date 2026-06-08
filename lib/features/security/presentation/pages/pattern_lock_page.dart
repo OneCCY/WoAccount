@@ -32,7 +32,7 @@ class _PatternLockPageState extends State<PatternLockPage> {
         : '';
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.AppColors.background,
       appBar: isSetup
           ? AppBar(
               title: const Text('设置图案锁'),
@@ -48,10 +48,10 @@ class _PatternLockPageState extends State<PatternLockPage> {
               if (!isSetup) SizedBox(height: MediaQuery.of(context).padding.top),
 
               // 标题
-              Text(title, style: AppTextStyles.h3.copyWith(fontSize: 18)),
+              Text(title, style: context.textStyles.h3.copyWith(fontSize: 18)),
               if (subtitle.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                Text(subtitle, style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
+                Text(subtitle, style: context.textStyles.caption.copyWith(color: context.AppColors.textTertiary)),
               ],
               const SizedBox(height: 40),
 
@@ -66,7 +66,7 @@ class _PatternLockPageState extends State<PatternLockPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 40),
                   child: Text(
                     _error,
-                    style: AppTextStyles.caption.copyWith(color: AppColors.error),
+                    style: context.textStyles.caption.copyWith(color: context.AppColors.error),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -83,7 +83,7 @@ class _PatternLockPageState extends State<PatternLockPage> {
                       _error = '';
                     });
                   },
-                  child: Text('重新绘制', style: AppTextStyles.body.copyWith(color: AppColors.primary)),
+                  child: Text('重新绘制', style: context.textStyles.body.copyWith(color: context.AppColors.primary)),
                 ),
             ],
           ),
@@ -98,6 +98,7 @@ class _PatternLockPageState extends State<PatternLockPage> {
       height: 240,
       child: _PatternGridWidget(
         onPatternComplete: _onPatternComplete,
+        colors: context.colors,
       ),
     );
   }
@@ -184,8 +185,9 @@ class _PatternLockPageState extends State<PatternLockPage> {
 /// 图案绘制网格组件
 class _PatternGridWidget extends StatefulWidget {
   final Function(List<int>) onPatternComplete;
+  final AppColors colors;
 
-  const _PatternGridWidget({required this.onPatternComplete});
+  const _PatternGridWidget({required this.onPatternComplete, required this.colors});
 
   @override
   State<_PatternGridWidget> createState() => _PatternGridWidgetState();
@@ -275,6 +277,7 @@ class _PatternGridWidgetState extends State<_PatternGridWidget> {
           currentPosition: _currentPosition,
           getDotCenter: _getDotCenter,
           isDrawing: _isDrawing,
+          colors: widget.colors,
         ),
       ),
     );
@@ -286,12 +289,14 @@ class _PatternPainter extends CustomPainter {
   final Offset? currentPosition;
   final Offset Function(int) getDotCenter;
   final bool isDrawing;
+  final AppColors colors;
 
   _PatternPainter({
     required this.selectedDots,
     this.currentPosition,
     required this.getDotCenter,
     required this.isDrawing,
+    required this.colors,
   });
 
   @override

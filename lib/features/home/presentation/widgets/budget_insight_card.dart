@@ -46,15 +46,15 @@ class BudgetInsightCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     message,
-                    style: AppTextStyles.footnote.copyWith(
+                    style: context.textStyles.footnote.copyWith(
                       color: const Color(0xFFE65100),
                     ),
                   ),
                 ),
                 Text(
                   '详情',
-                  style: AppTextStyles.footnote.copyWith(
-                    color: AppColors.warning,
+                  style: context.textStyles.footnote.copyWith(
+                    color: context.colors.warning,
                     fontWeight: FontWeight.w500,
                   ),
                 ),

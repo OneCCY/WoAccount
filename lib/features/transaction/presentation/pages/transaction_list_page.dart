@@ -77,7 +77,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
         horizontal: Responsive.s(context, AppDimensions.md),
         vertical: Responsive.s(context, 8),
       ),
-      color: AppColors.surface,
+      color: context.colors.surface,
       child: Row(
         children: [
           ViewSwitcher(
@@ -111,7 +111,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
               padding: EdgeInsets.symmetric(horizontal: Responsive.s(context, 4)),
               child: Text(
                 _getPeriodLabel(),
-                style: AppTextStyles.footnote.copyWith(
+                style: context.textStyles.footnote.copyWith(
                   fontWeight: FontWeight.w600,
                   fontSize: Responsive.fs(context, 13),
                 ),
@@ -177,7 +177,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        border: Border.all(color: AppColors.separator, width: 1),
+        border: Border.all(color: context.colors.separator, width: 1),
         borderRadius: BorderRadius.circular(borderRadius),
       ),
       child: Material(
@@ -186,7 +186,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
         child: InkWell(
           onTap: onPressed,
           borderRadius: BorderRadius.circular(borderRadius),
-          child: Icon(icon, size: iconSize, color: AppColors.textSecondary),
+          child: Icon(icon, size: iconSize, color: context.colors.textSecondary),
         ),
       ),
     );
@@ -200,7 +200,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
         horizontal: Responsive.s(context, AppDimensions.md),
         vertical: Responsive.s(context, 8),
       ),
-      color: AppColors.surface,
+      color: context.colors.surface,
       child: Row(
         children: [
           // 左侧：回到今天按钮
@@ -216,17 +216,17 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
                 height: Responsive.s(context, 36),
                 padding: EdgeInsets.symmetric(horizontal: Responsive.s(context, 10)),
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceSecondary,
+                  color: context.colors.surfaceSecondary,
                   borderRadius: BorderRadius.circular(Responsive.s(context, 10)),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.search, size: 18, color: AppColors.textTertiary),
+                    Icon(Icons.search, size: 18, color: context.colors.textTertiary),
                     SizedBox(width: Responsive.s(context, 6)),
                     Expanded(
                       child: Text(
                         '搜索账单',
-                        style: AppTextStyles.footnote.copyWith(color: AppColors.textTertiary),
+                        style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary),
                       ),
                     ),
                   ],
@@ -241,17 +241,17 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: Responsive.s(context, 10), vertical: Responsive.s(context, 8)),
               decoration: BoxDecoration(
-                color: AppColors.surfaceSecondary,
+                color: context.colors.surfaceSecondary,
                 borderRadius: BorderRadius.circular(Responsive.s(context, 8)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.account_balance_wallet_outlined, size: 17, color: AppColors.textSecondary),
+                  Icon(Icons.account_balance_wallet_outlined, size: 17, color: context.colors.textSecondary),
                   SizedBox(width: Responsive.s(context, 4)),
                   Text(
                     '预算',
-                    style: AppTextStyles.footnote.copyWith(color: AppColors.textSecondary),
+                    style: context.textStyles.footnote.copyWith(color: context.colors.textSecondary),
                   ),
                 ],
               ),
@@ -264,19 +264,19 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
 
   Widget _buildTodayButton() {
     return Material(
-      color: AppColors.surfaceSecondary,
+      color: context.colors.surfaceSecondary,
       borderRadius: BorderRadius.circular(Responsive.s(context, 8)),
       child: InkWell(
         onTap: _goToToday,
         borderRadius: BorderRadius.circular(Responsive.s(context, 8)),
-        splashColor: AppColors.primary.withValues(alpha: 0.15),
-        highlightColor: AppColors.primary.withValues(alpha: 0.08),
+        splashColor: context.colors.primary.withValues(alpha: 0.15),
+        highlightColor: context.colors.primary.withValues(alpha: 0.08),
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: Responsive.s(context, 12), vertical: Responsive.s(context, 8)),
           child: Text(
             '今天',
-            style: AppTextStyles.footnote.copyWith(
-              color: AppColors.textSecondary,
+            style: context.textStyles.footnote.copyWith(
+              color: context.colors.textSecondary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -331,7 +331,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
               _buildStatItem(
                 '$label支出',
                 '¥${expense.toStringAsFixed(2)}',
-                AppColors.expense,
+                context.colors.expense,
                 isActive: !isMonth && _filterType == 'expense',
                 onTap: isMonth ? null : () {
                   setState(() {
@@ -346,7 +346,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
               _buildStatItem(
                 '$label收入',
                 '¥${income.toStringAsFixed(2)}',
-                AppColors.income,
+                context.colors.income,
                 isActive: !isMonth && _filterType == 'income',
                 onTap: isMonth ? null : () {
                   setState(() {
@@ -358,7 +358,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
                   });
                 },
               ),
-              _buildStatItem('结余', '¥${balance.toStringAsFixed(2)}', AppColors.textPrimary),
+              _buildStatItem('结余', '¥${balance.toStringAsFixed(2)}', context.colors.textPrimary),
             ],
           ),
         );
@@ -392,20 +392,20 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
           padding: EdgeInsets.symmetric(vertical: Responsive.s(context, 10)),
           margin: EdgeInsets.symmetric(horizontal: Responsive.s(context, 4)),
           decoration: BoxDecoration(
-            color: isActive ? valueColor.withValues(alpha: 0.1) : AppColors.surfaceSecondary,
+            color: isActive ? valueColor.withValues(alpha: 0.1) : context.colors.surfaceSecondary,
             borderRadius: BorderRadius.circular(Responsive.s(context, AppDimensions.radiusSm)),
             border: isActive ? Border.all(color: valueColor.withValues(alpha: 0.4), width: 1.5) : null,
           ),
           child: Column(
             children: [
-              Text(label, style: AppTextStyles.caption.copyWith(
+              Text(label, style: context.textStyles.caption.copyWith(
                 fontSize: Responsive.fs(context, 11),
                 fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                color: isActive ? valueColor : AppColors.textSecondary,
+                color: isActive ? valueColor : context.colors.textSecondary,
               )),
               SizedBox(height: Responsive.s(context, 4)),
               Text(value,
-                  style: AppTextStyles.amountList.copyWith(
+                  style: context.textStyles.amountList.copyWith(
                     color: valueColor,
                     fontSize: Responsive.fs(context, 16),
                     fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
@@ -469,7 +469,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
         stream: repo.watchAll(ref.read(currentBookProvider)),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+            return Center(child: CircularProgressIndicator(color: context.colors.primary));
           }
           final allTxns = snapshot.data ?? [];
           final dayTxns = allTxns.where((t) =>
@@ -592,31 +592,31 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
                 padding: EdgeInsets.symmetric(vertical: Responsive.s(context, 6)),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? AppColors.primarySurface
-                      : (isToday ? AppColors.primarySurface.withValues(alpha: 0.5) : AppColors.surfaceSecondary),
+                      ? context.colors.primarySurface
+                      : (isToday ? context.colors.primarySurface.withValues(alpha: 0.5) : context.colors.surfaceSecondary),
                   borderRadius: BorderRadius.circular(Responsive.s(context, AppDimensions.radiusSm)),
                   border: isSelected
-                      ? Border.all(color: AppColors.primary, width: 2)
-                      : (isToday ? Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 1) : null),
+                      ? Border.all(color: context.colors.primary, width: 2)
+                      : (isToday ? Border.all(color: context.colors.primary.withValues(alpha: 0.3), width: 1) : null),
                 ),
                 child: Column(
                   children: [
                     Text(weekday,
-                        style: AppTextStyles.caption.copyWith(
+                        style: context.textStyles.caption.copyWith(
                           fontSize: Responsive.fs(context, 11),
-                          color: isSelected ? AppColors.primary : AppColors.textTertiary,
+                          color: isSelected ? context.colors.primary : context.colors.textTertiary,
                         )),
                     SizedBox(height: Responsive.s(context, 4)),
                     if (hasExpense)
                       Text(
                         '-${_formatCompact(totals.expense)}',
-                        style: TextStyle(fontSize: amountFontSize, color: AppColors.expense, height: 1.1),
+                        style: TextStyle(fontSize: amountFontSize, color: context.colors.expense, height: 1.1),
                         overflow: TextOverflow.ellipsis,
                       ),
                     if (hasIncome)
                       Text(
                         '+${_formatCompact(totals.income)}',
-                        style: TextStyle(fontSize: amountFontSize, color: AppColors.income, height: 1.1),
+                        style: TextStyle(fontSize: amountFontSize, color: context.colors.income, height: 1.1),
                         overflow: TextOverflow.ellipsis,
                       ),
                     // 始终保留两行高度，保持卡片高度一致
@@ -643,7 +643,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
       stream: repo.watchAll(ref.read(currentBookProvider)),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+          return Center(child: CircularProgressIndicator(color: context.colors.primary));
         }
         final allTxns = snapshot.data ?? [];
         final dayTxns = allTxns.where((t) =>
@@ -768,7 +768,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
     final amountFontSize = Responsive.fs(context, 9);
 
     return Container(
-      color: AppColors.surface,
+      color: context.colors.surface,
       child: Column(
         children: [
           Padding(
@@ -781,7 +781,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
                   .map((d) => Expanded(
                         child: Center(
                           child: Text(d,
-                              style: AppTextStyles.caption.copyWith(
+                              style: context.textStyles.caption.copyWith(
                                 fontSize: Responsive.fs(context, 12),
                                 fontWeight: FontWeight.w500,
                               )),
@@ -822,9 +822,9 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
                   child: Container(
                     margin: EdgeInsets.all(Responsive.s(context, 1)),
                     decoration: BoxDecoration(
-                      color: isToday ? AppColors.primarySurface : null,
+                      color: isToday ? context.colors.primarySurface : null,
                       borderRadius: BorderRadius.circular(Responsive.s(context, 4)),
-                      border: isToday ? Border.all(color: AppColors.primary, width: 1) : null,
+                      border: isToday ? Border.all(color: context.colors.primary, width: 1) : null,
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -834,19 +834,19 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
                           style: TextStyle(
                             fontSize: dayFontSize,
                             fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
-                            color: isToday ? AppColors.primary : AppColors.textPrimary,
+                            color: isToday ? context.colors.primary : context.colors.textPrimary,
                           ),
                         ),
                         if (hasExpense)
                           Text(
                             '-${_formatAmount(totals.expense)}',
-                            style: TextStyle(fontSize: amountFontSize, color: AppColors.expense, height: 1.2),
+                            style: TextStyle(fontSize: amountFontSize, color: context.colors.expense, height: 1.2),
                             overflow: TextOverflow.ellipsis,
                           ),
                         if (hasIncome)
                           Text(
                             '+${_formatAmount(totals.income)}',
-                            style: TextStyle(fontSize: amountFontSize, color: AppColors.income, height: 1.2),
+                            style: TextStyle(fontSize: amountFontSize, color: context.colors.income, height: 1.2),
                             overflow: TextOverflow.ellipsis,
                           ),
                         if (!hasExpense && !hasIncome)
@@ -903,11 +903,11 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.receipt_long_outlined, size: Responsive.s(context, 48), color: AppColors.textTertiary),
+          Icon(Icons.receipt_long_outlined, size: Responsive.s(context, 48), color: context.colors.textTertiary),
           SizedBox(height: Responsive.s(context, AppDimensions.md)),
           Text('暂无账单记录',
-              style: AppTextStyles.callout.copyWith(
-                color: AppColors.textSecondary,
+              style: context.textStyles.callout.copyWith(
+                color: context.colors.textSecondary,
                 fontSize: Responsive.fs(context, 16),
               )),
         ],
@@ -931,16 +931,16 @@ class _DayDetailPage extends ConsumerWidget {
     final end = start.add(const Duration(days: 1));
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: Text(DateFormat('M月d日', 'zh_CN').format(date)),
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.colors.surface,
       ),
       body: StreamBuilder<List<Transaction>>(
         stream: repo.watchAll(ref.read(currentBookProvider)),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+            return Center(child: CircularProgressIndicator(color: context.colors.primary));
           }
           final allTxns = snapshot.data ?? [];
           final dayTxns = allTxns.where((t) =>
@@ -951,9 +951,9 @@ class _DayDetailPage extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.receipt_long_outlined, size: 48, color: AppColors.textTertiary),
+                  Icon(Icons.receipt_long_outlined, size: 48, color: context.colors.textTertiary),
                   const SizedBox(height: 16),
-                  Text('当日无账单记录', style: AppTextStyles.callout.copyWith(color: AppColors.textSecondary)),
+                  Text('当日无账单记录', style: context.textStyles.callout.copyWith(color: context.colors.textSecondary)),
                 ],
               ),
             );

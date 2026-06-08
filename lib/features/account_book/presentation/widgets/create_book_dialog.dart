@@ -48,7 +48,7 @@ class _CreateBookDialogState extends State<CreateBookDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 图标选择
-            Text('选择图标', style: AppTextStyles.footnote.copyWith(color: AppColors.textSecondary)),
+            Text('选择图标', style: context.textStyles.footnote.copyWith(color: context.colors.textSecondary)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -61,9 +61,9 @@ class _CreateBookDialogState extends State<CreateBookDialog> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: isSelected ? AppColors.primary.withValues(alpha: 0.15) : AppColors.surface,
+                      color: isSelected ? context.colors.primary.withValues(alpha: 0.15) : context.colors.surface,
                       borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-                      border: isSelected ? Border.all(color: AppColors.primary, width: 2) : null,
+                      border: isSelected ? Border.all(color: context.colors.primary, width: 2) : null,
                     ),
                     child: Center(child: Text(icon, style: const TextStyle(fontSize: 20))),
                   ),
@@ -88,7 +88,7 @@ class _CreateBookDialogState extends State<CreateBookDialog> {
             const SizedBox(height: 16),
 
             // 类型选择
-            Text('账本类型', style: AppTextStyles.footnote.copyWith(color: AppColors.textSecondary)),
+            Text('账本类型', style: context.textStyles.footnote.copyWith(color: context.colors.textSecondary)),
             const SizedBox(height: 8),
             ..._types.map((type) {
               final isSelected = _selectedType == type.value;
@@ -98,9 +98,9 @@ class _CreateBookDialogState extends State<CreateBookDialog> {
                   margin: const EdgeInsets.only(bottom: 4),
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.primary.withValues(alpha: 0.08) : null,
+                    color: isSelected ? context.colors.primary.withValues(alpha: 0.08) : null,
                     borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-                    border: isSelected ? Border.all(color: AppColors.primary.withValues(alpha: 0.3)) : null,
+                    border: isSelected ? Border.all(color: context.colors.primary.withValues(alpha: 0.3)) : null,
                   ),
                   child: Row(
                     children: [
@@ -110,13 +110,13 @@ class _CreateBookDialogState extends State<CreateBookDialog> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(type.label, style: AppTextStyles.body),
-                            Text(type.desc, style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
+                            Text(type.label, style: context.textStyles.body),
+                            Text(type.desc, style: context.textStyles.caption.copyWith(color: context.colors.textTertiary)),
                           ],
                         ),
                       ),
                       if (isSelected)
-                        Icon(Icons.check_circle, color: AppColors.primary, size: 20),
+                        Icon(Icons.check_circle, color: context.colors.primary, size: 20),
                     ],
                   ),
                 ),

@@ -53,7 +53,7 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
     final otherBooks = _books.where((b) => !b.isDefault).toList();
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('我的账本'),
       ),
@@ -81,7 +81,7 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
                       label: const Text('新建账本'),
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 48),
-                        side: const BorderSide(color: AppColors.primary),
+                        side: BorderSide(color: context.colors.primary),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
                         ),
@@ -96,7 +96,7 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
                     padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
                     child: Text(
                       '每个账本拥有独立的交易记录、预算和 AI 对话历史',
-                      style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary),
+                      style: context.textStyles.caption.copyWith(color: context.colors.textTertiary),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -129,7 +129,7 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
             borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.3),
+                color: context.colors.primary.withValues(alpha: 0.3),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -149,7 +149,7 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
                       children: [
                         Row(
                           children: [
-                            Text(book.name, style: AppTextStyles.h3.copyWith(color: Colors.white)),
+                            Text(book.name, style: context.textStyles.h3.copyWith(color: Colors.white)),
                             const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -157,12 +157,12 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
                                 color: Colors.white.withValues(alpha: 0.25),
                                 borderRadius: BorderRadius.circular(4),
                               ),
-                              child: Text('默认', style: AppTextStyles.caption.copyWith(color: Colors.white)),
+                              child: Text('默认', style: context.textStyles.caption.copyWith(color: Colors.white)),
                             ),
                           ],
                         ),
                         const SizedBox(height: 4),
-                        Text(typeLabel, style: AppTextStyles.caption.copyWith(color: Colors.white70)),
+                        Text(typeLabel, style: context.textStyles.caption.copyWith(color: Colors.white70)),
                       ],
                     ),
                   ),
@@ -193,9 +193,9 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTextStyles.caption.copyWith(color: Colors.white70)),
+        Text(label, style: context.textStyles.caption.copyWith(color: Colors.white70)),
         const SizedBox(height: 2),
-        Text(value, style: AppTextStyles.amountSmall.copyWith(color: Colors.white)),
+        Text(value, style: context.textStyles.amountSmall.copyWith(color: Colors.white)),
       ],
     );
   }
@@ -216,14 +216,14 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
           children: [
             SlidableAction(
               onPressed: (_) => _onSetDefault(book),
-              backgroundColor: AppColors.primary,
+              backgroundColor: context.colors.primary,
               foregroundColor: Colors.white,
               icon: Icons.check_circle_outline,
               label: '设为默认',
             ),
             SlidableAction(
               onPressed: (_) => _onDeleteBook(book),
-              backgroundColor: AppColors.error,
+              backgroundColor: context.colors.error,
               foregroundColor: Colors.white,
               icon: Icons.delete_outline,
               label: '删除',
@@ -235,7 +235,7 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: context.colors.surface,
               borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
             ),
             child: Row(
@@ -245,7 +245,7 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
+                    color: context.colors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
                   ),
                   child: Center(child: Text(icon, style: const TextStyle(fontSize: 22))),
@@ -258,15 +258,15 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
                     children: [
                       Row(
                         children: [
-                          Text(book.name, style: AppTextStyles.body),
+                          Text(book.name, style: context.textStyles.body),
                           const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.1),
+                              color: context.colors.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: Text(typeLabel, style: AppTextStyles.caption.copyWith(color: AppColors.primary, fontSize: 10)),
+                            child: Text(typeLabel, style: context.textStyles.caption.copyWith(color: context.colors.primary, fontSize: 10)),
                           ),
                         ],
                       ),
@@ -274,7 +274,7 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
                         const SizedBox(height: 4),
                         Text(
                           book.description!,
-                          style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary),
+                          style: context.textStyles.caption.copyWith(color: context.colors.textTertiary),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -289,10 +289,10 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
                   children: [
                     Text(
                       '${stats?.count ?? 0} 笔',
-                      style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+                      style: context.textStyles.caption.copyWith(color: context.colors.textSecondary),
                     ),
                     const SizedBox(height: 2),
-                    Icon(Icons.chevron_right, size: 18, color: AppColors.textTertiary),
+                    Icon(Icons.chevron_right, size: 18, color: context.colors.textTertiary),
                   ],
                 ),
               ],
@@ -329,7 +329,7 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            style: TextButton.styleFrom(foregroundColor: context.colors.error),
             child: const Text('删除'),
           ),
         ],

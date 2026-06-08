@@ -20,7 +20,7 @@ class BudgetPage extends ConsumerWidget {
     final bookId = ref.read(currentBookProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('预算管理'),
         actions: [
@@ -52,9 +52,9 @@ class BudgetPage extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.account_balance_wallet_outlined, size: 48, color: AppColors.textTertiary),
+                  Icon(Icons.account_balance_wallet_outlined, size: 48, color: context.colors.textTertiary),
                   const SizedBox(height: 16),
-                  Text('暂未设置预算', style: AppTextStyles.callout.copyWith(color: AppColors.textSecondary)),
+                  Text('暂未设置预算', style: context.textStyles.callout.copyWith(color: context.colors.textSecondary)),
                   const SizedBox(height: 8),
                   ElevatedButton(
                     onPressed: () => context.push('/budget/setting'),
@@ -71,16 +71,16 @@ class BudgetPage extends ConsumerWidget {
                 const SizedBox(height: 16),
 
                 // 总预算卡片
-                _buildTotalCard(totalBudget, totalSpent),
+                _buildTotalCard(context, totalBudget, totalSpent),
 
                 // 超支警告
                 if (categoryProgresses.any((p) => p.isOverBudget))
-                  _buildOverBudgetWarning(categoryProgresses),
+                  _buildOverBudgetWarning(context, categoryProgresses),
 
                 const SizedBox(height: 16),
 
                 // 分类预算列表
-                ...categoryProgresses.map(_buildCategoryItem),
+                ...categoryProgresses.map((p) => _buildCategoryItem(context, p)),
 
                 const SizedBox(height: 24),
               ],
@@ -91,7 +91,7 @@ class BudgetPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildTotalCard(double total, double spent) {
+  Widget _buildTotalCard(BuildContext context, double total, double spent) {
     final percentage = total > 0 ? (spent / total * 100) : 0.0;
     final remaining = total - spent;
 
@@ -110,11 +110,11 @@ class BudgetPage extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('本月总预算', style: AppTextStyles.footnote.copyWith(color: const Color(0xFFE65100))),
+            Text('本月总预算', style: context.textStyles.footnote.copyWith(color: const Color(0xFFE65100))),
             const SizedBox(height: 8),
             Text(
               '¥${total.toStringAsFixed(0)}',
-              style: AppTextStyles.amountLarge.copyWith(color: const Color(0xFFE65100)),
+              style: context.textStyles.amountLarge.copyWith(color: const Color(0xFFE65100)),
             ),
             const SizedBox(height: 12),
             // 进度条
@@ -125,7 +125,7 @@ class BudgetPage extends ConsumerWidget {
                 minHeight: 8,
                 backgroundColor: const Color(0x33E65100),
                 valueColor: AlwaysStoppedAnimation(
-                  percentage > 90 ? AppColors.error : AppColors.warning,
+                  percentage > 90 ? context.colors.error : context.colors.warning,
                 ),
               ),
             ),
@@ -133,8 +133,8 @@ class BudgetPage extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('已消费 ¥${spent.toStringAsFixed(0)}', style: AppTextStyles.caption),
-                Text('剩余 ¥${remaining.toStringAsFixed(0)}', style: AppTextStyles.caption),
+                Text('已消费 ¥${spent.toStringAsFixed(0)}', style: context.textStyles.caption),
+                Text('剩余 ¥${remaining.toStringAsFixed(0)}', style: context.textStyles.caption),
               ],
             ),
           ],
@@ -143,7 +143,7 @@ class BudgetPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildOverBudgetWarning(List<BudgetProgress> progresses) {
+  Widget _buildOverBudgetWarning(BuildContext context, List<BudgetProgress> progresses) {
     final overBudget = progresses.where((p) => p.isOverBudget).toList();
 
     return Padding(
@@ -156,12 +156,12 @@ class BudgetPage extends ConsumerWidget {
         ),
         child: Row(
           children: [
-            const Icon(Icons.warning_amber, size: 18, color: AppColors.error),
+            Icon(Icons.warning_amber, size: 18, color: context.colors.error),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 '${overBudget.first.category?.name ?? '某分类'}预算已超支 ¥${(overBudget.first.spent - overBudget.first.budget.amount).toStringAsFixed(0)}',
-                style: AppTextStyles.caption.copyWith(color: AppColors.error),
+                style: context.textStyles.caption.copyWith(color: context.colors.error),
               ),
             ),
           ],
@@ -170,15 +170,15 @@ class BudgetPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildCategoryItem(BudgetProgress progress) {
+  Widget _buildCategoryItem(BuildContext context, BudgetProgress progress) {
     final cat = progress.category;
-    final color = _parseColor(cat?.color);
+    final color = _parseColor(context, cat?.color);
     final percentage = progress.percentage;
     final barColor = percentage > 90
-        ? AppColors.error
+        ? context.colors.error
         : percentage > 70
-            ? AppColors.warning
-            : AppColors.success;
+            ? context.colors.warning
+            : context.colors.success;
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -188,7 +188,7 @@ class BudgetPage extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.colors.surface,
           borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
         ),
         child: Column(
@@ -216,10 +216,10 @@ class BudgetPage extends ConsumerWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(cat?.name ?? '未分类', style: AppTextStyles.body),
+                          Text(cat?.name ?? '未分类', style: context.textStyles.body),
                           Text(
                             '${percentage.toStringAsFixed(1)}%',
-                            style: AppTextStyles.caption.copyWith(color: barColor),
+                            style: context.textStyles.caption.copyWith(color: barColor),
                           ),
                         ],
                       ),
@@ -229,7 +229,7 @@ class BudgetPage extends ConsumerWidget {
                         child: LinearProgressIndicator(
                           value: (percentage / 100).clamp(0, 1),
                           minHeight: 6,
-                          backgroundColor: AppColors.surfaceSecondary,
+                          backgroundColor: context.colors.surfaceSecondary,
                           valueColor: AlwaysStoppedAnimation(barColor),
                         ),
                       ),
@@ -243,13 +243,13 @@ class BudgetPage extends ConsumerWidget {
                   children: [
                     Text(
                       '¥${progress.spent.toStringAsFixed(0)}',
-                      style: AppTextStyles.amountSmall.copyWith(
-                        color: progress.isOverBudget ? AppColors.error : AppColors.textPrimary,
+                      style: context.textStyles.amountSmall.copyWith(
+                        color: progress.isOverBudget ? context.colors.error : context.colors.textPrimary,
                       ),
                     ),
                     Text(
                       '/ ¥${progress.budget.amount.toStringAsFixed(0)}',
-                      style: AppTextStyles.caption,
+                      style: context.textStyles.caption,
                     ),
                   ],
                 ),
@@ -261,7 +261,7 @@ class BudgetPage extends ConsumerWidget {
     );
   }
 
-  Color _parseColor(String? hex) {
+  Color _parseColor(BuildContext context, String? hex) {
     if (hex == null || hex.isEmpty) return AppColors.textTertiary;
     final clean = hex.replaceFirst('#', '');
     return Color(int.parse('FF$clean', radix: 16));

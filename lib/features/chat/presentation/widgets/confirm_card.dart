@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
@@ -78,13 +78,13 @@ class ConfirmCard extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: _confidenceColor(data.confidence).withValues(alpha: 0.1),
+                            color: _confidenceColor(data.confidence, context).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             '${(data.confidence * 100).toInt()}%',
                             style: AppTextStyles.caption.copyWith(
-                              color: _confidenceColor(data.confidence),
+                              color: _confidenceColor(data.confidence, context),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -184,7 +184,7 @@ class ConfirmCard extends StatelessWidget {
     );
   }
 
-  Color _confidenceColor(double c) {
+  Color _confidenceColor(double c, BuildContext context) {
     if (c >= 0.9) return AppColors.success;
     if (c >= 0.7) return AppColors.warning;
     return AppColors.error;
@@ -298,7 +298,7 @@ class _EditableRow extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: showDivider
-            ? const BoxDecoration(
+            ? BoxDecoration(
                 border: Border(
                   bottom: BorderSide(color: AppColors.separatorOpaque, width: 0.5),
                 ),

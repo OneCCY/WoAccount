@@ -151,7 +151,7 @@ class _PinLockPageState extends State<PinLockPage> {
         ),
         child: Center(
           child: isBackspace
-              ? const Icon(Icons.backspace_outlined, size: 24, color: AppColors.textSecondary)
+              ? Icon(Icons.backspace_outlined, size: 24, color: AppColors.textSecondary)
               : Text(
                   key,
                   style: AppTextStyles.h3.copyWith(fontSize: 28),

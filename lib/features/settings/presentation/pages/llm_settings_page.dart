@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import '../../../../core/config/ai_provider_presets.dart';
@@ -7,6 +7,17 @@ import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../ai/data/models/llm_config.dart';
 import '../../../ai/data/repositories/llm_repository_impl.dart';
+
+// ============================================================
+// 获取到的模型信息（带供应商分组）
+// ============================================================
+
+class _FetchedModel {
+  final String id;
+  final String? ownedBy;
+
+  const _FetchedModel({required this.id, this.ownedBy});
+}
 
 /// LLM 服务配置页
 class LlmSettingsPage extends StatefulWidget {
@@ -169,7 +180,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
             Text('尚未配置 AI 服务', style: AppTextStyles.h3),
             const SizedBox(height: 8),
             Text(
-              '添加一个 AI 服务商即可使用智能记账功能\n支持所有 OpenAI 兼容的 API 接口',
+              '添加一个 AI 服务商即可使用智能记账功能\n支持文本、视觉、语音多种能力',
               style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
               textAlign: TextAlign.center,
             ),
@@ -249,7 +260,8 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
                   ),
                   const SizedBox(height: 8),
                   if (p.baseUrl.isNotEmpty) _infoRow('地址', p.baseUrl),
-                  if (p.model.isNotEmpty) _infoRow('模型', p.model),
+                  // 显示已配置的能力标签
+                  _buildCapabilityTags(p),
                   const SizedBox(height: 12),
                   Row(
                     children: [
@@ -266,6 +278,44 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildCapabilityTags(LlmProvider p) {
+    final caps = p.configuredCapabilities;
+    if (caps.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 40,
+            child: Text('模型', style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
+          ),
+          Expanded(
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: caps.map((cap) {
+                final modelName = p.getModelForCapability(cap) ?? '';
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySurface,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    '${cap.emoji} $modelName',
+                    style: AppTextStyles.caption.copyWith(color: AppColors.primary, fontSize: 11),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -326,7 +376,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
 }
 
 // ============================================================
-// 服务商编辑页
+// 服务商编辑页 — 分能力配置模型
 // ============================================================
 
 class _ProviderEditPage extends StatefulWidget {
@@ -337,24 +387,36 @@ class _ProviderEditPage extends StatefulWidget {
   State<_ProviderEditPage> createState() => _ProviderEditPageState();
 }
 
+/// 每个能力的编辑状态
+class _CapabilityState {
+  String? selectedModel;
+  List<_FetchedModel> fetchedModels = [];
+  bool isLoading = false;
+}
+
 class _ProviderEditPageState extends State<_ProviderEditPage> {
   late final TextEditingController _apiKeyCtrl;
   late final TextEditingController _baseUrlCtrl;
-  late final TextEditingController _modelCtrl;
   late final TextEditingController _customModelCtrl;
 
   String _selectedPresetKey = kCustomProviderKey;
-  String? _selectedModel;
-  List<String> _availableModels = [];
   bool _obscureApiKey = true;
-  bool _isLoadingModels = false;
 
   double _temperature = 0.0;
   int _maxTokens = 1000;
   int _timeout = 30;
   bool _showAdvanced = false;
 
+  /// 每个能力独立的编辑状态
+  late final Map<ModelCapability, _CapabilityState> _capStates;
+
   bool get _isEditing => widget.provider != null;
+
+  AiProviderPreset? get _currentPreset =>
+      _selectedPresetKey == kCustomProviderKey ? null : getPresetByKey(_selectedPresetKey);
+
+  bool get _isAnthropicFormat =>
+      _currentPreset?.apiFormat == ApiFormat.anthropic;
 
   @override
   void initState() {
@@ -362,27 +424,37 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
     final p = widget.provider;
     _apiKeyCtrl = TextEditingController(text: p?.apiKey ?? '');
     _baseUrlCtrl = TextEditingController(text: p?.baseUrl ?? '');
-    _modelCtrl = TextEditingController(text: p?.model ?? '');
     _customModelCtrl = TextEditingController();
+
+    // 初始化每个能力的状态
+    _capStates = {for (final cap in ModelCapability.values) cap: _CapabilityState()};
 
     if (p != null) {
       _temperature = p.temperature;
       _maxTokens = p.maxTokens;
       _timeout = p.timeoutSeconds;
       _showAdvanced = true;
-      _selectedModel = p.model.isNotEmpty ? p.model : null;
 
       // 匹配预设
       final preset = getPresetByKey(p.providerKey);
       if (preset != null) {
         _selectedPresetKey = preset.key;
-        _availableModels = List.from(preset.defaultModels);
       } else {
-        // 尝试通过 name 匹配
         final match = aiProviderPresets.where((pr) => pr.name == p.name);
-        if (match.isNotEmpty) {
-          _selectedPresetKey = match.first.key;
-          _availableModels = List.from(match.first.defaultModels);
+        if (match.isNotEmpty) _selectedPresetKey = match.first.key;
+      }
+
+      // 从已有配置恢复每个能力的模型
+      for (final cap in ModelCapability.values) {
+        final modelName = p.getModelForCapability(cap);
+        if (modelName != null && modelName.isNotEmpty) {
+          _capStates[cap]!.selectedModel = modelName;
+        }
+        // 加载预设默认模型
+        final effectivePreset = getPresetByKey(_selectedPresetKey);
+        if (effectivePreset != null) {
+          final defaults = effectivePreset.defaultModelsByCapability[cap.name] ?? [];
+          _capStates[cap]!.fetchedModels = defaults.map((m) => _FetchedModel(id: m)).toList();
         }
       }
     }
@@ -392,30 +464,82 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
   void dispose() {
     _apiKeyCtrl.dispose();
     _baseUrlCtrl.dispose();
-    _modelCtrl.dispose();
     _customModelCtrl.dispose();
     super.dispose();
   }
 
-  /// 选择预设后自动填充 baseUrl
+  /// 选择预设后自动填充 baseUrl 和各能力的默认模型
   void _onPresetChanged(String key) {
     setState(() {
       _selectedPresetKey = key;
       if (key == kCustomProviderKey) {
         _baseUrlCtrl.text = '';
-        _availableModels = [];
+        for (final cap in ModelCapability.values) {
+          _capStates[cap] = _CapabilityState();
+        }
       } else {
         final preset = getPresetByKey(key)!;
         _baseUrlCtrl.text = preset.baseUrl;
-        _availableModels = List.from(preset.defaultModels);
+        for (final cap in ModelCapability.values) {
+          final defaults = preset.defaultModelsByCapability[cap.name] ?? [];
+          final state = _CapabilityState();
+          state.fetchedModels = defaults.map((m) => _FetchedModel(id: m)).toList();
+          _capStates[cap] = state;
+        }
       }
-      _selectedModel = null;
-      _modelCtrl.text = '';
     });
   }
 
-  /// 从 API 获取模型列表
-  Future<void> _fetchModels() async {
+  // ============================================================
+  // 智能模型获取
+  // ============================================================
+
+  static const _knownCompatSuffixes = [
+    '/api/claudecode', '/api/anthropic', '/apps/anthropic', '/api/coding',
+    '/claudecode', '/anthropic', '/step_plan', '/coding', '/claude',
+  ];
+
+  bool _endsWithVersionSegment(String url) {
+    final lastSegment = url.split('/').last;
+    if (!lastSegment.startsWith('v')) return false;
+    final digits = lastSegment.substring(1);
+    if (digits.isEmpty) return false;
+    return RegExp(r'^\d+$').hasMatch(digits);
+  }
+
+  String? _stripCompatSuffix(String url) {
+    for (final suffix in _knownCompatSuffixes) {
+      if (url.endsWith(suffix)) {
+        return url.substring(0, url.length - suffix.length);
+      }
+    }
+    return null;
+  }
+
+  List<String> _buildModelUrlCandidates(String baseUrl) {
+    final trimmed = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
+    if (trimmed.isEmpty) return [];
+
+    final candidates = <String>[];
+    if (_endsWithVersionSegment(trimmed)) {
+      candidates.add('$trimmed/models');
+      if (!trimmed.endsWith('/v1')) candidates.add('$trimmed/v1/models');
+    } else {
+      candidates.add('$trimmed/v1/models');
+    }
+
+    final stripped = _stripCompatSuffix(trimmed);
+    if (stripped != null && stripped.isNotEmpty && stripped.contains('://')) {
+      candidates.add('$stripped/v1/models');
+      candidates.add('$stripped/models');
+    }
+
+    final seen = <String>{};
+    return candidates.where((u) => seen.add(u)).toList();
+  }
+
+  /// 获取模型列表（按能力筛选）
+  Future<void> _fetchModelsForCapability(ModelCapability cap) async {
     final baseUrl = _baseUrlCtrl.text.trim();
     final apiKey = _apiKeyCtrl.text.trim();
 
@@ -432,28 +556,35 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
       return;
     }
 
-    setState(() => _isLoadingModels = true);
+    setState(() => _capStates[cap]!.isLoading = true);
 
     try {
-      final models = await _requestModels(baseUrl, apiKey);
+      final allModels = await _requestModels(baseUrl, apiKey);
+      // 按能力关键词筛选
+      final filtered = _filterByCapability(allModels, cap);
+
       if (mounted) {
         setState(() {
-          _availableModels = models;
-          _isLoadingModels = false;
+          _capStates[cap]!.fetchedModels = filtered.isNotEmpty ? filtered : allModels;
+          _capStates[cap]!.isLoading = false;
         });
-        if (models.isNotEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('获取到 ${models.length} 个模型'), behavior: SnackBarBehavior.floating),
-          );
-        }
+        final msg = filtered.isNotEmpty
+            ? '获取到 ${filtered.length} 个${cap.label}'
+            : '获取到 ${allModels.length} 个模型（未筛选到专用模型，显示全部）';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating),
+        );
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isLoadingModels = false);
-        // 回退到预设模型列表
+        setState(() => _capStates[cap]!.isLoading = false);
+        // 回退到预设
         final preset = getPresetByKey(_selectedPresetKey);
-        if (preset != null && preset.defaultModels.isNotEmpty) {
-          setState(() => _availableModels = List.from(preset.defaultModels));
+        final defaults = preset?.defaultModelsByCapability[cap.name] ?? preset?.defaultModels ?? [];
+        if (defaults.isNotEmpty) {
+          setState(() {
+            _capStates[cap]!.fetchedModels = defaults.map((m) => _FetchedModel(id: m)).toList();
+          });
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('获取失败，已加载预设模型列表'), behavior: SnackBarBehavior.floating),
           );
@@ -466,25 +597,23 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
     }
   }
 
-  /// 请求模型列表（尝试多种 URL 格式）
-  Future<List<String>> _requestModels(String baseUrl, String apiKey) async {
+  /// 按能力关键词筛选模型
+  List<_FetchedModel> _filterByCapability(List<_FetchedModel> models, ModelCapability cap) {
+    if (cap.filterKeywords.isEmpty) return models; // 文本能力不筛选
+    return models.where((m) {
+      final id = m.id.toLowerCase();
+      return cap.filterKeywords.any((kw) => id.contains(kw.toLowerCase()));
+    }).toList();
+  }
+
+  Future<List<_FetchedModel>> _requestModels(String baseUrl, String apiKey) async {
     final dio = Dio();
     dio.options.connectTimeout = const Duration(seconds: 10);
     dio.options.receiveTimeout = const Duration(seconds: 10);
 
-    // 清理 baseUrl
-    var url = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
+    final candidates = _buildModelUrlCandidates(baseUrl);
 
-    // 尝试的 URL 列表
-    final urls = <String>[
-      '$url/models',
-    ];
-    // 如果 baseUrl 不以 /v1 结尾，也尝试 /v1/models
-    if (!url.endsWith('/v1')) {
-      urls.add('$url/v1/models');
-    }
-
-    for (final modelsUrl in urls) {
+    for (final modelsUrl in candidates) {
       try {
         final resp = await dio.get(
           modelsUrl,
@@ -492,22 +621,29 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
         );
 
         final data = resp.data;
-        List<String> models = [];
+        List<_FetchedModel> models = [];
 
-        // OpenAI 格式: { data: [{ id: "model-name", ... }] }
         if (data is Map && data['data'] is List) {
           models = (data['data'] as List)
-              .map((m) => m['id']?.toString() ?? '')
-              .where((id) => id.isNotEmpty)
+              .map((m) {
+                final id = m['id']?.toString() ?? '';
+                final ownedBy = m['owned_by']?.toString();
+                if (id.isEmpty) return null;
+                return _FetchedModel(id: id, ownedBy: ownedBy);
+              })
+              .whereType<_FetchedModel>()
               .toList();
         }
 
         if (models.isNotEmpty) {
-          models.sort();
+          models.sort((a, b) {
+            final vc = (a.ownedBy ?? '').compareTo(b.ownedBy ?? '');
+            if (vc != 0) return vc;
+            return a.id.compareTo(b.id);
+          });
           return models;
         }
       } on DioException catch (_) {
-        // 继续尝试下一个 URL
         continue;
       }
     }
@@ -518,9 +654,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
   void _save() {
     final apiKey = _apiKeyCtrl.text.trim();
     final baseUrl = _baseUrlCtrl.text.trim();
-    final model = (_selectedModel ?? _modelCtrl.text).trim();
 
-    // 自定义模式下需要手动输入名称
     String name;
     if (_selectedPresetKey == kCustomProviderKey) {
       name = baseUrl.isNotEmpty ? Uri.tryParse(baseUrl)?.host ?? '自定义' : '自定义';
@@ -528,9 +662,18 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
       name = getPresetByKey(_selectedPresetKey)?.name ?? '自定义';
     }
 
-    if (apiKey.isEmpty || baseUrl.isEmpty || model.isEmpty) {
+    // 至少需要配置一个模型
+    final models = <String, ModelConfig>{};
+    for (final cap in ModelCapability.values) {
+      final m = _capStates[cap]!.selectedModel;
+      if (m != null && m.isNotEmpty) {
+        models[cap.name] = ModelConfig(modelName: m);
+      }
+    }
+
+    if (apiKey.isEmpty || baseUrl.isEmpty || models.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请填写 API Key、请求地址和模型名称'), behavior: SnackBarBehavior.floating),
+        const SnackBar(content: Text('请填写 API Key、请求地址，并至少配置一个模型'), behavior: SnackBarBehavior.floating),
       );
       return;
     }
@@ -542,11 +685,11 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
       name: name,
       apiKey: apiKey,
       baseUrl: cleanUrl,
-      model: model,
       temperature: _temperature,
       maxTokens: _maxTokens,
       timeoutSeconds: _timeout,
       providerKey: _selectedPresetKey,
+      models: models,
     );
 
     Navigator.pop(context, provider);
@@ -570,12 +713,12 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. 服务商名称（下拉）
+            // 1. 服务商名称
             _label('服务商名称'),
             _buildPresetDropdown(),
             const SizedBox(height: 16),
 
-            // 2. API Key（带小眼睛）
+            // 2. API Key
             _label('API Key'),
             _buildApiKeyField(),
             const SizedBox(height: 16),
@@ -584,12 +727,13 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
             _label('请求地址'),
             _buildBaseUrlField(),
             const SizedBox(height: 4),
-            _hint('填入 API 的 base_url，不需要手动拼接 /chat/completions'),
-            const SizedBox(height: 16),
+            _hint(_isAnthropicFormat
+                ? 'Anthropic API 地址，如 https://api.anthropic.com'
+                : '填入 API 的 base_url，不需要手动拼接 /chat/completions'),
+            const SizedBox(height: 24),
 
-            // 4. 模型名称（下拉 + 获取按钮）
-            _label('模型名称'),
-            _buildModelSection(),
+            // 4. 模型配置（按能力分组）
+            _buildCapabilitySection(),
             const SizedBox(height: 24),
 
             // 5. 高级设置
@@ -601,7 +745,6 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
     );
   }
 
-  /// 预设下拉选择
   Widget _buildPresetDropdown() {
     return Container(
       decoration: BoxDecoration(
@@ -644,7 +787,6 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
     );
   }
 
-  /// API Key 输入框（带小眼睛）
   Widget _buildApiKeyField() {
     return Container(
       decoration: BoxDecoration(
@@ -673,7 +815,6 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
     );
   }
 
-  /// 请求地址输入框
   Widget _buildBaseUrlField() {
     return Container(
       decoration: BoxDecoration(
@@ -684,7 +825,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
         controller: _baseUrlCtrl,
         style: AppTextStyles.body,
         decoration: InputDecoration(
-          hintText: '如：https://api.deepseek.com',
+          hintText: _isAnthropicFormat ? '如：https://api.anthropic.com' : '如：https://api.deepseek.com',
           hintStyle: AppTextStyles.body.copyWith(color: AppColors.textHint),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -693,48 +834,105 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
     );
   }
 
-  /// 模型选择区域
-  Widget _buildModelSection() {
-    return Row(
+  // ============================================================
+  // 按能力分组的模型配置区域
+  // ============================================================
+
+  Widget _buildCapabilitySection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(child: _buildModelDropdown()),
-        const SizedBox(width: 8),
-        _buildFetchButton(),
+        _label('模型配置'),
+        ...ModelCapability.values.map((cap) => _buildCapabilityCard(cap)),
       ],
     );
   }
 
-  Widget _buildModelDropdown() {
+  Widget _buildCapabilityCard(ModelCapability cap) {
+    final state = _capStates[cap]!;
+    final hasModels = state.fetchedModels.isNotEmpty;
+
     return Container(
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
       ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 能力标题行
+            Row(
+              children: [
+                Icon(cap.icon, size: 18, color: AppColors.primary),
+                const SizedBox(width: 6),
+                Text(cap.label, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(cap.description, style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            // 模型下拉 + 获取按钮
+            Row(
+              children: [
+                Expanded(child: _buildCapabilityModelDropdown(cap, state, hasModels)),
+                const SizedBox(width: 8),
+                SizedBox(
+                  height: 44,
+                  child: ElevatedButton.icon(
+                    onPressed: state.isLoading ? null : () => _fetchModelsForCapability(cap),
+                    icon: state.isLoading
+                        ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Icon(Icons.sync, size: 16),
+                    label: const Text('获取', style: TextStyle(fontSize: 13)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCapabilityModelDropdown(ModelCapability cap, _CapabilityState state, bool hasModels) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+      ),
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
-          value: _selectedModel,
+          value: state.selectedModel,
           isExpanded: true,
-          hint: Text('选择或输入模型', style: AppTextStyles.body.copyWith(color: AppColors.textHint)),
-          style: AppTextStyles.body,
+          hint: Text('选择${cap.label}', style: AppTextStyles.body.copyWith(color: AppColors.textHint, fontSize: 14)),
+          style: AppTextStyles.body.copyWith(fontSize: 14),
           items: [
-            ..._availableModels.map((m) => DropdownMenuItem(
-              value: m,
-              child: Text(m, overflow: TextOverflow.ellipsis),
+            ...state.fetchedModels.map((m) => DropdownMenuItem(
+              value: m.id,
+              child: Text(m.id, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14)),
             )),
-            if (_availableModels.isNotEmpty) const DropdownMenuItem(
-              value: '__custom__',
-              child: Text('✏️ 手动输入...'),
-            ),
+            if (hasModels) ...[
+              const DropdownMenuItem(value: '__custom__', child: Divider(height: 1)),
+              const DropdownMenuItem(value: '__custom__', child: Text('✏️ 手动输入...', style: TextStyle(fontSize: 14))),
+            ],
           ],
           onChanged: (v) {
             if (v == '__custom__') {
-              _showCustomModelDialog();
-            } else {
-              setState(() {
-                _selectedModel = v;
-                _modelCtrl.text = v ?? '';
-              });
+              _showCustomModelDialog(cap, state);
+            } else if (v != null) {
+              setState(() => state.selectedModel = v);
             }
           },
         ),
@@ -742,34 +940,16 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
     );
   }
 
-  Widget _buildFetchButton() {
-    return SizedBox(
-      height: 48,
-      child: ElevatedButton.icon(
-        onPressed: _isLoadingModels ? null : _fetchModels,
-        icon: _isLoadingModels
-            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-            : const Icon(Icons.sync, size: 18),
-        label: const Text('获取模型'),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
-        ),
-      ),
-    );
-  }
-
-  void _showCustomModelDialog() {
-    _customModelCtrl.text = _selectedModel ?? '';
+  void _showCustomModelDialog(ModelCapability cap, _CapabilityState state) {
+    _customModelCtrl.text = state.selectedModel ?? '';
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('输入模型名称'),
+        title: Text('输入${cap.label}名称'),
         content: TextField(
           controller: _customModelCtrl,
           autofocus: true,
-          decoration: const InputDecoration(hintText: '如：deepseek-chat'),
+          decoration: InputDecoration(hintText: '如：${cap == ModelCapability.audio ? "whisper-1" : "模型名称"}'),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
@@ -778,10 +958,9 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
               final model = _customModelCtrl.text.trim();
               if (model.isNotEmpty) {
                 setState(() {
-                  _selectedModel = model;
-                  _modelCtrl.text = model;
-                  if (!_availableModels.contains(model)) {
-                    _availableModels.add(model);
+                  state.selectedModel = model;
+                  if (!state.fetchedModels.any((m) => m.id == model)) {
+                    state.fetchedModels.add(_FetchedModel(id: model));
                   }
                 });
               }

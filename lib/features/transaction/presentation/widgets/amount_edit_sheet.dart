@@ -61,12 +61,12 @@ class _AmountEditSheetState extends State<AmountEditSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final amountColor = widget.isExpense ? AppColors.expense : AppColors.income;
+    final amountColor = widget.isExpense ? context.colors.expense : context.colors.income;
     final prefix = widget.isExpense ? '-' : '+';
 
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
+      decoration: BoxDecoration(
+        color: context.colors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
@@ -78,7 +78,7 @@ class _AmountEditSheetState extends State<AmountEditSheet> {
             height: 4,
             margin: const EdgeInsets.only(top: 12, bottom: 16),
             decoration: BoxDecoration(
-              color: AppColors.textTertiary,
+              color: context.colors.textTertiary,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -90,12 +90,12 @@ class _AmountEditSheetState extends State<AmountEditSheet> {
               children: [
                 Text(
                   '$prefix¥',
-                  style: AppTextStyles.h2.copyWith(color: amountColor),
+                  style: context.textStyles.h2.copyWith(color: amountColor),
                 ),
                 const SizedBox(width: 4),
                 Text(
                   _amountStr.isEmpty ? '0' : _amountStr,
-                  style: AppTextStyles.amountLarge.copyWith(color: amountColor),
+                  style: context.textStyles.amountLarge.copyWith(color: amountColor),
                 ),
               ],
             ),
@@ -103,7 +103,7 @@ class _AmountEditSheetState extends State<AmountEditSheet> {
           const SizedBox(height: 16),
           // 数字键盘
           Container(
-            color: AppColors.surfaceSecondary,
+            color: context.colors.surfaceSecondary,
             padding: const EdgeInsets.all(4),
             child: SafeArea(
               top: false,
@@ -142,7 +142,7 @@ class _AmountEditSheetState extends State<AmountEditSheet> {
                           child: Padding(
                             padding: const EdgeInsets.all(2),
                             child: Material(
-                              color: AppColors.surfaceSecondary,
+                              color: context.colors.surfaceSecondary,
                               borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
                               child: InkWell(
                                 onTap: () => Navigator.of(context).pop(),
@@ -150,7 +150,7 @@ class _AmountEditSheetState extends State<AmountEditSheet> {
                                 child: SizedBox(
                                   height: 48,
                                   child: Center(
-                                    child: Text('取消', style: AppTextStyles.body.copyWith(color: AppColors.textSecondary)),
+                                    child: Text('取消', style: context.textStyles.body.copyWith(color: context.colors.textSecondary)),
                                   ),
                                 ),
                               ),
@@ -163,8 +163,8 @@ class _AmountEditSheetState extends State<AmountEditSheet> {
                             padding: const EdgeInsets.all(2),
                             child: Material(
                               color: _amount != null && _amount! > 0
-                                  ? AppColors.primary
-                                  : AppColors.textHint,
+                                  ? context.colors.primary
+                                  : context.colors.textHint,
                               borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
                               child: InkWell(
                                 onTap: _amount != null && _amount! > 0
@@ -211,7 +211,7 @@ class _KeyButton extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(2),
         child: Material(
-          color: AppColors.surface,
+          color: context.colors.surface,
           borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
           child: InkWell(
             onTap: onTap,
@@ -220,8 +220,8 @@ class _KeyButton extends StatelessWidget {
               height: 48,
               child: Center(
                 child: icon != null
-                    ? Icon(icon, size: 20, color: AppColors.textPrimary)
-                    : Text(label, style: AppTextStyles.h3),
+                    ? Icon(icon, size: 20, color: context.colors.textPrimary)
+                    : Text(label, style: context.textStyles.h3),
               ),
             ),
           ),

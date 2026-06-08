@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -28,7 +28,7 @@ class AiAssistantEntry extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              gradient: AppColors.aiEntryGradient,
+              gradient: context.colors.aiEntryGradient,
               borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
             ),
             child: Row(
@@ -41,10 +41,10 @@ class AiAssistantEntry extends StatelessWidget {
                     color: const Color(0x99FFFFFF),
                     borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.smart_toy_outlined,
                     size: 28,
-                    color: AppColors.primaryDark,
+                    color: context.colors.primaryDark,
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -55,25 +55,25 @@ class AiAssistantEntry extends StatelessWidget {
                     children: [
                       Text(
                         'AI 助手',
-                        style: AppTextStyles.h3.copyWith(
-                          color: AppColors.primaryDark,
+                        style: context.textStyles.h3.copyWith(
+                          color: context.colors.primaryDark,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '智能记账 · 消费分析 · 问答查询',
-                        style: AppTextStyles.footnote.copyWith(
-                          color: AppColors.primaryLight,
+                        style: context.textStyles.footnote.copyWith(
+                          color: context.colors.primaryLight,
                         ),
                       ),
                     ],
                   ),
                 ),
                 // 箭头
-                const Icon(
+                Icon(
                   Icons.chevron_right,
                   size: 24,
-                  color: AppColors.primaryLight,
+                  color: context.colors.primaryLight,
                 ),
               ],
             ),

@@ -35,7 +35,7 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: Text(_selectedParent != null ? '${_selectedParent!.name} - 子分类' : '分类管理'),
         leading: _selectedParent != null
@@ -60,7 +60,7 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
       bottomNavigationBar: _isEditMode
           ? Container(
               padding: const EdgeInsets.all(AppDimensions.md),
-              color: AppColors.surface,
+              color: context.colors.surface,
               child: SafeArea(
                 child: ElevatedButton(
                   onPressed: () => setState(() => _isEditMode = false),
@@ -86,7 +86,7 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
 
   Widget _buildTypeTabs() {
     return Container(
-      color: AppColors.surface,
+      color: context.colors.surface,
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
       child: Row(
         children: CategoryManageType.values.map((type) {
@@ -102,14 +102,14 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
                 border: isActive
-                    ? const Border(bottom: BorderSide(color: AppColors.primary, width: 2))
+                    ? Border(bottom: BorderSide(color: context.colors.primary, width: 2))
                     : null,
               ),
               child: Text(
                 label,
-                style: AppTextStyles.callout.copyWith(
+                style: context.textStyles.callout.copyWith(
                   fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                  color: isActive ? AppColors.primary : AppColors.textSecondary,
+                  color: isActive ? context.colors.primary : context.colors.textSecondary,
                 ),
               ),
             ),
@@ -176,15 +176,15 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              border: Border.all(color: AppColors.textHint, style: BorderStyle.solid),
+              border: Border.all(color: context.colors.textHint, style: BorderStyle.solid),
               borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
             ),
-            child: const Center(
-              child: Icon(Icons.add, size: 24, color: AppColors.textHint),
+            child: Center(
+              child: Icon(Icons.add, size: 24, color: context.colors.textHint),
             ),
           ),
           const SizedBox(height: 4),
-          Text('添加', style: AppTextStyles.caption),
+          Text('添加', style: context.textStyles.caption),
         ],
       ),
     );
@@ -221,7 +221,7 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
                 label: const Text('添加子分类'),
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 48),
-                  side: const BorderSide(color: AppColors.primary),
+                  side: BorderSide(color: context.colors.primary),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
                   ),
@@ -380,7 +380,7 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
                 );
               }
             },
-            child: Text('删除', style: TextStyle(color: AppColors.error)),
+            child: Text('删除', style: TextStyle(color: context.colors.error)),
           ),
         ],
       ),
@@ -406,7 +406,7 @@ class _CategoryGridItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _parseColor(category.color);
+    final color = _parseColor(context, category.color);
 
     return GestureDetector(
       onTap: onTap,
@@ -436,11 +436,11 @@ class _CategoryGridItem extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
                     decoration: BoxDecoration(
-                      color: AppColors.primary,
+                      color: context.colors.primary,
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: Text('自', style: AppTextStyles.caption.copyWith(
-                      color: AppColors.textOnPrimary,
+                    child: Text('自', style: context.textStyles.caption.copyWith(
+                      color: context.colors.textOnPrimary,
                       fontSize: 8,
                     )),
                   ),
@@ -455,12 +455,12 @@ class _CategoryGridItem extends StatelessWidget {
                     child: Container(
                       width: 16,
                       height: 16,
-                      decoration: const BoxDecoration(
-                        color: AppColors.error,
+                      decoration: BoxDecoration(
+                        color: context.colors.error,
                         shape: BoxShape.circle,
                       ),
-                      child: const Center(
-                        child: Icon(Icons.close, size: 10, color: AppColors.textOnPrimary),
+                      child: Center(
+                        child: Icon(Icons.close, size: 10, color: context.colors.textOnPrimary),
                       ),
                     ),
                   ),
@@ -470,7 +470,7 @@ class _CategoryGridItem extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             category.name,
-            style: AppTextStyles.caption,
+            style: context.textStyles.caption,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
@@ -480,8 +480,8 @@ class _CategoryGridItem extends StatelessWidget {
     );
   }
 
-  Color _parseColor(String? hex) {
-    if (hex == null || hex.isEmpty) return AppColors.textTertiary;
+  Color _parseColor(BuildContext context, String? hex) {
+    if (hex == null || hex.isEmpty) return context.colors.textTertiary;
     final clean = hex.replaceFirst('#', '');
     return Color(int.parse('FF$clean', radix: 16));
   }
@@ -503,31 +503,31 @@ class _SubCategoryListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(bottom: BorderSide(color: AppColors.separatorOpaque, width: 0.5)),
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        border: Border(bottom: BorderSide(color: context.colors.separatorOpaque, width: 0.5)),
       ),
       child: Row(
         children: [
           Text(category.icon ?? '📦', style: const TextStyle(fontSize: 20)),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(category.name, style: AppTextStyles.body),
+            child: Text(category.name, style: context.textStyles.body),
           ),
           if (!category.isSystem)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: AppColors.primarySurface,
+                color: context.colors.primarySurface,
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: Text('自定义', style: AppTextStyles.caption.copyWith(color: AppColors.primaryDark)),
+              child: Text('自定义', style: context.textStyles.caption.copyWith(color: context.colors.primaryDark)),
             ),
           if (isEditMode && onDelete != null) ...[
             const SizedBox(width: 8),
             GestureDetector(
               onTap: onDelete,
-              child: const Icon(Icons.delete_outline, size: 20, color: AppColors.error),
+              child: Icon(Icons.delete_outline, size: 20, color: context.colors.error),
             ),
           ],
         ],
@@ -599,7 +599,7 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
             ),
             const SizedBox(height: 16),
             // 图标选择
-            Text('选择图标', style: AppTextStyles.footnote.copyWith(color: AppColors.textTertiary)),
+            Text('选择图标', style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -612,9 +612,9 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: isSelected ? AppColors.primarySurface : AppColors.surfaceSecondary,
+                      color: isSelected ? context.colors.primarySurface : context.colors.surfaceSecondary,
                       borderRadius: BorderRadius.circular(8),
-                      border: isSelected ? Border.all(color: AppColors.primary, width: 2) : null,
+                      border: isSelected ? Border.all(color: context.colors.primary, width: 2) : null,
                     ),
                     child: Center(child: Text(emoji, style: const TextStyle(fontSize: 20))),
                   ),
@@ -623,7 +623,7 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
             ),
             const SizedBox(height: 16),
             // 颜色选择
-            Text('选择颜色', style: AppTextStyles.footnote.copyWith(color: AppColors.textTertiary)),
+            Text('选择颜色', style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -640,7 +640,7 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
                       color: color,
                       shape: BoxShape.circle,
                       border: isSelected
-                          ? Border.all(color: AppColors.textPrimary, width: 3)
+                          ? Border.all(color: context.colors.textPrimary, width: 3)
                           : null,
                     ),
                     child: isSelected
@@ -720,7 +720,7 @@ class _AddSubCategoryDialogState extends State<_AddSubCategoryDialog> {
               maxLength: 20,
             ),
             const SizedBox(height: 16),
-            Text('选择图标', style: AppTextStyles.footnote.copyWith(color: AppColors.textTertiary)),
+            Text('选择图标', style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -733,9 +733,9 @@ class _AddSubCategoryDialogState extends State<_AddSubCategoryDialog> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: isSelected ? AppColors.primarySurface : AppColors.surfaceSecondary,
+                      color: isSelected ? context.colors.primarySurface : context.colors.surfaceSecondary,
                       borderRadius: BorderRadius.circular(8),
-                      border: isSelected ? Border.all(color: AppColors.primary, width: 2) : null,
+                      border: isSelected ? Border.all(color: context.colors.primary, width: 2) : null,
                     ),
                     child: Center(child: Text(emoji, style: const TextStyle(fontSize: 20))),
                   ),
@@ -821,7 +821,7 @@ class _EditCategoryDialogState extends State<_EditCategoryDialog> {
               maxLength: 20,
             ),
             const SizedBox(height: 16),
-            Text('选择图标', style: AppTextStyles.footnote.copyWith(color: AppColors.textTertiary)),
+            Text('选择图标', style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -834,9 +834,9 @@ class _EditCategoryDialogState extends State<_EditCategoryDialog> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: isSelected ? AppColors.primarySurface : AppColors.surfaceSecondary,
+                      color: isSelected ? context.colors.primarySurface : context.colors.surfaceSecondary,
                       borderRadius: BorderRadius.circular(8),
-                      border: isSelected ? Border.all(color: AppColors.primary, width: 2) : null,
+                      border: isSelected ? Border.all(color: context.colors.primary, width: 2) : null,
                     ),
                     child: Center(child: Text(emoji, style: const TextStyle(fontSize: 20))),
                   ),
@@ -844,7 +844,7 @@ class _EditCategoryDialogState extends State<_EditCategoryDialog> {
               }).toList(),
             ),
             const SizedBox(height: 16),
-            Text('选择颜色', style: AppTextStyles.footnote.copyWith(color: AppColors.textTertiary)),
+            Text('选择颜色', style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -861,7 +861,7 @@ class _EditCategoryDialogState extends State<_EditCategoryDialog> {
                       color: color,
                       shape: BoxShape.circle,
                       border: isSelected
-                          ? Border.all(color: AppColors.textPrimary, width: 3)
+                          ? Border.all(color: context.colors.textPrimary, width: 3)
                           : null,
                     ),
                     child: isSelected

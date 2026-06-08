@@ -211,7 +211,7 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text('确认补签', style: TextStyle(color: AppColors.primary)),
+            child: Text('确认补签', style: TextStyle(color: context.colors.primary)),
           ),
         ],
       ),
@@ -259,7 +259,7 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
     final today = DateTime(now.year, now.month, now.day);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('打卡日历'),
       ),
@@ -282,7 +282,7 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
       margin: const EdgeInsets.all(AppDimensions.md),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
       ),
       child: Row(
@@ -301,15 +301,15 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
     return Expanded(
       child: Column(
         children: [
-          Text(value, style: AppTextStyles.h2.copyWith(color: AppColors.primary)),
+          Text(value, style: context.textStyles.h2.copyWith(color: context.colors.primary)),
           const SizedBox(height: 4),
-          Text(label, style: AppTextStyles.caption),
+          Text(label, style: context.textStyles.caption),
         ],
       ),
     );
   }
 
-  Widget _statDivider() => Container(height: 30, width: 1, color: AppColors.separatorOpaque);
+  Widget _statDivider() => Container(height: 30, width: 1, color: context.colors.separatorOpaque);
 
   Widget _buildCalendar(DateTime today) {
     final year = _currentMonth.year;
@@ -322,7 +322,7 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
       margin: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
       ),
       child: Column(
@@ -339,7 +339,7 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
                   _loadData();
                 }),
               ),
-              Text(DateFormat('yyyy年M月').format(_currentMonth), style: AppTextStyles.h3),
+              Text(DateFormat('yyyy年M月').format(_currentMonth), style: context.textStyles.h3),
               IconButton(
                 icon: const Icon(Icons.chevron_right),
                 onPressed: () => setState(() {
@@ -355,7 +355,7 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
           Row(
             children: ['一', '二', '三', '四', '五', '六', '日']
                 .map((d) => Expanded(
-                      child: Center(child: Text(d, style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w500))),
+                      child: Center(child: Text(d, style: context.textStyles.caption.copyWith(fontWeight: FontWeight.w500))),
                     ))
                 .toList(),
           ),
@@ -388,12 +388,12 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
                     margin: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
                       color: isChecked
-                          ? AppColors.primary.withValues(alpha: 0.15)
-                          : (isSelected ? AppColors.primarySurface : null),
+                          ? context.colors.primary.withValues(alpha: 0.15)
+                          : (isSelected ? context.colors.primarySurface : null),
                       borderRadius: BorderRadius.circular(8),
                       border: isToday
-                          ? Border.all(color: AppColors.primary, width: 1.5)
-                          : (isSelected ? Border.all(color: AppColors.primary.withValues(alpha: 0.5), width: 1) : null),
+                          ? Border.all(color: context.colors.primary, width: 1.5)
+                          : (isSelected ? Border.all(color: context.colors.primary.withValues(alpha: 0.5), width: 1) : null),
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -404,15 +404,15 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
                             fontSize: 14,
                             fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
                             color: isFuture
-                                ? AppColors.textHint
-                                : (isChecked ? AppColors.primary : AppColors.textPrimary),
+                                ? context.colors.textHint
+                                : (isChecked ? context.colors.primary : context.colors.textPrimary),
                           ),
                         ),
                         if (isChecked)
                           Icon(
                             isMakeup ? Icons.edit_calendar : Icons.check_circle,
                             size: 12,
-                            color: AppColors.primary,
+                            color: context.colors.primary,
                           ),
                       ],
                     ),
@@ -439,9 +439,9 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
         AppDimensions.md,
         12 + MediaQuery.of(context).padding.bottom,
       ),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.separatorOpaque, width: 0.5)),
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        border: Border(top: BorderSide(color: context.colors.separatorOpaque, width: 0.5)),
       ),
       child: Row(
         children: [
@@ -465,8 +465,8 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
               icon: Icon(_todayCheckedIn ? Icons.check_circle : Icons.card_giftcard, size: 18, color: Colors.white),
               label: Text(_todayCheckedIn ? '已打卡' : '今日打卡 +10', style: const TextStyle(color: Colors.white)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: _todayCheckedIn ? AppColors.textHint : AppColors.primary,
-                disabledBackgroundColor: AppColors.textHint,
+                backgroundColor: _todayCheckedIn ? context.colors.textHint : context.colors.primary,
+                disabledBackgroundColor: context.colors.textHint,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
               ),

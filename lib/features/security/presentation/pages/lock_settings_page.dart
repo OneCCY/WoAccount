@@ -75,7 +75,7 @@ class _LockSettingsPageState extends State<LockSettingsPage> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(title: const Text('密码锁设置')),
       body: SingleChildScrollView(
         child: Column(
@@ -136,7 +136,7 @@ class _LockSettingsPageState extends State<LockSettingsPage> {
                 padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
                 child: Text(
                   '勾选多种解锁方式后，解锁界面会出现切换按钮。指纹解锁需要设备支持生物识别功能。',
-                  style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary),
+                  style: context.textStyles.caption.copyWith(color: context.colors.textTertiary),
                 ),
               ),
             ],
@@ -153,7 +153,7 @@ class _LockSettingsPageState extends State<LockSettingsPage> {
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.colors.surface,
           borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
         ),
         clipBehavior: Clip.antiAlias,
@@ -163,7 +163,7 @@ class _LockSettingsPageState extends State<LockSettingsPage> {
             if (title != null)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                child: Text(title, style: AppTextStyles.footnote.copyWith(color: AppColors.textTertiary)),
+                child: Text(title, style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)),
               ),
             ...children,
           ],
@@ -182,13 +182,13 @@ class _LockSettingsPageState extends State<LockSettingsPage> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
         children: [
-          Icon(icon, size: 22, color: AppColors.textPrimary),
+          Icon(icon, size: 22, color: context.colors.textPrimary),
           const SizedBox(width: 12),
-          Expanded(child: Text(title, style: AppTextStyles.body)),
+          Expanded(child: Text(title, style: context.textStyles.body)),
           Switch(
             value: value,
             onChanged: onChanged,
-            activeThumbColor: AppColors.primary,
+            activeThumbColor: context.colors.primary,
           ),
         ],
       ),
@@ -245,27 +245,27 @@ class _LockSettingsPageState extends State<LockSettingsPage> {
         },
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: const BoxDecoration(
-            border: Border(bottom: BorderSide(color: AppColors.separatorOpaque, width: 0.5)),
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: context.colors.separatorOpaque, width: 0.5)),
           ),
           child: Row(
             children: [
-              Icon(icon, size: 22, color: AppColors.textPrimary),
+              Icon(icon, size: 22, color: context.colors.textPrimary),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: AppTextStyles.body),
+                    Text(title, style: context.textStyles.body),
                     const SizedBox(height: 2),
-                    Text(subtitle, style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
+                    Text(subtitle, style: context.textStyles.caption.copyWith(color: context.colors.textTertiary)),
                   ],
                 ),
               ),
               Icon(
                 isSelected ? Icons.check_box : Icons.check_box_outline_blank,
                 size: 22,
-                color: isSelected ? AppColors.primary : AppColors.textTertiary,
+                color: isSelected ? context.colors.primary : context.colors.textTertiary,
               ),
             ],
           ),

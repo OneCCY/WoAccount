@@ -1,5 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:record/record.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
@@ -8,14 +11,16 @@ import '../../../../core/theme/app_text_styles.dart';
 class ChatInputBar extends StatefulWidget {
   final Function(String) onSubmit;
   final VoidCallback onManualEntry;
-  final VoidCallback onCamera;
+  final Function(String filePath) onVoiceRecorded;
+  final Function(String filePath) onImageCaptured;
   final bool isLoading;
 
   const ChatInputBar({
     super.key,
     required this.onSubmit,
     required this.onManualEntry,
-    required this.onCamera,
+    required this.onVoiceRecorded,
+    required this.onImageCaptured,
     this.isLoading = false,
   });
 
@@ -26,15 +31,19 @@ class ChatInputBar extends StatefulWidget {
 class _ChatInputBarState extends State<ChatInputBar> {
   final _controller = TextEditingController();
   final _focusNode = FocusNode();
+  final _audioRecorder = AudioRecorder();
+  final _imagePicker = ImagePicker();
 
   bool _isRecording = false;
   bool _isCancelled = false;
   Offset _dragOffset = Offset.zero;
+  DateTime? _recordStartTime;
 
   @override
   void dispose() {
     _controller.dispose();
     _focusNode.dispose();
+    _audioRecorder.dispose();
     super.dispose();
   }
 
@@ -46,23 +55,43 @@ class _ChatInputBarState extends State<ChatInputBar> {
     _focusNode.unfocus();
   }
 
-  // ==================== 语音交互 ====================
+  // ==================== 语音交互（真实录音） ====================
 
-  /// 长按开始录音
-  void _onVoiceStart(LongPressStartDetails details) {
+  Future<void> _onVoiceStart(LongPressStartDetails details) async {
     HapticFeedback.heavyImpact();
+
+    // 检查录音权限
+    if (!await _audioRecorder.hasPermission()) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('请授权麦克风权限'), behavior: SnackBarBehavior.floating),
+        );
+      }
+      return;
+    }
+
     setState(() {
       _isRecording = true;
       _isCancelled = false;
       _dragOffset = Offset.zero;
     });
+
+    _recordStartTime = DateTime.now();
+
+    // 开始录音
+    await _audioRecorder.start(
+      const RecordConfig(
+        encoder: AudioEncoder.aacLc,
+        bitRate: 128000,
+        sampleRate: 44100,
+      ),
+      path: '', // 空路径让 record 自动选择临时路径
+    );
   }
 
-  /// 长按拖动中
   void _onVoiceUpdate(LongPressMoveUpdateDetails details) {
     setState(() => _dragOffset = details.offsetFromOrigin);
 
-    // 左上滑动超过阈值 → 取消
     if (_dragOffset.dx < -50 && _dragOffset.dy < -20) {
       if (!_isCancelled) {
         HapticFeedback.heavyImpact();
@@ -73,27 +102,86 @@ class _ChatInputBarState extends State<ChatInputBar> {
     }
   }
 
-  /// 长按结束
-  void _onVoiceEnd(LongPressEndDetails details) {
-    if (!_isCancelled && _isRecording) {
-      // 松手 → 发送语音（模拟）
-      HapticFeedback.lightImpact();
-      _simulateVoiceInput();
-    }
+  Future<void> _onVoiceEnd(LongPressEndDetails details) async {
+    if (!_isRecording) return;
+
+    final path = await _audioRecorder.stop();
+
     setState(() {
       _isRecording = false;
       _isCancelled = false;
       _dragOffset = Offset.zero;
     });
+
+    if (_isCancelled || path == null || path.isEmpty) {
+      // 取消或录音失败
+      return;
+    }
+
+    // 检查录音时长（太短则忽略）
+    final duration = _recordStartTime != null
+        ? DateTime.now().difference(_recordStartTime!)
+        : Duration.zero;
+    if (duration.inMilliseconds < 500) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('录音时间太短'), behavior: SnackBarBehavior.floating, duration: Duration(milliseconds: 800)),
+        );
+      }
+      return;
+    }
+
+    HapticFeedback.lightImpact();
+    widget.onVoiceRecorded(path);
   }
 
-  /// 模拟语音输入
-  void _simulateVoiceInput() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('语音识别功能开发中，请使用文字输入'),
-        behavior: SnackBarBehavior.floating,
-        duration: Duration(milliseconds: 500),
+  // ==================== 拍照/选图 ====================
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? image = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 1920,
+        maxHeight: 1920,
+        imageQuality: 85,
+      );
+      if (image != null) {
+        widget.onImageCaptured(image.path);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('获取图片失败: $e'), behavior: SnackBarBehavior.floating),
+        );
+      }
+    }
+  }
+
+  void _showImageSourceDialog() {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('拍照'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickImage(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('从相册选择'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -103,9 +191,9 @@ class _ChatInputBarState extends State<ChatInputBar> {
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: const Border(
-          top: BorderSide(color: AppColors.separatorOpaque, width: 0.5),
+        color: context.colors.surface,
+        border: Border(
+          top: BorderSide(color: context.colors.separatorOpaque, width: 0.5),
         ),
         boxShadow: [
           BoxShadow(
@@ -120,16 +208,13 @@ class _ChatInputBarState extends State<ChatInputBar> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            // ========== 左侧：记账按钮（醒目 + 长按语音） ==========
             _buildRecordButton(),
             const SizedBox(width: 8),
-
-            // ========== 中间：文本输入框 ==========
             Expanded(
               child: Container(
                 constraints: const BoxConstraints(minHeight: 40, maxHeight: 120),
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceSecondary,
+                  color: context.colors.surfaceSecondary,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: TextField(
@@ -138,13 +223,13 @@ class _ChatInputBarState extends State<ChatInputBar> {
                   enabled: !widget.isLoading && !_isRecording,
                   textInputAction: TextInputAction.send,
                   onSubmitted: (_) => _handleSubmit(),
-                  onChanged: (_) => setState(() {}), // 刷新发送按钮状态
+                  onChanged: (_) => setState(() {}),
                   maxLines: null,
-                  style: AppTextStyles.body.copyWith(fontSize: 15),
+                  style: context.textStyles.body.copyWith(fontSize: 15),
                   decoration: InputDecoration(
                     hintText: _isRecording ? '松手发送，左滑取消 ↖' : '说点什么...',
-                    hintStyle: AppTextStyles.body.copyWith(
-                      color: _isRecording ? AppColors.primary : AppColors.textHint,
+                    hintStyle: context.textStyles.body.copyWith(
+                      color: _isRecording ? context.colors.primary : context.colors.textHint,
                       fontSize: 15,
                     ),
                     border: InputBorder.none,
@@ -154,8 +239,6 @@ class _ChatInputBarState extends State<ChatInputBar> {
               ),
             ),
             const SizedBox(width: 8),
-
-            // ========== 右侧：发送/拍照按钮 ==========
             _buildRightButton(),
           ],
         ),
@@ -163,7 +246,6 @@ class _ChatInputBarState extends State<ChatInputBar> {
     );
   }
 
-  /// 醒目的记账按钮（长按录音，点击手动记账）
   Widget _buildRecordButton() {
     return GestureDetector(
       onTap: widget.onManualEntry,
@@ -178,8 +260,8 @@ class _ChatInputBarState extends State<ChatInputBar> {
           gradient: _isRecording
               ? LinearGradient(
                   colors: _isCancelled
-                      ? [AppColors.error, AppColors.error.withValues(alpha: 0.8)]
-                      : [AppColors.primary, AppColors.primary.withValues(alpha: 0.7)],
+                      ? [context.colors.error, context.colors.error.withValues(alpha: 0.8)]
+                      : [context.colors.primary, context.colors.primary.withValues(alpha: 0.7)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 )
@@ -192,8 +274,8 @@ class _ChatInputBarState extends State<ChatInputBar> {
           boxShadow: [
             BoxShadow(
               color: (_isRecording
-                      ? (_isCancelled ? AppColors.error : AppColors.primary)
-                      : AppColors.primary)
+                      ? (_isCancelled ? context.colors.error : context.colors.primary)
+                      : context.colors.primary)
                   .withValues(alpha: 0.3),
               blurRadius: _isRecording ? 12 : 8,
               offset: const Offset(0, 3),
@@ -205,13 +287,13 @@ class _ChatInputBarState extends State<ChatInputBar> {
               ? Icon(
                   _isCancelled ? Icons.close : Icons.mic,
                   size: 24,
-                  color: AppColors.textOnPrimary,
+                  color: context.colors.textOnPrimary,
                 )
               : Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.edit_note, size: 22, color: AppColors.textOnPrimary),
-                    Text('记账', style: TextStyle(fontSize: 9, color: AppColors.textOnPrimary, fontWeight: FontWeight.w600)),
+                    Icon(Icons.edit_note, size: 22, color: context.colors.textOnPrimary),
+                    Text('记账', style: TextStyle(fontSize: 9, color: context.colors.textOnPrimary, fontWeight: FontWeight.w600)),
                   ],
                 ),
         ),
@@ -219,43 +301,40 @@ class _ChatInputBarState extends State<ChatInputBar> {
     );
   }
 
-  /// 右侧按钮：有文本时发送，无文本时拍照
   Widget _buildRightButton() {
     final hasText = _controller.text.trim().isNotEmpty;
 
     if (hasText) {
-      // 发送按钮
       return GestureDetector(
         onTap: widget.isLoading ? null : _handleSubmit,
         child: Container(
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: widget.isLoading ? AppColors.surfaceSecondary : AppColors.primary,
+            color: widget.isLoading ? context.colors.surfaceSecondary : context.colors.primary,
             borderRadius: BorderRadius.circular(20),
           ),
           child: widget.isLoading
-              ? const Padding(
-                  padding: EdgeInsets.all(10),
-                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.textOnPrimary),
+              ? Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: CircularProgressIndicator(strokeWidth: 2, color: context.colors.textOnPrimary),
                 )
-              : const Icon(Icons.arrow_upward, size: 22, color: AppColors.textOnPrimary),
+              : Icon(Icons.arrow_upward, size: 22, color: context.colors.textOnPrimary),
         ),
       );
     }
 
-    // 拍照按钮
     return GestureDetector(
-      onTap: widget.onCamera,
+      onTap: _showImageSourceDialog,
       child: Container(
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: AppColors.surfaceSecondary,
+          color: context.colors.surfaceSecondary,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.separator, width: 1),
+          border: Border.all(color: context.colors.separator, width: 1),
         ),
-        child: Icon(Icons.camera_alt_outlined, size: 20, color: AppColors.textSecondary),
+        child: Icon(Icons.camera_alt_outlined, size: 20, color: context.colors.textSecondary),
       ),
     );
   }

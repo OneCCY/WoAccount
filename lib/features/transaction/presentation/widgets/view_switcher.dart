@@ -19,28 +19,28 @@ class ViewSwitcher extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: context.colors.background,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildTab('日', ViewType.day),
-          _buildTab('周', ViewType.week),
-          _buildTab('月', ViewType.month),
+          _buildTab(context, '日', ViewType.day),
+          _buildTab(context, '周', ViewType.week),
+          _buildTab(context, '月', ViewType.month),
         ],
       ),
     );
   }
 
-  Widget _buildTab(String label, ViewType type) {
+  Widget _buildTab(BuildContext context, String label, ViewType type) {
     final isActive = currentView == type;
     return GestureDetector(
       onTap: () => onViewChanged(type),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          color: isActive ? AppColors.success : Colors.transparent,
+          color: isActive ? context.colors.success : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
@@ -48,7 +48,7 @@ class ViewSwitcher extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w500,
-            color: isActive ? AppColors.textOnPrimary : AppColors.textSecondary,
+            color: isActive ? context.colors.textOnPrimary : context.colors.textSecondary,
           ),
         ),
       ),

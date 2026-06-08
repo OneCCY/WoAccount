@@ -71,7 +71,7 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
   }
 
   Color _parseColor(String? hex) {
-    if (hex == null || hex.isEmpty) return AppColors.textTertiary;
+    if (hex == null || hex.isEmpty) return context.colors.textTertiary;
     final clean = hex.replaceFirst('#', '');
     return Color(int.parse('FF$clean', radix: 16));
   }
@@ -89,8 +89,8 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
 
         return Container(
           height: MediaQuery.of(context).size.height * 0.7,
-          decoration: const BoxDecoration(
-            color: AppColors.surface,
+          decoration: BoxDecoration(
+            color: context.colors.surface,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
           padding: EdgeInsets.fromLTRB(16, 0, 16, 16 + bottomInset),
@@ -102,7 +102,7 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
                 height: 4,
                 margin: const EdgeInsets.only(top: 12, bottom: 12),
                 decoration: BoxDecoration(
-                  color: AppColors.textTertiary,
+                  color: context.colors.textTertiary,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -111,7 +111,7 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Row(
                   children: [
-                    Text('选择分类', style: AppTextStyles.h3),
+                    Text('选择分类', style: context.textStyles.h3),
                     const Spacer(),
                     _buildTypeToggle(),
                   ],
@@ -124,16 +124,16 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
                 child: Container(
                   height: 36,
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceSecondary,
+                    color: context.colors.surfaceSecondary,
                     borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
                   ),
                   child: TextField(
                     onChanged: (v) => setState(() => _searchQuery = v),
-                    style: AppTextStyles.footnote,
+                    style: context.textStyles.footnote,
                     decoration: InputDecoration(
                       hintText: '搜索分类...',
-                      hintStyle: AppTextStyles.footnote.copyWith(color: AppColors.textHint),
-                      prefixIcon: Icon(Icons.search, size: 18, color: AppColors.textTertiary),
+                      hintStyle: context.textStyles.footnote.copyWith(color: context.colors.textHint),
+                      prefixIcon: Icon(Icons.search, size: 18, color: context.colors.textTertiary),
                       prefixIconConstraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(vertical: 8),
@@ -152,16 +152,16 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
                         onTap: () => setState(() => _expandedParentId = null),
                         child: Row(
                           children: [
-                            Icon(Icons.arrow_back, size: 18, color: AppColors.primary),
+                            Icon(Icons.arrow_back, size: 18, color: context.colors.primary),
                             const SizedBox(width: 4),
-                            Text('返回', style: AppTextStyles.footnote.copyWith(color: AppColors.primary)),
+                            Text('返回', style: context.textStyles.footnote.copyWith(color: context.colors.primary)),
                           ],
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         allCategories.firstWhere((c) => c.id == _expandedParentId, orElse: () => _filterTopLevel(allCategories).first).name,
-                        style: AppTextStyles.footnote.copyWith(fontWeight: FontWeight.w600),
+                        style: context.textStyles.footnote.copyWith(fontWeight: FontWeight.w600),
                       ),
                     ],
                   ),
@@ -183,7 +183,7 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
   Widget _buildTypeToggle() {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surfaceSecondary,
+        color: context.colors.surfaceSecondary,
         borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
       ),
       child: Row(
@@ -208,13 +208,13 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          color: active ? AppColors.primary : Colors.transparent,
+          color: active ? context.colors.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
         ),
         child: Text(
           label,
-          style: AppTextStyles.caption.copyWith(
-            color: active ? Colors.white : AppColors.textSecondary,
+          style: context.textStyles.caption.copyWith(
+            color: active ? Colors.white : context.colors.textSecondary,
             fontWeight: active ? FontWeight.w600 : FontWeight.w400,
           ),
         ),
@@ -225,7 +225,7 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
   Widget _buildTopGrid(List<Category> allCategories) {
     final cats = _filterTopLevel(allCategories);
     if (cats.isEmpty) {
-      return Center(child: Text('暂无分类', style: AppTextStyles.footnote.copyWith(color: AppColors.textTertiary)));
+      return Center(child: Text('暂无分类', style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)));
     }
     return GridView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -262,7 +262,7 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
   Widget _buildChildGrid(List<Category> allCategories, int parentId) {
     final children = _childrenOf(allCategories, parentId);
     if (children.isEmpty) {
-      return Center(child: Text('暂无子分类', style: AppTextStyles.footnote.copyWith(color: AppColors.textTertiary)));
+      return Center(child: Text('暂无子分类', style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)));
     }
     return GridView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -321,7 +321,7 @@ class _CategoryTile extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                  border: isSelected ? Border.all(color: AppColors.primary, width: 2) : null,
+                  border: isSelected ? Border.all(color: context.colors.primary, width: 2) : null,
                 ),
                 child: Center(child: Text(icon, style: const TextStyle(fontSize: 22))),
               ),
@@ -332,8 +332,8 @@ class _CategoryTile extends StatelessWidget {
                   child: Container(
                     width: 14,
                     height: 14,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primary,
+                    decoration: BoxDecoration(
+                      color: context.colors.primary,
                       shape: BoxShape.circle,
                     ),
                     child: const Center(
@@ -346,7 +346,7 @@ class _CategoryTile extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             name,
-            style: AppTextStyles.caption,
+            style: context.textStyles.caption,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,

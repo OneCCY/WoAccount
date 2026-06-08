@@ -46,15 +46,15 @@ class TransactionGroup extends StatelessWidget {
         // 日期头
         Container(
           padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 10),
-          color: AppColors.surfaceSecondary,
+          color: context.colors.surfaceSecondary,
           child: Row(
             children: [
               // 日期 + 星期
               Text(
                 '${DateFormat('M月d日').format(date)} ${_getWeekday(date)}',
-                style: AppTextStyles.footnote.copyWith(
+                style: context.textStyles.footnote.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                  color: context.colors.textPrimary,
                 ),
               ),
               const SizedBox(width: 12),
@@ -62,13 +62,13 @@ class TransactionGroup extends StatelessWidget {
               if (totalExpense > 0)
                 Text(
                   '支出 ¥${totalExpense.toStringAsFixed(2)}',
-                  style: AppTextStyles.caption.copyWith(color: AppColors.expense),
+                  style: context.textStyles.caption.copyWith(color: context.colors.expense),
                 ),
               if (totalExpense > 0 && totalIncome > 0) const SizedBox(width: 8),
               if (totalIncome > 0)
                 Text(
                   '收入 ¥${totalIncome.toStringAsFixed(2)}',
-                  style: AppTextStyles.caption.copyWith(color: AppColors.income),
+                  style: context.textStyles.caption.copyWith(color: context.colors.income),
                 ),
               const Spacer(),
               // 排序切换
@@ -81,12 +81,12 @@ class TransactionGroup extends StatelessWidget {
                       Icon(
                         sortLabel == '按时间' ? Icons.access_time : Icons.sort,
                         size: 13,
-                        color: AppColors.textTertiary,
+                        color: context.colors.textTertiary,
                       ),
                       const SizedBox(width: 3),
                       Text(
                         sortLabel!,
-                        style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary, fontSize: 11),
+                        style: context.textStyles.caption.copyWith(color: context.colors.textTertiary, fontSize: 11),
                       ),
                     ],
                   ),
@@ -209,7 +209,7 @@ class _TransactionItemState extends State<_TransactionItem>
     final (icon, bgColor) = _getCategoryStyle(categoryName);
     final isExpense = widget.category?.isExpense ?? true;
     final amountPrefix = isExpense ? '-' : '+';
-    final amountColor = isExpense ? AppColors.expense : AppColors.income;
+    final amountColor = isExpense ? context.colors.expense : context.colors.income;
     final screenWidth = MediaQuery.of(context).size.width;
 
     // 二级分类
@@ -235,7 +235,7 @@ class _TransactionItemState extends State<_TransactionItem>
                   widget.onDelete();
                 },
                 child: Container(
-                  color: AppColors.error,
+                  color: context.colors.error,
                   child: const Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -255,11 +255,11 @@ class _TransactionItemState extends State<_TransactionItem>
               child: GestureDetector(
                 onTap: _dragExtent.abs() > 1 ? _resetPosition : widget.onTap,
                 child: Container(
-                  color: AppColors.surface,
+                  color: context.colors.surface,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 10),
-                    decoration: const BoxDecoration(
-                      border: Border(bottom: BorderSide(color: AppColors.separatorOpaque, width: 0.5)),
+                    decoration: BoxDecoration(
+                      border: Border(bottom: BorderSide(color: context.colors.separatorOpaque, width: 0.5)),
                     ),
                     child: Row(
                       children: [
@@ -272,7 +272,7 @@ class _TransactionItemState extends State<_TransactionItem>
                             borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
                           ),
                           child: Center(
-                            child: Icon(icon, size: 20, color: AppColors.textPrimary),
+                            child: Icon(icon, size: 20, color: context.colors.textPrimary),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -284,14 +284,14 @@ class _TransactionItemState extends State<_TransactionItem>
                             children: [
                               Text(
                                 widget.transaction.description,
-                                style: AppTextStyles.body,
+                                style: context.textStyles.body,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 '${DateFormat('HH:mm:ss').format(widget.transaction.transactionDate)} · ${categoryName ?? '未分类'} · $subName',
-                                style: AppTextStyles.caption,
+                                style: context.textStyles.caption,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -301,7 +301,7 @@ class _TransactionItemState extends State<_TransactionItem>
                         // 金额
                         Text(
                           '$amountPrefix¥${widget.transaction.amount.toStringAsFixed(2)}',
-                          style: AppTextStyles.amountList.copyWith(color: amountColor),
+                          style: context.textStyles.amountList.copyWith(color: amountColor),
                         ),
                       ],
                     ),
@@ -318,23 +318,23 @@ class _TransactionItemState extends State<_TransactionItem>
   (IconData, Color) _getCategoryStyle(String? categoryName) {
     switch (categoryName) {
       case '餐饮':
-        return (Icons.restaurant, AppColors.categoryFoodBg);
+        return (Icons.restaurant, context.colors.categoryFoodBg);
       case '交通':
-        return (Icons.directions_car, AppColors.categoryTransportBg);
+        return (Icons.directions_car, context.colors.categoryTransportBg);
       case '购物':
-        return (Icons.shopping_bag, AppColors.categoryShoppingBg);
+        return (Icons.shopping_bag, context.colors.categoryShoppingBg);
       case '住房':
-        return (Icons.home, AppColors.categoryHousingBg);
+        return (Icons.home, context.colors.categoryHousingBg);
       case '娱乐':
-        return (Icons.sports_esports, AppColors.categoryEntertainmentBg);
+        return (Icons.sports_esports, context.colors.categoryEntertainmentBg);
       case '教育':
-        return (Icons.school, AppColors.categoryEducationBg);
+        return (Icons.school, context.colors.categoryEducationBg);
       case '医疗':
-        return (Icons.local_hospital, AppColors.categoryMedicalBg);
+        return (Icons.local_hospital, context.colors.categoryMedicalBg);
       case '社交':
-        return (Icons.people, AppColors.categorySocialBg);
+        return (Icons.people, context.colors.categorySocialBg);
       default:
-        return (Icons.more_horiz, AppColors.categoryOtherBg);
+        return (Icons.more_horiz, context.colors.categoryOtherBg);
     }
   }
 }

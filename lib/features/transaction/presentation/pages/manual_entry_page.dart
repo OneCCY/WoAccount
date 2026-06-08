@@ -45,7 +45,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       body: Column(
         children: [
           SizedBox(height: MediaQuery.of(context).padding.top),
@@ -65,7 +65,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
     return Container(
       height: 48,
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
-      color: AppColors.surface,
+      color: context.colors.surface,
       child: Row(
         children: [
           IconButton(
@@ -75,17 +75,17 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
             constraints: const BoxConstraints(),
           ),
           const SizedBox(width: 8),
-          Text('记账', style: AppTextStyles.h3),
+          Text('记账', style: context.textStyles.h3),
           const Spacer(),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: AppColors.primarySurface,
+              color: context.colors.primarySurface,
               borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
             ),
             child: Text(
               '日常记账',
-              style: AppTextStyles.caption.copyWith(color: AppColors.primaryDark),
+              style: context.textStyles.caption.copyWith(color: context.colors.primaryDark),
             ),
           ),
         ],
@@ -96,7 +96,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
   /// 类型切换 Tab
   Widget _buildTypeTabs() {
     return Container(
-      color: AppColors.surface,
+      color: context.colors.surface,
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
       child: Row(
         children: EntryType.values.map((type) {
@@ -118,16 +118,16 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
                 border: isActive
-                    ? const Border(
-                        bottom: BorderSide(color: AppColors.primary, width: 2),
+                    ? Border(
+                        bottom: BorderSide(color: context.colors.primary, width: 2),
                       )
                     : null,
               ),
               child: Text(
                 label,
-                style: AppTextStyles.callout.copyWith(
+                style: context.textStyles.callout.copyWith(
                   fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                  color: isActive ? AppColors.primary : AppColors.textSecondary,
+                  color: isActive ? context.colors.primary : context.colors.textSecondary,
                 ),
               ),
             ),
@@ -222,7 +222,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
 
         return Positioned.fill(
           child: Container(
-            color: AppColors.surface,
+            color: context.colors.surface,
             child: Column(
               children: [
                 Padding(
@@ -238,7 +238,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
                         constraints: const BoxConstraints(),
                       ),
                       const SizedBox(width: 8),
-                      Text('${parent.name} - 子分类', style: AppTextStyles.h3),
+                      Text('${parent.name} - 子分类', style: context.textStyles.h3),
                     ],
                   ),
                 ),
@@ -286,12 +286,12 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
         horizontal: AppDimensions.md,
         vertical: 8,
       ),
-      color: AppColors.primarySurface,
+      color: context.colors.primarySurface,
       child: Row(
         children: [
           Text(
             '$parentName${category.name}',
-            style: AppTextStyles.footnote.copyWith(color: AppColors.primaryDark),
+            style: context.textStyles.footnote.copyWith(color: context.colors.primaryDark),
           ),
           const Spacer(),
           GestureDetector(
@@ -301,7 +301,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
                 _selectedSubCategory = null;
               });
             },
-            child: const Icon(Icons.close, size: 16, color: AppColors.primaryDark),
+            child: Icon(Icons.close, size: 16, color: context.colors.primaryDark),
           ),
         ],
       ),
@@ -311,23 +311,23 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
   /// 备注输入 + 金额显示
   Widget _buildNoteAmountRow() {
     final amountColor = switch (_entryType) {
-      EntryType.expense => AppColors.expense,
-      EntryType.income => AppColors.income,
-      EntryType.other => AppColors.textPrimary,
+      EntryType.expense => context.colors.expense,
+      EntryType.income => context.colors.income,
+      EntryType.other => context.colors.textPrimary,
     };
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      color: AppColors.surface,
+      color: context.colors.surface,
       child: Row(
         children: [
           // 备注输入
           Expanded(
             child: TextField(
-              style: AppTextStyles.body,
+              style: context.textStyles.body,
               decoration: InputDecoration(
                 hintText: '添加备注...',
-                hintStyle: AppTextStyles.body.copyWith(color: AppColors.textHint),
+                hintStyle: context.textStyles.body.copyWith(color: context.colors.textHint),
                 border: InputBorder.none,
                 isDense: true,
                 contentPadding: EdgeInsets.zero,
@@ -339,7 +339,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
           // 金额显示
           Text(
             _amountStr.isEmpty ? '0.00' : _amountStr,
-            style: AppTextStyles.amountLarge.copyWith(color: amountColor),
+            style: context.textStyles.amountLarge.copyWith(color: amountColor),
           ),
         ],
       ),
@@ -349,7 +349,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
   /// 自定义数字键盘
   Widget _buildNumpad() {
     return Container(
-      color: AppColors.surface,
+      color: context.colors.surface,
       padding: const EdgeInsets.fromLTRB(4, 4, 4, 4),
       child: SafeArea(
         top: false,
@@ -363,7 +363,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
                 _NumpadKey(
                   label: '今天',
                   onTap: () => setState(() => _showDatePicker = !_showDatePicker),
-                  textStyle: AppTextStyles.caption.copyWith(color: AppColors.primary),
+                  textStyle: context.textStyles.caption.copyWith(color: context.colors.primary),
                 ),
               ],
             ),
@@ -387,7 +387,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
                 _NumpadKey(
                   label: '+/-',
                   onTap: _onToggleSign,
-                  textStyle: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+                  textStyle: context.textStyles.body.copyWith(color: context.colors.textSecondary),
                 ),
               ],
             ),
@@ -398,9 +398,9 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
                 _NumpadKey(
                   label: '完成',
                   onTap: _onSubmit,
-                  backgroundColor: _canSubmit ? AppColors.primary : AppColors.surfaceSecondary,
+                  backgroundColor: _canSubmit ? context.colors.primary : context.colors.surfaceSecondary,
                   textStyle: AppTextStyles.buttonText.copyWith(
-                    color: _canSubmit ? AppColors.textOnPrimary : AppColors.textHint,
+                    color: _canSubmit ? context.colors.textOnPrimary : context.colors.textHint,
                   ),
                 ),
               ],
@@ -494,7 +494,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
   Widget _buildDatePickerOverlay() {
     return Positioned.fill(
       child: Container(
-        color: AppColors.surface,
+        color: context.colors.surface,
         child: _SimpleCalendar(
           selectedDate: _selectedDate,
           onDateSelected: (date) {
@@ -542,7 +542,7 @@ class _CategoryItem extends StatelessWidget {
                   color: color.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
                   border: isSelected
-                      ? Border.all(color: AppColors.primary, width: 2)
+                      ? Border.all(color: context.colors.primary, width: 2)
                       : null,
                 ),
                 child: Center(
@@ -563,11 +563,11 @@ class _CategoryItem extends StatelessWidget {
                       width: 16,
                       height: 16,
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
+                        color: context.colors.primary,
                         shape: BoxShape.circle,
                       ),
                       child: const Center(
-                        child: Icon(Icons.add, size: 10, color: AppColors.textOnPrimary),
+                        child: Icon(Icons.add, size: 10, color: context.colors.textOnPrimary),
                       ),
                     ),
                   ),
@@ -577,7 +577,7 @@ class _CategoryItem extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             category.name,
-            style: AppTextStyles.caption,
+            style: context.textStyles.caption,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
@@ -588,7 +588,7 @@ class _CategoryItem extends StatelessWidget {
   }
 
   Color _parseColor(String? hex) {
-    if (hex == null || hex.isEmpty) return AppColors.textTertiary;
+    if (hex == null || hex.isEmpty) return context.colors.textTertiary;
     final clean = hex.replaceFirst('#', '');
     return Color(int.parse('FF$clean', radix: 16));
   }
@@ -616,7 +616,7 @@ class _NumpadKey extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(2),
         child: Material(
-          color: backgroundColor ?? AppColors.surfaceSecondary,
+          color: backgroundColor ?? context.colors.surfaceSecondary,
           borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
           child: InkWell(
             onTap: onTap,
@@ -625,10 +625,10 @@ class _NumpadKey extends StatelessWidget {
               height: 48,
               child: Center(
                 child: icon != null
-                    ? Icon(icon, size: 20, color: AppColors.textPrimary)
+                    ? Icon(icon, size: 20, color: context.colors.textPrimary)
                     : Text(
                         label,
-                        style: textStyle ?? AppTextStyles.h3,
+                        style: textStyle ?? context.textStyles.h3,
                       ),
               ),
             ),
@@ -663,7 +663,7 @@ class _SimpleCalendar extends StatelessWidget {
           padding: const EdgeInsets.all(AppDimensions.md),
           child: Text(
             '${selectedDate.year}年${selectedDate.month}月',
-            style: AppTextStyles.h3,
+            style: context.textStyles.h3,
           ),
         ),
         // 星期标题
@@ -673,7 +673,7 @@ class _SimpleCalendar extends StatelessWidget {
             children: ['日', '一', '二', '三', '四', '五', '六']
                 .map((d) => Expanded(
                       child: Center(
-                        child: Text(d, style: AppTextStyles.caption),
+                        child: Text(d, style: context.textStyles.caption),
                       ),
                     ))
                 .toList(),
@@ -705,14 +705,14 @@ class _SimpleCalendar extends StatelessWidget {
                 onTap: () => onDateSelected(date),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.primary : (isToday ? AppColors.primarySurface : null),
+                    color: isSelected ? context.colors.primary : (isToday ? context.colors.primarySurface : null),
                     borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
                   ),
                   child: Center(
                     child: Text(
                       '$day',
-                      style: AppTextStyles.body.copyWith(
-                        color: isSelected ? AppColors.textOnPrimary : AppColors.textPrimary,
+                      style: context.textStyles.body.copyWith(
+                        color: isSelected ? context.colors.textOnPrimary : context.colors.textPrimary,
                         fontWeight: isToday ? FontWeight.w600 : FontWeight.w400,
                       ),
                     ),

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
@@ -18,7 +18,7 @@ class MainShell extends StatelessWidget {
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: AppColors.surface,
-          border: const Border(
+          border: Border(
             top: BorderSide(color: AppColors.separatorOpaque, width: 0.5),
           ),
           boxShadow: [

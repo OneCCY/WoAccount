@@ -51,7 +51,7 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> {
         _progresses.where((p) => p.budget.categoryId != null).toList();
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(title: const Text('预算设置')),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -63,12 +63,12 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> {
                   // 总预算显示
                   Text(
                     '¥${totalBudget.toStringAsFixed(0)}',
-                    style: AppTextStyles.amountLarge,
+                    style: context.textStyles.amountLarge,
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '已设置 ${categoryProgresses.length} 个分类预算',
-                    style: AppTextStyles.caption,
+                    style: context.textStyles.caption,
                   ),
 
                   const SizedBox(height: 16),
@@ -79,7 +79,7 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> {
                   const SizedBox(height: 24),
 
                   // 分类预算列表
-                  ...categoryProgresses.map(_buildCategoryBudgetItem),
+                  ...categoryProgresses.map((p) => _buildCategoryBudgetItem(context, p)),
 
                   // 添加按钮
                   Padding(
@@ -90,7 +90,7 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> {
                       label: const Text('添加分类预算'),
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 48),
-                        side: const BorderSide(color: AppColors.primary),
+                        side: BorderSide(color: context.colors.primary),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
                         ),
@@ -108,17 +108,17 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> {
   Widget _buildUsageBar(double total, double spent) {
     final percentage = total > 0 ? (spent / total * 100) : 0.0;
     final barColor = percentage > 90
-        ? AppColors.error
+        ? context.colors.error
         : percentage > 70
-            ? AppColors.warning
-            : AppColors.success;
+            ? context.colors.warning
+            : context.colors.success;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.colors.surface,
           borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
         ),
         child: Column(
@@ -128,7 +128,7 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> {
               child: LinearProgressIndicator(
                 value: (percentage / 100).clamp(0, 1),
                 minHeight: 10,
-                backgroundColor: AppColors.surfaceSecondary,
+                backgroundColor: context.colors.surfaceSecondary,
                 valueColor: AlwaysStoppedAnimation(barColor),
               ),
             ),
@@ -136,8 +136,8 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('已使用 ${percentage.toStringAsFixed(1)}%', style: AppTextStyles.caption),
-                Text('剩余 ¥${(total - spent).toStringAsFixed(0)}', style: AppTextStyles.caption),
+                Text('已使用 ${percentage.toStringAsFixed(1)}%', style: context.textStyles.caption),
+                Text('剩余 ¥${(total - spent).toStringAsFixed(0)}', style: context.textStyles.caption),
               ],
             ),
           ],
@@ -146,9 +146,9 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> {
     );
   }
 
-  Widget _buildCategoryBudgetItem(BudgetProgress progress) {
+  Widget _buildCategoryBudgetItem(BuildContext context, BudgetProgress progress) {
     final cat = progress.category;
-    final color = _parseColor(cat?.color);
+    final color = _parseColor(context, cat?.color);
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -158,7 +158,7 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.colors.surface,
           borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
         ),
         child: Row(
@@ -179,23 +179,23 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(cat?.name ?? '未分类', style: AppTextStyles.body),
+                  Text(cat?.name ?? '未分类', style: context.textStyles.body),
                   const SizedBox(height: 4),
                   Text(
                     '已消费 ¥${progress.spent.toStringAsFixed(0)}',
-                    style: AppTextStyles.caption,
+                    style: context.textStyles.caption,
                   ),
                 ],
               ),
             ),
             Text(
               '¥${progress.budget.amount.toStringAsFixed(0)}',
-              style: AppTextStyles.amountSmall,
+              style: context.textStyles.amountSmall,
             ),
             const SizedBox(width: 8),
             GestureDetector(
               onTap: () => _onEditBudget(progress),
-              child: const Icon(Icons.edit_outlined, size: 18, color: AppColors.textTertiary),
+              child: Icon(Icons.edit_outlined, size: 18, color: context.colors.textTertiary),
             ),
           ],
         ),
@@ -217,8 +217,8 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> {
     );
   }
 
-  Color _parseColor(String? hex) {
-    if (hex == null || hex.isEmpty) return AppColors.textTertiary;
+  Color _parseColor(BuildContext context, String? hex) {
+    if (hex == null || hex.isEmpty) return context.colors.textTertiary;
     final clean = hex.replaceFirst('#', '');
     return Color(int.parse('FF$clean', radix: 16));
   }

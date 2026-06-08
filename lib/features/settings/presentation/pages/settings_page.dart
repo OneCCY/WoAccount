@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../main.dart';
 
 /// 系统设置页
 /// 通用/数据/AI设置 + 关于 + 危险区
-class SettingsPage extends StatefulWidget {
+class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
 
   @override
-  State<SettingsPage> createState() => _SettingsPageState();
+  ConsumerState<SettingsPage> createState() => _SettingsPageState();
 }
 
-class _SettingsPageState extends State<SettingsPage> {
-  bool _darkMode = false;
+class _SettingsPageState extends ConsumerState<SettingsPage> {
   bool _autoBackup = true;
 
   @override
@@ -26,7 +27,6 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _darkMode = prefs.getBool('darkMode') ?? false;
       _autoBackup = prefs.getBool('autoBackup') ?? true;
     });
   }
@@ -38,6 +38,12 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    
+    final themeProvider = ref.watch(themeProviderOverrideProvider);
+    final isDark = themeProvider.themeMode == ThemeMode.dark ||
+        (themeProvider.themeMode == ThemeMode.system &&
+            MediaQuery.platformBrightnessOf(context) == Brightness.dark);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(title: const Text('系统设置')),
@@ -51,9 +57,8 @@ class _SettingsPageState extends State<SettingsPage> {
               title: '通用',
               children: [
                 _buildInfoRow('语言', '简体中文'),
-                _buildSwitchRow('深色模式', _darkMode, (v) {
-                  setState(() => _darkMode = v);
-                  _saveBool('darkMode', v);
+                _buildSwitchRow('深色模式', isDark, (v) {
+                  themeProvider.setThemeMode(v ? ThemeMode.dark : ThemeMode.light);
                 }),
                 _buildInfoRow('货币', 'CNY (¥)'),
               ],
@@ -89,7 +94,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           color: AppColors.primarySurface,
                           borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
                         ),
-                        child: const Center(
+                        child: Center(
                           child: Icon(Icons.account_balance_wallet, color: AppColors.primary, size: 28),
                         ),
                       ),
@@ -131,6 +136,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Widget _buildGroup({required String title, required List<Widget> children}) {
+    
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
       child: Column(
@@ -174,7 +180,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget _buildNavRow(String label, VoidCallback onTap) {
     return _SettingRow(
       label: label,
-      trailing: const Icon(Icons.chevron_right, size: 20, color: AppColors.textTertiary),
+      trailing: Icon(Icons.chevron_right, size: 20, color: AppColors.textTertiary),
       onTap: onTap,
     );
   }
@@ -183,7 +189,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return _SettingRow(
       label: label,
       labelColor: AppColors.error,
-      trailing: const Icon(Icons.chevron_right, size: 20, color: AppColors.error),
+      trailing: Icon(Icons.chevron_right, size: 20, color: AppColors.error),
       onTap: onTap,
     );
   }
@@ -224,13 +230,14 @@ class _SettingRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(color: AppColors.separatorOpaque, width: 0.5),
             ),
