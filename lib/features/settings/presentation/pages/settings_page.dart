@@ -45,7 +45,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             MediaQuery.platformBrightnessOf(context) == Brightness.dark);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(title: const Text('系统设置')),
       body: SingleChildScrollView(
         child: Column(
@@ -91,11 +91,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          color: AppColors.primarySurface,
+                          color: context.colors.primarySurface,
                           borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
                         ),
                         child: Center(
-                          child: Icon(Icons.account_balance_wallet, color: AppColors.primary, size: 28),
+                          child: Icon(Icons.account_balance_wallet, color: context.colors.primary, size: 28),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -148,7 +148,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ),
           Container(
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: context.colors.surface,
               borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
             ),
             clipBehavior: Clip.antiAlias,
@@ -165,7 +165,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       trailing: Switch(
         value: value,
         onChanged: onChanged,
-        activeThumbColor: AppColors.primary,
+        activeThumbColor: context.colors.primary,
       ),
     );
   }
@@ -180,7 +180,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Widget _buildNavRow(String label, VoidCallback onTap) {
     return _SettingRow(
       label: label,
-      trailing: Icon(Icons.chevron_right, size: 20, color: AppColors.textTertiary),
+      trailing: Icon(Icons.chevron_right, size: 20, color: context.colors.textTertiary),
       onTap: onTap,
     );
   }
@@ -188,8 +188,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Widget _buildDangerRow(String label, VoidCallback onTap) {
     return _SettingRow(
       label: label,
-      labelColor: AppColors.error,
-      trailing: Icon(Icons.chevron_right, size: 20, color: AppColors.error),
+      labelColor: context.colors.error,
+      trailing: Icon(Icons.chevron_right, size: 20, color: context.colors.error),
       onTap: onTap,
     );
   }
@@ -207,7 +207,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text('确定', style: TextStyle(color: AppColors.error)),
+            child: Text('确定', style: TextStyle(color: context.colors.error)),
           ),
         ],
       ),
@@ -239,7 +239,7 @@ class _SettingRow extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
             border: Border(
-              bottom: BorderSide(color: AppColors.separatorOpaque, width: 0.5),
+              bottom: BorderSide(color: context.colors.separatorOpaque, width: 0.5),
             ),
           ),
           child: Row(

@@ -30,9 +30,9 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.pie_chart_outline, size: 48, color: AppColors.textTertiary),
+              Icon(Icons.pie_chart_outline, size: 48, color: context.colors.textTertiary),
               const SizedBox(height: 8),
-              Text('暂无数据', style: TextStyle(color: AppColors.textTertiary)),
+              Text('暂无数据', style: TextStyle(color: context.colors.textTertiary)),
             ],
           ),
         ),
@@ -157,7 +157,7 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
               ),
               Text(
                 '${stat.percentage.toStringAsFixed(0)}%',
-                style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                style: TextStyle(fontSize: 11, color: context.colors.textSecondary),
               ),
             ],
           ),
@@ -173,15 +173,15 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
     }
     // fallback 颜色
     final fallbackColors = [
-      AppColors.categoryFood,
-      AppColors.categoryTransport,
-      AppColors.categoryShopping,
-      AppColors.categoryHousing,
-      AppColors.categoryEntertainment,
-      AppColors.categoryEducation,
-      AppColors.categoryMedical,
-      AppColors.categorySocial,
-      AppColors.categoryOther,
+      context.colors.categoryFood,
+      context.colors.categoryTransport,
+      context.colors.categoryShopping,
+      context.colors.categoryHousing,
+      context.colors.categoryEntertainment,
+      context.colors.categoryEducation,
+      context.colors.categoryMedical,
+      context.colors.categorySocial,
+      context.colors.categoryOther,
     ];
     return fallbackColors[index % fallbackColors.length];
   }

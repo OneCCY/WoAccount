@@ -32,7 +32,7 @@ class ChatBubble extends StatelessWidget {
         mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (!isUser) _buildAvatar(),
+          if (!isUser) _buildAvatar(context),
           if (!isUser) const SizedBox(width: 8),
           Flexible(
             child: Column(
@@ -51,7 +51,7 @@ class ChatBubble extends StatelessWidget {
             ),
           ),
           if (isUser) const SizedBox(width: 8),
-          if (isUser) _buildUserAvatar(),
+          if (isUser) _buildUserAvatar(context),
         ],
       ),
     );
@@ -213,7 +213,7 @@ class ChatBubble extends StatelessWidget {
     );
   }
 
-  Widget _buildAvatar() {
+  Widget _buildAvatar(BuildContext context) {
     return Container(
       width: 32,
       height: 32,
@@ -222,7 +222,7 @@ class ChatBubble extends StatelessWidget {
     );
   }
 
-  Widget _buildUserAvatar() {
+  Widget _buildUserAvatar(BuildContext context) {
     return Container(
       width: 32,
       height: 32,

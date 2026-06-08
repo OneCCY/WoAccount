@@ -32,7 +32,7 @@ class _PinLockPageState extends State<PinLockPage> {
         : '请输入密码解锁';
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: isSetup
           ? AppBar(
               title: const Text('设置密码锁'),
@@ -47,7 +47,7 @@ class _PinLockPageState extends State<PinLockPage> {
             const Spacer(flex: 1),
 
             // 标题
-            Text(title, style: AppTextStyles.h3.copyWith(fontSize: 18)),
+            Text(title, style: context.textStyles.h3.copyWith(fontSize: 18)),
             const SizedBox(height: 32),
 
             // PIN 显示圆点
@@ -60,7 +60,7 @@ class _PinLockPageState extends State<PinLockPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 40),
                 child: Text(
                   _error,
-                  style: AppTextStyles.caption.copyWith(color: AppColors.error),
+                  style: context.textStyles.caption.copyWith(color: context.colors.error),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -92,9 +92,9 @@ class _PinLockPageState extends State<PinLockPage> {
           margin: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: filled ? AppColors.primary : Colors.transparent,
+            color: filled ? context.colors.primary : Colors.transparent,
             border: Border.all(
-              color: _error.isNotEmpty ? AppColors.error : AppColors.textTertiary,
+              color: _error.isNotEmpty ? context.colors.error : context.colors.textTertiary,
               width: 2,
             ),
           ),
@@ -146,15 +146,15 @@ class _PinLockPageState extends State<PinLockPage> {
         width: 72,
         height: 72,
         decoration: BoxDecoration(
-          color: isBackspace ? Colors.transparent : AppColors.surface,
+          color: isBackspace ? Colors.transparent : context.colors.surface,
           shape: BoxShape.circle,
         ),
         child: Center(
           child: isBackspace
-              ? Icon(Icons.backspace_outlined, size: 24, color: AppColors.textSecondary)
+              ? Icon(Icons.backspace_outlined, size: 24, color: context.colors.textSecondary)
               : Text(
                   key,
-                  style: AppTextStyles.h3.copyWith(fontSize: 28),
+                  style: context.textStyles.h3.copyWith(fontSize: 28),
                 ),
         ),
       ),

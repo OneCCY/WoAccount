@@ -17,9 +17,9 @@ class MainShell extends StatelessWidget {
       body: child,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.colors.surface,
           border: Border(
-            top: BorderSide(color: AppColors.separatorOpaque, width: 0.5),
+            top: BorderSide(color: context.colors.separatorOpaque, width: 0.5),
           ),
           boxShadow: [
             BoxShadow(
@@ -104,7 +104,7 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isActive ? AppColors.primary : AppColors.textTertiary;
+    final color = isActive ? context.colors.primary : context.colors.textTertiary;
 
     return Expanded(
       child: InkWell(
@@ -146,7 +146,7 @@ class _RecordButton extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: isActive
-                      ? [AppColors.primary, const Color(0xFF2E7D32)]
+                      ? [context.colors.primary, const Color(0xFF2E7D32)]
                       : [const Color(0xFF66BB6A), const Color(0xFF43A047)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -154,7 +154,7 @@ class _RecordButton extends StatelessWidget {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.3),
+                    color: context.colors.primary.withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -163,8 +163,8 @@ class _RecordButton extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.mic, size: 24, color: AppColors.textOnPrimary),
-                  Text('记账', style: TextStyle(fontSize: 9, color: AppColors.textOnPrimary, fontWeight: FontWeight.w600, height: 1)),
+                  Icon(Icons.mic, size: 24, color: context.colors.textOnPrimary),
+                  Text('记账', style: TextStyle(fontSize: 9, color: context.colors.textOnPrimary, fontWeight: FontWeight.w600, height: 1)),
                 ],
               ),
             ),

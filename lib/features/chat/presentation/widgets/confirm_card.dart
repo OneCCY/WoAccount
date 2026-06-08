@@ -24,7 +24,7 @@ class ConfirmCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isExpense = data.type == 'expense';
-    final amountColor = isExpense ? AppColors.expense : AppColors.income;
+    final amountColor = isExpense ? context.colors.expense : context.colors.income;
     final amountPrefix = isExpense ? '-' : '+';
 
     return Padding(
@@ -37,7 +37,7 @@ class ConfirmCard extends StatelessWidget {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: AppColors.primarySurface,
+              color: context.colors.primarySurface,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Center(child: Text('🤖', style: TextStyle(fontSize: 16))),
@@ -48,9 +48,9 @@ class ConfirmCard extends StatelessWidget {
           Flexible(
             child: Container(
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: context.colors.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 1),
+                border: Border.all(color: context.colors.primary.withValues(alpha: 0.3), width: 1),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.04),
@@ -67,11 +67,11 @@ class ConfirmCard extends StatelessWidget {
                     padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
                     child: Row(
                       children: [
-                        Icon(Icons.auto_awesome, size: 16, color: AppColors.primary),
+                        Icon(Icons.auto_awesome, size: 16, color: context.colors.primary),
                         const SizedBox(width: 6),
                         Text('AI 解析结果', style: AppTextStyles.footnote.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
+                          color: context.colors.primary,
                         )),
                         const Spacer(),
                         // 置信度
@@ -145,12 +145,12 @@ class ConfirmCard extends StatelessWidget {
                             onPressed: onCancel,
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 10),
-                              side: BorderSide(color: AppColors.textTertiary),
+                              side: BorderSide(color: context.colors.textTertiary),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
                               ),
                             ),
-                            child: Text('取消', style: AppTextStyles.body.copyWith(color: AppColors.textSecondary)),
+                            child: Text('取消', style: AppTextStyles.body.copyWith(color: context.colors.textSecondary)),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -160,14 +160,14 @@ class ConfirmCard extends StatelessWidget {
                             onPressed: onConfirm,
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 10),
-                              backgroundColor: AppColors.primary,
+                              backgroundColor: context.colors.primary,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
                               ),
                             ),
                             child: Text('确认保存', style: AppTextStyles.body.copyWith(
-                              color: AppColors.textOnPrimary,
+                              color: context.colors.textOnPrimary,
                               fontWeight: FontWeight.w600,
                             )),
                           ),
@@ -185,9 +185,9 @@ class ConfirmCard extends StatelessWidget {
   }
 
   Color _confidenceColor(double c, BuildContext context) {
-    if (c >= 0.9) return AppColors.success;
-    if (c >= 0.7) return AppColors.warning;
-    return AppColors.error;
+    if (c >= 0.9) return context.colors.success;
+    if (c >= 0.7) return context.colors.warning;
+    return context.colors.error;
   }
 
   void _editCategory(BuildContext context) async {
@@ -300,20 +300,20 @@ class _EditableRow extends StatelessWidget {
         decoration: showDivider
             ? BoxDecoration(
                 border: Border(
-                  bottom: BorderSide(color: AppColors.separatorOpaque, width: 0.5),
+                  bottom: BorderSide(color: context.colors.separatorOpaque, width: 0.5),
                 ),
               )
             : null,
         child: Row(
           children: [
-            Icon(icon, size: 16, color: AppColors.textTertiary),
+            Icon(icon, size: 16, color: context.colors.textTertiary),
             const SizedBox(width: 8),
-            Text(label, style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
+            Text(label, style: AppTextStyles.caption.copyWith(color: context.colors.textTertiary)),
             const SizedBox(width: 12),
             Expanded(
               child: Text(value, style: AppTextStyles.body.copyWith(fontSize: 14)),
             ),
-            Icon(Icons.chevron_right, size: 18, color: AppColors.textTertiary),
+            Icon(Icons.chevron_right, size: 18, color: context.colors.textTertiary),
           ],
         ),
       ),

@@ -525,7 +525,7 @@ class _CategoryItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _parseColor(category.color);
+    final color = _parseColor(context, category.color);
 
     return GestureDetector(
       onTap: onTap,
@@ -566,7 +566,7 @@ class _CategoryItem extends StatelessWidget {
                         color: context.colors.primary,
                         shape: BoxShape.circle,
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Icon(Icons.add, size: 10, color: context.colors.textOnPrimary),
                       ),
                     ),
@@ -587,7 +587,7 @@ class _CategoryItem extends StatelessWidget {
     );
   }
 
-  Color _parseColor(String? hex) {
+  Color _parseColor(BuildContext context, String? hex) {
     if (hex == null || hex.isEmpty) return context.colors.textTertiary;
     final clean = hex.replaceFirst('#', '');
     return Color(int.parse('FF$clean', radix: 16));

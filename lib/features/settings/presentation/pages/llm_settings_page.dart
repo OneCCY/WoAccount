@@ -65,7 +65,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text('删除', style: TextStyle(color: AppColors.error)),
+            child: Text('删除', style: TextStyle(color: context.colors.error)),
           ),
         ],
       ),
@@ -138,7 +138,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('AI 服务配置'),
         actions: [
@@ -175,13 +175,13 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.cloud_off_outlined, size: 64, color: AppColors.textTertiary),
+            Icon(Icons.cloud_off_outlined, size: 64, color: context.colors.textTertiary),
             const SizedBox(height: 16),
             Text('尚未配置 AI 服务', style: AppTextStyles.h3),
             const SizedBox(height: 8),
             Text(
               '添加一个 AI 服务商即可使用智能记账功能\n支持文本、视觉、语音多种能力',
-              style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+              style: AppTextStyles.body.copyWith(color: context.colors.textSecondary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -190,8 +190,8 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
               icon: const Icon(Icons.add),
               label: const Text('添加服务商'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.textOnPrimary,
+                backgroundColor: context.colors.primary,
+                foregroundColor: context.colors.textOnPrimary,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
@@ -216,9 +216,9 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: context.colors.surface,
             borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-            border: isActive ? Border.all(color: AppColors.primary, width: 2) : null,
+            border: isActive ? Border.all(color: context.colors.primary, width: 2) : null,
           ),
           child: InkWell(
             onTap: () => _setActive(p.id),
@@ -242,19 +242,19 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: AppColors.primarySurface,
+                            color: context.colors.primarySurface,
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: Text('使用中', style: AppTextStyles.caption.copyWith(color: AppColors.primary)),
+                          child: Text('使用中', style: AppTextStyles.caption.copyWith(color: context.colors.primary)),
                         ),
                       if (!p.isComplete)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: AppColors.warning.withValues(alpha: 0.1),
+                            color: context.colors.warning.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: Text('未完成', style: AppTextStyles.caption.copyWith(color: AppColors.warning)),
+                          child: Text('未完成', style: AppTextStyles.caption.copyWith(color: context.colors.warning)),
                         ),
                     ],
                   ),
@@ -269,7 +269,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
                       const SizedBox(width: 8),
                       _actionButton(icon: Icons.edit_outlined, label: '编辑', onTap: () => _editProvider(p)),
                       const SizedBox(width: 8),
-                      _actionButton(icon: Icons.delete_outline, label: '删除', color: AppColors.error, onTap: () => _delete(p)),
+                      _actionButton(icon: Icons.delete_outline, label: '删除', color: context.colors.error, onTap: () => _delete(p)),
                     ],
                   ),
                 ],
@@ -291,7 +291,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
         children: [
           SizedBox(
             width: 40,
-            child: Text('模型', style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
+            child: Text('模型', style: AppTextStyles.caption.copyWith(color: context.colors.textTertiary)),
           ),
           Expanded(
             child: Wrap(
@@ -302,12 +302,12 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
                 return Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppColors.primarySurface,
+                    color: context.colors.primarySurface,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     '${cap.emoji} $modelName',
-                    style: AppTextStyles.caption.copyWith(color: AppColors.primary, fontSize: 11),
+                    style: AppTextStyles.caption.copyWith(color: context.colors.primary, fontSize: 11),
                     overflow: TextOverflow.ellipsis,
                   ),
                 );
@@ -324,7 +324,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
       padding: const EdgeInsets.only(bottom: 4),
       child: Row(
         children: [
-          SizedBox(width: 40, child: Text(label, style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary))),
+          SizedBox(width: 40, child: Text(label, style: AppTextStyles.caption.copyWith(color: context.colors.textTertiary))),
           Expanded(child: Text(value, style: AppTextStyles.footnote, overflow: TextOverflow.ellipsis)),
         ],
       ),
@@ -340,9 +340,9 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16, color: color ?? AppColors.textSecondary),
+            Icon(icon, size: 16, color: color ?? context.colors.textSecondary),
             const SizedBox(width: 4),
-            Text(label, style: AppTextStyles.caption.copyWith(color: color ?? AppColors.textSecondary)),
+            Text(label, style: AppTextStyles.caption.copyWith(color: color ?? context.colors.textSecondary)),
           ],
         ),
       ),
@@ -368,7 +368,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
         SnackBar(
           content: Text(success ? '✅ 连接成功' : '❌ 连接失败，请检查地址、Key 和模型名称'),
           behavior: SnackBarBehavior.floating,
-          backgroundColor: success ? AppColors.success : AppColors.error,
+          backgroundColor: success ? context.colors.success : context.colors.error,
         ),
       );
     }
@@ -698,13 +698,13 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: Text(_isEditing ? '编辑服务商' : '添加服务商'),
         actions: [
           TextButton(
             onPressed: _save,
-            child: Text('保存', style: AppTextStyles.body.copyWith(color: AppColors.primary)),
+            child: Text('保存', style: AppTextStyles.body.copyWith(color: context.colors.primary)),
           ),
         ],
       ),
@@ -748,7 +748,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
   Widget _buildPresetDropdown() {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -790,7 +790,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
   Widget _buildApiKeyField() {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
       ),
       child: TextField(
@@ -799,14 +799,14 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
         style: AppTextStyles.body,
         decoration: InputDecoration(
           hintText: '输入 API Key',
-          hintStyle: AppTextStyles.body.copyWith(color: AppColors.textHint),
+          hintStyle: AppTextStyles.body.copyWith(color: context.colors.textHint),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           suffixIcon: IconButton(
             icon: Icon(
               _obscureApiKey ? Icons.visibility_off_outlined : Icons.visibility_outlined,
               size: 20,
-              color: AppColors.textTertiary,
+              color: context.colors.textTertiary,
             ),
             onPressed: () => setState(() => _obscureApiKey = !_obscureApiKey),
           ),
@@ -818,7 +818,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
   Widget _buildBaseUrlField() {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
       ),
       child: TextField(
@@ -826,7 +826,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
         style: AppTextStyles.body,
         decoration: InputDecoration(
           hintText: _isAnthropicFormat ? '如：https://api.anthropic.com' : '如：https://api.deepseek.com',
-          hintStyle: AppTextStyles.body.copyWith(color: AppColors.textHint),
+          hintStyle: AppTextStyles.body.copyWith(color: context.colors.textHint),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
@@ -855,7 +855,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
       ),
       child: Padding(
@@ -866,12 +866,12 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
             // 能力标题行
             Row(
               children: [
-                Icon(cap.icon, size: 18, color: AppColors.primary),
+                Icon(cap.icon, size: 18, color: context.colors.primary),
                 const SizedBox(width: 6),
                 Text(cap.label, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(cap.description, style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
+                  child: Text(cap.description, style: AppTextStyles.caption.copyWith(color: context.colors.textTertiary)),
                 ),
               ],
             ),
@@ -890,7 +890,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
                         : const Icon(Icons.sync, size: 16),
                     label: const Text('获取', style: TextStyle(fontSize: 13)),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
+                      backgroundColor: context.colors.primary,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
                       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -908,7 +908,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
   Widget _buildCapabilityModelDropdown(ModelCapability cap, _CapabilityState state, bool hasModels) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: context.colors.background,
         borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -916,7 +916,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
         child: DropdownButton<String>(
           value: state.selectedModel,
           isExpanded: true,
-          hint: Text('选择${cap.label}', style: AppTextStyles.body.copyWith(color: AppColors.textHint, fontSize: 14)),
+          hint: Text('选择${cap.label}', style: AppTextStyles.body.copyWith(color: context.colors.textHint, fontSize: 14)),
           style: AppTextStyles.body.copyWith(fontSize: 14),
           items: [
             ...state.fetchedModels.map((m) => DropdownMenuItem(
@@ -966,7 +966,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
               }
               Navigator.pop(ctx);
             },
-            child: Text('确认', style: TextStyle(color: AppColors.primary)),
+            child: Text('确认', style: TextStyle(color: context.colors.primary)),
           ),
         ],
       ),
@@ -976,7 +976,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
   Widget _buildAdvancedSection() {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
       ),
       child: Theme(
@@ -991,7 +991,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
               children: [
                 Text('温度参数', style: AppTextStyles.body),
                 const Spacer(),
-                Text(_temperature.toStringAsFixed(1), style: AppTextStyles.body.copyWith(color: AppColors.textSecondary)),
+                Text(_temperature.toStringAsFixed(1), style: AppTextStyles.body.copyWith(color: context.colors.textSecondary)),
               ],
             ),
             Slider(
@@ -999,7 +999,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
               min: 0.0,
               max: 1.0,
               divisions: 10,
-              activeColor: AppColors.primary,
+              activeColor: context.colors.primary,
               onChanged: (v) => setState(() => _temperature = v),
             ),
             const SizedBox(height: 8),
@@ -1054,7 +1054,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
   Widget _hint(String text) {
     return Padding(
       padding: const EdgeInsets.only(left: 4),
-      child: Text(text, style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
+      child: Text(text, style: AppTextStyles.caption.copyWith(color: context.colors.textTertiary)),
     );
   }
 }

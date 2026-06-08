@@ -32,7 +32,7 @@ class _PatternLockPageState extends State<PatternLockPage> {
         : '';
 
     return Scaffold(
-      backgroundColor: context.AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: isSetup
           ? AppBar(
               title: const Text('设置图案锁'),
@@ -51,7 +51,7 @@ class _PatternLockPageState extends State<PatternLockPage> {
               Text(title, style: context.textStyles.h3.copyWith(fontSize: 18)),
               if (subtitle.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                Text(subtitle, style: context.textStyles.caption.copyWith(color: context.AppColors.textTertiary)),
+                Text(subtitle, style: context.textStyles.caption.copyWith(color: context.colors.textTertiary)),
               ],
               const SizedBox(height: 40),
 
@@ -66,7 +66,7 @@ class _PatternLockPageState extends State<PatternLockPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 40),
                   child: Text(
                     _error,
-                    style: context.textStyles.caption.copyWith(color: context.AppColors.error),
+                    style: context.textStyles.caption.copyWith(color: context.colors.error),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -83,7 +83,7 @@ class _PatternLockPageState extends State<PatternLockPage> {
                       _error = '';
                     });
                   },
-                  child: Text('重新绘制', style: context.textStyles.body.copyWith(color: context.AppColors.primary)),
+                  child: Text('重新绘制', style: context.textStyles.body.copyWith(color: context.colors.primary)),
                 ),
             ],
           ),
@@ -187,7 +187,7 @@ class _PatternGridWidget extends StatefulWidget {
   final Function(List<int>) onPatternComplete;
   final AppColors colors;
 
-  const _PatternGridWidget({required this.onPatternComplete, required this.colors});
+  _PatternGridWidget({required this.onPatternComplete, required this.colors});
 
   @override
   State<_PatternGridWidget> createState() => _PatternGridWidgetState();
@@ -308,14 +308,14 @@ class _PatternPainter extends CustomPainter {
       final isSelected = selectedDots.contains(i);
 
       final outerPaint = Paint()
-        ..color = isSelected ? AppColors.primary : AppColors.textTertiary.withValues(alpha: 0.3)
+        ..color = isSelected ? colors.primary : colors.textTertiary.withValues(alpha: 0.3)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2;
       canvas.drawCircle(center, _PatternGridWidgetState._dotRadius, outerPaint);
 
       if (isSelected) {
         final innerPaint = Paint()
-          ..color = AppColors.primary
+          ..color = colors.primary
           ..style = PaintingStyle.fill;
         canvas.drawCircle(center, 6, innerPaint);
       }
@@ -323,7 +323,7 @@ class _PatternPainter extends CustomPainter {
 
     if (selectedDots.length >= 2) {
       final linePaint = Paint()
-        ..color = AppColors.primary.withValues(alpha: 0.6)
+        ..color = colors.primary.withValues(alpha: 0.6)
         ..strokeWidth = 3
         ..strokeCap = StrokeCap.round;
 

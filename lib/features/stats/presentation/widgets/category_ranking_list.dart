@@ -23,9 +23,9 @@ class CategoryRankingList extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.bar_chart, size: 48, color: AppColors.textTertiary),
+              Icon(Icons.bar_chart, size: 48, color: context.colors.textTertiary),
               const SizedBox(height: 8),
-              Text('暂无数据', style: AppTextStyles.body.copyWith(color: AppColors.textTertiary)),
+              Text('暂无数据', style: AppTextStyles.body.copyWith(color: context.colors.textTertiary)),
             ],
           ),
         ),
@@ -36,13 +36,13 @@ class CategoryRankingList extends StatelessWidget {
       children: data.asMap().entries.map((entry) {
         final index = entry.key;
         final stat = entry.value;
-        return _buildRankItem(index, stat);
+        return _buildRankItem(context, index, stat);
       }).toList(),
     );
   }
 
-  Widget _buildRankItem(int index, CategoryStat stat) {
-    final color = _parseColor(stat.categoryColor, index);
+  Widget _buildRankItem(BuildContext context, int index, CategoryStat stat) {
+    final color = _parseColor(context, stat.categoryColor, index);
     final barWidth = stat.percentage / 100;
 
     return Padding(
@@ -55,7 +55,7 @@ class CategoryRankingList extends StatelessWidget {
             child: Text(
               '${index + 1}',
               style: AppTextStyles.footnote.copyWith(
-                color: index < 3 ? AppColors.primary : AppColors.textTertiary,
+                color: index < 3 ? context.colors.primary : context.colors.textTertiary,
                 fontWeight: index < 3 ? FontWeight.w600 : FontWeight.w400,
               ),
               textAlign: TextAlign.center,
@@ -87,7 +87,7 @@ class CategoryRankingList extends StatelessWidget {
                     Text(
                       '¥${_formatAmount(stat.amount)}',
                       style: AppTextStyles.amountSmall.copyWith(
-                        color: isExpense ? AppColors.expense : AppColors.income,
+                        color: isExpense ? context.colors.expense : context.colors.income,
                       ),
                     ),
                   ],
@@ -99,7 +99,7 @@ class CategoryRankingList extends StatelessWidget {
                   child: LinearProgressIndicator(
                     value: barWidth,
                     minHeight: 6,
-                    backgroundColor: AppColors.surfaceSecondary,
+                    backgroundColor: context.colors.surfaceSecondary,
                     valueColor: AlwaysStoppedAnimation(color),
                   ),
                 ),
@@ -112,7 +112,7 @@ class CategoryRankingList extends StatelessWidget {
             width: 42,
             child: Text(
               '${stat.percentage.toStringAsFixed(0)}%',
-              style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+              style: AppTextStyles.caption.copyWith(color: context.colors.textSecondary),
               textAlign: TextAlign.right,
             ),
           ),
@@ -131,21 +131,21 @@ class CategoryRankingList extends StatelessWidget {
     }
   }
 
-  Color _parseColor(String? hex, int index) {
+  Color _parseColor(BuildContext context, String? hex, int index) {
     if (hex != null && hex.isNotEmpty) {
       final clean = hex.replaceFirst('#', '');
       return Color(int.parse('FF$clean', radix: 16));
     }
     final fallbackColors = [
-      AppColors.categoryFood,
-      AppColors.categoryTransport,
-      AppColors.categoryShopping,
-      AppColors.categoryHousing,
-      AppColors.categoryEntertainment,
-      AppColors.categoryEducation,
-      AppColors.categoryMedical,
-      AppColors.categorySocial,
-      AppColors.categoryOther,
+      context.colors.categoryFood,
+      context.colors.categoryTransport,
+      context.colors.categoryShopping,
+      context.colors.categoryHousing,
+      context.colors.categoryEntertainment,
+      context.colors.categoryEducation,
+      context.colors.categoryMedical,
+      context.colors.categorySocial,
+      context.colors.categoryOther,
     ];
     return fallbackColors[index % fallbackColors.length];
   }

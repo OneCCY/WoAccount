@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'app_colors.dart';
 
 /// WoAccount 字体样式系统
+/// 静态常量定义尺寸/粗细，context 扩展自动适配主题色
 class AppTextStyles {
   AppTextStyles._();
 
@@ -49,34 +51,29 @@ class AppTextStyles {
   static const TextStyle buttonText = TextStyle(
     fontSize: 15, fontWeight: FontWeight.w500, height: 20 / 15,
   );
-  static const TextStyle label = TextStyle(
-    fontSize: 12, fontWeight: FontWeight.w500, height: 16 / 12,
-  );
-  static const TextStyle tagText = TextStyle(
-    fontSize: 12, fontWeight: FontWeight.w500, height: 16 / 12,
-  );
 }
 
-/// 兼容包装类 — 支持 `context.textStyles.body` 模式
-class AppTextStylesCompat {
-  const AppTextStylesCompat();
-  TextStyle get h1 => AppTextStyles.h1;
-  TextStyle get h2 => AppTextStyles.h2;
-  TextStyle get h3 => AppTextStyles.h3;
-  TextStyle get body => AppTextStyles.body;
-  TextStyle get callout => AppTextStyles.callout;
-  TextStyle get footnote => AppTextStyles.footnote;
-  TextStyle get caption => AppTextStyles.caption;
-  TextStyle get amountLarge => AppTextStyles.amountLarge;
-  TextStyle get amountList => AppTextStyles.amountList;
-  TextStyle get amountSmall => AppTextStyles.amountSmall;
+/// BuildContext 扩展 — 获取带主题色的文本样式
+/// `context.textStyles.body` → 自动带 textPrimary 颜色
+extension AppTextStylesExtension on BuildContext {
+  ThemedTextStyles get textStyles => ThemedTextStyles(colors);
+}
+
+/// 带主题色的文本样式代理
+class ThemedTextStyles {
+  final AppColors _c;
+  ThemedTextStyles(this._c);
+
+  TextStyle get h1 => AppTextStyles.h1.copyWith(color: _c.textPrimary);
+  TextStyle get h2 => AppTextStyles.h2.copyWith(color: _c.textPrimary);
+  TextStyle get h3 => AppTextStyles.h3.copyWith(color: _c.textPrimary);
+  TextStyle get body => AppTextStyles.body.copyWith(color: _c.textPrimary);
+  TextStyle get callout => AppTextStyles.callout.copyWith(color: _c.textPrimary);
+  TextStyle get footnote => AppTextStyles.footnote.copyWith(color: _c.textSecondary);
+  TextStyle get caption => AppTextStyles.caption.copyWith(color: _c.textTertiary);
+  TextStyle get amountLarge => AppTextStyles.amountLarge.copyWith(color: _c.textPrimary);
+  TextStyle get amountList => AppTextStyles.amountList.copyWith(color: _c.textPrimary);
+  TextStyle get amountSmall => AppTextStyles.amountSmall.copyWith(color: _c.textPrimary);
   TextStyle get navLabel => AppTextStyles.navLabel;
   TextStyle get buttonText => AppTextStyles.buttonText;
-  TextStyle get label => AppTextStyles.label;
-  TextStyle get tagText => AppTextStyles.tagText;
-}
-
-/// 便捷扩展 — `context.textStyles.body` 等同于 `AppTextStyles.body`
-extension AppTextStylesContext on BuildContext {
-  AppTextStylesCompat get textStyles => const AppTextStylesCompat();
 }

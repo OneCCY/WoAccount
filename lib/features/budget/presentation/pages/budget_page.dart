@@ -262,7 +262,7 @@ class BudgetPage extends ConsumerWidget {
   }
 
   Color _parseColor(BuildContext context, String? hex) {
-    if (hex == null || hex.isEmpty) return AppColors.textTertiary;
+    if (hex == null || hex.isEmpty) return context.colors.textTertiary;
     final clean = hex.replaceFirst('#', '');
     return Color(int.parse('FF$clean', radix: 16));
   }

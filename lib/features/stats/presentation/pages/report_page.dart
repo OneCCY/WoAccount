@@ -134,7 +134,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
         title: const Text('报表分析'),
       ),
@@ -200,7 +200,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.surfaceSecondary,
+          color: context.colors.surfaceSecondary,
           borderRadius: BorderRadius.circular(AppDimensions.radiusRound),
         ),
         child: Row(
@@ -217,7 +217,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.surface : null,
+                    color: isSelected ? context.colors.surface : null,
                     borderRadius: BorderRadius.circular(AppDimensions.radiusRound),
                     boxShadow: isSelected ? [
                       BoxShadow(
@@ -232,7 +232,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
                     textAlign: TextAlign.center,
                     style: AppTextStyles.body.copyWith(
                       fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                      color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
+                      color: isSelected ? context.colors.textPrimary : context.colors.textSecondary,
                     ),
                   ),
                 ),
@@ -253,7 +253,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
           IconButton(
             icon: const Icon(Icons.chevron_left, size: 28),
             onPressed: _onPrev,
-            color: AppColors.textSecondary,
+            color: context.colors.textSecondary,
           ),
           const SizedBox(width: 16),
           Text(
@@ -264,7 +264,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
           IconButton(
             icon: const Icon(Icons.chevron_right, size: 28),
             onPressed: _onNext,
-            color: AppColors.textSecondary,
+            color: context.colors.textSecondary,
           ),
         ],
       ),
@@ -291,14 +291,14 @@ class _ReportPageState extends ConsumerState<ReportPage> {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? (_isExpense ? AppColors.expense : AppColors.income)
-              : AppColors.surfaceSecondary,
+              ? (_isExpense ? context.colors.expense : context.colors.income)
+              : context.colors.surfaceSecondary,
           borderRadius: BorderRadius.circular(AppDimensions.radiusRound),
         ),
         child: Text(
           label,
           style: AppTextStyles.footnote.copyWith(
-            color: isSelected ? Colors.white : AppColors.textSecondary,
+            color: isSelected ? Colors.white : context.colors.textSecondary,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
           ),
         ),
@@ -311,7 +311,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
     if (summary == null) return const SizedBox.shrink();
 
     final label = _isExpense ? '总支出' : '总收入';
-    final color = _isExpense ? AppColors.expense : AppColors.income;
+    final color = _isExpense ? context.colors.expense : context.colors.income;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
@@ -319,7 +319,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
         width: double.infinity,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.colors.surface,
           borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
           boxShadow: [
             BoxShadow(
@@ -332,7 +332,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: AppTextStyles.footnote.copyWith(color: AppColors.textSecondary)),
+            Text(label, style: AppTextStyles.footnote.copyWith(color: context.colors.textSecondary)),
             const SizedBox(height: 4),
             Text(
               '¥${_formatAmount(summary.totalAmount)}',
@@ -359,7 +359,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
+        Text(label, style: AppTextStyles.caption.copyWith(color: context.colors.textTertiary)),
         const SizedBox(height: 2),
         Text(value, style: AppTextStyles.footnote.copyWith(fontWeight: FontWeight.w600)),
       ],
@@ -375,7 +375,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
             width: 3,
             height: 16,
             decoration: BoxDecoration(
-              color: AppColors.primary,
+              color: context.colors.primary,
               borderRadius: BorderRadius.circular(2),
             ),
           ),

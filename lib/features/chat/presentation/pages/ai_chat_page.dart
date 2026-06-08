@@ -418,7 +418,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
           SnackBar(
             content: Text('保存失败: $e'),
             behavior: SnackBarBehavior.floating,
-            backgroundColor: AppColors.error,
+            backgroundColor: context.colors.error,
           ),
         );
       }
@@ -446,7 +446,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       body: Column(
         children: [
           SizedBox(height: MediaQuery.of(context).padding.top),
@@ -468,7 +468,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
   Widget _buildTopBar() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: AppDimensions.sm),
-      color: AppColors.surface,
+      color: context.colors.surface,
       child: Row(
         children: [
           GestureDetector(
@@ -476,15 +476,15 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.surfaceSecondary,
+                color: context.colors.surfaceSecondary,
                 borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.receipt_long_outlined, size: 16, color: AppColors.textSecondary),
+                  Icon(Icons.receipt_long_outlined, size: 16, color: context.colors.textSecondary),
                   const SizedBox(width: 4),
-                  Text('账单', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
+                  Text('账单', style: AppTextStyles.caption.copyWith(color: context.colors.textSecondary)),
                 ],
               ),
             ),
@@ -500,7 +500,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
 
   Widget _buildMessageList() {
     if (_isLoading) {
-      return Center(child: CircularProgressIndicator(color: AppColors.primary));
+      return Center(child: CircularProgressIndicator(color: context.colors.primary));
     }
     if (_items.isEmpty) return _buildEmptyState();
 
@@ -566,15 +566,15 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.chat_bubble_outline, size: 64, color: AppColors.textTertiary),
+          Icon(Icons.chat_bubble_outline, size: 64, color: context.colors.textTertiary),
           const SizedBox(height: 16),
-          Text('开始记账吧', style: AppTextStyles.h3.copyWith(color: AppColors.textSecondary)),
+          Text('开始记账吧', style: AppTextStyles.h3.copyWith(color: context.colors.textSecondary)),
           const SizedBox(height: 8),
           Text('试试输入 "午饭拉面25" 或 "吃饭24，洗衣服34"',
-              style: AppTextStyles.body.copyWith(color: AppColors.textTertiary)),
+              style: AppTextStyles.body.copyWith(color: context.colors.textTertiary)),
           const SizedBox(height: 4),
           Text('长按记账按钮可语音输入 🎤 · 点击右侧按钮拍照识别 📷',
-              style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
+              style: AppTextStyles.caption.copyWith(color: context.colors.textTertiary)),
         ],
       ),
     );
@@ -587,13 +587,13 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.colors.surface,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.textTertiary)),
+            SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: context.colors.textTertiary)),
             const SizedBox(width: 8),
             Text('AI 正在解析...', style: AppTextStyles.caption),
           ],
