@@ -193,16 +193,19 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             onTap: () => context.push('/profile/edit').then((_) => _loadData()),
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 28,
-                  backgroundColor: AppColors.primarySurface,
-                  backgroundImage: hasValidAvatar ? FileImage(File(avatarPath)) : null,
-                  onBackgroundImageError: hasValidAvatar ? (exception, stackTrace) {
-                    debugPrint('头像加载失败: $exception');
-                  } : null,
-                  child: !hasValidAvatar
-                      ? const Icon(Icons.person_outline, size: 28, color: AppColors.primaryDark)
-                      : null,
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: CircleAvatar(
+                    radius: 28,
+                    backgroundColor: AppColors.primarySurface,
+                    backgroundImage: hasValidAvatar ? FileImage(File(avatarPath)) : null,
+                    onBackgroundImageError: hasValidAvatar ? (exception, stackTrace) {
+                      debugPrint('头像加载失败: $exception');
+                    } : null,
+                    child: !hasValidAvatar
+                        ? const Icon(Icons.person_outline, size: 28, color: AppColors.primaryDark)
+                        : null,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Column(
@@ -219,7 +222,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           const Spacer(),
           // 打卡按钮
           GestureDetector(
-            onTap: _checkIn,
+            onTap: () {
+              if (_todayCheckedIn) {
+                context.push('/checkin-calendar').then((_) => _loadData());
+              } else {
+                _checkIn();
+              }
+            },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
@@ -262,10 +271,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       ),
       child: Row(
         children: [
-          GestureDetector(
-            onTap: () => context.push('/checkin-calendar').then((_) => _loadData()),
-            child: _buildStatItem('$_consecutiveDays', '连续打卡'),
-          ),
+          _buildStatItem('$_consecutiveDays', '连续打卡'),
           _buildStatDivider(),
           _buildStatItem('$_totalCheckInDays', '打卡总天数'),
           _buildStatDivider(),
@@ -433,7 +439,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         context.push('/lock-settings');
         break;
       case 'AC币':
-        context.push('/checkin-calendar');
+        context.push('/ac-coins');
         break;
       case 'AI 配置':
         context.push('/settings/llm');

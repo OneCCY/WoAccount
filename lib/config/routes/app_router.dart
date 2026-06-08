@@ -8,6 +8,7 @@ import '../../features/transaction/presentation/pages/transaction_detail_page.da
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/profile/presentation/pages/profile_edit_page.dart';
 import '../../features/profile/presentation/pages/checkin_calendar_page.dart';
+import '../../features/profile/presentation/pages/ac_coin_records_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/settings/presentation/pages/llm_settings_page.dart';
 import '../../features/budget/presentation/pages/budget_page.dart';
@@ -81,6 +82,10 @@ class AppRouter {
       GoRoute(
         path: '/checkin-calendar',
         builder: (context, state) => const CheckInCalendarPage(),
+      ),
+      GoRoute(
+        path: '/ac-coins',
+        builder: (context, state) => const AcCoinRecordsPage(),
       ),
       GoRoute(
         path: '/settings/llm',

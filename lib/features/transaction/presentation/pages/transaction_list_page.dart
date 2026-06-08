@@ -606,15 +606,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
                           fontSize: Responsive.fs(context, 11),
                           color: isSelected ? AppColors.primary : AppColors.textTertiary,
                         )),
-                    SizedBox(height: Responsive.s(context, 1)),
-                    Text(
-                      '${date.day}',
-                      style: AppTextStyles.callout.copyWith(
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                        fontSize: Responsive.fs(context, 15),
-                        color: isSelected ? AppColors.primary : AppColors.textPrimary,
-                      ),
-                    ),
+                    SizedBox(height: Responsive.s(context, 4)),
                     if (hasExpense)
                       Text(
                         '-${_formatCompact(totals.expense)}',
