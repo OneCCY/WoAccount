@@ -41,15 +41,17 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
         leading: _selectedParent != null
             ? IconButton(
                 icon: const Icon(Icons.arrow_back),
-                onPressed: () => setState(() => _selectedParent = null),
+                onPressed: () => setState(() {
+                  _selectedParent = null;
+                  _isEditMode = false; // BUG-9 修复：返回时退出编辑模式
+                }),
               )
             : null,
         actions: [
-          if (_selectedParent == null)
-            IconButton(
-              icon: Icon(_isEditMode ? Icons.check : Icons.edit_outlined),
-              onPressed: () => setState(() => _isEditMode = !_isEditMode),
-            ),
+          IconButton(
+            icon: Icon(_isEditMode ? Icons.check : Icons.edit_outlined),
+            onPressed: () => setState(() => _isEditMode = !_isEditMode),
+          ),
         ],
       ),
       body: _selectedParent != null
@@ -117,12 +119,15 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
     );
   }
 
+  // BUG-3 修复：使用 StreamBuilder + watchAll() 替代 FutureBuilder
   Widget _buildCategoryGrid() {
-    return FutureBuilder<List<Category>>(
-      future: _catRepo.getTopLevel(),
+    return StreamBuilder<List<Category>>(
+      stream: _catRepo.watchAll(),
       builder: (context, snapshot) {
         final allCategories = snapshot.data ?? [];
-        final categories = _filterCategories(allCategories);
+        // 仅取顶层分类
+        final topLevel = allCategories.where((c) => c.level == 1).toList();
+        final categories = _filterCategories(topLevel);
 
         return Padding(
           padding: const EdgeInsets.all(AppDimensions.md),
@@ -146,6 +151,10 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
                   if (_isEditMode) return;
                   setState(() => _selectedParent = cat);
                 },
+                // BUG-8 修复：长按编辑用户自定义分类
+                onLongPress: !cat.isSystem
+                    ? () => _onEditCategory(cat)
+                    : null,
                 onDelete: _isEditMode && !cat.isSystem
                     ? () => _onDeleteCategory(cat)
                     : null,
@@ -183,10 +192,15 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
 
   /// 子分类列表
   Widget _buildSubCategoryList() {
-    return FutureBuilder<List<Category>>(
-      future: _catRepo.getChildren(_selectedParent!.id),
+    return StreamBuilder<List<Category>>(
+      stream: _catRepo.watchAll(),
       builder: (context, snapshot) {
-        final children = snapshot.data ?? [];
+        final allCategories = snapshot.data ?? [];
+        // 仅取当前父分类的子分类
+        final children = allCategories
+            .where((c) => c.parentId == _selectedParent!.id)
+            .toList()
+          ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
 
         return ListView(
           padding: const EdgeInsets.all(AppDimensions.md),
@@ -220,15 +234,22 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
     );
   }
 
+  // BUG-4 + BUG-10 修复：修正过滤逻辑，'人情' → '人情往来'
   List<Category> _filterCategories(List<Category> categories) {
     switch (_type) {
       case CategoryManageType.expense:
         return categories.where((c) => c.isExpense).toList();
       case CategoryManageType.income:
-        return categories.where((c) => !c.isExpense && !['转账', '还款', '人情'].contains(c.name)).toList();
+        return categories.where((c) => !c.isExpense && !_isOtherCategory(c)).toList();
       case CategoryManageType.other:
-        return categories.where((c) => ['转账', '还款', '人情'].contains(c.name)).toList();
+        return categories.where((c) => _isOtherCategory(c)).toList();
     }
+  }
+
+  /// 判断是否为"其他"分类（转账、还款、人情往来）
+  /// 基于种子数据中的分类名匹配
+  bool _isOtherCategory(Category cat) {
+    return !cat.isExpense && const {'转账', '还款', '人情往来'}.contains(cat.name);
   }
 
   void _onAddCategory() {
@@ -240,8 +261,19 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
         isExpense: isExpense,
         isOther: isOther,
         onConfirm: (name, icon, color) async {
-          final categories = await _catRepo.getTopLevel();
-          final maxSort = categories.isEmpty ? 0 : categories.map((c) => c.sortOrder).reduce((a, b) => a > b ? a : b);
+          // BUG-7 修复：重名校验
+          final existing = await _catRepo.getByName(name);
+          if (existing != null) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('该分类名已存在'), duration: Duration(milliseconds: 800)),
+              );
+            }
+            return;
+          }
+
+          final allTopLevel = await _catRepo.getTopLevel();
+          final maxSort = allTopLevel.isEmpty ? 0 : allTopLevel.map((c) => c.sortOrder).reduce((a, b) => a > b ? a : b);
           await _catRepo.insert(CategoriesCompanion.insert(
             name: name,
             icon: Value(icon),
@@ -251,7 +283,6 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
             isExpense: Value(isExpense && !isOther),
             sortOrder: Value(maxSort + 1),
           ));
-          setState(() {});
         },
       ),
     );
@@ -263,6 +294,17 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
       builder: (ctx) => _AddSubCategoryDialog(
         parentName: _selectedParent!.name,
         onConfirm: (name, icon) async {
+          // BUG-7 修复：重名校验
+          final existing = await _catRepo.getByName(name);
+          if (existing != null) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('该子分类名已存在'), duration: Duration(milliseconds: 800)),
+              );
+            }
+            return;
+          }
+
           final children = await _catRepo.getChildren(_selectedParent!.id);
           final maxSort = children.isEmpty ? 0 : children.map((c) => c.sortOrder).reduce((a, b) => a > b ? a : b);
           await _catRepo.insert(CategoriesCompanion.insert(
@@ -275,7 +317,34 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
             isExpense: Value(_selectedParent!.isExpense),
             sortOrder: Value(maxSort + 1),
           ));
-          setState(() {});
+        },
+      ),
+    );
+  }
+
+  // BUG-8 修复：编辑分类功能
+  void _onEditCategory(Category cat) {
+    showDialog(
+      context: context,
+      builder: (ctx) => _EditCategoryDialog(
+        category: cat,
+        onConfirm: (name, icon, color) async {
+          // 检查重名（排除自身）
+          final existing = await _catRepo.getByName(name);
+          if (existing != null && existing.id != cat.id) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('该分类名已存在'), duration: Duration(milliseconds: 800)),
+              );
+            }
+            return;
+          }
+
+          await _catRepo.update(cat.toCompanion(false).copyWith(
+            name: Value(name),
+            icon: Value(icon),
+            color: Value(color),
+          ));
         },
       ),
     );
@@ -286,7 +355,9 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('确认删除'),
-        content: Text('确定要删除分类"${cat.name}"吗？'),
+        content: Text(cat.level == 1
+            ? '确定要删除分类"${cat.name}"及其所有子分类吗？'
+            : '确定要删除分类"${cat.name}"吗？'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
@@ -295,8 +366,19 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
           TextButton(
             onPressed: () async {
               Navigator.of(ctx).pop();
-              await _catRepo.delete(cat.id);
-              setState(() {});
+              // BUG-2 修复：有子分类时使用级联删除
+              final children = await _catRepo.getChildren(cat.id);
+              final bool success;
+              if (children.isNotEmpty) {
+                success = await _catRepo.deleteWithChildren(cat.id);
+              } else {
+                success = await _catRepo.delete(cat.id);
+              }
+              if (!success && mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('该分类有关联数据，无法删除'), duration: Duration(milliseconds: 800)),
+                );
+              }
             },
             child: Text('删除', style: TextStyle(color: AppColors.error)),
           ),
@@ -311,12 +393,14 @@ class _CategoryGridItem extends StatelessWidget {
   final Category category;
   final bool isEditMode;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
   final VoidCallback? onDelete;
 
   const _CategoryGridItem({
     required this.category,
     required this.isEditMode,
     required this.onTap,
+    this.onLongPress,
     this.onDelete,
   });
 
@@ -326,6 +410,7 @@ class _CategoryGridItem extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
+      onLongPress: onLongPress,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -459,10 +544,11 @@ const _emojiOptions = [
   '🎬', '✈️', '🏋️', '🎵', '📱', '👕', '💄', '🔧', '📦', '🌟',
 ];
 
+// BUG-5 修复：第二个 #795548 替换为 #FFEB3B（黄色）
 const _colorOptions = [
   '#FF9800', '#2196F3', '#E91E63', '#9C27B0', '#4CAF50',
   '#00BCD4', '#F44336', '#FF5722', '#795548', '#607D8B',
-  '#3F51B5', '#009688', '#FFC107', '#795548', '#9E9E9E',
+  '#3F51B5', '#009688', '#FFC107', '#FFEB3B', '#9E9E9E',
 ];
 
 class _AddCategoryDialog extends StatefulWidget {
@@ -677,6 +763,135 @@ class _AddSubCategoryDialogState extends State<_AddSubCategoryDialog> {
             widget.onConfirm(name, _selectedIcon);
           },
           child: const Text('确定'),
+        ),
+      ],
+    );
+  }
+}
+
+// ==================== 编辑分类对话框（BUG-8 新增） ====================
+
+class _EditCategoryDialog extends StatefulWidget {
+  final Category category;
+  final Function(String name, String icon, String color) onConfirm;
+
+  const _EditCategoryDialog({
+    required this.category,
+    required this.onConfirm,
+  });
+
+  @override
+  State<_EditCategoryDialog> createState() => _EditCategoryDialogState();
+}
+
+class _EditCategoryDialogState extends State<_EditCategoryDialog> {
+  late final TextEditingController _nameController;
+  late String _selectedIcon;
+  late String _selectedColor;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.category.name);
+    _selectedIcon = widget.category.icon ?? '📦';
+    _selectedColor = widget.category.color;
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('编辑分类'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(
+                labelText: '分类名称',
+                hintText: '请输入分类名称',
+              ),
+              maxLength: 20,
+            ),
+            const SizedBox(height: 16),
+            Text('选择图标', style: AppTextStyles.footnote.copyWith(color: AppColors.textTertiary)),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _emojiOptions.map((emoji) {
+                final isSelected = _selectedIcon == emoji;
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedIcon = emoji),
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.primarySurface : AppColors.surfaceSecondary,
+                      borderRadius: BorderRadius.circular(8),
+                      border: isSelected ? Border.all(color: AppColors.primary, width: 2) : null,
+                    ),
+                    child: Center(child: Text(emoji, style: const TextStyle(fontSize: 20))),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 16),
+            Text('选择颜色', style: AppTextStyles.footnote.copyWith(color: AppColors.textTertiary)),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _colorOptions.map((hex) {
+                final color = Color(int.parse('FF${hex.replaceFirst('#', '')}', radix: 16));
+                final isSelected = _selectedColor == hex;
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedColor = hex),
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                      border: isSelected
+                          ? Border.all(color: AppColors.textPrimary, width: 3)
+                          : null,
+                    ),
+                    child: isSelected
+                        ? const Icon(Icons.check, size: 16, color: Colors.white)
+                        : null,
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('取消'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            final name = _nameController.text.trim();
+            if (name.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('请输入分类名称'), duration: Duration(milliseconds: 500)),
+              );
+              return;
+            }
+            Navigator.of(context).pop();
+            widget.onConfirm(name, _selectedIcon, _selectedColor);
+          },
+          child: const Text('保存'),
         ),
       ],
     );

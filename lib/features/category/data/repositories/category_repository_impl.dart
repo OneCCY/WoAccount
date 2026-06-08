@@ -59,6 +59,73 @@ class CategoryRepositoryImpl implements CategoryRepository {
     final category = await getById(id);
     if (category == null || category.isSystem) return false;
 
+    // 检查是否有子分类
+    final children = await getChildren(id);
+    if (children.isNotEmpty) return false;
+
+    // 检查是否有关联交易
+    final txCount = await (_db.select(_db.transactions)
+          ..where((t) => t.categoryId.equals(id) | t.subcategoryId.equals(id))
+          ..limit(1))
+        .get();
+    if (txCount.isNotEmpty) return false;
+
+    // 检查是否有关联预算
+    final budgetCount = await (_db.select(_db.budgets)
+          ..where((b) => b.categoryId.equals(id))
+          ..limit(1))
+        .get();
+    if (budgetCount.isNotEmpty) return false;
+
+    final count = await (_db.delete(_db.categories)
+          ..where((c) => c.id.equals(id)))
+        .go();
+    return count > 0;
+  }
+
+  @override
+  Future<bool> deleteWithChildren(int id) async {
+    // 不允许删除系统预设分类
+    final category = await getById(id);
+    if (category == null || category.isSystem) return false;
+
+    // 检查子分类是否有关联数据
+    final children = await getChildren(id);
+    for (final child in children) {
+      final txCount = await (_db.select(_db.transactions)
+            ..where((t) => t.categoryId.equals(child.id) | t.subcategoryId.equals(child.id))
+            ..limit(1))
+          .get();
+      if (txCount.isNotEmpty) return false;
+
+      final budgetCount = await (_db.select(_db.budgets)
+            ..where((b) => b.categoryId.equals(child.id))
+            ..limit(1))
+          .get();
+      if (budgetCount.isNotEmpty) return false;
+    }
+
+    // 检查父分类本身是否有关联数据
+    final parentTxCount = await (_db.select(_db.transactions)
+          ..where((t) => t.categoryId.equals(id) | t.subcategoryId.equals(id))
+          ..limit(1))
+        .get();
+    if (parentTxCount.isNotEmpty) return false;
+
+    final parentBudgetCount = await (_db.select(_db.budgets)
+          ..where((b) => b.categoryId.equals(id))
+          ..limit(1))
+        .get();
+    if (parentBudgetCount.isNotEmpty) return false;
+
+    // 先删除所有子分类
+    for (final child in children) {
+      await (_db.delete(_db.categories)
+            ..where((c) => c.id.equals(child.id)))
+          .go();
+    }
+
+    // 再删除父分类
     final count = await (_db.delete(_db.categories)
           ..where((c) => c.id.equals(id)))
         .go();

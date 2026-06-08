@@ -26,6 +26,9 @@ abstract class CategoryRepository {
   /// 删除分类（仅非系统预设）
   Future<bool> delete(int id);
 
+  /// 级联删除分类及其所有子分类（仅非系统预设）
+  Future<bool> deleteWithChildren(int id);
+
   /// 监听分类变化
   Stream<List<Category>> watchAll();
 }

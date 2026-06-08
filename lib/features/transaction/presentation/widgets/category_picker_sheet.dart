@@ -41,7 +41,6 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
   late bool _isExpense;
   int? _selectedId;
   int? _expandedParentId;
-  List<Category> _allCategories = [];
   String _searchQuery = '';
 
   @override
@@ -49,17 +48,11 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
     super.initState();
     _isExpense = widget.initialIsExpense;
     _selectedId = widget.selectedCategoryId;
-    _loadCategories();
   }
 
-  Future<void> _loadCategories() async {
-    final catRepo = ref.read(categoryRepositoryProvider);
-    final cats = await catRepo.getAll();
-    if (mounted) setState(() => _allCategories = cats);
-  }
-
-  List<Category> get _topLevel {
-    var cats = _allCategories.where((c) => c.parentId == null && c.level == 1).toList();
+  List<Category> _filterTopLevel(List<Category> allCategories) {
+    // BUG-6 修复：统一使用 c.level == 1 过滤顶层分类（与 repository 一致）
+    var cats = allCategories.where((c) => c.level == 1).toList();
     if (_isExpense) {
       cats = cats.where((c) => c.isExpense).toList();
     } else {
@@ -72,8 +65,8 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
     return cats;
   }
 
-  List<Category> _childrenOf(int parentId) {
-    return _allCategories.where((c) => c.parentId == parentId).toList()
+  List<Category> _childrenOf(List<Category> allCategories, int parentId) {
+    return allCategories.where((c) => c.parentId == parentId).toList()
       ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
   }
 
@@ -85,96 +78,105 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final catRepo = ref.read(categoryRepositoryProvider);
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.7,
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      padding: EdgeInsets.fromLTRB(16, 0, 16, 16 + bottomInset),
-      child: Column(
-        children: [
-          // 拖拽把手
-          Container(
-            width: 40,
-            height: 4,
-            margin: const EdgeInsets.only(top: 12, bottom: 12),
-            decoration: BoxDecoration(
-              color: AppColors.textTertiary,
-              borderRadius: BorderRadius.circular(2),
-            ),
+    // BUG-12 修复：使用 StreamBuilder + watchAll() 实时同步
+    return StreamBuilder<List<Category>>(
+      stream: catRepo.watchAll(),
+      builder: (context, snapshot) {
+        final allCategories = snapshot.data ?? [];
+
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.7,
+          decoration: const BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
-          // 标题 + 收支切换
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Row(
-              children: [
-                Text('选择分类', style: AppTextStyles.h3),
-                const Spacer(),
-                _buildTypeToggle(),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          // 搜索框
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Container(
-              height: 36,
-              decoration: BoxDecoration(
-                color: AppColors.surfaceSecondary,
-                borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-              ),
-              child: TextField(
-                onChanged: (v) => setState(() => _searchQuery = v),
-                style: AppTextStyles.footnote,
-                decoration: InputDecoration(
-                  hintText: '搜索分类...',
-                  hintStyle: AppTextStyles.footnote.copyWith(color: AppColors.textHint),
-                  prefixIcon: Icon(Icons.search, size: 18, color: AppColors.textTertiary),
-                  prefixIconConstraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 8),
+          padding: EdgeInsets.fromLTRB(16, 0, 16, 16 + bottomInset),
+          child: Column(
+            children: [
+              // 拖拽把手
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(top: 12, bottom: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.textTertiary,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          // 子分类返回
-          if (_expandedParentId != null)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => setState(() => _expandedParentId = null),
-                    child: Row(
-                      children: [
-                        Icon(Icons.arrow_back, size: 18, color: AppColors.primary),
-                        const SizedBox(width: 4),
-                        Text('返回', style: AppTextStyles.footnote.copyWith(color: AppColors.primary)),
-                      ],
+              // 标题 + 收支切换
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Row(
+                  children: [
+                    Text('选择分类', style: AppTextStyles.h3),
+                    const Spacer(),
+                    _buildTypeToggle(),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              // 搜索框
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Container(
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceSecondary,
+                    borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+                  ),
+                  child: TextField(
+                    onChanged: (v) => setState(() => _searchQuery = v),
+                    style: AppTextStyles.footnote,
+                    decoration: InputDecoration(
+                      hintText: '搜索分类...',
+                      hintStyle: AppTextStyles.footnote.copyWith(color: AppColors.textHint),
+                      prefixIcon: Icon(Icons.search, size: 18, color: AppColors.textTertiary),
+                      prefixIconConstraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 8),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    _allCategories.firstWhere((c) => c.id == _expandedParentId, orElse: () => _topLevel.first).name,
-                    style: AppTextStyles.footnote.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                ],
+                ),
               ),
-            ),
-          if (_expandedParentId != null) const SizedBox(height: 8),
-          // 分类网格
-          Expanded(
-            child: _expandedParentId != null
-                ? _buildChildGrid(_expandedParentId!)
-                : _buildTopGrid(),
+              const SizedBox(height: 12),
+              // 子分类返回
+              if (_expandedParentId != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () => setState(() => _expandedParentId = null),
+                        child: Row(
+                          children: [
+                            Icon(Icons.arrow_back, size: 18, color: AppColors.primary),
+                            const SizedBox(width: 4),
+                            Text('返回', style: AppTextStyles.footnote.copyWith(color: AppColors.primary)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        allCategories.firstWhere((c) => c.id == _expandedParentId, orElse: () => _filterTopLevel(allCategories).first).name,
+                        style: AppTextStyles.footnote.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                ),
+              if (_expandedParentId != null) const SizedBox(height: 8),
+              // 分类网格
+              Expanded(
+                child: _expandedParentId != null
+                    ? _buildChildGrid(allCategories, _expandedParentId!)
+                    : _buildTopGrid(allCategories),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -220,8 +222,8 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
     );
   }
 
-  Widget _buildTopGrid() {
-    final cats = _topLevel;
+  Widget _buildTopGrid(List<Category> allCategories) {
+    final cats = _filterTopLevel(allCategories);
     if (cats.isEmpty) {
       return Center(child: Text('暂无分类', style: AppTextStyles.footnote.copyWith(color: AppColors.textTertiary)));
     }
@@ -236,7 +238,7 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
       itemCount: cats.length,
       itemBuilder: (context, index) {
         final cat = cats[index];
-        final children = _childrenOf(cat.id);
+        final children = _childrenOf(allCategories, cat.id);
         final isSelected = _selectedId == cat.id;
         final hasChildren = children.isNotEmpty;
         return _CategoryTile(
@@ -257,8 +259,8 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
     );
   }
 
-  Widget _buildChildGrid(int parentId) {
-    final children = _childrenOf(parentId);
+  Widget _buildChildGrid(List<Category> allCategories, int parentId) {
+    final children = _childrenOf(allCategories, parentId);
     if (children.isEmpty) {
       return Center(child: Text('暂无子分类', style: AppTextStyles.footnote.copyWith(color: AppColors.textTertiary)));
     }
