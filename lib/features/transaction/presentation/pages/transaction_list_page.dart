@@ -61,7 +61,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
         children: [
           SizedBox(height: MediaQuery.of(context).padding.top),
           _buildTopBar(),
-          _buildFilterSortBar(),
+          _buildSearchBar(),
           _buildStatsBar(repo),
           Expanded(child: _buildContent(repo, catRepo)),
         ],
@@ -85,6 +85,8 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
             onViewChanged: (view) => setState(() {
               _currentView = view;
               _selectedWeekDay = null;
+              // 切到月视图时清空筛选，避免月视图显示已激活但无列表承载的状态
+              if (view == ViewType.month) _filterType = null;
             }),
           ),
           const Spacer(),
@@ -190,45 +192,69 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
     );
   }
 
-  // ==================== 筛选排序栏 ====================
+  // ==================== 搜索栏 ====================
 
-  Widget _buildFilterSortBar() {
+  Widget _buildSearchBar() {
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: Responsive.s(context, AppDimensions.md),
-        vertical: 6,
+        vertical: Responsive.s(context, 8),
       ),
       color: AppColors.surface,
       child: Row(
         children: [
-          // 筛选标签
-          _buildFilterChip(null, '全部'),
-          const SizedBox(width: 8),
-          _buildFilterChip('expense', '支出'),
-          const SizedBox(width: 8),
-          _buildFilterChip('income', '收入'),
-          const Spacer(),
-          // 排序切换
+          // 左侧：回到今天按钮
+          _buildTodayButton(),
+          SizedBox(width: Responsive.s(context, 8)),
+          // 搜索框
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                // TODO: 跳转搜索页或展开搜索
+              },
+              child: Container(
+                height: Responsive.s(context, 36),
+                padding: EdgeInsets.symmetric(horizontal: Responsive.s(context, 10)),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceSecondary,
+                  borderRadius: BorderRadius.circular(Responsive.s(context, 10)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.search, size: 18, color: AppColors.textTertiary),
+                    SizedBox(width: Responsive.s(context, 6)),
+                    Expanded(
+                      child: Text(
+                        '搜索账单',
+                        style: AppTextStyles.footnote.copyWith(color: AppColors.textTertiary),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          SizedBox(width: Responsive.s(context, 8)),
+          // 右侧：预算管理按钮
           GestureDetector(
-            onTap: () {
-              setState(() {
-                _sortType = _sortType == SortType.time ? SortType.amount : SortType.time;
-              });
-            },
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  _sortType == SortType.time ? Icons.access_time : Icons.sort,
-                  size: 14,
-                  color: AppColors.textTertiary,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  _sortType == SortType.time ? '按时间' : '按金额',
-                  style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary),
-                ),
-              ],
+            onTap: () => context.push('/budget'),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: Responsive.s(context, 10), vertical: Responsive.s(context, 8)),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceSecondary,
+                borderRadius: BorderRadius.circular(Responsive.s(context, 8)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.account_balance_wallet_outlined, size: 17, color: AppColors.textSecondary),
+                  SizedBox(width: Responsive.s(context, 4)),
+                  Text(
+                    '预算',
+                    style: AppTextStyles.footnote.copyWith(color: AppColors.textSecondary),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -236,25 +262,43 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
     );
   }
 
-  Widget _buildFilterChip(String? type, String label) {
-    final isActive = _filterType == type;
-    return GestureDetector(
-      onTap: () => setState(() => _filterType = type),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        decoration: BoxDecoration(
-          color: isActive ? AppColors.primary : AppColors.surfaceSecondary,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(
-          label,
-          style: AppTextStyles.caption.copyWith(
-            color: isActive ? AppColors.textOnPrimary : AppColors.textSecondary,
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+  Widget _buildTodayButton() {
+    return Material(
+      color: AppColors.surfaceSecondary,
+      borderRadius: BorderRadius.circular(Responsive.s(context, 8)),
+      child: InkWell(
+        onTap: _goToToday,
+        borderRadius: BorderRadius.circular(Responsive.s(context, 8)),
+        splashColor: AppColors.primary.withValues(alpha: 0.15),
+        highlightColor: AppColors.primary.withValues(alpha: 0.08),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: Responsive.s(context, 12), vertical: Responsive.s(context, 8)),
+          child: Text(
+            '今天',
+            style: AppTextStyles.footnote.copyWith(
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ),
     );
+  }
+
+  void _goToToday() {
+    final now = DateTime.now();
+    setState(() {
+      switch (_currentView) {
+        case ViewType.day:
+          _currentDate = DateTime(now.year, now.month, now.day);
+        case ViewType.week:
+          _currentDate = now;
+          _selectedWeekDay = DateTime(now.year, now.month, now.day);
+        case ViewType.month:
+          _currentDate = DateTime(now.year, now.month, 1);
+      }
+      _filterType = null;
+    });
   }
 
   // ==================== 统计栏 ====================
@@ -275,6 +319,8 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
           ViewType.month => '本月',
         };
 
+        final isMonth = _currentView == ViewType.month;
+
         return Padding(
           padding: EdgeInsets.symmetric(
             horizontal: Responsive.s(context, AppDimensions.md),
@@ -282,9 +328,37 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
           ),
           child: Row(
             children: [
-              _buildStatItem('$label支出', '¥${expense.toStringAsFixed(0)}', AppColors.expense),
-              _buildStatItem('$label收入', '¥${income.toStringAsFixed(0)}', AppColors.income),
-              _buildStatItem('结余', '¥${balance.toStringAsFixed(0)}', AppColors.textPrimary),
+              _buildStatItem(
+                '$label支出',
+                '¥${expense.toStringAsFixed(2)}',
+                AppColors.expense,
+                isActive: !isMonth && _filterType == 'expense',
+                onTap: isMonth ? null : () {
+                  setState(() {
+                    if (_filterType == 'expense') {
+                      _filterType = null;
+                    } else {
+                      _filterType = 'expense';
+                    }
+                  });
+                },
+              ),
+              _buildStatItem(
+                '$label收入',
+                '¥${income.toStringAsFixed(2)}',
+                AppColors.income,
+                isActive: !isMonth && _filterType == 'income',
+                onTap: isMonth ? null : () {
+                  setState(() {
+                    if (_filterType == 'income') {
+                      _filterType = null;
+                    } else {
+                      _filterType = 'income';
+                    }
+                  });
+                },
+              ),
+              _buildStatItem('结余', '¥${balance.toStringAsFixed(2)}', AppColors.textPrimary),
             ],
           ),
         );
@@ -310,25 +384,34 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
     return repo.getStats(start, end);
   }
 
-  Widget _buildStatItem(String label, String value, Color valueColor) {
+  Widget _buildStatItem(String label, String value, Color valueColor, {bool isActive = false, VoidCallback? onTap}) {
     return Expanded(
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: Responsive.s(context, 10)),
-        margin: EdgeInsets.symmetric(horizontal: Responsive.s(context, 4)),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceSecondary,
-          borderRadius: BorderRadius.circular(Responsive.s(context, AppDimensions.radiusSm)),
-        ),
-        child: Column(
-          children: [
-            Text(label, style: AppTextStyles.caption.copyWith(fontSize: Responsive.fs(context, 11))),
-            SizedBox(height: Responsive.s(context, 4)),
-            Text(value,
-                style: AppTextStyles.amountList.copyWith(
-                  color: valueColor,
-                  fontSize: Responsive.fs(context, 16),
-                )),
-          ],
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: Responsive.s(context, 10)),
+          margin: EdgeInsets.symmetric(horizontal: Responsive.s(context, 4)),
+          decoration: BoxDecoration(
+            color: isActive ? valueColor.withValues(alpha: 0.1) : AppColors.surfaceSecondary,
+            borderRadius: BorderRadius.circular(Responsive.s(context, AppDimensions.radiusSm)),
+            border: isActive ? Border.all(color: valueColor.withValues(alpha: 0.4), width: 1.5) : null,
+          ),
+          child: Column(
+            children: [
+              Text(label, style: AppTextStyles.caption.copyWith(
+                fontSize: Responsive.fs(context, 11),
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                color: isActive ? valueColor : AppColors.textSecondary,
+              )),
+              SizedBox(height: Responsive.s(context, 4)),
+              Text(value,
+                  style: AppTextStyles.amountList.copyWith(
+                    color: valueColor,
+                    fontSize: Responsive.fs(context, 16),
+                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
+                  )),
+            ],
+          ),
         ),
       ),
     );
@@ -410,6 +493,10 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
                     date: entry.key,
                     transactions: entry.value,
                     categoryMap: categoryMap,
+                    sortLabel: _sortType == SortType.time ? '按时间' : '按金额',
+                    onSortToggle: () => setState(() {
+                      _sortType = _sortType == SortType.time ? SortType.amount : SortType.time;
+                    }),
                     onDelete: (id) async {
                       final result = await repo.delete(id);
                       setState(() {});
@@ -429,23 +516,53 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
   // ==================== 周视图 ====================
 
   Widget _buildWeekView(TransactionRepository repo, CategoryRepository catRepo) {
-    final weekStart = _currentDate.subtract(Duration(days: _currentDate.weekday - 1));
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final selectedDay = _selectedWeekDay ?? today;
+    final weekStart = _currentDate.subtract(Duration(days: _currentDate.weekday - 1));
+    final weekStartDay = DateTime(weekStart.year, weekStart.month, weekStart.day);
+    final weekEnd = weekStartDay.add(const Duration(days: 7));
+    final inCurrentWeek = !today.isBefore(weekStartDay) && today.isBefore(weekEnd);
+    final selectedDay = _selectedWeekDay ?? (inCurrentWeek ? today : weekStartDay);
 
     return RefreshIndicator(
       onRefresh: () async { _triggerRefresh(); },
-      child: Column(
-        children: [
-          _buildWeekDayCards(weekStart, selectedDay),
-          Expanded(child: _buildWeekTransactionList(repo, catRepo, selectedDay)),
-        ],
+      child: StreamBuilder<List<Transaction>>(
+        key: ValueKey('week_stats_$_refreshKey'),
+        stream: repo.watchAll(),
+        builder: (context, snapshot) {
+          final allTxns = snapshot.data ?? [];
+          return FutureBuilder<List<Category>>(
+            future: catRepo.getAll(),
+            builder: (context, catSnap) {
+              final catMap = <int, Category>{for (final c in (catSnap.data ?? [])) c.id: c};
+              // 计算本周每天的收支
+              final dailyTotals = <int, ({double expense, double income})>{};
+              for (final t in allTxns) {
+                if (t.transactionDate.isBefore(weekStartDay) || !t.transactionDate.isBefore(weekEnd)) continue;
+                final day = t.transactionDate.day;
+                final cat = catMap[t.categoryId];
+                final isExpense = cat?.isExpense ?? true;
+                final existing = dailyTotals[day];
+                if (isExpense) {
+                  dailyTotals[day] = (expense: (existing?.expense ?? 0) + t.amount, income: existing?.income ?? 0);
+                } else {
+                  dailyTotals[day] = (expense: existing?.expense ?? 0, income: (existing?.income ?? 0) + t.amount);
+                }
+              }
+              return Column(
+                children: [
+                  _buildWeekDayCards(weekStart, selectedDay, dailyTotals, weekStartDay),
+                  Expanded(child: _buildWeekTransactionList(repo, catRepo, selectedDay)),
+                ],
+              );
+            },
+          );
+        },
       ),
     );
   }
 
-  Widget _buildWeekDayCards(DateTime weekStart, DateTime selectedDay) {
+  Widget _buildWeekDayCards(DateTime weekStart, DateTime selectedDay, Map<int, ({double expense, double income})> dailyTotals, DateTime weekStartDay) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
@@ -462,13 +579,17 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
               date.month == selectedDay.month &&
               date.day == selectedDay.day;
           final weekday = ['一', '二', '三', '四', '五', '六', '日'][i];
+          final totals = dailyTotals[date.day];
+          final hasExpense = totals != null && totals.expense > 0;
+          final hasIncome = totals != null && totals.income > 0;
+          final amountFontSize = Responsive.fs(context, 9);
 
           return Expanded(
             child: GestureDetector(
               onTap: () => setState(() => _selectedWeekDay = date),
               child: Container(
                 margin: EdgeInsets.symmetric(horizontal: Responsive.s(context, 2)),
-                padding: EdgeInsets.symmetric(vertical: Responsive.s(context, 8)),
+                padding: EdgeInsets.symmetric(vertical: Responsive.s(context, 6)),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? AppColors.primarySurface
@@ -485,15 +606,29 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
                           fontSize: Responsive.fs(context, 11),
                           color: isSelected ? AppColors.primary : AppColors.textTertiary,
                         )),
-                    SizedBox(height: Responsive.s(context, 2)),
+                    SizedBox(height: Responsive.s(context, 1)),
                     Text(
                       '${date.day}',
                       style: AppTextStyles.callout.copyWith(
                         fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                        fontSize: Responsive.fs(context, 16),
+                        fontSize: Responsive.fs(context, 15),
                         color: isSelected ? AppColors.primary : AppColors.textPrimary,
                       ),
                     ),
+                    if (hasExpense)
+                      Text(
+                        '-${_formatCompact(totals.expense)}',
+                        style: TextStyle(fontSize: amountFontSize, color: AppColors.expense, height: 1.1),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    if (hasIncome)
+                      Text(
+                        '+${_formatCompact(totals.income)}',
+                        style: TextStyle(fontSize: amountFontSize, color: AppColors.income, height: 1.1),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    if (!hasExpense && !hasIncome)
+                      SizedBox(height: amountFontSize * 1.1),
                   ],
                 ),
               ),
@@ -537,6 +672,10 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
                   date: entry.key,
                   transactions: entry.value,
                   categoryMap: categoryMap,
+                  sortLabel: _sortType == SortType.time ? '按时间' : '按金额',
+                  onSortToggle: () => setState(() {
+                    _sortType = _sortType == SortType.time ? SortType.amount : SortType.time;
+                  }),
                   onDelete: (id) async {
                     final result = await repo.delete(id);
                     setState(() {});
@@ -705,7 +844,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
                         ),
                         if (hasExpense)
                           Text(
-                            _formatAmount(totals.expense),
+                            '-${_formatAmount(totals.expense)}',
                             style: TextStyle(fontSize: amountFontSize, color: AppColors.expense, height: 1.2),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -732,13 +871,24 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
 
   String _formatAmount(double amount) {
     if (amount >= 10000) {
-      return '-${(amount / 10000).toStringAsFixed(1)}w';
+      return '${(amount / 10000).toStringAsFixed(1)}w';
     } else if (amount >= 1000) {
-      return '-${(amount / 1000).toStringAsFixed(1)}k';
+      return '${(amount / 1000).toStringAsFixed(1)}k';
     } else if (amount == amount.roundToDouble()) {
-      return '-${amount.toInt()}';
+      return '${amount.toInt()}';
     } else {
-      return '-${amount.toStringAsFixed(0)}';
+      return amount.toStringAsFixed(0);
+    }
+  }
+
+  /// 周视图紧凑金额格式（省略小数，超千用k）
+  String _formatCompact(double amount) {
+    if (amount >= 1000) {
+      return '${(amount / 1000).toStringAsFixed(1)}k';
+    } else if (amount == amount.roundToDouble()) {
+      return '${amount.toInt()}';
+    } else {
+      return amount.toStringAsFixed(0);
     }
   }
 

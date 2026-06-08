@@ -1,8 +1,9 @@
-import 'dart:io';
+import 'dart:io' show File;
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'category_seed_data.dart';
 
 part 'app_database.g.dart';
 
@@ -78,12 +79,64 @@ class ConversationMessages extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
+/// 用户资料表
+@DataClassName('UserProfile')
+class UserProfiles extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get nickname => text().withLength(min: 1, max: 50).withDefault(const Constant('用户'))();
+  TextColumn get avatarPath => text().nullable()();
+  TextColumn get gender => text().withLength(max: 10).nullable()();
+  TextColumn get email => text().withLength(max: 100).nullable()();
+  TextColumn get phone => text().withLength(max: 20).nullable()();
+  TextColumn get uid => text().withLength(max: 50).withDefault(const Constant(''))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+/// 打卡记录表
+@DataClassName('CheckInRecord')
+class CheckInRecords extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get userId => integer().withDefault(const Constant(1))();
+  DateTimeColumn get checkInDate => dateTime()();
+  BoolColumn get isMakeup => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  List<Set<Column>> get uniqueKeys => [{checkInDate}];
+}
+
+/// AC币余额表（每个用户一行）
+@DataClassName('AcCoinBalance')
+class AcCoinBalances extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get userId => integer().withDefault(const Constant(1))();
+  IntColumn get balance => integer().withDefault(const Constant(0))();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+/// AC币流水记录表
+@DataClassName('AcCoinTransaction')
+class AcCoinTransactions extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get userId => integer().withDefault(const Constant(1))();
+  IntColumn get amount => integer()(); // 正数收入，负数支出
+  TextColumn get type => text().withLength(max: 30)(); // daily_checkin, streak_7d, streak_30d, streak_180d, streak_365d, makeup_cost
+  TextColumn get description => text().withLength(max: 200).withDefault(const Constant(''))();
+  IntColumn get relatedDate => integer().nullable()(); // 关联的打卡日期（毫秒时间戳）
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
 @DriftDatabase(tables: [
   Transactions,
   Categories,
   Budgets,
   AiTrainingRecords,
   ConversationMessages,
+  UserProfiles,
+  CheckInRecords,
+  AcCoinBalances,
+  AcCoinTransactions,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -92,53 +145,76 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (Migrator m) async {
       await m.createAll();
       await _seedCategories();
+      await _seedDefaultUser();
     },
     onUpgrade: (Migrator m, int from, int to) async {
-      // 版本迁移逻辑
+      if (from < 2) {
+        await m.deleteTable('categories');
+        await m.createTable(categories);
+        await _seedCategories();
+      }
+      if (from < 3) {
+        await m.createTable(userProfiles);
+        await m.createTable(checkInRecords);
+        await _seedDefaultUser();
+      }
+      if (from < 4) {
+        await m.createTable(acCoinBalances);
+        await m.createTable(acCoinTransactions);
+        // 为默认用户初始化 AC 币余额
+        await into(acCoinBalances).insert(AcCoinBalancesCompanion.insert(
+          userId: const Value(1),
+          balance: const Value(0),
+        ));
+      }
     },
   );
 
-  /// 初始化系统分类
+  /// 初始化默认用户
+  Future<void> _seedDefaultUser() async {
+    await into(userProfiles).insert(UserProfilesCompanion.insert(
+      nickname: Value('用户'),
+      uid: Value('WO${100000 + DateTime.now().millisecondsSinceEpoch % 900000}'),
+    ));
+    // 初始化 AC 币余额
+    await into(acCoinBalances).insert(AcCoinBalancesCompanion.insert(
+      userId: const Value(1),
+      balance: const Value(0),
+    ));
+  }
+
+  /// 初始化系统分类（从 category_seed_data.dart 读取）
   Future<void> _seedCategories() async {
-    // 支出分类
-    final expenseCategories = [
-      CategoriesCompanion.insert(name: '餐饮', icon: const Value('🍜'), color: const Value('#FF9800'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(true), sortOrder: const Value(1)),
-      CategoriesCompanion.insert(name: '交通', icon: const Value('🚗'), color: const Value('#2196F3'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(true), sortOrder: const Value(2)),
-      CategoriesCompanion.insert(name: '购物', icon: const Value('🛒'), color: const Value('#E91E63'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(true), sortOrder: const Value(3)),
-      CategoriesCompanion.insert(name: '住房', icon: const Value('🏠'), color: const Value('#9C27B0'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(true), sortOrder: const Value(4)),
-      CategoriesCompanion.insert(name: '娱乐', icon: const Value('🎮'), color: const Value('#4CAF50'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(true), sortOrder: const Value(5)),
-      CategoriesCompanion.insert(name: '教育', icon: const Value('📚'), color: const Value('#00BCD4'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(true), sortOrder: const Value(6)),
-      CategoriesCompanion.insert(name: '医疗', icon: const Value('💊'), color: const Value('#F44336'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(true), sortOrder: const Value(7)),
-      CategoriesCompanion.insert(name: '社交', icon: const Value('👤'), color: const Value('#FF5722'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(true), sortOrder: const Value(8)),
-      CategoriesCompanion.insert(name: '宠物', icon: const Value('🐾'), color: const Value('#795548'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(true), sortOrder: const Value(9)),
-      CategoriesCompanion.insert(name: '其他支出', icon: const Value('💰'), color: const Value('#607D8B'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(true), sortOrder: const Value(10)),
-    ];
+    for (final parent in [...expenseCategories, ...incomeCategories, ...otherCategories]) {
+      final parentId = await into(categories).insert(CategoriesCompanion.insert(
+        name: parent.name,
+        icon: Value(parent.icon),
+        color: Value(parent.color),
+        level: const Value(1),
+        isSystem: const Value(true),
+        isExpense: Value(parent.isExpense),
+        sortOrder: Value(parent.sortOrder),
+      ));
 
-    // 收入分类
-    final incomeCategories = [
-      CategoriesCompanion.insert(name: '工资', icon: const Value('💼'), color: const Value('#4CAF50'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(false), sortOrder: const Value(1)),
-      CategoriesCompanion.insert(name: '奖金', icon: const Value('🎁'), color: const Value('#FF9800'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(false), sortOrder: const Value(2)),
-      CategoriesCompanion.insert(name: '投资收益', icon: const Value('📈'), color: const Value('#2196F3'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(false), sortOrder: const Value(3)),
-      CategoriesCompanion.insert(name: '退款', icon: const Value('↩️'), color: const Value('#9C27B0'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(false), sortOrder: const Value(4)),
-      CategoriesCompanion.insert(name: '兼职', icon: const Value('💻'), color: const Value('#00BCD4'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(false), sortOrder: const Value(5)),
-    ];
-
-    // 其他类型（非支出非收入）
-    final otherCategories = [
-      CategoriesCompanion.insert(name: '转账', icon: const Value('🔄'), color: const Value('#607D8B'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(false), sortOrder: const Value(1)),
-      CategoriesCompanion.insert(name: '还款', icon: const Value('💳'), color: const Value('#F44336'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(false), sortOrder: const Value(2)),
-      CategoriesCompanion.insert(name: '人情', icon: const Value('🤝'), color: const Value('#FF5722'), level: const Value(1), isSystem: const Value(true), isExpense: const Value(false), sortOrder: const Value(3)),
-    ];
-
-    for (final category in [...expenseCategories, ...incomeCategories, ...otherCategories]) {
-      await into(categories).insert(category);
+      for (final child in parent.children) {
+        await into(categories).insert(CategoriesCompanion.insert(
+          name: child.name,
+          icon: Value(child.icon),
+          color: Value(child.color),
+          parentId: Value(parentId),
+          level: const Value(2),
+          isSystem: const Value(true),
+          isExpense: Value(child.isExpense),
+          sortOrder: Value(child.sortOrder),
+        ));
+      }
     }
   }
 }

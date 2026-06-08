@@ -2787,6 +2787,1660 @@ class ConversationMessagesCompanion
   }
 }
 
+class $UserProfilesTable extends UserProfiles
+    with TableInfo<$UserProfilesTable, UserProfile> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UserProfilesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _nicknameMeta = const VerificationMeta(
+    'nickname',
+  );
+  @override
+  late final GeneratedColumn<String> nickname = GeneratedColumn<String>(
+    'nickname',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 50,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('用户'),
+  );
+  static const VerificationMeta _avatarPathMeta = const VerificationMeta(
+    'avatarPath',
+  );
+  @override
+  late final GeneratedColumn<String> avatarPath = GeneratedColumn<String>(
+    'avatar_path',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _genderMeta = const VerificationMeta('gender');
+  @override
+  late final GeneratedColumn<String> gender = GeneratedColumn<String>(
+    'gender',
+    aliasedName,
+    true,
+    additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 10),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _emailMeta = const VerificationMeta('email');
+  @override
+  late final GeneratedColumn<String> email = GeneratedColumn<String>(
+    'email',
+    aliasedName,
+    true,
+    additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 100),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _phoneMeta = const VerificationMeta('phone');
+  @override
+  late final GeneratedColumn<String> phone = GeneratedColumn<String>(
+    'phone',
+    aliasedName,
+    true,
+    additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 20),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _uidMeta = const VerificationMeta('uid');
+  @override
+  late final GeneratedColumn<String> uid = GeneratedColumn<String>(
+    'uid',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 50),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    nickname,
+    avatarPath,
+    gender,
+    email,
+    phone,
+    uid,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'user_profiles';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<UserProfile> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('nickname')) {
+      context.handle(
+        _nicknameMeta,
+        nickname.isAcceptableOrUnknown(data['nickname']!, _nicknameMeta),
+      );
+    }
+    if (data.containsKey('avatar_path')) {
+      context.handle(
+        _avatarPathMeta,
+        avatarPath.isAcceptableOrUnknown(data['avatar_path']!, _avatarPathMeta),
+      );
+    }
+    if (data.containsKey('gender')) {
+      context.handle(
+        _genderMeta,
+        gender.isAcceptableOrUnknown(data['gender']!, _genderMeta),
+      );
+    }
+    if (data.containsKey('email')) {
+      context.handle(
+        _emailMeta,
+        email.isAcceptableOrUnknown(data['email']!, _emailMeta),
+      );
+    }
+    if (data.containsKey('phone')) {
+      context.handle(
+        _phoneMeta,
+        phone.isAcceptableOrUnknown(data['phone']!, _phoneMeta),
+      );
+    }
+    if (data.containsKey('uid')) {
+      context.handle(
+        _uidMeta,
+        uid.isAcceptableOrUnknown(data['uid']!, _uidMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  UserProfile map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UserProfile(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      nickname: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nickname'],
+      )!,
+      avatarPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}avatar_path'],
+      ),
+      gender: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}gender'],
+      ),
+      email: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}email'],
+      ),
+      phone: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}phone'],
+      ),
+      uid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uid'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $UserProfilesTable createAlias(String alias) {
+    return $UserProfilesTable(attachedDatabase, alias);
+  }
+}
+
+class UserProfile extends DataClass implements Insertable<UserProfile> {
+  final int id;
+  final String nickname;
+  final String? avatarPath;
+  final String? gender;
+  final String? email;
+  final String? phone;
+  final String uid;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const UserProfile({
+    required this.id,
+    required this.nickname,
+    this.avatarPath,
+    this.gender,
+    this.email,
+    this.phone,
+    required this.uid,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['nickname'] = Variable<String>(nickname);
+    if (!nullToAbsent || avatarPath != null) {
+      map['avatar_path'] = Variable<String>(avatarPath);
+    }
+    if (!nullToAbsent || gender != null) {
+      map['gender'] = Variable<String>(gender);
+    }
+    if (!nullToAbsent || email != null) {
+      map['email'] = Variable<String>(email);
+    }
+    if (!nullToAbsent || phone != null) {
+      map['phone'] = Variable<String>(phone);
+    }
+    map['uid'] = Variable<String>(uid);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  UserProfilesCompanion toCompanion(bool nullToAbsent) {
+    return UserProfilesCompanion(
+      id: Value(id),
+      nickname: Value(nickname),
+      avatarPath: avatarPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(avatarPath),
+      gender: gender == null && nullToAbsent
+          ? const Value.absent()
+          : Value(gender),
+      email: email == null && nullToAbsent
+          ? const Value.absent()
+          : Value(email),
+      phone: phone == null && nullToAbsent
+          ? const Value.absent()
+          : Value(phone),
+      uid: Value(uid),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory UserProfile.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UserProfile(
+      id: serializer.fromJson<int>(json['id']),
+      nickname: serializer.fromJson<String>(json['nickname']),
+      avatarPath: serializer.fromJson<String?>(json['avatarPath']),
+      gender: serializer.fromJson<String?>(json['gender']),
+      email: serializer.fromJson<String?>(json['email']),
+      phone: serializer.fromJson<String?>(json['phone']),
+      uid: serializer.fromJson<String>(json['uid']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'nickname': serializer.toJson<String>(nickname),
+      'avatarPath': serializer.toJson<String?>(avatarPath),
+      'gender': serializer.toJson<String?>(gender),
+      'email': serializer.toJson<String?>(email),
+      'phone': serializer.toJson<String?>(phone),
+      'uid': serializer.toJson<String>(uid),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  UserProfile copyWith({
+    int? id,
+    String? nickname,
+    Value<String?> avatarPath = const Value.absent(),
+    Value<String?> gender = const Value.absent(),
+    Value<String?> email = const Value.absent(),
+    Value<String?> phone = const Value.absent(),
+    String? uid,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => UserProfile(
+    id: id ?? this.id,
+    nickname: nickname ?? this.nickname,
+    avatarPath: avatarPath.present ? avatarPath.value : this.avatarPath,
+    gender: gender.present ? gender.value : this.gender,
+    email: email.present ? email.value : this.email,
+    phone: phone.present ? phone.value : this.phone,
+    uid: uid ?? this.uid,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  UserProfile copyWithCompanion(UserProfilesCompanion data) {
+    return UserProfile(
+      id: data.id.present ? data.id.value : this.id,
+      nickname: data.nickname.present ? data.nickname.value : this.nickname,
+      avatarPath: data.avatarPath.present
+          ? data.avatarPath.value
+          : this.avatarPath,
+      gender: data.gender.present ? data.gender.value : this.gender,
+      email: data.email.present ? data.email.value : this.email,
+      phone: data.phone.present ? data.phone.value : this.phone,
+      uid: data.uid.present ? data.uid.value : this.uid,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserProfile(')
+          ..write('id: $id, ')
+          ..write('nickname: $nickname, ')
+          ..write('avatarPath: $avatarPath, ')
+          ..write('gender: $gender, ')
+          ..write('email: $email, ')
+          ..write('phone: $phone, ')
+          ..write('uid: $uid, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    nickname,
+    avatarPath,
+    gender,
+    email,
+    phone,
+    uid,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UserProfile &&
+          other.id == this.id &&
+          other.nickname == this.nickname &&
+          other.avatarPath == this.avatarPath &&
+          other.gender == this.gender &&
+          other.email == this.email &&
+          other.phone == this.phone &&
+          other.uid == this.uid &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
+  final Value<int> id;
+  final Value<String> nickname;
+  final Value<String?> avatarPath;
+  final Value<String?> gender;
+  final Value<String?> email;
+  final Value<String?> phone;
+  final Value<String> uid;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const UserProfilesCompanion({
+    this.id = const Value.absent(),
+    this.nickname = const Value.absent(),
+    this.avatarPath = const Value.absent(),
+    this.gender = const Value.absent(),
+    this.email = const Value.absent(),
+    this.phone = const Value.absent(),
+    this.uid = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  UserProfilesCompanion.insert({
+    this.id = const Value.absent(),
+    this.nickname = const Value.absent(),
+    this.avatarPath = const Value.absent(),
+    this.gender = const Value.absent(),
+    this.email = const Value.absent(),
+    this.phone = const Value.absent(),
+    this.uid = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  static Insertable<UserProfile> custom({
+    Expression<int>? id,
+    Expression<String>? nickname,
+    Expression<String>? avatarPath,
+    Expression<String>? gender,
+    Expression<String>? email,
+    Expression<String>? phone,
+    Expression<String>? uid,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (nickname != null) 'nickname': nickname,
+      if (avatarPath != null) 'avatar_path': avatarPath,
+      if (gender != null) 'gender': gender,
+      if (email != null) 'email': email,
+      if (phone != null) 'phone': phone,
+      if (uid != null) 'uid': uid,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  UserProfilesCompanion copyWith({
+    Value<int>? id,
+    Value<String>? nickname,
+    Value<String?>? avatarPath,
+    Value<String?>? gender,
+    Value<String?>? email,
+    Value<String?>? phone,
+    Value<String>? uid,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+  }) {
+    return UserProfilesCompanion(
+      id: id ?? this.id,
+      nickname: nickname ?? this.nickname,
+      avatarPath: avatarPath ?? this.avatarPath,
+      gender: gender ?? this.gender,
+      email: email ?? this.email,
+      phone: phone ?? this.phone,
+      uid: uid ?? this.uid,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (nickname.present) {
+      map['nickname'] = Variable<String>(nickname.value);
+    }
+    if (avatarPath.present) {
+      map['avatar_path'] = Variable<String>(avatarPath.value);
+    }
+    if (gender.present) {
+      map['gender'] = Variable<String>(gender.value);
+    }
+    if (email.present) {
+      map['email'] = Variable<String>(email.value);
+    }
+    if (phone.present) {
+      map['phone'] = Variable<String>(phone.value);
+    }
+    if (uid.present) {
+      map['uid'] = Variable<String>(uid.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserProfilesCompanion(')
+          ..write('id: $id, ')
+          ..write('nickname: $nickname, ')
+          ..write('avatarPath: $avatarPath, ')
+          ..write('gender: $gender, ')
+          ..write('email: $email, ')
+          ..write('phone: $phone, ')
+          ..write('uid: $uid, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CheckInRecordsTable extends CheckInRecords
+    with TableInfo<$CheckInRecordsTable, CheckInRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CheckInRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<int> userId = GeneratedColumn<int>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _checkInDateMeta = const VerificationMeta(
+    'checkInDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> checkInDate = GeneratedColumn<DateTime>(
+    'check_in_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isMakeupMeta = const VerificationMeta(
+    'isMakeup',
+  );
+  @override
+  late final GeneratedColumn<bool> isMakeup = GeneratedColumn<bool>(
+    'is_makeup',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_makeup" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    userId,
+    checkInDate,
+    isMakeup,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'check_in_records';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CheckInRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    }
+    if (data.containsKey('check_in_date')) {
+      context.handle(
+        _checkInDateMeta,
+        checkInDate.isAcceptableOrUnknown(
+          data['check_in_date']!,
+          _checkInDateMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_checkInDateMeta);
+    }
+    if (data.containsKey('is_makeup')) {
+      context.handle(
+        _isMakeupMeta,
+        isMakeup.isAcceptableOrUnknown(data['is_makeup']!, _isMakeupMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {checkInDate},
+  ];
+  @override
+  CheckInRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CheckInRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}user_id'],
+      )!,
+      checkInDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}check_in_date'],
+      )!,
+      isMakeup: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_makeup'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $CheckInRecordsTable createAlias(String alias) {
+    return $CheckInRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class CheckInRecord extends DataClass implements Insertable<CheckInRecord> {
+  final int id;
+  final int userId;
+  final DateTime checkInDate;
+  final bool isMakeup;
+  final DateTime createdAt;
+  const CheckInRecord({
+    required this.id,
+    required this.userId,
+    required this.checkInDate,
+    required this.isMakeup,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['user_id'] = Variable<int>(userId);
+    map['check_in_date'] = Variable<DateTime>(checkInDate);
+    map['is_makeup'] = Variable<bool>(isMakeup);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  CheckInRecordsCompanion toCompanion(bool nullToAbsent) {
+    return CheckInRecordsCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      checkInDate: Value(checkInDate),
+      isMakeup: Value(isMakeup),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory CheckInRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CheckInRecord(
+      id: serializer.fromJson<int>(json['id']),
+      userId: serializer.fromJson<int>(json['userId']),
+      checkInDate: serializer.fromJson<DateTime>(json['checkInDate']),
+      isMakeup: serializer.fromJson<bool>(json['isMakeup']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'userId': serializer.toJson<int>(userId),
+      'checkInDate': serializer.toJson<DateTime>(checkInDate),
+      'isMakeup': serializer.toJson<bool>(isMakeup),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  CheckInRecord copyWith({
+    int? id,
+    int? userId,
+    DateTime? checkInDate,
+    bool? isMakeup,
+    DateTime? createdAt,
+  }) => CheckInRecord(
+    id: id ?? this.id,
+    userId: userId ?? this.userId,
+    checkInDate: checkInDate ?? this.checkInDate,
+    isMakeup: isMakeup ?? this.isMakeup,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  CheckInRecord copyWithCompanion(CheckInRecordsCompanion data) {
+    return CheckInRecord(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      checkInDate: data.checkInDate.present
+          ? data.checkInDate.value
+          : this.checkInDate,
+      isMakeup: data.isMakeup.present ? data.isMakeup.value : this.isMakeup,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CheckInRecord(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('checkInDate: $checkInDate, ')
+          ..write('isMakeup: $isMakeup, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, userId, checkInDate, isMakeup, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CheckInRecord &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.checkInDate == this.checkInDate &&
+          other.isMakeup == this.isMakeup &&
+          other.createdAt == this.createdAt);
+}
+
+class CheckInRecordsCompanion extends UpdateCompanion<CheckInRecord> {
+  final Value<int> id;
+  final Value<int> userId;
+  final Value<DateTime> checkInDate;
+  final Value<bool> isMakeup;
+  final Value<DateTime> createdAt;
+  const CheckInRecordsCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.checkInDate = const Value.absent(),
+    this.isMakeup = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  CheckInRecordsCompanion.insert({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    required DateTime checkInDate,
+    this.isMakeup = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  }) : checkInDate = Value(checkInDate);
+  static Insertable<CheckInRecord> custom({
+    Expression<int>? id,
+    Expression<int>? userId,
+    Expression<DateTime>? checkInDate,
+    Expression<bool>? isMakeup,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (checkInDate != null) 'check_in_date': checkInDate,
+      if (isMakeup != null) 'is_makeup': isMakeup,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  CheckInRecordsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? userId,
+    Value<DateTime>? checkInDate,
+    Value<bool>? isMakeup,
+    Value<DateTime>? createdAt,
+  }) {
+    return CheckInRecordsCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      checkInDate: checkInDate ?? this.checkInDate,
+      isMakeup: isMakeup ?? this.isMakeup,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<int>(userId.value);
+    }
+    if (checkInDate.present) {
+      map['check_in_date'] = Variable<DateTime>(checkInDate.value);
+    }
+    if (isMakeup.present) {
+      map['is_makeup'] = Variable<bool>(isMakeup.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CheckInRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('checkInDate: $checkInDate, ')
+          ..write('isMakeup: $isMakeup, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AcCoinBalancesTable extends AcCoinBalances
+    with TableInfo<$AcCoinBalancesTable, AcCoinBalance> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AcCoinBalancesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<int> userId = GeneratedColumn<int>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _balanceMeta = const VerificationMeta(
+    'balance',
+  );
+  @override
+  late final GeneratedColumn<int> balance = GeneratedColumn<int>(
+    'balance',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, userId, balance, updatedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'ac_coin_balances';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AcCoinBalance> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    }
+    if (data.containsKey('balance')) {
+      context.handle(
+        _balanceMeta,
+        balance.isAcceptableOrUnknown(data['balance']!, _balanceMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AcCoinBalance map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AcCoinBalance(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}user_id'],
+      )!,
+      balance: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}balance'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $AcCoinBalancesTable createAlias(String alias) {
+    return $AcCoinBalancesTable(attachedDatabase, alias);
+  }
+}
+
+class AcCoinBalance extends DataClass implements Insertable<AcCoinBalance> {
+  final int id;
+  final int userId;
+  final int balance;
+  final DateTime updatedAt;
+  const AcCoinBalance({
+    required this.id,
+    required this.userId,
+    required this.balance,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['user_id'] = Variable<int>(userId);
+    map['balance'] = Variable<int>(balance);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  AcCoinBalancesCompanion toCompanion(bool nullToAbsent) {
+    return AcCoinBalancesCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      balance: Value(balance),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory AcCoinBalance.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AcCoinBalance(
+      id: serializer.fromJson<int>(json['id']),
+      userId: serializer.fromJson<int>(json['userId']),
+      balance: serializer.fromJson<int>(json['balance']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'userId': serializer.toJson<int>(userId),
+      'balance': serializer.toJson<int>(balance),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  AcCoinBalance copyWith({
+    int? id,
+    int? userId,
+    int? balance,
+    DateTime? updatedAt,
+  }) => AcCoinBalance(
+    id: id ?? this.id,
+    userId: userId ?? this.userId,
+    balance: balance ?? this.balance,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  AcCoinBalance copyWithCompanion(AcCoinBalancesCompanion data) {
+    return AcCoinBalance(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      balance: data.balance.present ? data.balance.value : this.balance,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AcCoinBalance(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('balance: $balance, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, userId, balance, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AcCoinBalance &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.balance == this.balance &&
+          other.updatedAt == this.updatedAt);
+}
+
+class AcCoinBalancesCompanion extends UpdateCompanion<AcCoinBalance> {
+  final Value<int> id;
+  final Value<int> userId;
+  final Value<int> balance;
+  final Value<DateTime> updatedAt;
+  const AcCoinBalancesCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.balance = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  AcCoinBalancesCompanion.insert({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.balance = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  static Insertable<AcCoinBalance> custom({
+    Expression<int>? id,
+    Expression<int>? userId,
+    Expression<int>? balance,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (balance != null) 'balance': balance,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  AcCoinBalancesCompanion copyWith({
+    Value<int>? id,
+    Value<int>? userId,
+    Value<int>? balance,
+    Value<DateTime>? updatedAt,
+  }) {
+    return AcCoinBalancesCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      balance: balance ?? this.balance,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<int>(userId.value);
+    }
+    if (balance.present) {
+      map['balance'] = Variable<int>(balance.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AcCoinBalancesCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('balance: $balance, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AcCoinTransactionsTable extends AcCoinTransactions
+    with TableInfo<$AcCoinTransactionsTable, AcCoinTransaction> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AcCoinTransactionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<int> userId = GeneratedColumn<int>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _amountMeta = const VerificationMeta('amount');
+  @override
+  late final GeneratedColumn<int> amount = GeneratedColumn<int>(
+    'amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 30),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 200),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _relatedDateMeta = const VerificationMeta(
+    'relatedDate',
+  );
+  @override
+  late final GeneratedColumn<int> relatedDate = GeneratedColumn<int>(
+    'related_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    userId,
+    amount,
+    type,
+    description,
+    relatedDate,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'ac_coin_transactions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AcCoinTransaction> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    }
+    if (data.containsKey('amount')) {
+      context.handle(
+        _amountMeta,
+        amount.isAcceptableOrUnknown(data['amount']!, _amountMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('related_date')) {
+      context.handle(
+        _relatedDateMeta,
+        relatedDate.isAcceptableOrUnknown(
+          data['related_date']!,
+          _relatedDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AcCoinTransaction map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AcCoinTransaction(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}user_id'],
+      )!,
+      amount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      )!,
+      relatedDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}related_date'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $AcCoinTransactionsTable createAlias(String alias) {
+    return $AcCoinTransactionsTable(attachedDatabase, alias);
+  }
+}
+
+class AcCoinTransaction extends DataClass
+    implements Insertable<AcCoinTransaction> {
+  final int id;
+  final int userId;
+  final int amount;
+  final String type;
+  final String description;
+  final int? relatedDate;
+  final DateTime createdAt;
+  const AcCoinTransaction({
+    required this.id,
+    required this.userId,
+    required this.amount,
+    required this.type,
+    required this.description,
+    this.relatedDate,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['user_id'] = Variable<int>(userId);
+    map['amount'] = Variable<int>(amount);
+    map['type'] = Variable<String>(type);
+    map['description'] = Variable<String>(description);
+    if (!nullToAbsent || relatedDate != null) {
+      map['related_date'] = Variable<int>(relatedDate);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  AcCoinTransactionsCompanion toCompanion(bool nullToAbsent) {
+    return AcCoinTransactionsCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      amount: Value(amount),
+      type: Value(type),
+      description: Value(description),
+      relatedDate: relatedDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(relatedDate),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory AcCoinTransaction.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AcCoinTransaction(
+      id: serializer.fromJson<int>(json['id']),
+      userId: serializer.fromJson<int>(json['userId']),
+      amount: serializer.fromJson<int>(json['amount']),
+      type: serializer.fromJson<String>(json['type']),
+      description: serializer.fromJson<String>(json['description']),
+      relatedDate: serializer.fromJson<int?>(json['relatedDate']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'userId': serializer.toJson<int>(userId),
+      'amount': serializer.toJson<int>(amount),
+      'type': serializer.toJson<String>(type),
+      'description': serializer.toJson<String>(description),
+      'relatedDate': serializer.toJson<int?>(relatedDate),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  AcCoinTransaction copyWith({
+    int? id,
+    int? userId,
+    int? amount,
+    String? type,
+    String? description,
+    Value<int?> relatedDate = const Value.absent(),
+    DateTime? createdAt,
+  }) => AcCoinTransaction(
+    id: id ?? this.id,
+    userId: userId ?? this.userId,
+    amount: amount ?? this.amount,
+    type: type ?? this.type,
+    description: description ?? this.description,
+    relatedDate: relatedDate.present ? relatedDate.value : this.relatedDate,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  AcCoinTransaction copyWithCompanion(AcCoinTransactionsCompanion data) {
+    return AcCoinTransaction(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      amount: data.amount.present ? data.amount.value : this.amount,
+      type: data.type.present ? data.type.value : this.type,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      relatedDate: data.relatedDate.present
+          ? data.relatedDate.value
+          : this.relatedDate,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AcCoinTransaction(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('amount: $amount, ')
+          ..write('type: $type, ')
+          ..write('description: $description, ')
+          ..write('relatedDate: $relatedDate, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    userId,
+    amount,
+    type,
+    description,
+    relatedDate,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AcCoinTransaction &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.amount == this.amount &&
+          other.type == this.type &&
+          other.description == this.description &&
+          other.relatedDate == this.relatedDate &&
+          other.createdAt == this.createdAt);
+}
+
+class AcCoinTransactionsCompanion extends UpdateCompanion<AcCoinTransaction> {
+  final Value<int> id;
+  final Value<int> userId;
+  final Value<int> amount;
+  final Value<String> type;
+  final Value<String> description;
+  final Value<int?> relatedDate;
+  final Value<DateTime> createdAt;
+  const AcCoinTransactionsCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.type = const Value.absent(),
+    this.description = const Value.absent(),
+    this.relatedDate = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  AcCoinTransactionsCompanion.insert({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    required int amount,
+    required String type,
+    this.description = const Value.absent(),
+    this.relatedDate = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  }) : amount = Value(amount),
+       type = Value(type);
+  static Insertable<AcCoinTransaction> custom({
+    Expression<int>? id,
+    Expression<int>? userId,
+    Expression<int>? amount,
+    Expression<String>? type,
+    Expression<String>? description,
+    Expression<int>? relatedDate,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (amount != null) 'amount': amount,
+      if (type != null) 'type': type,
+      if (description != null) 'description': description,
+      if (relatedDate != null) 'related_date': relatedDate,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  AcCoinTransactionsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? userId,
+    Value<int>? amount,
+    Value<String>? type,
+    Value<String>? description,
+    Value<int?>? relatedDate,
+    Value<DateTime>? createdAt,
+  }) {
+    return AcCoinTransactionsCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      amount: amount ?? this.amount,
+      type: type ?? this.type,
+      description: description ?? this.description,
+      relatedDate: relatedDate ?? this.relatedDate,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<int>(userId.value);
+    }
+    if (amount.present) {
+      map['amount'] = Variable<int>(amount.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (relatedDate.present) {
+      map['related_date'] = Variable<int>(relatedDate.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AcCoinTransactionsCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('amount: $amount, ')
+          ..write('type: $type, ')
+          ..write('description: $description, ')
+          ..write('relatedDate: $relatedDate, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2797,6 +4451,11 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $AiTrainingRecordsTable(this);
   late final $ConversationMessagesTable conversationMessages =
       $ConversationMessagesTable(this);
+  late final $UserProfilesTable userProfiles = $UserProfilesTable(this);
+  late final $CheckInRecordsTable checkInRecords = $CheckInRecordsTable(this);
+  late final $AcCoinBalancesTable acCoinBalances = $AcCoinBalancesTable(this);
+  late final $AcCoinTransactionsTable acCoinTransactions =
+      $AcCoinTransactionsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2807,6 +4466,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     budgets,
     aiTrainingRecords,
     conversationMessages,
+    userProfiles,
+    checkInRecords,
+    acCoinBalances,
+    acCoinTransactions,
   ];
 }
 
@@ -4728,6 +6391,902 @@ typedef $$ConversationMessagesTableProcessedTableManager =
       ConversationMessage,
       PrefetchHooks Function()
     >;
+typedef $$UserProfilesTableCreateCompanionBuilder =
+    UserProfilesCompanion Function({
+      Value<int> id,
+      Value<String> nickname,
+      Value<String?> avatarPath,
+      Value<String?> gender,
+      Value<String?> email,
+      Value<String?> phone,
+      Value<String> uid,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+typedef $$UserProfilesTableUpdateCompanionBuilder =
+    UserProfilesCompanion Function({
+      Value<int> id,
+      Value<String> nickname,
+      Value<String?> avatarPath,
+      Value<String?> gender,
+      Value<String?> email,
+      Value<String?> phone,
+      Value<String> uid,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+
+class $$UserProfilesTableFilterComposer
+    extends Composer<_$AppDatabase, $UserProfilesTable> {
+  $$UserProfilesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nickname => $composableBuilder(
+    column: $table.nickname,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get avatarPath => $composableBuilder(
+    column: $table.avatarPath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get gender => $composableBuilder(
+    column: $table.gender,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get email => $composableBuilder(
+    column: $table.email,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get phone => $composableBuilder(
+    column: $table.phone,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get uid => $composableBuilder(
+    column: $table.uid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$UserProfilesTableOrderingComposer
+    extends Composer<_$AppDatabase, $UserProfilesTable> {
+  $$UserProfilesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nickname => $composableBuilder(
+    column: $table.nickname,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get avatarPath => $composableBuilder(
+    column: $table.avatarPath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get gender => $composableBuilder(
+    column: $table.gender,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get email => $composableBuilder(
+    column: $table.email,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get phone => $composableBuilder(
+    column: $table.phone,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get uid => $composableBuilder(
+    column: $table.uid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$UserProfilesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $UserProfilesTable> {
+  $$UserProfilesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get nickname =>
+      $composableBuilder(column: $table.nickname, builder: (column) => column);
+
+  GeneratedColumn<String> get avatarPath => $composableBuilder(
+    column: $table.avatarPath,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get gender =>
+      $composableBuilder(column: $table.gender, builder: (column) => column);
+
+  GeneratedColumn<String> get email =>
+      $composableBuilder(column: $table.email, builder: (column) => column);
+
+  GeneratedColumn<String> get phone =>
+      $composableBuilder(column: $table.phone, builder: (column) => column);
+
+  GeneratedColumn<String> get uid =>
+      $composableBuilder(column: $table.uid, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$UserProfilesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $UserProfilesTable,
+          UserProfile,
+          $$UserProfilesTableFilterComposer,
+          $$UserProfilesTableOrderingComposer,
+          $$UserProfilesTableAnnotationComposer,
+          $$UserProfilesTableCreateCompanionBuilder,
+          $$UserProfilesTableUpdateCompanionBuilder,
+          (
+            UserProfile,
+            BaseReferences<_$AppDatabase, $UserProfilesTable, UserProfile>,
+          ),
+          UserProfile,
+          PrefetchHooks Function()
+        > {
+  $$UserProfilesTableTableManager(_$AppDatabase db, $UserProfilesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$UserProfilesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$UserProfilesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$UserProfilesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> nickname = const Value.absent(),
+                Value<String?> avatarPath = const Value.absent(),
+                Value<String?> gender = const Value.absent(),
+                Value<String?> email = const Value.absent(),
+                Value<String?> phone = const Value.absent(),
+                Value<String> uid = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => UserProfilesCompanion(
+                id: id,
+                nickname: nickname,
+                avatarPath: avatarPath,
+                gender: gender,
+                email: email,
+                phone: phone,
+                uid: uid,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> nickname = const Value.absent(),
+                Value<String?> avatarPath = const Value.absent(),
+                Value<String?> gender = const Value.absent(),
+                Value<String?> email = const Value.absent(),
+                Value<String?> phone = const Value.absent(),
+                Value<String> uid = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => UserProfilesCompanion.insert(
+                id: id,
+                nickname: nickname,
+                avatarPath: avatarPath,
+                gender: gender,
+                email: email,
+                phone: phone,
+                uid: uid,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$UserProfilesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $UserProfilesTable,
+      UserProfile,
+      $$UserProfilesTableFilterComposer,
+      $$UserProfilesTableOrderingComposer,
+      $$UserProfilesTableAnnotationComposer,
+      $$UserProfilesTableCreateCompanionBuilder,
+      $$UserProfilesTableUpdateCompanionBuilder,
+      (
+        UserProfile,
+        BaseReferences<_$AppDatabase, $UserProfilesTable, UserProfile>,
+      ),
+      UserProfile,
+      PrefetchHooks Function()
+    >;
+typedef $$CheckInRecordsTableCreateCompanionBuilder =
+    CheckInRecordsCompanion Function({
+      Value<int> id,
+      Value<int> userId,
+      required DateTime checkInDate,
+      Value<bool> isMakeup,
+      Value<DateTime> createdAt,
+    });
+typedef $$CheckInRecordsTableUpdateCompanionBuilder =
+    CheckInRecordsCompanion Function({
+      Value<int> id,
+      Value<int> userId,
+      Value<DateTime> checkInDate,
+      Value<bool> isMakeup,
+      Value<DateTime> createdAt,
+    });
+
+class $$CheckInRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $CheckInRecordsTable> {
+  $$CheckInRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get checkInDate => $composableBuilder(
+    column: $table.checkInDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isMakeup => $composableBuilder(
+    column: $table.isMakeup,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CheckInRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CheckInRecordsTable> {
+  $$CheckInRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get checkInDate => $composableBuilder(
+    column: $table.checkInDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isMakeup => $composableBuilder(
+    column: $table.isMakeup,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CheckInRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CheckInRecordsTable> {
+  $$CheckInRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get checkInDate => $composableBuilder(
+    column: $table.checkInDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isMakeup =>
+      $composableBuilder(column: $table.isMakeup, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$CheckInRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CheckInRecordsTable,
+          CheckInRecord,
+          $$CheckInRecordsTableFilterComposer,
+          $$CheckInRecordsTableOrderingComposer,
+          $$CheckInRecordsTableAnnotationComposer,
+          $$CheckInRecordsTableCreateCompanionBuilder,
+          $$CheckInRecordsTableUpdateCompanionBuilder,
+          (
+            CheckInRecord,
+            BaseReferences<_$AppDatabase, $CheckInRecordsTable, CheckInRecord>,
+          ),
+          CheckInRecord,
+          PrefetchHooks Function()
+        > {
+  $$CheckInRecordsTableTableManager(
+    _$AppDatabase db,
+    $CheckInRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CheckInRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CheckInRecordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CheckInRecordsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> userId = const Value.absent(),
+                Value<DateTime> checkInDate = const Value.absent(),
+                Value<bool> isMakeup = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => CheckInRecordsCompanion(
+                id: id,
+                userId: userId,
+                checkInDate: checkInDate,
+                isMakeup: isMakeup,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> userId = const Value.absent(),
+                required DateTime checkInDate,
+                Value<bool> isMakeup = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => CheckInRecordsCompanion.insert(
+                id: id,
+                userId: userId,
+                checkInDate: checkInDate,
+                isMakeup: isMakeup,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CheckInRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CheckInRecordsTable,
+      CheckInRecord,
+      $$CheckInRecordsTableFilterComposer,
+      $$CheckInRecordsTableOrderingComposer,
+      $$CheckInRecordsTableAnnotationComposer,
+      $$CheckInRecordsTableCreateCompanionBuilder,
+      $$CheckInRecordsTableUpdateCompanionBuilder,
+      (
+        CheckInRecord,
+        BaseReferences<_$AppDatabase, $CheckInRecordsTable, CheckInRecord>,
+      ),
+      CheckInRecord,
+      PrefetchHooks Function()
+    >;
+typedef $$AcCoinBalancesTableCreateCompanionBuilder =
+    AcCoinBalancesCompanion Function({
+      Value<int> id,
+      Value<int> userId,
+      Value<int> balance,
+      Value<DateTime> updatedAt,
+    });
+typedef $$AcCoinBalancesTableUpdateCompanionBuilder =
+    AcCoinBalancesCompanion Function({
+      Value<int> id,
+      Value<int> userId,
+      Value<int> balance,
+      Value<DateTime> updatedAt,
+    });
+
+class $$AcCoinBalancesTableFilterComposer
+    extends Composer<_$AppDatabase, $AcCoinBalancesTable> {
+  $$AcCoinBalancesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get balance => $composableBuilder(
+    column: $table.balance,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AcCoinBalancesTableOrderingComposer
+    extends Composer<_$AppDatabase, $AcCoinBalancesTable> {
+  $$AcCoinBalancesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get balance => $composableBuilder(
+    column: $table.balance,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AcCoinBalancesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AcCoinBalancesTable> {
+  $$AcCoinBalancesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<int> get balance =>
+      $composableBuilder(column: $table.balance, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$AcCoinBalancesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AcCoinBalancesTable,
+          AcCoinBalance,
+          $$AcCoinBalancesTableFilterComposer,
+          $$AcCoinBalancesTableOrderingComposer,
+          $$AcCoinBalancesTableAnnotationComposer,
+          $$AcCoinBalancesTableCreateCompanionBuilder,
+          $$AcCoinBalancesTableUpdateCompanionBuilder,
+          (
+            AcCoinBalance,
+            BaseReferences<_$AppDatabase, $AcCoinBalancesTable, AcCoinBalance>,
+          ),
+          AcCoinBalance,
+          PrefetchHooks Function()
+        > {
+  $$AcCoinBalancesTableTableManager(
+    _$AppDatabase db,
+    $AcCoinBalancesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AcCoinBalancesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AcCoinBalancesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AcCoinBalancesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> userId = const Value.absent(),
+                Value<int> balance = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => AcCoinBalancesCompanion(
+                id: id,
+                userId: userId,
+                balance: balance,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> userId = const Value.absent(),
+                Value<int> balance = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => AcCoinBalancesCompanion.insert(
+                id: id,
+                userId: userId,
+                balance: balance,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AcCoinBalancesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AcCoinBalancesTable,
+      AcCoinBalance,
+      $$AcCoinBalancesTableFilterComposer,
+      $$AcCoinBalancesTableOrderingComposer,
+      $$AcCoinBalancesTableAnnotationComposer,
+      $$AcCoinBalancesTableCreateCompanionBuilder,
+      $$AcCoinBalancesTableUpdateCompanionBuilder,
+      (
+        AcCoinBalance,
+        BaseReferences<_$AppDatabase, $AcCoinBalancesTable, AcCoinBalance>,
+      ),
+      AcCoinBalance,
+      PrefetchHooks Function()
+    >;
+typedef $$AcCoinTransactionsTableCreateCompanionBuilder =
+    AcCoinTransactionsCompanion Function({
+      Value<int> id,
+      Value<int> userId,
+      required int amount,
+      required String type,
+      Value<String> description,
+      Value<int?> relatedDate,
+      Value<DateTime> createdAt,
+    });
+typedef $$AcCoinTransactionsTableUpdateCompanionBuilder =
+    AcCoinTransactionsCompanion Function({
+      Value<int> id,
+      Value<int> userId,
+      Value<int> amount,
+      Value<String> type,
+      Value<String> description,
+      Value<int?> relatedDate,
+      Value<DateTime> createdAt,
+    });
+
+class $$AcCoinTransactionsTableFilterComposer
+    extends Composer<_$AppDatabase, $AcCoinTransactionsTable> {
+  $$AcCoinTransactionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get relatedDate => $composableBuilder(
+    column: $table.relatedDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AcCoinTransactionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AcCoinTransactionsTable> {
+  $$AcCoinTransactionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get relatedDate => $composableBuilder(
+    column: $table.relatedDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AcCoinTransactionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AcCoinTransactionsTable> {
+  $$AcCoinTransactionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<int> get amount =>
+      $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get relatedDate => $composableBuilder(
+    column: $table.relatedDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$AcCoinTransactionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AcCoinTransactionsTable,
+          AcCoinTransaction,
+          $$AcCoinTransactionsTableFilterComposer,
+          $$AcCoinTransactionsTableOrderingComposer,
+          $$AcCoinTransactionsTableAnnotationComposer,
+          $$AcCoinTransactionsTableCreateCompanionBuilder,
+          $$AcCoinTransactionsTableUpdateCompanionBuilder,
+          (
+            AcCoinTransaction,
+            BaseReferences<
+              _$AppDatabase,
+              $AcCoinTransactionsTable,
+              AcCoinTransaction
+            >,
+          ),
+          AcCoinTransaction,
+          PrefetchHooks Function()
+        > {
+  $$AcCoinTransactionsTableTableManager(
+    _$AppDatabase db,
+    $AcCoinTransactionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AcCoinTransactionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AcCoinTransactionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AcCoinTransactionsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> userId = const Value.absent(),
+                Value<int> amount = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<String> description = const Value.absent(),
+                Value<int?> relatedDate = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => AcCoinTransactionsCompanion(
+                id: id,
+                userId: userId,
+                amount: amount,
+                type: type,
+                description: description,
+                relatedDate: relatedDate,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> userId = const Value.absent(),
+                required int amount,
+                required String type,
+                Value<String> description = const Value.absent(),
+                Value<int?> relatedDate = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => AcCoinTransactionsCompanion.insert(
+                id: id,
+                userId: userId,
+                amount: amount,
+                type: type,
+                description: description,
+                relatedDate: relatedDate,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AcCoinTransactionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AcCoinTransactionsTable,
+      AcCoinTransaction,
+      $$AcCoinTransactionsTableFilterComposer,
+      $$AcCoinTransactionsTableOrderingComposer,
+      $$AcCoinTransactionsTableAnnotationComposer,
+      $$AcCoinTransactionsTableCreateCompanionBuilder,
+      $$AcCoinTransactionsTableUpdateCompanionBuilder,
+      (
+        AcCoinTransaction,
+        BaseReferences<
+          _$AppDatabase,
+          $AcCoinTransactionsTable,
+          AcCoinTransaction
+        >,
+      ),
+      AcCoinTransaction,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4742,4 +7301,12 @@ class $AppDatabaseManager {
       $$AiTrainingRecordsTableTableManager(_db, _db.aiTrainingRecords);
   $$ConversationMessagesTableTableManager get conversationMessages =>
       $$ConversationMessagesTableTableManager(_db, _db.conversationMessages);
+  $$UserProfilesTableTableManager get userProfiles =>
+      $$UserProfilesTableTableManager(_db, _db.userProfiles);
+  $$CheckInRecordsTableTableManager get checkInRecords =>
+      $$CheckInRecordsTableTableManager(_db, _db.checkInRecords);
+  $$AcCoinBalancesTableTableManager get acCoinBalances =>
+      $$AcCoinBalancesTableTableManager(_db, _db.acCoinBalances);
+  $$AcCoinTransactionsTableTableManager get acCoinTransactions =>
+      $$AcCoinTransactionsTableTableManager(_db, _db.acCoinTransactions);
 }

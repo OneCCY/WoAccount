@@ -6,6 +6,8 @@ import '../../features/transaction/presentation/pages/transaction_list_page.dart
 import '../../features/transaction/presentation/pages/manual_entry_page.dart';
 import '../../features/transaction/presentation/pages/transaction_detail_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
+import '../../features/profile/presentation/pages/profile_edit_page.dart';
+import '../../features/profile/presentation/pages/checkin_calendar_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/settings/presentation/pages/llm_settings_page.dart';
 import '../../features/budget/presentation/pages/budget_page.dart';
@@ -71,6 +73,14 @@ class AppRouter {
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsPage(),
+      ),
+      GoRoute(
+        path: '/profile/edit',
+        builder: (context, state) => const ProfileEditPage(),
+      ),
+      GoRoute(
+        path: '/checkin-calendar',
+        builder: (context, state) => const CheckInCalendarPage(),
       ),
       GoRoute(
         path: '/settings/llm',

@@ -12,6 +12,9 @@ class TransactionGroup extends StatelessWidget {
   final Future<bool> Function(int id) onDelete;
   final void Function(Transaction transaction)? onTap;
   final Map<int, Category> categoryMap;
+  /// 当前排序方式，null 表示不显示排序切换
+  final String? sortLabel;
+  final VoidCallback? onSortToggle;
 
   const TransactionGroup({
     super.key,
@@ -20,6 +23,8 @@ class TransactionGroup extends StatelessWidget {
     required this.onDelete,
     this.onTap,
     this.categoryMap = const {},
+    this.sortLabel,
+    this.onSortToggle,
   });
 
   @override
@@ -43,25 +48,49 @@ class TransactionGroup extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 10),
           color: AppColors.surfaceSecondary,
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Text(
-                    DateFormat('M月d日').format(date),
-                    style: AppTextStyles.footnote.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(_getWeekday(date), style: AppTextStyles.caption),
-                ],
-              ),
+              // 日期 + 星期
               Text(
-                '支出 ¥${totalExpense.toStringAsFixed(2)}  收入 ¥${totalIncome.toStringAsFixed(2)}',
-                style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary),
+                '${DateFormat('M月d日').format(date)} ${_getWeekday(date)}',
+                style: AppTextStyles.footnote.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
               ),
+              const SizedBox(width: 12),
+              // 支出 + 收入明细
+              if (totalExpense > 0)
+                Text(
+                  '支出 ¥${totalExpense.toStringAsFixed(2)}',
+                  style: AppTextStyles.caption.copyWith(color: AppColors.expense),
+                ),
+              if (totalExpense > 0 && totalIncome > 0) const SizedBox(width: 8),
+              if (totalIncome > 0)
+                Text(
+                  '收入 ¥${totalIncome.toStringAsFixed(2)}',
+                  style: AppTextStyles.caption.copyWith(color: AppColors.income),
+                ),
+              const Spacer(),
+              // 排序切换
+              if (sortLabel != null && onSortToggle != null)
+                GestureDetector(
+                  onTap: onSortToggle,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        sortLabel == '按时间' ? Icons.access_time : Icons.sort,
+                        size: 13,
+                        color: AppColors.textTertiary,
+                      ),
+                      const SizedBox(width: 3),
+                      Text(
+                        sortLabel!,
+                        style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary, fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ),
             ],
           ),
         ),

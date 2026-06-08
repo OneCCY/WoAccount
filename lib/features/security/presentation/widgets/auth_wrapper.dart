@@ -59,13 +59,16 @@ class _AuthWrapperState extends State<AuthWrapper> {
         localizedReason: '请验证身份以解锁应用',
         options: const AuthenticationOptions(
           stickyAuth: true,
-          biometricOnly: true,
+          biometricOnly: false, // 允许设备密码作为后备
+          useErrorDialogs: true,
         ),
       );
       if (didAuth && mounted) {
         setState(() => _isAuthenticated = true);
       }
-    } catch (_) {}
+    } on Exception {
+      // 认证失败或用户取消，不自动重试，等待用户点击重试按钮
+    }
   }
 
   void _onAuthenticated() {

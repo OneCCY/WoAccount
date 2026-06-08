@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_provider.dart';
 import 'config/routes/app_router.dart';
 import 'features/security/presentation/widgets/auth_wrapper.dart';
 
@@ -13,29 +14,42 @@ void main() async {
   // 全局错误捕获
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
-    // TODO: 本地日志记录
   };
 
+  // 加载主题设置
+  final themeProvider = ThemeProvider();
+  await themeProvider.load();
+
   runApp(
-    const ProviderScope(
-      child: AuthWrapper(
+    ProviderScope(
+      overrides: [
+        themeProviderOverrideProvider.overrideWith((ref) => themeProvider),
+      ],
+      child: const AuthWrapper(
         child: WoAccountApp(),
       ),
     ),
   );
 }
 
-class WoAccountApp extends StatelessWidget {
+/// ThemeProvider 的 Riverpod Provider
+final themeProviderOverrideProvider = ChangeNotifierProvider<ThemeProvider>((ref) {
+  throw UnimplementedError('必须在 ProviderScope 中通过 override 提供');
+});
+
+class WoAccountApp extends ConsumerWidget {
   const WoAccountApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeProvider = ref.watch(themeProviderOverrideProvider);
+
     return MaterialApp.router(
       title: 'WoAccount',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
+      themeMode: themeProvider.themeMode,
       routerConfig: AppRouter.router,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
