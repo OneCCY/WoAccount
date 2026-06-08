@@ -11,6 +11,7 @@ class LlmProvider {
   final double temperature; // 温度参数 0.0-1.0
   final int maxTokens; // 最大 token 数
   final int timeoutSeconds; // 超时时间（秒）
+  final String providerKey; // 预设 key（如 'deepseek'）或 'custom'
 
   const LlmProvider({
     required this.id,
@@ -21,6 +22,7 @@ class LlmProvider {
     this.temperature = 0.0,
     this.maxTokens = 1000,
     this.timeoutSeconds = 30,
+    this.providerKey = 'custom',
   });
 
   /// 是否配置完整（名称、API Key、地址、模型都非空）
@@ -39,6 +41,7 @@ class LlmProvider {
         'temperature': temperature,
         'maxTokens': maxTokens,
         'timeoutSeconds': timeoutSeconds,
+        'providerKey': providerKey,
       };
 
   factory LlmProvider.fromJson(Map<String, dynamic> json) => LlmProvider(
@@ -50,6 +53,7 @@ class LlmProvider {
         temperature: (json['temperature'] as num?)?.toDouble() ?? 0.0,
         maxTokens: json['maxTokens'] as int? ?? 1000,
         timeoutSeconds: json['timeoutSeconds'] as int? ?? 30,
+        providerKey: json['providerKey'] as String? ?? 'custom',
       );
 
   LlmProvider copyWith({
@@ -60,6 +64,7 @@ class LlmProvider {
     double? temperature,
     int? maxTokens,
     int? timeoutSeconds,
+    String? providerKey,
   }) {
     return LlmProvider(
       id: id,
@@ -70,6 +75,7 @@ class LlmProvider {
       temperature: temperature ?? this.temperature,
       maxTokens: maxTokens ?? this.maxTokens,
       timeoutSeconds: timeoutSeconds ?? this.timeoutSeconds,
+      providerKey: providerKey ?? this.providerKey,
     );
   }
 }
@@ -161,6 +167,42 @@ class LlmConfigManager {
     final activeId = await getActiveProviderId();
     if (activeId == id && providers.isNotEmpty) {
       await setActiveProviderId(providers.first.id);
+    }
+  }
+
+  /// 导出所有配置为 JSON 字符串（用于数据备份/分享）
+  static Future<String> exportConfig() async {
+    final providers = await loadProviders();
+    final activeId = await getActiveProviderId();
+    final exportData = {
+      'version': 1,
+      'exportedAt': DateTime.now().toIso8601String(),
+      'providers': providers.map((p) => p.toJson()).toList(),
+      'activeProviderId': activeId,
+    };
+    return const JsonEncoder.withIndent('  ').convert(exportData);
+  }
+
+  /// 从 JSON 字符串导入配置
+  /// 返回导入的服务商数量，失败返回 -1
+  static Future<int> importConfig(String jsonStr) async {
+    try {
+      final data = jsonDecode(jsonStr) as Map<String, dynamic>;
+      final list = data['providers'] as List<dynamic>;
+      final providers = list
+          .map((e) => LlmProvider.fromJson(e as Map<String, dynamic>))
+          .toList();
+
+      await saveProviders(providers);
+
+      final activeId = data['activeProviderId'] as String?;
+      if (activeId != null) {
+        await setActiveProviderId(activeId);
+      }
+
+      return providers.length;
+    } catch (_) {
+      return -1;
     }
   }
 }

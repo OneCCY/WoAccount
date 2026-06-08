@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
+import '../../../../core/config/ai_provider_presets.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -7,7 +9,6 @@ import '../../../ai/data/models/llm_config.dart';
 import '../../../ai/data/repositories/llm_repository_impl.dart';
 
 /// LLM 服务配置页
-/// 用户自行添加/管理 AI 服务商，无预设
 class LlmSettingsPage extends StatefulWidget {
   const LlmSettingsPage({super.key});
 
@@ -86,6 +87,43 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
     }
   }
 
+  Future<void> _exportConfig() async {
+    final json = await LlmConfigManager.exportConfig();
+    await Clipboard.setData(ClipboardData(text: json));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('配置已复制到剪贴板'), behavior: SnackBarBehavior.floating),
+      );
+    }
+  }
+
+  Future<void> _importConfig() async {
+    final data = await Clipboard.getData('text/plain');
+    final text = data?.text;
+    if (text == null || text.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('剪贴板为空'), behavior: SnackBarBehavior.floating),
+        );
+      }
+      return;
+    }
+
+    final count = await LlmConfigManager.importConfig(text);
+    if (mounted) {
+      if (count > 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('已导入 $count 个服务商配置'), behavior: SnackBarBehavior.floating),
+        );
+        await _load();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('导入失败，请检查 JSON 格式'), behavior: SnackBarBehavior.floating),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,6 +131,17 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
       appBar: AppBar(
         title: const Text('AI 服务配置'),
         actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (v) {
+              if (v == 'export') _exportConfig();
+              if (v == 'import') _importConfig();
+            },
+            itemBuilder: (_) => [
+              const PopupMenuItem(value: 'export', child: Text('导出配置')),
+              const PopupMenuItem(value: 'import', child: Text('导入配置')),
+            ],
+          ),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: _addProvider,
@@ -108,7 +157,6 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
     );
   }
 
-  /// 空状态：提示用户添加服务商
   Widget _buildEmptyState() {
     return Center(
       child: Padding(
@@ -145,7 +193,6 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
     );
   }
 
-  /// 服务商列表
   Widget _buildProviderList() {
     return ListView.builder(
       padding: const EdgeInsets.all(AppDimensions.md),
@@ -153,6 +200,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
       itemBuilder: (context, index) {
         final p = _providers[index];
         final isActive = p.id == _activeId;
+        final preset = getPresetByKey(p.providerKey);
 
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
@@ -171,6 +219,8 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
                 children: [
                   Row(
                     children: [
+                      Text(preset?.icon ?? '🤖', style: const TextStyle(fontSize: 20)),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           p.name.isEmpty ? '未命名服务商' : p.name,
@@ -279,60 +329,6 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
 // 服务商编辑页
 // ============================================================
 
-/// 各大模型服务商配置参考
-const _providerExamples = [
-  _ProviderExample(
-    name: 'DeepSeek',
-    baseUrl: 'https://api.deepseek.com',
-    model: 'deepseek-v3',
-    note: '不要加 /v1 后缀，官方已自动处理',
-  ),
-  _ProviderExample(
-    name: '通义千问 (阿里)',
-    baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
-    model: 'qwen-plus',
-    note: '使用兼容模式地址，模型可选 qwen-turbo / qwen-plus / qwen-max',
-  ),
-  _ProviderExample(
-    name: 'OpenAI',
-    baseUrl: 'https://api.openai.com/v1',
-    model: 'gpt-4o-mini',
-    note: '需要海外网络访问',
-  ),
-  _ProviderExample(
-    name: '豆包 (字节)',
-    baseUrl: 'https://ark.cn-beijing.volces.com/api/v3',
-    model: 'doubao-pro-32k',
-    note: '需要在火山方舟创建推理接入点，模型名使用接入点 ID',
-  ),
-  _ProviderExample(
-    name: '智谱AI',
-    baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
-    model: 'glm-4-flash',
-    note: 'glm-4-flash 免费额度',
-  ),
-  _ProviderExample(
-    name: '月之暗面 (Kimi)',
-    baseUrl: 'https://api.moonshot.cn/v1',
-    model: 'moonshot-v1-8k',
-    note: '',
-  ),
-  _ProviderExample(
-    name: 'Ollama (本地)',
-    baseUrl: 'http://localhost:11434/v1',
-    model: 'qwen2.5:7b',
-    note: '需要本地运行 Ollama 服务',
-  ),
-];
-
-class _ProviderExample {
-  final String name;
-  final String baseUrl;
-  final String model;
-  final String note;
-  const _ProviderExample({required this.name, required this.baseUrl, required this.model, required this.note});
-}
-
 class _ProviderEditPage extends StatefulWidget {
   final LlmProvider? provider;
   const _ProviderEditPage({this.provider});
@@ -342,10 +338,17 @@ class _ProviderEditPage extends StatefulWidget {
 }
 
 class _ProviderEditPageState extends State<_ProviderEditPage> {
-  late final TextEditingController _nameCtrl;
   late final TextEditingController _apiKeyCtrl;
   late final TextEditingController _baseUrlCtrl;
   late final TextEditingController _modelCtrl;
+  late final TextEditingController _customModelCtrl;
+
+  String _selectedPresetKey = kCustomProviderKey;
+  String? _selectedModel;
+  List<String> _availableModels = [];
+  bool _obscureApiKey = true;
+  bool _isLoadingModels = false;
+
   double _temperature = 0.0;
   int _maxTokens = 1000;
   int _timeout = 30;
@@ -357,41 +360,181 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
   void initState() {
     super.initState();
     final p = widget.provider;
-    _nameCtrl = TextEditingController(text: p?.name ?? '');
     _apiKeyCtrl = TextEditingController(text: p?.apiKey ?? '');
     _baseUrlCtrl = TextEditingController(text: p?.baseUrl ?? '');
     _modelCtrl = TextEditingController(text: p?.model ?? '');
+    _customModelCtrl = TextEditingController();
+
     if (p != null) {
       _temperature = p.temperature;
       _maxTokens = p.maxTokens;
       _timeout = p.timeoutSeconds;
       _showAdvanced = true;
+      _selectedModel = p.model.isNotEmpty ? p.model : null;
+
+      // 匹配预设
+      final preset = getPresetByKey(p.providerKey);
+      if (preset != null) {
+        _selectedPresetKey = preset.key;
+        _availableModels = List.from(preset.defaultModels);
+      } else {
+        // 尝试通过 name 匹配
+        final match = aiProviderPresets.where((pr) => pr.name == p.name);
+        if (match.isNotEmpty) {
+          _selectedPresetKey = match.first.key;
+          _availableModels = List.from(match.first.defaultModels);
+        }
+      }
     }
   }
 
   @override
   void dispose() {
-    _nameCtrl.dispose();
     _apiKeyCtrl.dispose();
     _baseUrlCtrl.dispose();
     _modelCtrl.dispose();
+    _customModelCtrl.dispose();
     super.dispose();
   }
 
-  void _save() {
-    final name = _nameCtrl.text.trim();
-    final apiKey = _apiKeyCtrl.text.trim();
-    final baseUrl = _baseUrlCtrl.text.trim();
-    final model = _modelCtrl.text.trim();
+  /// 选择预设后自动填充 baseUrl
+  void _onPresetChanged(String key) {
+    setState(() {
+      _selectedPresetKey = key;
+      if (key == kCustomProviderKey) {
+        _baseUrlCtrl.text = '';
+        _availableModels = [];
+      } else {
+        final preset = getPresetByKey(key)!;
+        _baseUrlCtrl.text = preset.baseUrl;
+        _availableModels = List.from(preset.defaultModels);
+      }
+      _selectedModel = null;
+      _modelCtrl.text = '';
+    });
+  }
 
-    if (name.isEmpty || apiKey.isEmpty || baseUrl.isEmpty || model.isEmpty) {
+  /// 从 API 获取模型列表
+  Future<void> _fetchModels() async {
+    final baseUrl = _baseUrlCtrl.text.trim();
+    final apiKey = _apiKeyCtrl.text.trim();
+
+    if (baseUrl.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请填写所有必填项'), behavior: SnackBarBehavior.floating),
+        const SnackBar(content: Text('请先填写请求地址'), behavior: SnackBarBehavior.floating),
+      );
+      return;
+    }
+    if (apiKey.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('请先填写 API Key'), behavior: SnackBarBehavior.floating),
       );
       return;
     }
 
-    // 确保 baseUrl 不以 / 结尾
+    setState(() => _isLoadingModels = true);
+
+    try {
+      final models = await _requestModels(baseUrl, apiKey);
+      if (mounted) {
+        setState(() {
+          _availableModels = models;
+          _isLoadingModels = false;
+        });
+        if (models.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('获取到 ${models.length} 个模型'), behavior: SnackBarBehavior.floating),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingModels = false);
+        // 回退到预设模型列表
+        final preset = getPresetByKey(_selectedPresetKey);
+        if (preset != null && preset.defaultModels.isNotEmpty) {
+          setState(() => _availableModels = List.from(preset.defaultModels));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('获取失败，已加载预设模型列表'), behavior: SnackBarBehavior.floating),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('获取模型失败: $e'), behavior: SnackBarBehavior.floating),
+          );
+        }
+      }
+    }
+  }
+
+  /// 请求模型列表（尝试多种 URL 格式）
+  Future<List<String>> _requestModels(String baseUrl, String apiKey) async {
+    final dio = Dio();
+    dio.options.connectTimeout = const Duration(seconds: 10);
+    dio.options.receiveTimeout = const Duration(seconds: 10);
+
+    // 清理 baseUrl
+    var url = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
+
+    // 尝试的 URL 列表
+    final urls = <String>[
+      '$url/models',
+    ];
+    // 如果 baseUrl 不以 /v1 结尾，也尝试 /v1/models
+    if (!url.endsWith('/v1')) {
+      urls.add('$url/v1/models');
+    }
+
+    for (final modelsUrl in urls) {
+      try {
+        final resp = await dio.get(
+          modelsUrl,
+          options: Options(headers: {'Authorization': 'Bearer $apiKey'}),
+        );
+
+        final data = resp.data;
+        List<String> models = [];
+
+        // OpenAI 格式: { data: [{ id: "model-name", ... }] }
+        if (data is Map && data['data'] is List) {
+          models = (data['data'] as List)
+              .map((m) => m['id']?.toString() ?? '')
+              .where((id) => id.isNotEmpty)
+              .toList();
+        }
+
+        if (models.isNotEmpty) {
+          models.sort();
+          return models;
+        }
+      } on DioException catch (_) {
+        // 继续尝试下一个 URL
+        continue;
+      }
+    }
+
+    throw Exception('无法获取模型列表');
+  }
+
+  void _save() {
+    final apiKey = _apiKeyCtrl.text.trim();
+    final baseUrl = _baseUrlCtrl.text.trim();
+    final model = (_selectedModel ?? _modelCtrl.text).trim();
+
+    // 自定义模式下需要手动输入名称
+    String name;
+    if (_selectedPresetKey == kCustomProviderKey) {
+      name = baseUrl.isNotEmpty ? Uri.tryParse(baseUrl)?.host ?? '自定义' : '自定义';
+    } else {
+      name = getPresetByKey(_selectedPresetKey)?.name ?? '自定义';
+    }
+
+    if (apiKey.isEmpty || baseUrl.isEmpty || model.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('请填写 API Key、请求地址和模型名称'), behavior: SnackBarBehavior.floating),
+      );
+      return;
+    }
+
     final cleanUrl = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
 
     final provider = LlmProvider(
@@ -403,18 +546,10 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
       temperature: _temperature,
       maxTokens: _maxTokens,
       timeoutSeconds: _timeout,
+      providerKey: _selectedPresetKey,
     );
 
     Navigator.pop(context, provider);
-  }
-
-  /// 从配置参考快速填充
-  void _applyExample(_ProviderExample ex) {
-    setState(() {
-      _nameCtrl.text = ex.name;
-      _baseUrlCtrl.text = ex.baseUrl;
-      _modelCtrl.text = ex.model;
-    });
   }
 
   @override
@@ -435,35 +570,29 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 配置参考卡片
-            _buildReferenceSection(),
-            const SizedBox(height: 24),
-
-            // 基本配置
-            Text('基本配置', style: AppTextStyles.footnote.copyWith(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 12),
-
+            // 1. 服务商名称（下拉）
             _label('服务商名称'),
-            _field(_nameCtrl, '如：DeepSeek、通义千问'),
+            _buildPresetDropdown(),
             const SizedBox(height: 16),
 
+            // 2. API Key（带小眼睛）
             _label('API Key'),
-            _field(_apiKeyCtrl, '输入 API Key', obscure: true),
+            _buildApiKeyField(),
             const SizedBox(height: 16),
 
+            // 3. 请求地址
             _label('请求地址'),
-            _field(_baseUrlCtrl, '如：https://api.deepseek.com'),
+            _buildBaseUrlField(),
             const SizedBox(height: 4),
             _hint('填入 API 的 base_url，不需要手动拼接 /chat/completions'),
             const SizedBox(height: 16),
 
+            // 4. 模型名称（下拉 + 获取按钮）
             _label('模型名称'),
-            _field(_modelCtrl, '如：deepseek-v3、qwen-plus'),
-            const SizedBox(height: 4),
-            _hint('填写服务商提供的模型 ID'),
+            _buildModelSection(),
             const SizedBox(height: 24),
 
-            // 高级设置（折叠）
+            // 5. 高级设置
             _buildAdvancedSection(),
             const SizedBox(height: 40),
           ],
@@ -472,90 +601,199 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
     );
   }
 
-  /// 配置参考区域
-  Widget _buildReferenceSection() {
+  /// 预设下拉选择
+  Widget _buildPresetDropdown() {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
       ),
-      child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          title: Row(
-            children: [
-              Icon(Icons.menu_book, size: 18, color: AppColors.primary),
-              const SizedBox(width: 8),
-              Text('配置参考', style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
-            ],
-          ),
-          children: _providerExamples.map((ex) => _buildExampleCard(ex)).toList(),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _selectedPresetKey,
+          isExpanded: true,
+          style: AppTextStyles.body,
+          items: [
+            ...aiProviderPresets.map((p) => DropdownMenuItem(
+              value: p.key,
+              child: Row(
+                children: [
+                  Text(p.icon, style: const TextStyle(fontSize: 18)),
+                  const SizedBox(width: 8),
+                  Text(p.name),
+                ],
+              ),
+            )),
+            const DropdownMenuItem(
+              value: kCustomProviderKey,
+              child: Row(
+                children: [
+                  Text('✏️', style: TextStyle(fontSize: 18)),
+                  SizedBox(width: 8),
+                  Text('自定义'),
+                ],
+              ),
+            ),
+          ],
+          onChanged: (v) {
+            if (v != null) _onPresetChanged(v);
+          },
         ),
       ),
     );
   }
 
-  Widget _buildExampleCard(_ProviderExample ex) {
+  /// API Key 输入框（带小眼睛）
+  Widget _buildApiKeyField() {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-        border: Border.all(color: AppColors.separator),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(child: Text(ex.name, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600))),
-              InkWell(
-                onTap: () => _applyExample(ex),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: AppColors.primarySurface,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text('使用', style: AppTextStyles.caption.copyWith(color: AppColors.primary)),
-                ),
-              ),
-            ],
+      child: TextField(
+        controller: _apiKeyCtrl,
+        obscureText: _obscureApiKey,
+        style: AppTextStyles.body,
+        decoration: InputDecoration(
+          hintText: '输入 API Key',
+          hintStyle: AppTextStyles.body.copyWith(color: AppColors.textHint),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          suffixIcon: IconButton(
+            icon: Icon(
+              _obscureApiKey ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+              size: 20,
+              color: AppColors.textTertiary,
+            ),
+            onPressed: () => setState(() => _obscureApiKey = !_obscureApiKey),
           ),
-          const SizedBox(height: 6),
-          _exampleRow('地址', ex.baseUrl),
-          _exampleRow('模型', ex.model),
-          if (ex.note.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(ex.note, style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
+        ),
+      ),
+    );
+  }
+
+  /// 请求地址输入框
+  Widget _buildBaseUrlField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+      ),
+      child: TextField(
+        controller: _baseUrlCtrl,
+        style: AppTextStyles.body,
+        decoration: InputDecoration(
+          hintText: '如：https://api.deepseek.com',
+          hintStyle: AppTextStyles.body.copyWith(color: AppColors.textHint),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        ),
+      ),
+    );
+  }
+
+  /// 模型选择区域
+  Widget _buildModelSection() {
+    return Row(
+      children: [
+        Expanded(child: _buildModelDropdown()),
+        const SizedBox(width: 8),
+        _buildFetchButton(),
+      ],
+    );
+  }
+
+  Widget _buildModelDropdown() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _selectedModel,
+          isExpanded: true,
+          hint: Text('选择或输入模型', style: AppTextStyles.body.copyWith(color: AppColors.textHint)),
+          style: AppTextStyles.body,
+          items: [
+            ..._availableModels.map((m) => DropdownMenuItem(
+              value: m,
+              child: Text(m, overflow: TextOverflow.ellipsis),
+            )),
+            if (_availableModels.isNotEmpty) const DropdownMenuItem(
+              value: '__custom__',
+              child: Text('✏️ 手动输入...'),
+            ),
           ],
+          onChanged: (v) {
+            if (v == '__custom__') {
+              _showCustomModelDialog();
+            } else {
+              setState(() {
+                _selectedModel = v;
+                _modelCtrl.text = v ?? '';
+              });
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFetchButton() {
+    return SizedBox(
+      height: 48,
+      child: ElevatedButton.icon(
+        onPressed: _isLoadingModels ? null : _fetchModels,
+        icon: _isLoadingModels
+            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+            : const Icon(Icons.sync, size: 18),
+        label: const Text('获取模型'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
+        ),
+      ),
+    );
+  }
+
+  void _showCustomModelDialog() {
+    _customModelCtrl.text = _selectedModel ?? '';
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('输入模型名称'),
+        content: TextField(
+          controller: _customModelCtrl,
+          autofocus: true,
+          decoration: const InputDecoration(hintText: '如：deepseek-chat'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+          TextButton(
+            onPressed: () {
+              final model = _customModelCtrl.text.trim();
+              if (model.isNotEmpty) {
+                setState(() {
+                  _selectedModel = model;
+                  _modelCtrl.text = model;
+                  if (!_availableModels.contains(model)) {
+                    _availableModels.add(model);
+                  }
+                });
+              }
+              Navigator.pop(ctx);
+            },
+            child: Text('确认', style: TextStyle(color: AppColors.primary)),
+          ),
         ],
       ),
     );
   }
 
-  Widget _exampleRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 2),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 36,
-            child: Text(label, style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
-          ),
-          Expanded(
-            child: Text(value, style: AppTextStyles.caption.copyWith(fontFamily: 'monospace')),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 高级设置区域
   Widget _buildAdvancedSection() {
     return Container(
       decoration: BoxDecoration(
@@ -570,7 +808,6 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
           initiallyExpanded: _showAdvanced,
           title: Text('高级设置', style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
           children: [
-            // 温度
             Row(
               children: [
                 Text('温度参数', style: AppTextStyles.body),
@@ -587,8 +824,6 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
               onChanged: (v) => setState(() => _temperature = v),
             ),
             const SizedBox(height: 8),
-
-            // 最大 Token
             Row(
               children: [
                 Text('最大 Token', style: AppTextStyles.body),
@@ -607,8 +842,6 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
               ],
             ),
             const Divider(height: 16),
-
-            // 超时
             Row(
               children: [
                 Text('超时（秒）', style: AppTextStyles.body),
@@ -636,26 +869,6 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Text(text, style: AppTextStyles.footnote),
-    );
-  }
-
-  Widget _field(TextEditingController controller, String hint, {bool obscure = false}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-      ),
-      child: TextField(
-        controller: controller,
-        obscureText: obscure,
-        style: AppTextStyles.body,
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: AppTextStyles.body.copyWith(color: AppColors.textHint),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        ),
-      ),
     );
   }
 
