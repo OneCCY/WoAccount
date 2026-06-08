@@ -23,6 +23,9 @@ class Transactions extends Table {
   BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  /// 所属账本
+  IntColumn get accountBookId => integer().references(AccountBooks, #id)();
 }
 
 /// 分类表
@@ -51,8 +54,25 @@ class Budgets extends Table {
   IntColumn get month => integer()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 
+  /// 所属账本
+  IntColumn get accountBookId => integer().references(AccountBooks, #id)();
+
   @override
-  List<Set<Column>> get uniqueKeys => [{categoryId, year, month}];
+  List<Set<Column>> get uniqueKeys => [{accountBookId, categoryId, year, month}];
+}
+
+/// 账本表
+@DataClassName('AccountBook')
+class AccountBooks extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text().withLength(min: 1, max: 50)();
+  TextColumn get type => text().withLength(min: 1, max: 20)();  // personal/family/travel/business/other
+  TextColumn get description => text().nullable()();
+  TextColumn get icon => text().nullable()();
+  BoolColumn get isDefault => boolean().withDefault(const Constant(false))();
+  BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
 /// AI 训练数据表
@@ -64,6 +84,9 @@ class AiTrainingRecords extends Table {
   IntColumn get actualCategoryId => integer().nullable()();
   BoolColumn get wasCorrect => boolean().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  /// 所属账本
+  IntColumn get accountBookId => integer().references(AccountBooks, #id)();
 }
 
 /// 对话历史表
@@ -77,6 +100,9 @@ class ConversationMessages extends Table {
   TextColumn get functionArgs => text().nullable()();
   TextColumn get functionResult => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  /// 所属账本
+  IntColumn get accountBookId => integer().references(AccountBooks, #id)();
 }
 
 /// 用户资料表
@@ -128,6 +154,7 @@ class AcCoinTransactions extends Table {
 }
 
 @DriftDatabase(tables: [
+  AccountBooks,
   Transactions,
   Categories,
   Budgets,
@@ -145,12 +172,18 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (Migrator m) async {
       await m.createAll();
+      // 插入默认账本
+      await into(accountBooks).insert(AccountBooksCompanion.insert(
+        name: '默认账本',
+        type: 'personal',
+        isDefault: const Value(true),
+      ));
       await _seedCategories();
       await _seedDefaultUser();
     },
@@ -180,6 +213,21 @@ class AppDatabase extends _$AppDatabase {
           type: 'initial_gift',
           description: const Value('新用户注册赠送'),
         ));
+      }
+      if (from < 5) {
+        // 创建账本表
+        await m.createTable(accountBooks);
+        // 插入默认账本
+        await into(accountBooks).insert(AccountBooksCompanion.insert(
+          name: '默认账本',
+          type: 'personal',
+          isDefault: const Value(true),
+        ));
+        // 给现有表加 accountBookId 列，默认关联到默认账本 (id=1)
+        await m.addColumn(transactions, transactions.accountBookId);
+        await m.addColumn(budgets, budgets.accountBookId);
+        await m.addColumn(aiTrainingRecords, aiTrainingRecords.accountBookId);
+        await m.addColumn(conversationMessages, conversationMessages.accountBookId);
       }
     },
   );

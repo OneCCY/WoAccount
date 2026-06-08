@@ -9,9 +9,9 @@ class TransactionRepositoryImpl implements TransactionRepository {
   TransactionRepositoryImpl(this._db);
 
   @override
-  Future<List<Transaction>> getAll() async {
+  Future<List<Transaction>> getAll(int bookId) async {
     return (_db.select(_db.transactions)
-          ..where((t) => t.isDeleted.equals(false))
+          ..where((t) => t.isDeleted.equals(false) & t.accountBookId.equals(bookId))
           ..orderBy([(t) => OrderingTerm.desc(t.transactionDate)]))
         .get();
   }
@@ -24,9 +24,10 @@ class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   @override
-  Future<List<Transaction>> getByDateRange(DateTime start, DateTime end) async {
+  Future<List<Transaction>> getByDateRange(int bookId, DateTime start, DateTime end) async {
     return (_db.select(_db.transactions)
           ..where((t) =>
+              t.accountBookId.equals(bookId) &
               t.transactionDate.isBetweenValues(start, end) &
               t.isDeleted.equals(false))
           ..orderBy([(t) => OrderingTerm.desc(t.transactionDate)]))
@@ -34,28 +35,29 @@ class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   @override
-  Future<List<Transaction>> getByCategoryId(int categoryId) async {
+  Future<List<Transaction>> getByCategoryId(int bookId, int categoryId) async {
     return (_db.select(_db.transactions)
           ..where((t) =>
+              t.accountBookId.equals(bookId) &
               t.categoryId.equals(categoryId) & t.isDeleted.equals(false))
           ..orderBy([(t) => OrderingTerm.desc(t.transactionDate)]))
         .get();
   }
 
   @override
-  Future<List<Transaction>> getToday() async {
+  Future<List<Transaction>> getToday(int bookId) async {
     final now = DateTime.now();
     final startOfDay = DateTime(now.year, now.month, now.day);
     final endOfDay = startOfDay.add(const Duration(days: 1));
-    return getByDateRange(startOfDay, endOfDay);
+    return getByDateRange(bookId, startOfDay, endOfDay);
   }
 
   @override
-  Future<List<Transaction>> getThisMonth() async {
+  Future<List<Transaction>> getThisMonth(int bookId) async {
     final now = DateTime.now();
     final startOfMonth = DateTime(now.year, now.month, 1);
     final endOfMonth = DateTime(now.year, now.month + 1, 1);
-    return getByDateRange(startOfMonth, endOfMonth);
+    return getByDateRange(bookId, startOfMonth, endOfMonth);
   }
 
   @override
@@ -80,21 +82,22 @@ class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   @override
-  Stream<List<Transaction>> watchAll() {
+  Stream<List<Transaction>> watchAll(int bookId) {
     return (_db.select(_db.transactions)
-          ..where((t) => t.isDeleted.equals(false))
+          ..where((t) => t.isDeleted.equals(false) & t.accountBookId.equals(bookId))
           ..orderBy([(t) => OrderingTerm.desc(t.transactionDate)]))
         .watch();
   }
 
   @override
-  Stream<List<Transaction>> watchToday() {
+  Stream<List<Transaction>> watchToday(int bookId) {
     final now = DateTime.now();
     final startOfDay = DateTime(now.year, now.month, now.day);
     final endOfDay = startOfDay.add(const Duration(days: 1));
 
     return (_db.select(_db.transactions)
           ..where((t) =>
+              t.accountBookId.equals(bookId) &
               t.transactionDate.isBetweenValues(startOfDay, endOfDay) &
               t.isDeleted.equals(false))
           ..orderBy([(t) => OrderingTerm.desc(t.transactionDate)]))
@@ -102,7 +105,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   @override
-  Future<TransactionStats> getStats(DateTime start, DateTime end) async {
+  Future<TransactionStats> getStats(int bookId, DateTime start, DateTime end) async {
     // 通过 join Categories 区分收入/支出
     final query = _db.select(_db.transactions).join([
       innerJoin(
@@ -111,7 +114,8 @@ class TransactionRepositoryImpl implements TransactionRepository {
       ),
     ])
       ..where(
-        _db.transactions.transactionDate.isBetweenValues(start, end) &
+        _db.transactions.accountBookId.equals(bookId) &
+            _db.transactions.transactionDate.isBetweenValues(start, end) &
             _db.transactions.isDeleted.equals(false),
       );
 

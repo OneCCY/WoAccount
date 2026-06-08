@@ -9,12 +9,13 @@ class ChatRepositoryImpl implements ChatRepository {
 
   @override
   Future<List<ConversationMessage>> getMessages({
+    required int bookId,
     required String conversationId,
     int limit = 20,
     DateTime? before,
   }) async {
     final query = _db.select(_db.conversationMessages)
-      ..where((t) => t.conversationId.equals(conversationId))
+      ..where((t) => t.accountBookId.equals(bookId) & t.conversationId.equals(conversationId))
       ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
       ..limit(limit);
 
@@ -28,11 +29,12 @@ class ChatRepositoryImpl implements ChatRepository {
 
   @override
   Stream<List<ConversationMessage>> watchMessages({
+    required int bookId,
     required String conversationId,
     int limit = 50,
   }) {
     final query = _db.select(_db.conversationMessages)
-      ..where((t) => t.conversationId.equals(conversationId))
+      ..where((t) => t.accountBookId.equals(bookId) & t.conversationId.equals(conversationId))
       ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
       ..limit(limit);
 
@@ -45,9 +47,10 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 
   @override
-  Future<List<String>> getConversationIds() async {
+  Future<List<String>> getConversationIds(int bookId) async {
     final query = _db.selectOnly(_db.conversationMessages)
       ..addColumns([_db.conversationMessages.conversationId])
+      ..where(_db.conversationMessages.accountBookId.equals(bookId))
       ..groupBy([_db.conversationMessages.conversationId])
       ..orderBy([OrderingTerm.desc(_db.conversationMessages.createdAt)]);
 
@@ -58,9 +61,9 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 
   @override
-  Future<void> deleteConversation(String conversationId) async {
+  Future<void> deleteConversation(int bookId, String conversationId) async {
     await (_db.delete(_db.conversationMessages)
-          ..where((t) => t.conversationId.equals(conversationId)))
+          ..where((t) => t.accountBookId.equals(bookId) & t.conversationId.equals(conversationId)))
         .go();
   }
 }

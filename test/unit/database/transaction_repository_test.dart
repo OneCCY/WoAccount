@@ -36,9 +36,10 @@ void main() {
         description: '午饭拉面',
         categoryId: categoryId,
         transactionDate: DateTime(2026, 6, 5),
+        accountBookId: 1,
       ));
 
-      final all = await repo.getAll();
+      final all = await repo.getAll(1);
       expect(all.length, 1);
       expect(all.first.amount, 25.0);
       expect(all.first.description, '午饭拉面');
@@ -61,6 +62,7 @@ void main() {
         description: '打车去公司',
         categoryId: categoryId,
         transactionDate: DateTime(2026, 6, 5),
+        accountBookId: 1,
       ));
 
       final transaction = await repo.getById(id);
@@ -85,27 +87,32 @@ void main() {
         description: '早餐',
         categoryId: categoryId,
         transactionDate: DateTime(2026, 6, 1),
+        accountBookId: 1,
       ));
       await repo.insert(TransactionsCompanion.insert(
         amount: 25.0,
         description: '午餐',
         categoryId: categoryId,
         transactionDate: DateTime(2026, 6, 5),
+        accountBookId: 1,
       ));
       await repo.insert(TransactionsCompanion.insert(
         amount: 30.0,
         description: '晚餐',
         categoryId: categoryId,
         transactionDate: DateTime(2026, 6, 10),
+        accountBookId: 1,
       ));
 
       final june = await repo.getByDateRange(
+        1,
         DateTime(2026, 6, 1),
         DateTime(2026, 6, 30),
       );
       expect(june.length, 3);
 
       final earlyJune = await repo.getByDateRange(
+        1,
         DateTime(2026, 6, 1),
         DateTime(2026, 6, 5),
       );
@@ -129,13 +136,14 @@ void main() {
         description: '午饭',
         categoryId: categoryId,
         transactionDate: DateTime(2026, 6, 5),
+        accountBookId: 1,
       ));
 
       expect(await repo.getById(id), isNotNull);
       final deleted = await repo.delete(id);
       expect(deleted, true);
       expect(await repo.getById(id), isNull);
-      expect((await repo.getAll()).length, 0);
+      expect((await repo.getAll(1)).length, 0);
     });
 
     test('getStats calculates correctly', () async {
@@ -155,15 +163,18 @@ void main() {
         description: '午餐',
         categoryId: categoryId,
         transactionDate: DateTime(2026, 6, 5),
+        accountBookId: 1,
       ));
       await repo.insert(TransactionsCompanion.insert(
         amount: 35.0,
         description: '晚餐',
         categoryId: categoryId,
         transactionDate: DateTime(2026, 6, 5),
+        accountBookId: 1,
       ));
 
       final stats = await repo.getStats(
+        1,
         DateTime(2026, 6, 1),
         DateTime(2026, 6, 30),
       );

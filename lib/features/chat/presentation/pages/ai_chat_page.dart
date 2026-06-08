@@ -38,6 +38,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
   late final ChatRepository _chatRepo;
   late final TransactionRepository _txnRepo;
   late final CategoryRepository _catRepo;
+  late final int _bookId;
 
   @override
   void initState() {
@@ -45,6 +46,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
     _chatRepo = ref.read(chatRepositoryProvider);
     _txnRepo = ref.read(transactionRepositoryProvider);
     _catRepo = ref.read(categoryRepositoryProvider);
+    _bookId = ref.read(currentBookProvider);
     _scrollController.addListener(_onScroll);
     _loadInitialMessages();
   }
@@ -58,6 +60,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
   Future<void> _loadInitialMessages() async {
     setState(() => _isLoading = true);
     final messages = await _chatRepo.getMessages(
+      bookId: _bookId,
       conversationId: _conversationId,
       limit: _pageSize,
     );
@@ -81,6 +84,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
     setState(() => _isLoadingMore = true);
 
     final older = await _chatRepo.getMessages(
+      bookId: _bookId,
       conversationId: _conversationId,
       limit: _pageSize,
       before: firstMsg.message!.createdAt,
@@ -180,6 +184,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
         conversationId: _conversationId,
         role: 'user',
         content: text,
+        accountBookId: _bookId,
       ),
     );
     setState(() {
@@ -188,6 +193,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
         conversationId: _conversationId,
         role: 'user',
         content: text,
+        accountBookId: _bookId,
         createdAt: DateTime.now(),
       )));
       _isAiResponding = true;
@@ -244,6 +250,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
           conversationId: _conversationId,
           role: 'assistant',
           content: errorMsg,
+          accountBookId: _bookId,
         ),
       );
       setState(() {
@@ -252,6 +259,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
           conversationId: _conversationId,
           role: 'assistant',
           content: errorMsg,
+          accountBookId: _bookId,
           createdAt: DateTime.now(),
         )));
         _isAiResponding = false;
@@ -272,6 +280,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
         originalInput: Value(data.originalInput),
         aiSource: Value(data.confidence > 0.85 ? 'llm' : 'rule'),
         aiConfidence: Value(data.confidence),
+        accountBookId: _bookId,
       ));
 
       final amountPrefix = data.type == 'expense' ? '-' : '+';
@@ -284,6 +293,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
           conversationId: _conversationId,
           role: 'assistant',
           content: summary,
+          accountBookId: _bookId,
         ),
       );
 
@@ -297,6 +307,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
           conversationId: _conversationId,
           role: 'assistant',
           content: summary,
+          accountBookId: _bookId,
           createdAt: DateTime.now(),
         )));
       });

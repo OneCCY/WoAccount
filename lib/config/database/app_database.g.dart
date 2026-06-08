@@ -3,6 +3,561 @@
 part of 'app_database.dart';
 
 // ignore_for_file: type=lint
+class $AccountBooksTable extends AccountBooks
+    with TableInfo<$AccountBooksTable, AccountBook> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AccountBooksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 50,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 20,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _iconMeta = const VerificationMeta('icon');
+  @override
+  late final GeneratedColumn<String> icon = GeneratedColumn<String>(
+    'icon',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isDefaultMeta = const VerificationMeta(
+    'isDefault',
+  );
+  @override
+  late final GeneratedColumn<bool> isDefault = GeneratedColumn<bool>(
+    'is_default',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_default" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
+    'isDeleted',
+  );
+  @override
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+    'is_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    type,
+    description,
+    icon,
+    isDefault,
+    isDeleted,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'account_books';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AccountBook> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('icon')) {
+      context.handle(
+        _iconMeta,
+        icon.isAcceptableOrUnknown(data['icon']!, _iconMeta),
+      );
+    }
+    if (data.containsKey('is_default')) {
+      context.handle(
+        _isDefaultMeta,
+        isDefault.isAcceptableOrUnknown(data['is_default']!, _isDefaultMeta),
+      );
+    }
+    if (data.containsKey('is_deleted')) {
+      context.handle(
+        _isDeletedMeta,
+        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AccountBook map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AccountBook(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      icon: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}icon'],
+      ),
+      isDefault: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_default'],
+      )!,
+      isDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $AccountBooksTable createAlias(String alias) {
+    return $AccountBooksTable(attachedDatabase, alias);
+  }
+}
+
+class AccountBook extends DataClass implements Insertable<AccountBook> {
+  final int id;
+  final String name;
+  final String type;
+  final String? description;
+  final String? icon;
+  final bool isDefault;
+  final bool isDeleted;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const AccountBook({
+    required this.id,
+    required this.name,
+    required this.type,
+    this.description,
+    this.icon,
+    required this.isDefault,
+    required this.isDeleted,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    map['type'] = Variable<String>(type);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    if (!nullToAbsent || icon != null) {
+      map['icon'] = Variable<String>(icon);
+    }
+    map['is_default'] = Variable<bool>(isDefault);
+    map['is_deleted'] = Variable<bool>(isDeleted);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  AccountBooksCompanion toCompanion(bool nullToAbsent) {
+    return AccountBooksCompanion(
+      id: Value(id),
+      name: Value(name),
+      type: Value(type),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      icon: icon == null && nullToAbsent ? const Value.absent() : Value(icon),
+      isDefault: Value(isDefault),
+      isDeleted: Value(isDeleted),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory AccountBook.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AccountBook(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      type: serializer.fromJson<String>(json['type']),
+      description: serializer.fromJson<String?>(json['description']),
+      icon: serializer.fromJson<String?>(json['icon']),
+      isDefault: serializer.fromJson<bool>(json['isDefault']),
+      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'type': serializer.toJson<String>(type),
+      'description': serializer.toJson<String?>(description),
+      'icon': serializer.toJson<String?>(icon),
+      'isDefault': serializer.toJson<bool>(isDefault),
+      'isDeleted': serializer.toJson<bool>(isDeleted),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  AccountBook copyWith({
+    int? id,
+    String? name,
+    String? type,
+    Value<String?> description = const Value.absent(),
+    Value<String?> icon = const Value.absent(),
+    bool? isDefault,
+    bool? isDeleted,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => AccountBook(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    type: type ?? this.type,
+    description: description.present ? description.value : this.description,
+    icon: icon.present ? icon.value : this.icon,
+    isDefault: isDefault ?? this.isDefault,
+    isDeleted: isDeleted ?? this.isDeleted,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  AccountBook copyWithCompanion(AccountBooksCompanion data) {
+    return AccountBook(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      type: data.type.present ? data.type.value : this.type,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      icon: data.icon.present ? data.icon.value : this.icon,
+      isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AccountBook(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('type: $type, ')
+          ..write('description: $description, ')
+          ..write('icon: $icon, ')
+          ..write('isDefault: $isDefault, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    name,
+    type,
+    description,
+    icon,
+    isDefault,
+    isDeleted,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AccountBook &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.type == this.type &&
+          other.description == this.description &&
+          other.icon == this.icon &&
+          other.isDefault == this.isDefault &&
+          other.isDeleted == this.isDeleted &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class AccountBooksCompanion extends UpdateCompanion<AccountBook> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<String> type;
+  final Value<String?> description;
+  final Value<String?> icon;
+  final Value<bool> isDefault;
+  final Value<bool> isDeleted;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const AccountBooksCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.type = const Value.absent(),
+    this.description = const Value.absent(),
+    this.icon = const Value.absent(),
+    this.isDefault = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  AccountBooksCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    required String type,
+    this.description = const Value.absent(),
+    this.icon = const Value.absent(),
+    this.isDefault = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : name = Value(name),
+       type = Value(type);
+  static Insertable<AccountBook> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<String>? type,
+    Expression<String>? description,
+    Expression<String>? icon,
+    Expression<bool>? isDefault,
+    Expression<bool>? isDeleted,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (type != null) 'type': type,
+      if (description != null) 'description': description,
+      if (icon != null) 'icon': icon,
+      if (isDefault != null) 'is_default': isDefault,
+      if (isDeleted != null) 'is_deleted': isDeleted,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  AccountBooksCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<String>? type,
+    Value<String?>? description,
+    Value<String?>? icon,
+    Value<bool>? isDefault,
+    Value<bool>? isDeleted,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+  }) {
+    return AccountBooksCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      type: type ?? this.type,
+      description: description ?? this.description,
+      icon: icon ?? this.icon,
+      isDefault: isDefault ?? this.isDefault,
+      isDeleted: isDeleted ?? this.isDeleted,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (icon.present) {
+      map['icon'] = Variable<String>(icon.value);
+    }
+    if (isDefault.present) {
+      map['is_default'] = Variable<bool>(isDefault.value);
+    }
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AccountBooksCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('type: $type, ')
+          ..write('description: $description, ')
+          ..write('icon: $icon, ')
+          ..write('isDefault: $isDefault, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $CategoriesTable extends Categories
     with TableInfo<$CategoriesTable, Category> {
   @override
@@ -768,6 +1323,20 @@ class $TransactionsTable extends Transactions
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _accountBookIdMeta = const VerificationMeta(
+    'accountBookId',
+  );
+  @override
+  late final GeneratedColumn<int> accountBookId = GeneratedColumn<int>(
+    'account_book_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES account_books (id)',
+    ),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -783,6 +1352,7 @@ class $TransactionsTable extends Transactions
     isDeleted,
     createdAt,
     updatedAt,
+    accountBookId,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -897,6 +1467,17 @@ class $TransactionsTable extends Transactions
         updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
       );
     }
+    if (data.containsKey('account_book_id')) {
+      context.handle(
+        _accountBookIdMeta,
+        accountBookId.isAcceptableOrUnknown(
+          data['account_book_id']!,
+          _accountBookIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_accountBookIdMeta);
+    }
     return context;
   }
 
@@ -958,6 +1539,10 @@ class $TransactionsTable extends Transactions
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
       )!,
+      accountBookId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}account_book_id'],
+      )!,
     );
   }
 
@@ -981,6 +1566,9 @@ class Transaction extends DataClass implements Insertable<Transaction> {
   final bool isDeleted;
   final DateTime createdAt;
   final DateTime updatedAt;
+
+  /// 所属账本
+  final int accountBookId;
   const Transaction({
     required this.id,
     required this.amount,
@@ -995,6 +1583,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     required this.isDeleted,
     required this.createdAt,
     required this.updatedAt,
+    required this.accountBookId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1018,6 +1607,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     map['is_deleted'] = Variable<bool>(isDeleted);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['account_book_id'] = Variable<int>(accountBookId);
     return map;
   }
 
@@ -1042,6 +1632,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       isDeleted: Value(isDeleted),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
+      accountBookId: Value(accountBookId),
     );
   }
 
@@ -1064,6 +1655,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       isDeleted: serializer.fromJson<bool>(json['isDeleted']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      accountBookId: serializer.fromJson<int>(json['accountBookId']),
     );
   }
   @override
@@ -1083,6 +1675,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       'isDeleted': serializer.toJson<bool>(isDeleted),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'accountBookId': serializer.toJson<int>(accountBookId),
     };
   }
 
@@ -1100,6 +1693,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     bool? isDeleted,
     DateTime? createdAt,
     DateTime? updatedAt,
+    int? accountBookId,
   }) => Transaction(
     id: id ?? this.id,
     amount: amount ?? this.amount,
@@ -1118,6 +1712,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     isDeleted: isDeleted ?? this.isDeleted,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
+    accountBookId: accountBookId ?? this.accountBookId,
   );
   Transaction copyWithCompanion(TransactionsCompanion data) {
     return Transaction(
@@ -1148,6 +1743,9 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      accountBookId: data.accountBookId.present
+          ? data.accountBookId.value
+          : this.accountBookId,
     );
   }
 
@@ -1166,7 +1764,8 @@ class Transaction extends DataClass implements Insertable<Transaction> {
           ..write('userConfirmed: $userConfirmed, ')
           ..write('isDeleted: $isDeleted, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('accountBookId: $accountBookId')
           ..write(')'))
         .toString();
   }
@@ -1186,6 +1785,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     isDeleted,
     createdAt,
     updatedAt,
+    accountBookId,
   );
   @override
   bool operator ==(Object other) =>
@@ -1203,7 +1803,8 @@ class Transaction extends DataClass implements Insertable<Transaction> {
           other.userConfirmed == this.userConfirmed &&
           other.isDeleted == this.isDeleted &&
           other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.accountBookId == this.accountBookId);
 }
 
 class TransactionsCompanion extends UpdateCompanion<Transaction> {
@@ -1220,6 +1821,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
   final Value<bool> isDeleted;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
+  final Value<int> accountBookId;
   const TransactionsCompanion({
     this.id = const Value.absent(),
     this.amount = const Value.absent(),
@@ -1234,6 +1836,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     this.isDeleted = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.accountBookId = const Value.absent(),
   });
   TransactionsCompanion.insert({
     this.id = const Value.absent(),
@@ -1249,10 +1852,12 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     this.isDeleted = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    required int accountBookId,
   }) : amount = Value(amount),
        description = Value(description),
        categoryId = Value(categoryId),
-       transactionDate = Value(transactionDate);
+       transactionDate = Value(transactionDate),
+       accountBookId = Value(accountBookId);
   static Insertable<Transaction> custom({
     Expression<int>? id,
     Expression<double>? amount,
@@ -1267,6 +1872,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     Expression<bool>? isDeleted,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
+    Expression<int>? accountBookId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1282,6 +1888,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
       if (isDeleted != null) 'is_deleted': isDeleted,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (accountBookId != null) 'account_book_id': accountBookId,
     });
   }
 
@@ -1299,6 +1906,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     Value<bool>? isDeleted,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
+    Value<int>? accountBookId,
   }) {
     return TransactionsCompanion(
       id: id ?? this.id,
@@ -1314,6 +1922,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
       isDeleted: isDeleted ?? this.isDeleted,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      accountBookId: accountBookId ?? this.accountBookId,
     );
   }
 
@@ -1359,6 +1968,9 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
+    if (accountBookId.present) {
+      map['account_book_id'] = Variable<int>(accountBookId.value);
+    }
     return map;
   }
 
@@ -1377,7 +1989,8 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
           ..write('userConfirmed: $userConfirmed, ')
           ..write('isDeleted: $isDeleted, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('accountBookId: $accountBookId')
           ..write(')'))
         .toString();
   }
@@ -1468,6 +2081,20 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, Budget> {
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _accountBookIdMeta = const VerificationMeta(
+    'accountBookId',
+  );
+  @override
+  late final GeneratedColumn<int> accountBookId = GeneratedColumn<int>(
+    'account_book_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES account_books (id)',
+    ),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1477,6 +2104,7 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, Budget> {
     year,
     month,
     createdAt,
+    accountBookId,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1535,6 +2163,17 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, Budget> {
         createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
       );
     }
+    if (data.containsKey('account_book_id')) {
+      context.handle(
+        _accountBookIdMeta,
+        accountBookId.isAcceptableOrUnknown(
+          data['account_book_id']!,
+          _accountBookIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_accountBookIdMeta);
+    }
     return context;
   }
 
@@ -1542,7 +2181,7 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, Budget> {
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
   List<Set<GeneratedColumn>> get uniqueKeys => [
-    {categoryId, year, month},
+    {accountBookId, categoryId, year, month},
   ];
   @override
   Budget map(Map<String, dynamic> data, {String? tablePrefix}) {
@@ -1576,6 +2215,10 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, Budget> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
       )!,
+      accountBookId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}account_book_id'],
+      )!,
     );
   }
 
@@ -1593,6 +2236,9 @@ class Budget extends DataClass implements Insertable<Budget> {
   final int year;
   final int month;
   final DateTime createdAt;
+
+  /// 所属账本
+  final int accountBookId;
   const Budget({
     required this.id,
     this.categoryId,
@@ -1601,6 +2247,7 @@ class Budget extends DataClass implements Insertable<Budget> {
     required this.year,
     required this.month,
     required this.createdAt,
+    required this.accountBookId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1614,6 +2261,7 @@ class Budget extends DataClass implements Insertable<Budget> {
     map['year'] = Variable<int>(year);
     map['month'] = Variable<int>(month);
     map['created_at'] = Variable<DateTime>(createdAt);
+    map['account_book_id'] = Variable<int>(accountBookId);
     return map;
   }
 
@@ -1628,6 +2276,7 @@ class Budget extends DataClass implements Insertable<Budget> {
       year: Value(year),
       month: Value(month),
       createdAt: Value(createdAt),
+      accountBookId: Value(accountBookId),
     );
   }
 
@@ -1644,6 +2293,7 @@ class Budget extends DataClass implements Insertable<Budget> {
       year: serializer.fromJson<int>(json['year']),
       month: serializer.fromJson<int>(json['month']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      accountBookId: serializer.fromJson<int>(json['accountBookId']),
     );
   }
   @override
@@ -1657,6 +2307,7 @@ class Budget extends DataClass implements Insertable<Budget> {
       'year': serializer.toJson<int>(year),
       'month': serializer.toJson<int>(month),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'accountBookId': serializer.toJson<int>(accountBookId),
     };
   }
 
@@ -1668,6 +2319,7 @@ class Budget extends DataClass implements Insertable<Budget> {
     int? year,
     int? month,
     DateTime? createdAt,
+    int? accountBookId,
   }) => Budget(
     id: id ?? this.id,
     categoryId: categoryId.present ? categoryId.value : this.categoryId,
@@ -1676,6 +2328,7 @@ class Budget extends DataClass implements Insertable<Budget> {
     year: year ?? this.year,
     month: month ?? this.month,
     createdAt: createdAt ?? this.createdAt,
+    accountBookId: accountBookId ?? this.accountBookId,
   );
   Budget copyWithCompanion(BudgetsCompanion data) {
     return Budget(
@@ -1688,6 +2341,9 @@ class Budget extends DataClass implements Insertable<Budget> {
       year: data.year.present ? data.year.value : this.year,
       month: data.month.present ? data.month.value : this.month,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      accountBookId: data.accountBookId.present
+          ? data.accountBookId.value
+          : this.accountBookId,
     );
   }
 
@@ -1700,14 +2356,23 @@ class Budget extends DataClass implements Insertable<Budget> {
           ..write('period: $period, ')
           ..write('year: $year, ')
           ..write('month: $month, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('accountBookId: $accountBookId')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, categoryId, amount, period, year, month, createdAt);
+  int get hashCode => Object.hash(
+    id,
+    categoryId,
+    amount,
+    period,
+    year,
+    month,
+    createdAt,
+    accountBookId,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1718,7 +2383,8 @@ class Budget extends DataClass implements Insertable<Budget> {
           other.period == this.period &&
           other.year == this.year &&
           other.month == this.month &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.accountBookId == this.accountBookId);
 }
 
 class BudgetsCompanion extends UpdateCompanion<Budget> {
@@ -1729,6 +2395,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
   final Value<int> year;
   final Value<int> month;
   final Value<DateTime> createdAt;
+  final Value<int> accountBookId;
   const BudgetsCompanion({
     this.id = const Value.absent(),
     this.categoryId = const Value.absent(),
@@ -1737,6 +2404,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
     this.year = const Value.absent(),
     this.month = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.accountBookId = const Value.absent(),
   });
   BudgetsCompanion.insert({
     this.id = const Value.absent(),
@@ -1746,9 +2414,11 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
     required int year,
     required int month,
     this.createdAt = const Value.absent(),
+    required int accountBookId,
   }) : amount = Value(amount),
        year = Value(year),
-       month = Value(month);
+       month = Value(month),
+       accountBookId = Value(accountBookId);
   static Insertable<Budget> custom({
     Expression<int>? id,
     Expression<int>? categoryId,
@@ -1757,6 +2427,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
     Expression<int>? year,
     Expression<int>? month,
     Expression<DateTime>? createdAt,
+    Expression<int>? accountBookId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1766,6 +2437,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
       if (year != null) 'year': year,
       if (month != null) 'month': month,
       if (createdAt != null) 'created_at': createdAt,
+      if (accountBookId != null) 'account_book_id': accountBookId,
     });
   }
 
@@ -1777,6 +2449,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
     Value<int>? year,
     Value<int>? month,
     Value<DateTime>? createdAt,
+    Value<int>? accountBookId,
   }) {
     return BudgetsCompanion(
       id: id ?? this.id,
@@ -1786,6 +2459,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
       year: year ?? this.year,
       month: month ?? this.month,
       createdAt: createdAt ?? this.createdAt,
+      accountBookId: accountBookId ?? this.accountBookId,
     );
   }
 
@@ -1813,6 +2487,9 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (accountBookId.present) {
+      map['account_book_id'] = Variable<int>(accountBookId.value);
+    }
     return map;
   }
 
@@ -1825,7 +2502,8 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
           ..write('period: $period, ')
           ..write('year: $year, ')
           ..write('month: $month, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('accountBookId: $accountBookId')
           ..write(')'))
         .toString();
   }
@@ -1908,6 +2586,20 @@ class $AiTrainingRecordsTable extends AiTrainingRecords
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _accountBookIdMeta = const VerificationMeta(
+    'accountBookId',
+  );
+  @override
+  late final GeneratedColumn<int> accountBookId = GeneratedColumn<int>(
+    'account_book_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES account_books (id)',
+    ),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1916,6 +2608,7 @@ class $AiTrainingRecordsTable extends AiTrainingRecords
     actualCategoryId,
     wasCorrect,
     createdAt,
+    accountBookId,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1970,6 +2663,17 @@ class $AiTrainingRecordsTable extends AiTrainingRecords
         createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
       );
     }
+    if (data.containsKey('account_book_id')) {
+      context.handle(
+        _accountBookIdMeta,
+        accountBookId.isAcceptableOrUnknown(
+          data['account_book_id']!,
+          _accountBookIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_accountBookIdMeta);
+    }
     return context;
   }
 
@@ -2003,6 +2707,10 @@ class $AiTrainingRecordsTable extends AiTrainingRecords
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
       )!,
+      accountBookId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}account_book_id'],
+      )!,
     );
   }
 
@@ -2020,6 +2728,9 @@ class AiTrainingRecord extends DataClass
   final int? actualCategoryId;
   final bool? wasCorrect;
   final DateTime createdAt;
+
+  /// 所属账本
+  final int accountBookId;
   const AiTrainingRecord({
     required this.id,
     required this.inputText,
@@ -2027,6 +2738,7 @@ class AiTrainingRecord extends DataClass
     this.actualCategoryId,
     this.wasCorrect,
     required this.createdAt,
+    required this.accountBookId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2043,6 +2755,7 @@ class AiTrainingRecord extends DataClass
       map['was_correct'] = Variable<bool>(wasCorrect);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
+    map['account_book_id'] = Variable<int>(accountBookId);
     return map;
   }
 
@@ -2060,6 +2773,7 @@ class AiTrainingRecord extends DataClass
           ? const Value.absent()
           : Value(wasCorrect),
       createdAt: Value(createdAt),
+      accountBookId: Value(accountBookId),
     );
   }
 
@@ -2077,6 +2791,7 @@ class AiTrainingRecord extends DataClass
       actualCategoryId: serializer.fromJson<int?>(json['actualCategoryId']),
       wasCorrect: serializer.fromJson<bool?>(json['wasCorrect']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      accountBookId: serializer.fromJson<int>(json['accountBookId']),
     );
   }
   @override
@@ -2089,6 +2804,7 @@ class AiTrainingRecord extends DataClass
       'actualCategoryId': serializer.toJson<int?>(actualCategoryId),
       'wasCorrect': serializer.toJson<bool?>(wasCorrect),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'accountBookId': serializer.toJson<int>(accountBookId),
     };
   }
 
@@ -2099,6 +2815,7 @@ class AiTrainingRecord extends DataClass
     Value<int?> actualCategoryId = const Value.absent(),
     Value<bool?> wasCorrect = const Value.absent(),
     DateTime? createdAt,
+    int? accountBookId,
   }) => AiTrainingRecord(
     id: id ?? this.id,
     inputText: inputText ?? this.inputText,
@@ -2110,6 +2827,7 @@ class AiTrainingRecord extends DataClass
         : this.actualCategoryId,
     wasCorrect: wasCorrect.present ? wasCorrect.value : this.wasCorrect,
     createdAt: createdAt ?? this.createdAt,
+    accountBookId: accountBookId ?? this.accountBookId,
   );
   AiTrainingRecord copyWithCompanion(AiTrainingRecordsCompanion data) {
     return AiTrainingRecord(
@@ -2125,6 +2843,9 @@ class AiTrainingRecord extends DataClass
           ? data.wasCorrect.value
           : this.wasCorrect,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      accountBookId: data.accountBookId.present
+          ? data.accountBookId.value
+          : this.accountBookId,
     );
   }
 
@@ -2136,7 +2857,8 @@ class AiTrainingRecord extends DataClass
           ..write('predictedCategoryId: $predictedCategoryId, ')
           ..write('actualCategoryId: $actualCategoryId, ')
           ..write('wasCorrect: $wasCorrect, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('accountBookId: $accountBookId')
           ..write(')'))
         .toString();
   }
@@ -2149,6 +2871,7 @@ class AiTrainingRecord extends DataClass
     actualCategoryId,
     wasCorrect,
     createdAt,
+    accountBookId,
   );
   @override
   bool operator ==(Object other) =>
@@ -2159,7 +2882,8 @@ class AiTrainingRecord extends DataClass
           other.predictedCategoryId == this.predictedCategoryId &&
           other.actualCategoryId == this.actualCategoryId &&
           other.wasCorrect == this.wasCorrect &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.accountBookId == this.accountBookId);
 }
 
 class AiTrainingRecordsCompanion extends UpdateCompanion<AiTrainingRecord> {
@@ -2169,6 +2893,7 @@ class AiTrainingRecordsCompanion extends UpdateCompanion<AiTrainingRecord> {
   final Value<int?> actualCategoryId;
   final Value<bool?> wasCorrect;
   final Value<DateTime> createdAt;
+  final Value<int> accountBookId;
   const AiTrainingRecordsCompanion({
     this.id = const Value.absent(),
     this.inputText = const Value.absent(),
@@ -2176,6 +2901,7 @@ class AiTrainingRecordsCompanion extends UpdateCompanion<AiTrainingRecord> {
     this.actualCategoryId = const Value.absent(),
     this.wasCorrect = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.accountBookId = const Value.absent(),
   });
   AiTrainingRecordsCompanion.insert({
     this.id = const Value.absent(),
@@ -2184,7 +2910,9 @@ class AiTrainingRecordsCompanion extends UpdateCompanion<AiTrainingRecord> {
     this.actualCategoryId = const Value.absent(),
     this.wasCorrect = const Value.absent(),
     this.createdAt = const Value.absent(),
-  }) : inputText = Value(inputText);
+    required int accountBookId,
+  }) : inputText = Value(inputText),
+       accountBookId = Value(accountBookId);
   static Insertable<AiTrainingRecord> custom({
     Expression<int>? id,
     Expression<String>? inputText,
@@ -2192,6 +2920,7 @@ class AiTrainingRecordsCompanion extends UpdateCompanion<AiTrainingRecord> {
     Expression<int>? actualCategoryId,
     Expression<bool>? wasCorrect,
     Expression<DateTime>? createdAt,
+    Expression<int>? accountBookId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2201,6 +2930,7 @@ class AiTrainingRecordsCompanion extends UpdateCompanion<AiTrainingRecord> {
       if (actualCategoryId != null) 'actual_category_id': actualCategoryId,
       if (wasCorrect != null) 'was_correct': wasCorrect,
       if (createdAt != null) 'created_at': createdAt,
+      if (accountBookId != null) 'account_book_id': accountBookId,
     });
   }
 
@@ -2211,6 +2941,7 @@ class AiTrainingRecordsCompanion extends UpdateCompanion<AiTrainingRecord> {
     Value<int?>? actualCategoryId,
     Value<bool?>? wasCorrect,
     Value<DateTime>? createdAt,
+    Value<int>? accountBookId,
   }) {
     return AiTrainingRecordsCompanion(
       id: id ?? this.id,
@@ -2219,6 +2950,7 @@ class AiTrainingRecordsCompanion extends UpdateCompanion<AiTrainingRecord> {
       actualCategoryId: actualCategoryId ?? this.actualCategoryId,
       wasCorrect: wasCorrect ?? this.wasCorrect,
       createdAt: createdAt ?? this.createdAt,
+      accountBookId: accountBookId ?? this.accountBookId,
     );
   }
 
@@ -2243,6 +2975,9 @@ class AiTrainingRecordsCompanion extends UpdateCompanion<AiTrainingRecord> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (accountBookId.present) {
+      map['account_book_id'] = Variable<int>(accountBookId.value);
+    }
     return map;
   }
 
@@ -2254,7 +2989,8 @@ class AiTrainingRecordsCompanion extends UpdateCompanion<AiTrainingRecord> {
           ..write('predictedCategoryId: $predictedCategoryId, ')
           ..write('actualCategoryId: $actualCategoryId, ')
           ..write('wasCorrect: $wasCorrect, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('accountBookId: $accountBookId')
           ..write(')'))
         .toString();
   }
@@ -2357,6 +3093,20 @@ class $ConversationMessagesTable extends ConversationMessages
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _accountBookIdMeta = const VerificationMeta(
+    'accountBookId',
+  );
+  @override
+  late final GeneratedColumn<int> accountBookId = GeneratedColumn<int>(
+    'account_book_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES account_books (id)',
+    ),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2367,6 +3117,7 @@ class $ConversationMessagesTable extends ConversationMessages
     functionArgs,
     functionResult,
     createdAt,
+    accountBookId,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2443,6 +3194,17 @@ class $ConversationMessagesTable extends ConversationMessages
         createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
       );
     }
+    if (data.containsKey('account_book_id')) {
+      context.handle(
+        _accountBookIdMeta,
+        accountBookId.isAcceptableOrUnknown(
+          data['account_book_id']!,
+          _accountBookIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_accountBookIdMeta);
+    }
     return context;
   }
 
@@ -2484,6 +3246,10 @@ class $ConversationMessagesTable extends ConversationMessages
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
       )!,
+      accountBookId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}account_book_id'],
+      )!,
     );
   }
 
@@ -2503,6 +3269,9 @@ class ConversationMessage extends DataClass
   final String? functionArgs;
   final String? functionResult;
   final DateTime createdAt;
+
+  /// 所属账本
+  final int accountBookId;
   const ConversationMessage({
     required this.id,
     required this.conversationId,
@@ -2512,6 +3281,7 @@ class ConversationMessage extends DataClass
     this.functionArgs,
     this.functionResult,
     required this.createdAt,
+    required this.accountBookId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2530,6 +3300,7 @@ class ConversationMessage extends DataClass
       map['function_result'] = Variable<String>(functionResult);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
+    map['account_book_id'] = Variable<int>(accountBookId);
     return map;
   }
 
@@ -2549,6 +3320,7 @@ class ConversationMessage extends DataClass
           ? const Value.absent()
           : Value(functionResult),
       createdAt: Value(createdAt),
+      accountBookId: Value(accountBookId),
     );
   }
 
@@ -2566,6 +3338,7 @@ class ConversationMessage extends DataClass
       functionArgs: serializer.fromJson<String?>(json['functionArgs']),
       functionResult: serializer.fromJson<String?>(json['functionResult']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      accountBookId: serializer.fromJson<int>(json['accountBookId']),
     );
   }
   @override
@@ -2580,6 +3353,7 @@ class ConversationMessage extends DataClass
       'functionArgs': serializer.toJson<String?>(functionArgs),
       'functionResult': serializer.toJson<String?>(functionResult),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'accountBookId': serializer.toJson<int>(accountBookId),
     };
   }
 
@@ -2592,6 +3366,7 @@ class ConversationMessage extends DataClass
     Value<String?> functionArgs = const Value.absent(),
     Value<String?> functionResult = const Value.absent(),
     DateTime? createdAt,
+    int? accountBookId,
   }) => ConversationMessage(
     id: id ?? this.id,
     conversationId: conversationId ?? this.conversationId,
@@ -2603,6 +3378,7 @@ class ConversationMessage extends DataClass
         ? functionResult.value
         : this.functionResult,
     createdAt: createdAt ?? this.createdAt,
+    accountBookId: accountBookId ?? this.accountBookId,
   );
   ConversationMessage copyWithCompanion(ConversationMessagesCompanion data) {
     return ConversationMessage(
@@ -2622,6 +3398,9 @@ class ConversationMessage extends DataClass
           ? data.functionResult.value
           : this.functionResult,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      accountBookId: data.accountBookId.present
+          ? data.accountBookId.value
+          : this.accountBookId,
     );
   }
 
@@ -2635,7 +3414,8 @@ class ConversationMessage extends DataClass
           ..write('functionName: $functionName, ')
           ..write('functionArgs: $functionArgs, ')
           ..write('functionResult: $functionResult, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('accountBookId: $accountBookId')
           ..write(')'))
         .toString();
   }
@@ -2650,6 +3430,7 @@ class ConversationMessage extends DataClass
     functionArgs,
     functionResult,
     createdAt,
+    accountBookId,
   );
   @override
   bool operator ==(Object other) =>
@@ -2662,7 +3443,8 @@ class ConversationMessage extends DataClass
           other.functionName == this.functionName &&
           other.functionArgs == this.functionArgs &&
           other.functionResult == this.functionResult &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.accountBookId == this.accountBookId);
 }
 
 class ConversationMessagesCompanion
@@ -2675,6 +3457,7 @@ class ConversationMessagesCompanion
   final Value<String?> functionArgs;
   final Value<String?> functionResult;
   final Value<DateTime> createdAt;
+  final Value<int> accountBookId;
   const ConversationMessagesCompanion({
     this.id = const Value.absent(),
     this.conversationId = const Value.absent(),
@@ -2684,6 +3467,7 @@ class ConversationMessagesCompanion
     this.functionArgs = const Value.absent(),
     this.functionResult = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.accountBookId = const Value.absent(),
   });
   ConversationMessagesCompanion.insert({
     this.id = const Value.absent(),
@@ -2694,9 +3478,11 @@ class ConversationMessagesCompanion
     this.functionArgs = const Value.absent(),
     this.functionResult = const Value.absent(),
     this.createdAt = const Value.absent(),
+    required int accountBookId,
   }) : conversationId = Value(conversationId),
        role = Value(role),
-       content = Value(content);
+       content = Value(content),
+       accountBookId = Value(accountBookId);
   static Insertable<ConversationMessage> custom({
     Expression<int>? id,
     Expression<String>? conversationId,
@@ -2706,6 +3492,7 @@ class ConversationMessagesCompanion
     Expression<String>? functionArgs,
     Expression<String>? functionResult,
     Expression<DateTime>? createdAt,
+    Expression<int>? accountBookId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2716,6 +3503,7 @@ class ConversationMessagesCompanion
       if (functionArgs != null) 'function_args': functionArgs,
       if (functionResult != null) 'function_result': functionResult,
       if (createdAt != null) 'created_at': createdAt,
+      if (accountBookId != null) 'account_book_id': accountBookId,
     });
   }
 
@@ -2728,6 +3516,7 @@ class ConversationMessagesCompanion
     Value<String?>? functionArgs,
     Value<String?>? functionResult,
     Value<DateTime>? createdAt,
+    Value<int>? accountBookId,
   }) {
     return ConversationMessagesCompanion(
       id: id ?? this.id,
@@ -2738,6 +3527,7 @@ class ConversationMessagesCompanion
       functionArgs: functionArgs ?? this.functionArgs,
       functionResult: functionResult ?? this.functionResult,
       createdAt: createdAt ?? this.createdAt,
+      accountBookId: accountBookId ?? this.accountBookId,
     );
   }
 
@@ -2768,6 +3558,9 @@ class ConversationMessagesCompanion
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (accountBookId.present) {
+      map['account_book_id'] = Variable<int>(accountBookId.value);
+    }
     return map;
   }
 
@@ -2781,7 +3574,8 @@ class ConversationMessagesCompanion
           ..write('functionName: $functionName, ')
           ..write('functionArgs: $functionArgs, ')
           ..write('functionResult: $functionResult, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('accountBookId: $accountBookId')
           ..write(')'))
         .toString();
   }
@@ -4444,6 +5238,7 @@ class AcCoinTransactionsCompanion extends UpdateCompanion<AcCoinTransaction> {
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
+  late final $AccountBooksTable accountBooks = $AccountBooksTable(this);
   late final $CategoriesTable categories = $CategoriesTable(this);
   late final $TransactionsTable transactions = $TransactionsTable(this);
   late final $BudgetsTable budgets = $BudgetsTable(this);
@@ -4461,6 +5256,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
+    accountBooks,
     categories,
     transactions,
     budgets,
@@ -4473,6 +5269,694 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   ];
 }
 
+typedef $$AccountBooksTableCreateCompanionBuilder =
+    AccountBooksCompanion Function({
+      Value<int> id,
+      required String name,
+      required String type,
+      Value<String?> description,
+      Value<String?> icon,
+      Value<bool> isDefault,
+      Value<bool> isDeleted,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+typedef $$AccountBooksTableUpdateCompanionBuilder =
+    AccountBooksCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<String> type,
+      Value<String?> description,
+      Value<String?> icon,
+      Value<bool> isDefault,
+      Value<bool> isDeleted,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+
+final class $$AccountBooksTableReferences
+    extends BaseReferences<_$AppDatabase, $AccountBooksTable, AccountBook> {
+  $$AccountBooksTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$TransactionsTable, List<Transaction>>
+  _transactionsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.transactions,
+    aliasName: $_aliasNameGenerator(
+      db.accountBooks.id,
+      db.transactions.accountBookId,
+    ),
+  );
+
+  $$TransactionsTableProcessedTableManager get transactionsRefs {
+    final manager = $$TransactionsTableTableManager(
+      $_db,
+      $_db.transactions,
+    ).filter((f) => f.accountBookId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_transactionsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$BudgetsTable, List<Budget>> _budgetsRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.budgets,
+    aliasName: $_aliasNameGenerator(
+      db.accountBooks.id,
+      db.budgets.accountBookId,
+    ),
+  );
+
+  $$BudgetsTableProcessedTableManager get budgetsRefs {
+    final manager = $$BudgetsTableTableManager(
+      $_db,
+      $_db.budgets,
+    ).filter((f) => f.accountBookId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_budgetsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$AiTrainingRecordsTable, List<AiTrainingRecord>>
+  _aiTrainingRecordsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.aiTrainingRecords,
+        aliasName: $_aliasNameGenerator(
+          db.accountBooks.id,
+          db.aiTrainingRecords.accountBookId,
+        ),
+      );
+
+  $$AiTrainingRecordsTableProcessedTableManager get aiTrainingRecordsRefs {
+    final manager = $$AiTrainingRecordsTableTableManager(
+      $_db,
+      $_db.aiTrainingRecords,
+    ).filter((f) => f.accountBookId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _aiTrainingRecordsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $ConversationMessagesTable,
+    List<ConversationMessage>
+  >
+  _conversationMessagesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.conversationMessages,
+        aliasName: $_aliasNameGenerator(
+          db.accountBooks.id,
+          db.conversationMessages.accountBookId,
+        ),
+      );
+
+  $$ConversationMessagesTableProcessedTableManager
+  get conversationMessagesRefs {
+    final manager = $$ConversationMessagesTableTableManager(
+      $_db,
+      $_db.conversationMessages,
+    ).filter((f) => f.accountBookId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _conversationMessagesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$AccountBooksTableFilterComposer
+    extends Composer<_$AppDatabase, $AccountBooksTable> {
+  $$AccountBooksTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get icon => $composableBuilder(
+    column: $table.icon,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDefault => $composableBuilder(
+    column: $table.isDefault,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> transactionsRefs(
+    Expression<bool> Function($$TransactionsTableFilterComposer f) f,
+  ) {
+    final $$TransactionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.transactions,
+      getReferencedColumn: (t) => t.accountBookId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TransactionsTableFilterComposer(
+            $db: $db,
+            $table: $db.transactions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> budgetsRefs(
+    Expression<bool> Function($$BudgetsTableFilterComposer f) f,
+  ) {
+    final $$BudgetsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.budgets,
+      getReferencedColumn: (t) => t.accountBookId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BudgetsTableFilterComposer(
+            $db: $db,
+            $table: $db.budgets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> aiTrainingRecordsRefs(
+    Expression<bool> Function($$AiTrainingRecordsTableFilterComposer f) f,
+  ) {
+    final $$AiTrainingRecordsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.aiTrainingRecords,
+      getReferencedColumn: (t) => t.accountBookId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AiTrainingRecordsTableFilterComposer(
+            $db: $db,
+            $table: $db.aiTrainingRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> conversationMessagesRefs(
+    Expression<bool> Function($$ConversationMessagesTableFilterComposer f) f,
+  ) {
+    final $$ConversationMessagesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.conversationMessages,
+      getReferencedColumn: (t) => t.accountBookId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ConversationMessagesTableFilterComposer(
+            $db: $db,
+            $table: $db.conversationMessages,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$AccountBooksTableOrderingComposer
+    extends Composer<_$AppDatabase, $AccountBooksTable> {
+  $$AccountBooksTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get icon => $composableBuilder(
+    column: $table.icon,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDefault => $composableBuilder(
+    column: $table.isDefault,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AccountBooksTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AccountBooksTable> {
+  $$AccountBooksTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get icon =>
+      $composableBuilder(column: $table.icon, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDefault =>
+      $composableBuilder(column: $table.isDefault, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  Expression<T> transactionsRefs<T extends Object>(
+    Expression<T> Function($$TransactionsTableAnnotationComposer a) f,
+  ) {
+    final $$TransactionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.transactions,
+      getReferencedColumn: (t) => t.accountBookId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TransactionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.transactions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> budgetsRefs<T extends Object>(
+    Expression<T> Function($$BudgetsTableAnnotationComposer a) f,
+  ) {
+    final $$BudgetsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.budgets,
+      getReferencedColumn: (t) => t.accountBookId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BudgetsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.budgets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> aiTrainingRecordsRefs<T extends Object>(
+    Expression<T> Function($$AiTrainingRecordsTableAnnotationComposer a) f,
+  ) {
+    final $$AiTrainingRecordsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.aiTrainingRecords,
+          getReferencedColumn: (t) => t.accountBookId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$AiTrainingRecordsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.aiTrainingRecords,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> conversationMessagesRefs<T extends Object>(
+    Expression<T> Function($$ConversationMessagesTableAnnotationComposer a) f,
+  ) {
+    final $$ConversationMessagesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.conversationMessages,
+          getReferencedColumn: (t) => t.accountBookId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$ConversationMessagesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.conversationMessages,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$AccountBooksTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AccountBooksTable,
+          AccountBook,
+          $$AccountBooksTableFilterComposer,
+          $$AccountBooksTableOrderingComposer,
+          $$AccountBooksTableAnnotationComposer,
+          $$AccountBooksTableCreateCompanionBuilder,
+          $$AccountBooksTableUpdateCompanionBuilder,
+          (AccountBook, $$AccountBooksTableReferences),
+          AccountBook,
+          PrefetchHooks Function({
+            bool transactionsRefs,
+            bool budgetsRefs,
+            bool aiTrainingRecordsRefs,
+            bool conversationMessagesRefs,
+          })
+        > {
+  $$AccountBooksTableTableManager(_$AppDatabase db, $AccountBooksTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AccountBooksTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AccountBooksTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AccountBooksTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<String?> icon = const Value.absent(),
+                Value<bool> isDefault = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => AccountBooksCompanion(
+                id: id,
+                name: name,
+                type: type,
+                description: description,
+                icon: icon,
+                isDefault: isDefault,
+                isDeleted: isDeleted,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                required String type,
+                Value<String?> description = const Value.absent(),
+                Value<String?> icon = const Value.absent(),
+                Value<bool> isDefault = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => AccountBooksCompanion.insert(
+                id: id,
+                name: name,
+                type: type,
+                description: description,
+                icon: icon,
+                isDefault: isDefault,
+                isDeleted: isDeleted,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$AccountBooksTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                transactionsRefs = false,
+                budgetsRefs = false,
+                aiTrainingRecordsRefs = false,
+                conversationMessagesRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (transactionsRefs) db.transactions,
+                    if (budgetsRefs) db.budgets,
+                    if (aiTrainingRecordsRefs) db.aiTrainingRecords,
+                    if (conversationMessagesRefs) db.conversationMessages,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (transactionsRefs)
+                        await $_getPrefetchedData<
+                          AccountBook,
+                          $AccountBooksTable,
+                          Transaction
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AccountBooksTableReferences
+                              ._transactionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AccountBooksTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).transactionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.accountBookId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (budgetsRefs)
+                        await $_getPrefetchedData<
+                          AccountBook,
+                          $AccountBooksTable,
+                          Budget
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AccountBooksTableReferences
+                              ._budgetsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AccountBooksTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).budgetsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.accountBookId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (aiTrainingRecordsRefs)
+                        await $_getPrefetchedData<
+                          AccountBook,
+                          $AccountBooksTable,
+                          AiTrainingRecord
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AccountBooksTableReferences
+                              ._aiTrainingRecordsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AccountBooksTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).aiTrainingRecordsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.accountBookId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (conversationMessagesRefs)
+                        await $_getPrefetchedData<
+                          AccountBook,
+                          $AccountBooksTable,
+                          ConversationMessage
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AccountBooksTableReferences
+                              ._conversationMessagesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AccountBooksTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).conversationMessagesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.accountBookId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$AccountBooksTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AccountBooksTable,
+      AccountBook,
+      $$AccountBooksTableFilterComposer,
+      $$AccountBooksTableOrderingComposer,
+      $$AccountBooksTableAnnotationComposer,
+      $$AccountBooksTableCreateCompanionBuilder,
+      $$AccountBooksTableUpdateCompanionBuilder,
+      (AccountBook, $$AccountBooksTableReferences),
+      AccountBook,
+      PrefetchHooks Function({
+        bool transactionsRefs,
+        bool budgetsRefs,
+        bool aiTrainingRecordsRefs,
+        bool conversationMessagesRefs,
+      })
+    >;
 typedef $$CategoriesTableCreateCompanionBuilder =
     CategoriesCompanion Function({
       Value<int> id,
@@ -4985,6 +6469,7 @@ typedef $$TransactionsTableCreateCompanionBuilder =
       Value<bool> isDeleted,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      required int accountBookId,
     });
 typedef $$TransactionsTableUpdateCompanionBuilder =
     TransactionsCompanion Function({
@@ -5001,6 +6486,7 @@ typedef $$TransactionsTableUpdateCompanionBuilder =
       Value<bool> isDeleted,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<int> accountBookId,
     });
 
 final class $$TransactionsTableReferences
@@ -5039,6 +6525,25 @@ final class $$TransactionsTableReferences
       $_db.categories,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_subcategoryIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $AccountBooksTable _accountBookIdTable(_$AppDatabase db) =>
+      db.accountBooks.createAlias(
+        $_aliasNameGenerator(db.transactions.accountBookId, db.accountBooks.id),
+      );
+
+  $$AccountBooksTableProcessedTableManager get accountBookId {
+    final $_column = $_itemColumn<int>('account_book_id')!;
+
+    final manager = $$AccountBooksTableTableManager(
+      $_db,
+      $_db.accountBooks,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_accountBookIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -5147,6 +6652,29 @@ class $$TransactionsTableFilterComposer
           }) => $$CategoriesTableFilterComposer(
             $db: $db,
             $table: $db.categories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$AccountBooksTableFilterComposer get accountBookId {
+    final $$AccountBooksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountBookId,
+      referencedTable: $db.accountBooks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountBooksTableFilterComposer(
+            $db: $db,
+            $table: $db.accountBooks,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -5266,6 +6794,29 @@ class $$TransactionsTableOrderingComposer
     );
     return composer;
   }
+
+  $$AccountBooksTableOrderingComposer get accountBookId {
+    final $$AccountBooksTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountBookId,
+      referencedTable: $db.accountBooks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountBooksTableOrderingComposer(
+            $db: $db,
+            $table: $db.accountBooks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$TransactionsTableAnnotationComposer
@@ -5365,6 +6916,29 @@ class $$TransactionsTableAnnotationComposer
     );
     return composer;
   }
+
+  $$AccountBooksTableAnnotationComposer get accountBookId {
+    final $$AccountBooksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountBookId,
+      referencedTable: $db.accountBooks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountBooksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.accountBooks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$TransactionsTableTableManager
@@ -5380,7 +6954,11 @@ class $$TransactionsTableTableManager
           $$TransactionsTableUpdateCompanionBuilder,
           (Transaction, $$TransactionsTableReferences),
           Transaction,
-          PrefetchHooks Function({bool categoryId, bool subcategoryId})
+          PrefetchHooks Function({
+            bool categoryId,
+            bool subcategoryId,
+            bool accountBookId,
+          })
         > {
   $$TransactionsTableTableManager(_$AppDatabase db, $TransactionsTable table)
     : super(
@@ -5408,6 +6986,7 @@ class $$TransactionsTableTableManager
                 Value<bool> isDeleted = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> accountBookId = const Value.absent(),
               }) => TransactionsCompanion(
                 id: id,
                 amount: amount,
@@ -5422,6 +7001,7 @@ class $$TransactionsTableTableManager
                 isDeleted: isDeleted,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                accountBookId: accountBookId,
               ),
           createCompanionCallback:
               ({
@@ -5438,6 +7018,7 @@ class $$TransactionsTableTableManager
                 Value<bool> isDeleted = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                required int accountBookId,
               }) => TransactionsCompanion.insert(
                 id: id,
                 amount: amount,
@@ -5452,6 +7033,7 @@ class $$TransactionsTableTableManager
                 isDeleted: isDeleted,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                accountBookId: accountBookId,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -5461,60 +7043,84 @@ class $$TransactionsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({categoryId = false, subcategoryId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (categoryId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.categoryId,
-                                referencedTable: $$TransactionsTableReferences
-                                    ._categoryIdTable(db),
-                                referencedColumn: $$TransactionsTableReferences
-                                    ._categoryIdTable(db)
-                                    .id,
-                              )
-                              as T;
-                    }
-                    if (subcategoryId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.subcategoryId,
-                                referencedTable: $$TransactionsTableReferences
-                                    ._subcategoryIdTable(db),
-                                referencedColumn: $$TransactionsTableReferences
-                                    ._subcategoryIdTable(db)
-                                    .id,
-                              )
-                              as T;
-                    }
+          prefetchHooksCallback:
+              ({
+                categoryId = false,
+                subcategoryId = false,
+                accountBookId = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (categoryId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.categoryId,
+                                    referencedTable:
+                                        $$TransactionsTableReferences
+                                            ._categoryIdTable(db),
+                                    referencedColumn:
+                                        $$TransactionsTableReferences
+                                            ._categoryIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (subcategoryId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.subcategoryId,
+                                    referencedTable:
+                                        $$TransactionsTableReferences
+                                            ._subcategoryIdTable(db),
+                                    referencedColumn:
+                                        $$TransactionsTableReferences
+                                            ._subcategoryIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (accountBookId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.accountBookId,
+                                    referencedTable:
+                                        $$TransactionsTableReferences
+                                            ._accountBookIdTable(db),
+                                    referencedColumn:
+                                        $$TransactionsTableReferences
+                                            ._accountBookIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
 
-                    return state;
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [];
                   },
-              getPrefetchedDataCallback: (items) async {
-                return [];
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -5531,7 +7137,11 @@ typedef $$TransactionsTableProcessedTableManager =
       $$TransactionsTableUpdateCompanionBuilder,
       (Transaction, $$TransactionsTableReferences),
       Transaction,
-      PrefetchHooks Function({bool categoryId, bool subcategoryId})
+      PrefetchHooks Function({
+        bool categoryId,
+        bool subcategoryId,
+        bool accountBookId,
+      })
     >;
 typedef $$BudgetsTableCreateCompanionBuilder =
     BudgetsCompanion Function({
@@ -5542,6 +7152,7 @@ typedef $$BudgetsTableCreateCompanionBuilder =
       required int year,
       required int month,
       Value<DateTime> createdAt,
+      required int accountBookId,
     });
 typedef $$BudgetsTableUpdateCompanionBuilder =
     BudgetsCompanion Function({
@@ -5552,6 +7163,7 @@ typedef $$BudgetsTableUpdateCompanionBuilder =
       Value<int> year,
       Value<int> month,
       Value<DateTime> createdAt,
+      Value<int> accountBookId,
     });
 
 final class $$BudgetsTableReferences
@@ -5571,6 +7183,25 @@ final class $$BudgetsTableReferences
       $_db.categories,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_categoryIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $AccountBooksTable _accountBookIdTable(_$AppDatabase db) =>
+      db.accountBooks.createAlias(
+        $_aliasNameGenerator(db.budgets.accountBookId, db.accountBooks.id),
+      );
+
+  $$AccountBooksTableProcessedTableManager get accountBookId {
+    final $_column = $_itemColumn<int>('account_book_id')!;
+
+    final manager = $$AccountBooksTableTableManager(
+      $_db,
+      $_db.accountBooks,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_accountBookIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -5631,6 +7262,29 @@ class $$BudgetsTableFilterComposer
           }) => $$CategoriesTableFilterComposer(
             $db: $db,
             $table: $db.categories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$AccountBooksTableFilterComposer get accountBookId {
+    final $$AccountBooksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountBookId,
+      referencedTable: $db.accountBooks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountBooksTableFilterComposer(
+            $db: $db,
+            $table: $db.accountBooks,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -5702,6 +7356,29 @@ class $$BudgetsTableOrderingComposer
     );
     return composer;
   }
+
+  $$AccountBooksTableOrderingComposer get accountBookId {
+    final $$AccountBooksTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountBookId,
+      referencedTable: $db.accountBooks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountBooksTableOrderingComposer(
+            $db: $db,
+            $table: $db.accountBooks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$BudgetsTableAnnotationComposer
@@ -5753,6 +7430,29 @@ class $$BudgetsTableAnnotationComposer
     );
     return composer;
   }
+
+  $$AccountBooksTableAnnotationComposer get accountBookId {
+    final $$AccountBooksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountBookId,
+      referencedTable: $db.accountBooks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountBooksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.accountBooks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$BudgetsTableTableManager
@@ -5768,7 +7468,7 @@ class $$BudgetsTableTableManager
           $$BudgetsTableUpdateCompanionBuilder,
           (Budget, $$BudgetsTableReferences),
           Budget,
-          PrefetchHooks Function({bool categoryId})
+          PrefetchHooks Function({bool categoryId, bool accountBookId})
         > {
   $$BudgetsTableTableManager(_$AppDatabase db, $BudgetsTable table)
     : super(
@@ -5790,6 +7490,7 @@ class $$BudgetsTableTableManager
                 Value<int> year = const Value.absent(),
                 Value<int> month = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<int> accountBookId = const Value.absent(),
               }) => BudgetsCompanion(
                 id: id,
                 categoryId: categoryId,
@@ -5798,6 +7499,7 @@ class $$BudgetsTableTableManager
                 year: year,
                 month: month,
                 createdAt: createdAt,
+                accountBookId: accountBookId,
               ),
           createCompanionCallback:
               ({
@@ -5808,6 +7510,7 @@ class $$BudgetsTableTableManager
                 required int year,
                 required int month,
                 Value<DateTime> createdAt = const Value.absent(),
+                required int accountBookId,
               }) => BudgetsCompanion.insert(
                 id: id,
                 categoryId: categoryId,
@@ -5816,6 +7519,7 @@ class $$BudgetsTableTableManager
                 year: year,
                 month: month,
                 createdAt: createdAt,
+                accountBookId: accountBookId,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -5825,7 +7529,7 @@ class $$BudgetsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({categoryId = false}) {
+          prefetchHooksCallback: ({categoryId = false, accountBookId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -5858,6 +7562,19 @@ class $$BudgetsTableTableManager
                               )
                               as T;
                     }
+                    if (accountBookId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.accountBookId,
+                                referencedTable: $$BudgetsTableReferences
+                                    ._accountBookIdTable(db),
+                                referencedColumn: $$BudgetsTableReferences
+                                    ._accountBookIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
 
                     return state;
                   },
@@ -5882,7 +7599,7 @@ typedef $$BudgetsTableProcessedTableManager =
       $$BudgetsTableUpdateCompanionBuilder,
       (Budget, $$BudgetsTableReferences),
       Budget,
-      PrefetchHooks Function({bool categoryId})
+      PrefetchHooks Function({bool categoryId, bool accountBookId})
     >;
 typedef $$AiTrainingRecordsTableCreateCompanionBuilder =
     AiTrainingRecordsCompanion Function({
@@ -5892,6 +7609,7 @@ typedef $$AiTrainingRecordsTableCreateCompanionBuilder =
       Value<int?> actualCategoryId,
       Value<bool?> wasCorrect,
       Value<DateTime> createdAt,
+      required int accountBookId,
     });
 typedef $$AiTrainingRecordsTableUpdateCompanionBuilder =
     AiTrainingRecordsCompanion Function({
@@ -5901,7 +7619,44 @@ typedef $$AiTrainingRecordsTableUpdateCompanionBuilder =
       Value<int?> actualCategoryId,
       Value<bool?> wasCorrect,
       Value<DateTime> createdAt,
+      Value<int> accountBookId,
     });
+
+final class $$AiTrainingRecordsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $AiTrainingRecordsTable,
+          AiTrainingRecord
+        > {
+  $$AiTrainingRecordsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $AccountBooksTable _accountBookIdTable(_$AppDatabase db) =>
+      db.accountBooks.createAlias(
+        $_aliasNameGenerator(
+          db.aiTrainingRecords.accountBookId,
+          db.accountBooks.id,
+        ),
+      );
+
+  $$AccountBooksTableProcessedTableManager get accountBookId {
+    final $_column = $_itemColumn<int>('account_book_id')!;
+
+    final manager = $$AccountBooksTableTableManager(
+      $_db,
+      $_db.accountBooks,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_accountBookIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
 
 class $$AiTrainingRecordsTableFilterComposer
     extends Composer<_$AppDatabase, $AiTrainingRecordsTable> {
@@ -5941,6 +7696,29 @@ class $$AiTrainingRecordsTableFilterComposer
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$AccountBooksTableFilterComposer get accountBookId {
+    final $$AccountBooksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountBookId,
+      referencedTable: $db.accountBooks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountBooksTableFilterComposer(
+            $db: $db,
+            $table: $db.accountBooks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$AiTrainingRecordsTableOrderingComposer
@@ -5981,6 +7759,29 @@ class $$AiTrainingRecordsTableOrderingComposer
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$AccountBooksTableOrderingComposer get accountBookId {
+    final $$AccountBooksTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountBookId,
+      referencedTable: $db.accountBooks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountBooksTableOrderingComposer(
+            $db: $db,
+            $table: $db.accountBooks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$AiTrainingRecordsTableAnnotationComposer
@@ -6015,6 +7816,29 @@ class $$AiTrainingRecordsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$AccountBooksTableAnnotationComposer get accountBookId {
+    final $$AccountBooksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountBookId,
+      referencedTable: $db.accountBooks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountBooksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.accountBooks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$AiTrainingRecordsTableTableManager
@@ -6028,16 +7852,9 @@ class $$AiTrainingRecordsTableTableManager
           $$AiTrainingRecordsTableAnnotationComposer,
           $$AiTrainingRecordsTableCreateCompanionBuilder,
           $$AiTrainingRecordsTableUpdateCompanionBuilder,
-          (
-            AiTrainingRecord,
-            BaseReferences<
-              _$AppDatabase,
-              $AiTrainingRecordsTable,
-              AiTrainingRecord
-            >,
-          ),
+          (AiTrainingRecord, $$AiTrainingRecordsTableReferences),
           AiTrainingRecord,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool accountBookId})
         > {
   $$AiTrainingRecordsTableTableManager(
     _$AppDatabase db,
@@ -6063,6 +7880,7 @@ class $$AiTrainingRecordsTableTableManager
                 Value<int?> actualCategoryId = const Value.absent(),
                 Value<bool?> wasCorrect = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<int> accountBookId = const Value.absent(),
               }) => AiTrainingRecordsCompanion(
                 id: id,
                 inputText: inputText,
@@ -6070,6 +7888,7 @@ class $$AiTrainingRecordsTableTableManager
                 actualCategoryId: actualCategoryId,
                 wasCorrect: wasCorrect,
                 createdAt: createdAt,
+                accountBookId: accountBookId,
               ),
           createCompanionCallback:
               ({
@@ -6079,6 +7898,7 @@ class $$AiTrainingRecordsTableTableManager
                 Value<int?> actualCategoryId = const Value.absent(),
                 Value<bool?> wasCorrect = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                required int accountBookId,
               }) => AiTrainingRecordsCompanion.insert(
                 id: id,
                 inputText: inputText,
@@ -6086,11 +7906,59 @@ class $$AiTrainingRecordsTableTableManager
                 actualCategoryId: actualCategoryId,
                 wasCorrect: wasCorrect,
                 createdAt: createdAt,
+                accountBookId: accountBookId,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$AiTrainingRecordsTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({accountBookId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (accountBookId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.accountBookId,
+                                referencedTable:
+                                    $$AiTrainingRecordsTableReferences
+                                        ._accountBookIdTable(db),
+                                referencedColumn:
+                                    $$AiTrainingRecordsTableReferences
+                                        ._accountBookIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ),
       );
 }
@@ -6105,16 +7973,9 @@ typedef $$AiTrainingRecordsTableProcessedTableManager =
       $$AiTrainingRecordsTableAnnotationComposer,
       $$AiTrainingRecordsTableCreateCompanionBuilder,
       $$AiTrainingRecordsTableUpdateCompanionBuilder,
-      (
-        AiTrainingRecord,
-        BaseReferences<
-          _$AppDatabase,
-          $AiTrainingRecordsTable,
-          AiTrainingRecord
-        >,
-      ),
+      (AiTrainingRecord, $$AiTrainingRecordsTableReferences),
       AiTrainingRecord,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool accountBookId})
     >;
 typedef $$ConversationMessagesTableCreateCompanionBuilder =
     ConversationMessagesCompanion Function({
@@ -6126,6 +7987,7 @@ typedef $$ConversationMessagesTableCreateCompanionBuilder =
       Value<String?> functionArgs,
       Value<String?> functionResult,
       Value<DateTime> createdAt,
+      required int accountBookId,
     });
 typedef $$ConversationMessagesTableUpdateCompanionBuilder =
     ConversationMessagesCompanion Function({
@@ -6137,7 +7999,44 @@ typedef $$ConversationMessagesTableUpdateCompanionBuilder =
       Value<String?> functionArgs,
       Value<String?> functionResult,
       Value<DateTime> createdAt,
+      Value<int> accountBookId,
     });
+
+final class $$ConversationMessagesTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $ConversationMessagesTable,
+          ConversationMessage
+        > {
+  $$ConversationMessagesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $AccountBooksTable _accountBookIdTable(_$AppDatabase db) =>
+      db.accountBooks.createAlias(
+        $_aliasNameGenerator(
+          db.conversationMessages.accountBookId,
+          db.accountBooks.id,
+        ),
+      );
+
+  $$AccountBooksTableProcessedTableManager get accountBookId {
+    final $_column = $_itemColumn<int>('account_book_id')!;
+
+    final manager = $$AccountBooksTableTableManager(
+      $_db,
+      $_db.accountBooks,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_accountBookIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
 
 class $$ConversationMessagesTableFilterComposer
     extends Composer<_$AppDatabase, $ConversationMessagesTable> {
@@ -6187,6 +8086,29 @@ class $$ConversationMessagesTableFilterComposer
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$AccountBooksTableFilterComposer get accountBookId {
+    final $$AccountBooksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountBookId,
+      referencedTable: $db.accountBooks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountBooksTableFilterComposer(
+            $db: $db,
+            $table: $db.accountBooks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ConversationMessagesTableOrderingComposer
@@ -6237,6 +8159,29 @@ class $$ConversationMessagesTableOrderingComposer
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$AccountBooksTableOrderingComposer get accountBookId {
+    final $$AccountBooksTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountBookId,
+      referencedTable: $db.accountBooks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountBooksTableOrderingComposer(
+            $db: $db,
+            $table: $db.accountBooks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ConversationMessagesTableAnnotationComposer
@@ -6279,6 +8224,29 @@ class $$ConversationMessagesTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$AccountBooksTableAnnotationComposer get accountBookId {
+    final $$AccountBooksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountBookId,
+      referencedTable: $db.accountBooks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountBooksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.accountBooks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ConversationMessagesTableTableManager
@@ -6292,16 +8260,9 @@ class $$ConversationMessagesTableTableManager
           $$ConversationMessagesTableAnnotationComposer,
           $$ConversationMessagesTableCreateCompanionBuilder,
           $$ConversationMessagesTableUpdateCompanionBuilder,
-          (
-            ConversationMessage,
-            BaseReferences<
-              _$AppDatabase,
-              $ConversationMessagesTable,
-              ConversationMessage
-            >,
-          ),
+          (ConversationMessage, $$ConversationMessagesTableReferences),
           ConversationMessage,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool accountBookId})
         > {
   $$ConversationMessagesTableTableManager(
     _$AppDatabase db,
@@ -6332,6 +8293,7 @@ class $$ConversationMessagesTableTableManager
                 Value<String?> functionArgs = const Value.absent(),
                 Value<String?> functionResult = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<int> accountBookId = const Value.absent(),
               }) => ConversationMessagesCompanion(
                 id: id,
                 conversationId: conversationId,
@@ -6341,6 +8303,7 @@ class $$ConversationMessagesTableTableManager
                 functionArgs: functionArgs,
                 functionResult: functionResult,
                 createdAt: createdAt,
+                accountBookId: accountBookId,
               ),
           createCompanionCallback:
               ({
@@ -6352,6 +8315,7 @@ class $$ConversationMessagesTableTableManager
                 Value<String?> functionArgs = const Value.absent(),
                 Value<String?> functionResult = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                required int accountBookId,
               }) => ConversationMessagesCompanion.insert(
                 id: id,
                 conversationId: conversationId,
@@ -6361,11 +8325,59 @@ class $$ConversationMessagesTableTableManager
                 functionArgs: functionArgs,
                 functionResult: functionResult,
                 createdAt: createdAt,
+                accountBookId: accountBookId,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$ConversationMessagesTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({accountBookId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (accountBookId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.accountBookId,
+                                referencedTable:
+                                    $$ConversationMessagesTableReferences
+                                        ._accountBookIdTable(db),
+                                referencedColumn:
+                                    $$ConversationMessagesTableReferences
+                                        ._accountBookIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ),
       );
 }
@@ -6380,16 +8392,9 @@ typedef $$ConversationMessagesTableProcessedTableManager =
       $$ConversationMessagesTableAnnotationComposer,
       $$ConversationMessagesTableCreateCompanionBuilder,
       $$ConversationMessagesTableUpdateCompanionBuilder,
-      (
-        ConversationMessage,
-        BaseReferences<
-          _$AppDatabase,
-          $ConversationMessagesTable,
-          ConversationMessage
-        >,
-      ),
+      (ConversationMessage, $$ConversationMessagesTableReferences),
       ConversationMessage,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool accountBookId})
     >;
 typedef $$UserProfilesTableCreateCompanionBuilder =
     UserProfilesCompanion Function({
@@ -7291,6 +9296,8 @@ typedef $$AcCoinTransactionsTableProcessedTableManager =
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
+  $$AccountBooksTableTableManager get accountBooks =>
+      $$AccountBooksTableTableManager(_db, _db.accountBooks);
   $$CategoriesTableTableManager get categories =>
       $$CategoriesTableTableManager(_db, _db.categories);
   $$TransactionsTableTableManager get transactions =>

@@ -17,6 +17,7 @@ class BudgetPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final now = DateTime.now();
     final repo = ref.read(budgetRepositoryProvider);
+    final bookId = ref.read(currentBookProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -30,7 +31,7 @@ class BudgetPage extends ConsumerWidget {
         ],
       ),
       body: FutureBuilder<List<BudgetProgress>>(
-        future: repo.getBudgetProgress(now.year, now.month),
+        future: repo.getBudgetProgress(bookId, now.year, now.month),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

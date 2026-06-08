@@ -17,6 +17,8 @@ import '../../features/category/presentation/pages/category_manage_page.dart';
 import '../../features/security/presentation/pages/lock_settings_page.dart';
 import '../../features/security/presentation/pages/pin_lock_page.dart';
 import '../../features/security/presentation/pages/pattern_lock_page.dart';
+import '../../features/account_book/presentation/pages/account_book_page.dart';
+import '../../features/account_book/presentation/pages/account_book_detail_page.dart';
 
 /// WoAccount 路由配置
 /// 使用 GoRouter 声明式路由
@@ -121,6 +123,18 @@ class AppRouter {
           final extra = state.extra as Map<String, dynamic>?;
           final mode = extra?['mode'] as String? ?? 'verify';
           return PatternLockPage(mode: mode);
+        },
+      ),
+      // 账本管理
+      GoRoute(
+        path: '/account-books',
+        builder: (context, state) => const AccountBookPage(),
+      ),
+      GoRoute(
+        path: '/account-books/detail',
+        builder: (context, state) {
+          final bookId = state.extra as int;
+          return AccountBookDetailPage(bookId: bookId);
         },
       ),
     ],

@@ -15,13 +15,13 @@ class FakeTransactionRepository implements TransactionRepository {
   FakeTransactionRepository(this._data, this._categories);
 
   @override
-  Stream<List<Transaction>> watchAll() => Stream.value(_data);
+  Stream<List<Transaction>> watchAll(int bookId) => Stream.value(_data);
 
   @override
-  Stream<List<Transaction>> watchToday() => Stream.value(_data);
+  Stream<List<Transaction>> watchToday(int bookId) => Stream.value(_data);
 
   @override
-  Future<TransactionStats> getStats(DateTime start, DateTime end) async {
+  Future<TransactionStats> getStats(int bookId, DateTime start, DateTime end) async {
     double totalExpense = 0;
     double totalIncome = 0;
     int count = 0;
@@ -82,6 +82,7 @@ void main() {
       aiSource: 'manual',
       userConfirmed: false,
       isDeleted: false,
+      accountBookId: 1,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );

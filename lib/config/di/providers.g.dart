@@ -87,5 +87,27 @@ final chatRepositoryProvider = AutoDisposeProvider<ChatRepository>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef ChatRepositoryRef = AutoDisposeProviderRef<ChatRepository>;
+String _$accountBookRepositoryHash() =>
+    r'd3b0c80358ce819e2442d91e33f7d75b016fded5';
+
+/// 账本 Repository Provider
+///
+/// Copied from [accountBookRepository].
+@ProviderFor(accountBookRepository)
+final accountBookRepositoryProvider =
+    AutoDisposeProvider<AccountBookRepository>.internal(
+      accountBookRepository,
+      name: r'accountBookRepositoryProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$accountBookRepositoryHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef AccountBookRepositoryRef =
+    AutoDisposeProviderRef<AccountBookRepository>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

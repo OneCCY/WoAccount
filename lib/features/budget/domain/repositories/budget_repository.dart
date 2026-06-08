@@ -2,14 +2,14 @@ import '../../../../config/database/app_database.dart';
 
 /// 预算 Repository 接口（Domain 层）
 abstract class BudgetRepository {
-  /// 获取所有预算
-  Future<List<Budget>> getAll();
+  /// 获取账本内所有预算
+  Future<List<Budget>> getAll(int bookId);
 
-  /// 获取指定月份的预算
-  Future<List<Budget>> getByMonth(int year, int month);
+  /// 获取账本内指定月份的预算
+  Future<List<Budget>> getByMonth(int bookId, int year, int month);
 
-  /// 获取指定分类的预算
-  Future<Budget?> getByCategoryId(int categoryId, int year, int month);
+  /// 获取账本内指定分类的预算
+  Future<Budget?> getByCategoryId(int bookId, int categoryId, int year, int month);
 
   /// 插入预算
   Future<int> insert(BudgetsCompanion budget);
@@ -20,11 +20,11 @@ abstract class BudgetRepository {
   /// 删除预算
   Future<bool> delete(int id);
 
-  /// 监听指定月份的预算变化
-  Stream<List<Budget>> watchByMonth(int year, int month);
+  /// 监听账本内指定月份的预算变化
+  Stream<List<Budget>> watchByMonth(int bookId, int year, int month);
 
-  /// 获取预算进度（含实际消费）
-  Future<List<BudgetProgress>> getBudgetProgress(int year, int month);
+  /// 获取账本内预算进度（含实际消费）
+  Future<List<BudgetProgress>> getBudgetProgress(int bookId, int year, int month);
 }
 
 /// 预算进度数据

@@ -94,6 +94,7 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
       aiSource: Value(txn.aiSource),
       userConfirmed: const Value(true),
       isDeleted: Value(txn.isDeleted),
+      accountBookId: Value(txn.accountBookId),
       createdAt: Value(txn.createdAt),
       updatedAt: Value(now),
     );
@@ -114,6 +115,7 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
           aiSource: txn.aiSource,
           userConfirmed: true,
           isDeleted: txn.isDeleted,
+          accountBookId: txn.accountBookId,
           createdAt: txn.createdAt,
           updatedAt: now,
         );

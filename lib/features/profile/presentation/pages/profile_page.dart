@@ -408,9 +408,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         _showThemePicker(context, ref);
         break;
       case '我的账本':
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('账本功能即将推出'), behavior: SnackBarBehavior.floating, duration: Duration(milliseconds: 500)),
-        );
+        context.push('/account-books');
         break;
       case '预算管理':
         context.push('/budget');

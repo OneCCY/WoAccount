@@ -2,23 +2,23 @@ import '../../../../config/database/app_database.dart';
 
 /// 交易记录 Repository 接口（Domain 层）
 abstract class TransactionRepository {
-  /// 获取所有交易（排除软删除）
-  Future<List<Transaction>> getAll();
+  /// 获取账本内所有交易（排除软删除）
+  Future<List<Transaction>> getAll(int bookId);
 
   /// 根据 ID 获取
   Future<Transaction?> getById(int id);
 
   /// 根据日期范围获取
-  Future<List<Transaction>> getByDateRange(DateTime start, DateTime end);
+  Future<List<Transaction>> getByDateRange(int bookId, DateTime start, DateTime end);
 
   /// 根据分类获取
-  Future<List<Transaction>> getByCategoryId(int categoryId);
+  Future<List<Transaction>> getByCategoryId(int bookId, int categoryId);
 
   /// 获取今日交易
-  Future<List<Transaction>> getToday();
+  Future<List<Transaction>> getToday(int bookId);
 
   /// 获取本月交易
-  Future<List<Transaction>> getThisMonth();
+  Future<List<Transaction>> getThisMonth(int bookId);
 
   /// 插入交易
   Future<int> insert(TransactionsCompanion transaction);
@@ -29,14 +29,14 @@ abstract class TransactionRepository {
   /// 软删除交易
   Future<bool> delete(int id);
 
-  /// 监听所有交易变化（响应式）
-  Stream<List<Transaction>> watchAll();
+  /// 监听账本内所有交易变化（响应式）
+  Stream<List<Transaction>> watchAll(int bookId);
 
-  /// 监听今日交易变化
-  Stream<List<Transaction>> watchToday();
+  /// 监听账本内今日交易变化
+  Stream<List<Transaction>> watchToday(int bookId);
 
   /// 获取日期范围内的统计
-  Future<TransactionStats> getStats(DateTime start, DateTime end);
+  Future<TransactionStats> getStats(int bookId, DateTime start, DateTime end);
 }
 
 /// 交易统计数据
