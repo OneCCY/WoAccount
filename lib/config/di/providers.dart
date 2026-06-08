@@ -11,6 +11,8 @@ import '../../features/chat/domain/repositories/chat_repository.dart';
 import '../../features/chat/data/repositories/chat_repository_impl.dart';
 import '../../features/account_book/domain/repositories/account_book_repository.dart';
 import '../../features/account_book/data/repositories/account_book_repository_impl.dart';
+import '../../features/stats/domain/repositories/report_repository.dart';
+import '../../features/stats/data/repositories/report_repository_impl.dart';
 
 part 'providers.g.dart';
 
@@ -54,6 +56,13 @@ ChatRepository chatRepository(Ref ref) {
 AccountBookRepository accountBookRepository(Ref ref) {
   final db = ref.watch(appDatabaseProvider);
   return AccountBookRepositoryImpl(db);
+}
+
+/// 报表分析 Repository Provider
+@riverpod
+ReportRepository reportRepository(Ref ref) {
+  final db = ref.watch(appDatabaseProvider);
+  return ReportRepositoryImpl(db);
 }
 
 /// 当前选中的账本 ID（默认 1，默认账本）

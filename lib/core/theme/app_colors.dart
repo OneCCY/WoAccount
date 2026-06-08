@@ -6,14 +6,14 @@ class AppColors {
   AppColors._();
 
   // === 主色调（绿色系）===
-  static const Color primary = Color(0xFF4CAF50);        // 主绿
-  static const Color primaryLight = Color(0xFF66BB6A);   // 浅绿
-  static const Color primaryDark = Color(0xFF2E7D32);    // 深绿
-  static const Color primarySurface = Color(0xFFE8F5E9); // 绿底色
+  static const Color primary = Color(0xFF4CAF50);
+  static const Color primaryLight = Color(0xFF66BB6A);
+  static const Color primaryDark = Color(0xFF2E7D32);
+  static const Color primarySurface = Color(0xFFE8F5E9);
 
   // === 背景色 ===
-  static const Color background = Color(0xFFFAFAFA);     // 浅灰背景
-  static const Color surface = Color(0xFFFFFFFF);        // 卡片/表面
+  static const Color background = Color(0xFFFAFAFA);
+  static const Color surface = Color(0xFFFFFFFF);
   static const Color surfaceSecondary = Color(0xFFF5F5F5);
 
   // === 文字色 ===
@@ -31,19 +31,19 @@ class AppColors {
   static const Color success = Color(0xFF4CAF50);
   static const Color warning = Color(0xFFFF9800);
   static const Color error = Color(0xFFF44336);
-  static const Color income = Color(0xFF4CAF50);         // 收入绿
-  static const Color expense = Color(0xFFF44336);        // 支出红
+  static const Color income = Color(0xFF4CAF50);
+  static const Color expense = Color(0xFFF44336);
 
   // === 分类色 ===
-  static const Color categoryFood = Color(0xFFFF9800);       // 餐饮
-  static const Color categoryTransport = Color(0xFF2196F3);  // 交通
-  static const Color categoryShopping = Color(0xFFE91E63);   // 购物
-  static const Color categoryHousing = Color(0xFF9C27B0);    // 住房
-  static const Color categoryEntertainment = Color(0xFF4CAF50); // 娱乐
-  static const Color categoryEducation = Color(0xFF00BCD4);  // 教育
-  static const Color categoryMedical = Color(0xFFF44336);    // 医疗
-  static const Color categorySocial = Color(0xFFFF5722);     // 社交
-  static const Color categoryOther = Color(0xFF607D8B);      // 其他
+  static const Color categoryFood = Color(0xFFFF9800);
+  static const Color categoryTransport = Color(0xFF2196F3);
+  static const Color categoryShopping = Color(0xFFE91E63);
+  static const Color categoryHousing = Color(0xFF9C27B0);
+  static const Color categoryEntertainment = Color(0xFF4CAF50);
+  static const Color categoryEducation = Color(0xFF00BCD4);
+  static const Color categoryMedical = Color(0xFFF44336);
+  static const Color categorySocial = Color(0xFFFF5722);
+  static const Color categoryOther = Color(0xFF607D8B);
 
   // === 分类背景色 ===
   static const Color categoryFoodBg = Color(0xFFFFF3E0);
@@ -68,4 +68,53 @@ class AppColors {
     end: Alignment.bottomRight,
     colors: [Color(0xFFE8F5E9), Color(0xFFF1F8E9)],
   );
+}
+
+/// 兼容包装类 — 将 AppColors 静态常量映射为实例属性
+/// 支持 `context.colors.primary` 模式（等同于 `AppColors.primary`）
+class AppColorsCompat {
+  const AppColorsCompat();
+  Color get primary => AppColors.primary;
+  Color get primaryLight => AppColors.primaryLight;
+  Color get primaryDark => AppColors.primaryDark;
+  Color get primarySurface => AppColors.primarySurface;
+  Color get background => AppColors.background;
+  Color get surface => AppColors.surface;
+  Color get surfaceSecondary => AppColors.surfaceSecondary;
+  Color get textPrimary => AppColors.textPrimary;
+  Color get textSecondary => AppColors.textSecondary;
+  Color get textTertiary => AppColors.textTertiary;
+  Color get textHint => AppColors.textHint;
+  Color get textOnPrimary => AppColors.textOnPrimary;
+  Color get separator => AppColors.separator;
+  Color get separatorOpaque => AppColors.separatorOpaque;
+  Color get success => AppColors.success;
+  Color get warning => AppColors.warning;
+  Color get error => AppColors.error;
+  Color get income => AppColors.income;
+  Color get expense => AppColors.expense;
+  Color get categoryFood => AppColors.categoryFood;
+  Color get categoryTransport => AppColors.categoryTransport;
+  Color get categoryShopping => AppColors.categoryShopping;
+  Color get categoryHousing => AppColors.categoryHousing;
+  Color get categoryEntertainment => AppColors.categoryEntertainment;
+  Color get categoryEducation => AppColors.categoryEducation;
+  Color get categoryMedical => AppColors.categoryMedical;
+  Color get categorySocial => AppColors.categorySocial;
+  Color get categoryOther => AppColors.categoryOther;
+  Color get categoryFoodBg => AppColors.categoryFoodBg;
+  Color get categoryTransportBg => AppColors.categoryTransportBg;
+  Color get categoryShoppingBg => AppColors.categoryShoppingBg;
+  Color get categoryHousingBg => AppColors.categoryHousingBg;
+  Color get categoryEntertainmentBg => AppColors.categoryEntertainmentBg;
+  Color get categoryEducationBg => AppColors.categoryEducationBg;
+  Color get categoryMedicalBg => AppColors.categoryMedicalBg;
+  Color get categorySocialBg => AppColors.categorySocialBg;
+  Color get categoryOtherBg => AppColors.categoryOtherBg;
+  LinearGradient get aiEntryGradient => AppColors.aiEntryGradient;
+}
+
+/// 便捷扩展 — `context.colors.primary` 等同于 `AppColors.primary`
+extension AppColorsContext on BuildContext {
+  AppColorsCompat get colors => const AppColorsCompat();
 }

@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -185,7 +185,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
     return Container(
       padding: const EdgeInsets.fromLTRB(AppDimensions.md, 20, AppDimensions.md, 20),
-      color: AppColors.surface,
+      color: context.colors.surface,
       child: Row(
         children: [
           // 头像（点击进入个人资料编辑）
@@ -197,13 +197,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   padding: const EdgeInsets.only(left: 8),
                   child: CircleAvatar(
                     radius: 28,
-                    backgroundColor: AppColors.primarySurface,
+                    backgroundColor: context.colors.primarySurface,
                     backgroundImage: hasValidAvatar ? FileImage(File(avatarPath)) : null,
                     onBackgroundImageError: hasValidAvatar ? (exception, stackTrace) {
                       debugPrint('头像加载失败: $exception');
                     } : null,
                     child: !hasValidAvatar
-                        ? const Icon(Icons.person_outline, size: 28, color: AppColors.primaryDark)
+                        ? Icon(Icons.person_outline, size: 28, color: context.colors.primaryDark)
                         : null,
                   ),
                 ),
@@ -211,9 +211,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(nickname, style: AppTextStyles.h3),
+                    Text(nickname, style: context.textStyles.h3),
                     const SizedBox(height: 2),
-                    Text('ID: $uid', style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
+                    Text('ID: $uid', style: context.textStyles.caption.copyWith(color: context.colors.textTertiary)),
                   ],
                 ),
               ],
@@ -232,7 +232,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: _todayCheckedIn ? AppColors.surfaceSecondary : AppColors.primary,
+                color: _todayCheckedIn ? context.colors.surfaceSecondary : context.colors.primary,
                 borderRadius: BorderRadius.circular(AppDimensions.radiusRound),
               ),
               child: Row(
@@ -241,13 +241,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   Icon(
                     _todayCheckedIn ? Icons.check_circle_outline : Icons.radio_button_unchecked,
                     size: 18,
-                    color: _todayCheckedIn ? AppColors.textTertiary : Colors.white,
+                    color: _todayCheckedIn ? context.colors.textTertiary : Colors.white,
                   ),
                   const SizedBox(width: 4),
                   Text(
                     _todayCheckedIn ? '已打卡' : '打卡',
-                    style: AppTextStyles.footnote.copyWith(
-                      color: _todayCheckedIn ? AppColors.textTertiary : Colors.white,
+                    style: context.textStyles.footnote.copyWith(
+                      color: _todayCheckedIn ? context.colors.textTertiary : Colors.white,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -266,7 +266,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       margin: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
       padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
       ),
       child: Row(
@@ -286,9 +286,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(value, style: AppTextStyles.h2.copyWith(color: AppColors.primary), textAlign: TextAlign.center),
+          Text(value, style: context.textStyles.h2.copyWith(color: context.colors.primary), textAlign: TextAlign.center),
           const SizedBox(height: 4),
-          Text(label, style: AppTextStyles.caption, textAlign: TextAlign.center),
+          Text(label, style: context.textStyles.caption, textAlign: TextAlign.center),
         ],
       ),
     );
@@ -298,7 +298,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     return Container(
       height: 30,
       width: 1,
-      color: AppColors.separatorOpaque,
+      color: context.colors.separatorOpaque,
     );
   }
 
@@ -316,7 +316,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       margin: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
       padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
       ),
       child: GridView.builder(
@@ -342,9 +342,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(item.icon, size: 24, color: AppColors.textPrimary),
+          Icon(item.icon, size: 24, color: context.colors.textPrimary),
           const SizedBox(height: 4),
-          Text(item.label, style: AppTextStyles.caption, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
+          Text(item.label, style: context.textStyles.caption, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
         ],
       ),
     );
@@ -360,7 +360,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.colors.surface,
           borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
         ),
         clipBehavior: Clip.antiAlias,
@@ -370,7 +370,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             if (title != null)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                child: Text(title, style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary)),
+                child: Text(title, style: context.textStyles.caption.copyWith(color: context.colors.textTertiary)),
               ),
             ...items.map((item) => _buildMenuItem(item, context)),
           ],
@@ -386,15 +386,15 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         onTap: () => _onMenuTap(context, item.label),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: const BoxDecoration(
-            border: Border(bottom: BorderSide(color: AppColors.separatorOpaque, width: 0.5)),
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: context.colors.separatorOpaque, width: 0.5)),
           ),
           child: Row(
             children: [
-              Icon(item.icon, size: 20, color: iconColor ?? AppColors.textPrimary),
+              Icon(item.icon, size: 20, color: iconColor ?? context.colors.textPrimary),
               const SizedBox(width: 12),
-              Expanded(child: Text(item.label, style: AppTextStyles.body)),
-              const Icon(Icons.chevron_right, size: 16, color: AppColors.textTertiary),
+              Expanded(child: Text(item.label, style: context.textStyles.body)),
+              Icon(Icons.chevron_right, size: 16, color: context.colors.textTertiary),
             ],
           ),
         ),
@@ -420,6 +420,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         context.push('/settings/llm');
         break;
       case '报表分析':
+        context.push('/reports');
+        break;
       case '数据备份':
       case '账单导入':
       case '账单导出':
@@ -482,19 +484,19 @@ void _showThemePicker(BuildContext context, WidgetRef ref) {
           ListTile(
             leading: const Icon(Icons.light_mode),
             title: const Text('浅色模式'),
-            trailing: current == ThemeMode.light ? Icon(Icons.check, color: AppColors.primary) : null,
+            trailing: current == ThemeMode.light ? Icon(Icons.check, color: context.colors.primary) : null,
             onTap: () { themeProvider.setThemeMode(ThemeMode.light); Navigator.pop(ctx); },
           ),
           ListTile(
             leading: const Icon(Icons.dark_mode),
             title: const Text('深色模式'),
-            trailing: current == ThemeMode.dark ? Icon(Icons.check, color: AppColors.primary) : null,
+            trailing: current == ThemeMode.dark ? Icon(Icons.check, color: context.colors.primary) : null,
             onTap: () { themeProvider.setThemeMode(ThemeMode.dark); Navigator.pop(ctx); },
           ),
           ListTile(
             leading: const Icon(Icons.settings_brightness),
             title: const Text('跟随系统'),
-            trailing: current == ThemeMode.system ? Icon(Icons.check, color: AppColors.primary) : null,
+            trailing: current == ThemeMode.system ? Icon(Icons.check, color: context.colors.primary) : null,
             onTap: () { themeProvider.setThemeMode(ThemeMode.system); Navigator.pop(ctx); },
           ),
         ],

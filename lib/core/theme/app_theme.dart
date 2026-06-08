@@ -3,58 +3,63 @@ import 'app_colors.dart';
 import 'app_text_styles.dart';
 
 /// WoAccount 主题定义
-/// 绿色主题，温暖友好，卡片化设计
+/// 浅色/深色主题均完整定义
 class AppTheme {
   AppTheme._();
 
-  /// 通用卡片阴影
-  static const List<BoxShadow> cardShadow = [
-    BoxShadow(
-      color: Color(0x0A000000),
-      blurRadius: 8,
-      offset: Offset(0, 2),
-    ),
-  ];
-
-  /// 浮动元素阴影（底部导航、输入栏）
-  static const List<BoxShadow> floatingShadow = [
-    BoxShadow(
-      color: Color(0x0D000000),
-      blurRadius: 12,
-      offset: Offset(0, -2),
-    ),
-  ];
-
   static ThemeData get lightTheme {
+    return _buildTheme(Brightness.light);
+  }
+
+  static ThemeData get darkTheme {
+    return _buildTheme(Brightness.dark);
+  }
+
+  static ThemeData _buildTheme(Brightness brightness) {
+    final isDark = brightness == Brightness.dark;
+
+    // 深色模式使用不同的颜色值
+    final primary = isDark ? const Color(0xFF66BB6A) : AppColors.primary;
+    final surface = isDark ? const Color(0xFF1E1E1E) : AppColors.surface;
+    final surfaceSecondary = isDark ? const Color(0xFF2C2C2C) : AppColors.surfaceSecondary;
+    final background = isDark ? const Color(0xFF121212) : AppColors.background;
+    final textPrimary = isDark ? const Color(0xFFE0E0E0) : AppColors.textPrimary;
+    final textSecondary = isDark ? const Color(0xFFAAAAAA) : AppColors.textSecondary;
+    final textTertiary = isDark ? const Color(0xFF757575) : AppColors.textTertiary;
+    final textHint = isDark ? const Color(0xFF555555) : AppColors.textHint;
+    final separatorOpaque = isDark ? const Color(0xFF2A2A2A) : AppColors.separatorOpaque;
+    final error = isDark ? const Color(0xFFEF5350) : AppColors.error;
+
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.light,
+      brightness: brightness,
 
       // 色彩方案
       colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primary,
-        brightness: Brightness.light,
-        primary: AppColors.primary,
-        surface: AppColors.surface,
-        error: AppColors.error,
+        seedColor: primary,
+        brightness: brightness,
+        primary: primary,
+        surface: surface,
+        error: error,
       ),
 
       // 背景色
-      scaffoldBackgroundColor: AppColors.background,
+      scaffoldBackgroundColor: background,
 
       // AppBar 主题
-      appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.textPrimary,
+      appBarTheme: AppBarTheme(
+        backgroundColor: surface,
+        foregroundColor: textPrimary,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
-        titleTextStyle: AppTextStyles.h3,
+        titleTextStyle: AppTextStyles.h3.copyWith(color: textPrimary),
+        iconTheme: IconThemeData(color: textPrimary),
       ),
 
       // 卡片主题
       cardTheme: CardThemeData(
-        color: AppColors.surface,
+        color: surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -65,19 +70,19 @@ class AppTheme {
       // 输入框主题
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.surfaceSecondary,
+        fillColor: surfaceSecondary,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        hintStyle: AppTextStyles.body.copyWith(color: AppColors.textHint),
+        hintStyle: AppTextStyles.body.copyWith(color: textHint),
       ),
 
       // 按钮主题
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
+          backgroundColor: primary,
           foregroundColor: AppColors.textOnPrimary,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
@@ -88,33 +93,78 @@ class AppTheme {
         ),
       ),
 
+      // 文字按钮
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: primary,
+        ),
+      ),
+
+      // OutlinedButton
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: primary,
+          side: BorderSide(color: primary),
+        ),
+      ),
+
       // 底部导航栏
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: AppColors.surface,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.textTertiary,
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: surface,
+        selectedItemColor: primary,
+        unselectedItemColor: textTertiary,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
       ),
 
       // 分割线
-      dividerTheme: const DividerThemeData(
-        color: AppColors.separatorOpaque,
+      dividerTheme: DividerThemeData(
+        color: separatorOpaque,
         thickness: 0.5,
         space: 0,
       ),
-    );
-  }
 
-  static ThemeData get darkTheme {
-    return ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.dark,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primary,
-        brightness: Brightness.dark,
+      // Switch
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return primary;
+          return null;
+        }),
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return primary.withValues(alpha: 0.3);
+          }
+          return null;
+        }),
       ),
-      scaffoldBackgroundColor: const Color(0xFF000000),
+
+      // Dialog
+      dialogTheme: DialogThemeData(
+        backgroundColor: surface,
+        titleTextStyle: AppTextStyles.h3.copyWith(color: textPrimary),
+        contentTextStyle: AppTextStyles.body.copyWith(color: textSecondary),
+      ),
+
+      // BottomSheet
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: surface,
+        modalBackgroundColor: surface,
+      ),
+
+      // SnackBar
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: isDark ? surfaceSecondary : textPrimary,
+        contentTextStyle: AppTextStyles.body.copyWith(
+          color: isDark ? textPrimary : surface,
+        ),
+      ),
+
+      // ListTile
+      listTileTheme: ListTileThemeData(
+        tileColor: surface,
+        textColor: textPrimary,
+        iconColor: textTertiary,
+      ),
     );
   }
 }
