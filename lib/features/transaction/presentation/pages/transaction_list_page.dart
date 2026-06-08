@@ -619,7 +619,10 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
                         style: TextStyle(fontSize: amountFontSize, color: AppColors.income, height: 1.1),
                         overflow: TextOverflow.ellipsis,
                       ),
-                    if (!hasExpense && !hasIncome)
+                    // 始终保留两行高度，保持卡片高度一致
+                    if (!hasExpense)
+                      SizedBox(height: amountFontSize * 1.1),
+                    if (!hasIncome)
                       SizedBox(height: amountFontSize * 1.1),
                   ],
                 ),

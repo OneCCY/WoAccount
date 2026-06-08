@@ -168,10 +168,17 @@ class AppDatabase extends _$AppDatabase {
       if (from < 4) {
         await m.createTable(acCoinBalances);
         await m.createTable(acCoinTransactions);
-        // 为默认用户初始化 AC 币余额
+        // 为默认用户初始化 AC 币余额（新用户赠送 100 AC 币）
         await into(acCoinBalances).insert(AcCoinBalancesCompanion.insert(
           userId: const Value(1),
-          balance: const Value(0),
+          balance: const Value(100),
+        ));
+        // 记录初始赠送 AC 币明细
+        await into(acCoinTransactions).insert(AcCoinTransactionsCompanion.insert(
+          userId: const Value(1),
+          amount: 100,
+          type: 'initial_gift',
+          description: const Value('新用户注册赠送'),
         ));
       }
     },
@@ -183,10 +190,17 @@ class AppDatabase extends _$AppDatabase {
       nickname: Value('用户'),
       uid: Value('WO${100000 + DateTime.now().millisecondsSinceEpoch % 900000}'),
     ));
-    // 初始化 AC 币余额
+    // 初始化 AC 币余额（新用户赠送 100 AC 币）
     await into(acCoinBalances).insert(AcCoinBalancesCompanion.insert(
       userId: const Value(1),
-      balance: const Value(0),
+      balance: const Value(100),
+    ));
+    // 记录初始赠送 AC 币明细
+    await into(acCoinTransactions).insert(AcCoinTransactionsCompanion.insert(
+      userId: const Value(1),
+      amount: 100,
+      type: 'initial_gift',
+      description: const Value('新用户注册赠送'),
     ));
   }
 

@@ -262,24 +262,6 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('打卡日历'),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.primarySurface,
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusRound),
-                ),
-                child: Text('🪙 $_acBalance', style: AppTextStyles.footnote.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
-                )),
-              ),
-            ),
-          ),
-        ],
       ),
       body: Column(
         children: [
