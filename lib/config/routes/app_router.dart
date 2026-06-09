@@ -21,6 +21,9 @@ import '../../features/account_book/presentation/pages/account_book_page.dart';
 import '../../features/account_book/presentation/pages/account_book_detail_page.dart';
 import '../../features/stats/presentation/pages/report_page.dart';
 
+/// 全局路由观察者（用于 RouteAware 监听页面可见性）
+final routeObserver = RouteObserver<ModalRoute<void>>();
+
 /// WoAccount 路由配置
 /// 使用 GoRouter 声明式路由
 class AppRouter {
@@ -28,6 +31,7 @@ class AppRouter {
 
   static final GoRouter router = GoRouter(
     initialLocation: '/',
+    observers: [routeObserver],
     routes: [
       // 底部导航 Shell
       ShellRoute(

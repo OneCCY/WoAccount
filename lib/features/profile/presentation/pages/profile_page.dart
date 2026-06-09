@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
+import '../../../../config/routes/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -18,7 +19,7 @@ class ProfilePage extends ConsumerStatefulWidget {
   ConsumerState<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends ConsumerState<ProfilePage> {
+class _ProfilePageState extends ConsumerState<ProfilePage> with RouteAware {
   UserProfile? _profile;
   int _consecutiveDays = 0;
   int _totalCheckInDays = 0;
@@ -29,6 +30,24 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   @override
   void initState() {
     super.initState();
+    _loadData();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  /// 从子页面返回时自动刷新数据
+  @override
+  void didPopNext() {
     _loadData();
   }
 
