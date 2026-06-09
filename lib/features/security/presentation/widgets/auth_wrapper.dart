@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:local_auth/local_auth.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../pages/pin_lock_page.dart';
 import '../pages/pattern_lock_page.dart';
 
@@ -85,6 +86,8 @@ class _AuthWrapperState extends State<AuthWrapper> {
           GlobalCupertinoLocalizations.delegate,
         ],
         supportedLocales: const [Locale('zh', 'CN'), Locale('en', 'US')],
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
         home: const Scaffold(body: Center(child: CircularProgressIndicator())),
       );
     }
@@ -100,6 +103,8 @@ class _AuthWrapperState extends State<AuthWrapper> {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: const [Locale('zh', 'CN'), Locale('en', 'US')],
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
       home: _buildLockScreen(),
     );
   }
