@@ -66,7 +66,22 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
     // 计算连续打卡天数
     int consecutive = 0;
     if (todayRecords.isNotEmpty) {
+      // 今天已打卡：从今天开始往前数
       consecutive = 1;
+      for (int i = 1; i < 365; i++) {
+        final day = today.subtract(Duration(days: i));
+        final found = allRecords.any((r) {
+          final d = r.checkInDate;
+          return d.year == day.year && d.month == day.month && d.day == day.day;
+        });
+        if (found) {
+          consecutive++;
+        } else {
+          break;
+        }
+      }
+    } else {
+      // 今天未打卡：从昨天开始往前数（显示截至昨天的连续记录）
       for (int i = 1; i < 365; i++) {
         final day = today.subtract(Duration(days: i));
         final found = allRecords.any((r) {
