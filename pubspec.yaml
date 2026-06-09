@@ -37,6 +37,10 @@ dependencies:
   flutter_slidable: ^3.1.1
   image_picker: ^1.1.2
 
+  # === 媒体 ===
+  record: ^7.0.0
+  audioplayers: ^6.7.1
+
   # === 国际化 ===
   intl: ^0.20.2
 

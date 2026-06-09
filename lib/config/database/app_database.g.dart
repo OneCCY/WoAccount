@@ -1245,6 +1245,29 @@ class $TransactionsTable extends Transactions
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _mediaFilePathMeta = const VerificationMeta(
+    'mediaFilePath',
+  );
+  @override
+  late final GeneratedColumn<String> mediaFilePath = GeneratedColumn<String>(
+    'media_file_path',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _mediaTypeMeta = const VerificationMeta(
+    'mediaType',
+  );
+  @override
+  late final GeneratedColumn<String> mediaType = GeneratedColumn<String>(
+    'media_type',
+    aliasedName,
+    true,
+    additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 10),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _aiConfidenceMeta = const VerificationMeta(
     'aiConfidence',
   );
@@ -1346,6 +1369,8 @@ class $TransactionsTable extends Transactions
     subcategoryId,
     transactionDate,
     originalInput,
+    mediaFilePath,
+    mediaType,
     aiConfidence,
     aiSource,
     userConfirmed,
@@ -1423,6 +1448,21 @@ class $TransactionsTable extends Transactions
           data['original_input']!,
           _originalInputMeta,
         ),
+      );
+    }
+    if (data.containsKey('media_file_path')) {
+      context.handle(
+        _mediaFilePathMeta,
+        mediaFilePath.isAcceptableOrUnknown(
+          data['media_file_path']!,
+          _mediaFilePathMeta,
+        ),
+      );
+    }
+    if (data.containsKey('media_type')) {
+      context.handle(
+        _mediaTypeMeta,
+        mediaType.isAcceptableOrUnknown(data['media_type']!, _mediaTypeMeta),
       );
     }
     if (data.containsKey('ai_confidence')) {
@@ -1515,6 +1555,14 @@ class $TransactionsTable extends Transactions
         DriftSqlType.string,
         data['${effectivePrefix}original_input'],
       ),
+      mediaFilePath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}media_file_path'],
+      ),
+      mediaType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}media_type'],
+      ),
       aiConfidence: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}ai_confidence'],
@@ -1560,6 +1608,8 @@ class Transaction extends DataClass implements Insertable<Transaction> {
   final int? subcategoryId;
   final DateTime transactionDate;
   final String? originalInput;
+  final String? mediaFilePath;
+  final String? mediaType;
   final double? aiConfidence;
   final String aiSource;
   final bool userConfirmed;
@@ -1577,6 +1627,8 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     this.subcategoryId,
     required this.transactionDate,
     this.originalInput,
+    this.mediaFilePath,
+    this.mediaType,
     this.aiConfidence,
     required this.aiSource,
     required this.userConfirmed,
@@ -1598,6 +1650,12 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     map['transaction_date'] = Variable<DateTime>(transactionDate);
     if (!nullToAbsent || originalInput != null) {
       map['original_input'] = Variable<String>(originalInput);
+    }
+    if (!nullToAbsent || mediaFilePath != null) {
+      map['media_file_path'] = Variable<String>(mediaFilePath);
+    }
+    if (!nullToAbsent || mediaType != null) {
+      map['media_type'] = Variable<String>(mediaType);
     }
     if (!nullToAbsent || aiConfidence != null) {
       map['ai_confidence'] = Variable<double>(aiConfidence);
@@ -1624,6 +1682,12 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       originalInput: originalInput == null && nullToAbsent
           ? const Value.absent()
           : Value(originalInput),
+      mediaFilePath: mediaFilePath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mediaFilePath),
+      mediaType: mediaType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mediaType),
       aiConfidence: aiConfidence == null && nullToAbsent
           ? const Value.absent()
           : Value(aiConfidence),
@@ -1649,6 +1713,8 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       subcategoryId: serializer.fromJson<int?>(json['subcategoryId']),
       transactionDate: serializer.fromJson<DateTime>(json['transactionDate']),
       originalInput: serializer.fromJson<String?>(json['originalInput']),
+      mediaFilePath: serializer.fromJson<String?>(json['mediaFilePath']),
+      mediaType: serializer.fromJson<String?>(json['mediaType']),
       aiConfidence: serializer.fromJson<double?>(json['aiConfidence']),
       aiSource: serializer.fromJson<String>(json['aiSource']),
       userConfirmed: serializer.fromJson<bool>(json['userConfirmed']),
@@ -1669,6 +1735,8 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       'subcategoryId': serializer.toJson<int?>(subcategoryId),
       'transactionDate': serializer.toJson<DateTime>(transactionDate),
       'originalInput': serializer.toJson<String?>(originalInput),
+      'mediaFilePath': serializer.toJson<String?>(mediaFilePath),
+      'mediaType': serializer.toJson<String?>(mediaType),
       'aiConfidence': serializer.toJson<double?>(aiConfidence),
       'aiSource': serializer.toJson<String>(aiSource),
       'userConfirmed': serializer.toJson<bool>(userConfirmed),
@@ -1687,6 +1755,8 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     Value<int?> subcategoryId = const Value.absent(),
     DateTime? transactionDate,
     Value<String?> originalInput = const Value.absent(),
+    Value<String?> mediaFilePath = const Value.absent(),
+    Value<String?> mediaType = const Value.absent(),
     Value<double?> aiConfidence = const Value.absent(),
     String? aiSource,
     bool? userConfirmed,
@@ -1706,6 +1776,10 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     originalInput: originalInput.present
         ? originalInput.value
         : this.originalInput,
+    mediaFilePath: mediaFilePath.present
+        ? mediaFilePath.value
+        : this.mediaFilePath,
+    mediaType: mediaType.present ? mediaType.value : this.mediaType,
     aiConfidence: aiConfidence.present ? aiConfidence.value : this.aiConfidence,
     aiSource: aiSource ?? this.aiSource,
     userConfirmed: userConfirmed ?? this.userConfirmed,
@@ -1733,6 +1807,10 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       originalInput: data.originalInput.present
           ? data.originalInput.value
           : this.originalInput,
+      mediaFilePath: data.mediaFilePath.present
+          ? data.mediaFilePath.value
+          : this.mediaFilePath,
+      mediaType: data.mediaType.present ? data.mediaType.value : this.mediaType,
       aiConfidence: data.aiConfidence.present
           ? data.aiConfidence.value
           : this.aiConfidence,
@@ -1759,6 +1837,8 @@ class Transaction extends DataClass implements Insertable<Transaction> {
           ..write('subcategoryId: $subcategoryId, ')
           ..write('transactionDate: $transactionDate, ')
           ..write('originalInput: $originalInput, ')
+          ..write('mediaFilePath: $mediaFilePath, ')
+          ..write('mediaType: $mediaType, ')
           ..write('aiConfidence: $aiConfidence, ')
           ..write('aiSource: $aiSource, ')
           ..write('userConfirmed: $userConfirmed, ')
@@ -1779,6 +1859,8 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     subcategoryId,
     transactionDate,
     originalInput,
+    mediaFilePath,
+    mediaType,
     aiConfidence,
     aiSource,
     userConfirmed,
@@ -1798,6 +1880,8 @@ class Transaction extends DataClass implements Insertable<Transaction> {
           other.subcategoryId == this.subcategoryId &&
           other.transactionDate == this.transactionDate &&
           other.originalInput == this.originalInput &&
+          other.mediaFilePath == this.mediaFilePath &&
+          other.mediaType == this.mediaType &&
           other.aiConfidence == this.aiConfidence &&
           other.aiSource == this.aiSource &&
           other.userConfirmed == this.userConfirmed &&
@@ -1815,6 +1899,8 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
   final Value<int?> subcategoryId;
   final Value<DateTime> transactionDate;
   final Value<String?> originalInput;
+  final Value<String?> mediaFilePath;
+  final Value<String?> mediaType;
   final Value<double?> aiConfidence;
   final Value<String> aiSource;
   final Value<bool> userConfirmed;
@@ -1830,6 +1916,8 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     this.subcategoryId = const Value.absent(),
     this.transactionDate = const Value.absent(),
     this.originalInput = const Value.absent(),
+    this.mediaFilePath = const Value.absent(),
+    this.mediaType = const Value.absent(),
     this.aiConfidence = const Value.absent(),
     this.aiSource = const Value.absent(),
     this.userConfirmed = const Value.absent(),
@@ -1846,6 +1934,8 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     this.subcategoryId = const Value.absent(),
     required DateTime transactionDate,
     this.originalInput = const Value.absent(),
+    this.mediaFilePath = const Value.absent(),
+    this.mediaType = const Value.absent(),
     this.aiConfidence = const Value.absent(),
     this.aiSource = const Value.absent(),
     this.userConfirmed = const Value.absent(),
@@ -1866,6 +1956,8 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     Expression<int>? subcategoryId,
     Expression<DateTime>? transactionDate,
     Expression<String>? originalInput,
+    Expression<String>? mediaFilePath,
+    Expression<String>? mediaType,
     Expression<double>? aiConfidence,
     Expression<String>? aiSource,
     Expression<bool>? userConfirmed,
@@ -1882,6 +1974,8 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
       if (subcategoryId != null) 'subcategory_id': subcategoryId,
       if (transactionDate != null) 'transaction_date': transactionDate,
       if (originalInput != null) 'original_input': originalInput,
+      if (mediaFilePath != null) 'media_file_path': mediaFilePath,
+      if (mediaType != null) 'media_type': mediaType,
       if (aiConfidence != null) 'ai_confidence': aiConfidence,
       if (aiSource != null) 'ai_source': aiSource,
       if (userConfirmed != null) 'user_confirmed': userConfirmed,
@@ -1900,6 +1994,8 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     Value<int?>? subcategoryId,
     Value<DateTime>? transactionDate,
     Value<String?>? originalInput,
+    Value<String?>? mediaFilePath,
+    Value<String?>? mediaType,
     Value<double?>? aiConfidence,
     Value<String>? aiSource,
     Value<bool>? userConfirmed,
@@ -1916,6 +2012,8 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
       subcategoryId: subcategoryId ?? this.subcategoryId,
       transactionDate: transactionDate ?? this.transactionDate,
       originalInput: originalInput ?? this.originalInput,
+      mediaFilePath: mediaFilePath ?? this.mediaFilePath,
+      mediaType: mediaType ?? this.mediaType,
       aiConfidence: aiConfidence ?? this.aiConfidence,
       aiSource: aiSource ?? this.aiSource,
       userConfirmed: userConfirmed ?? this.userConfirmed,
@@ -1949,6 +2047,12 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     }
     if (originalInput.present) {
       map['original_input'] = Variable<String>(originalInput.value);
+    }
+    if (mediaFilePath.present) {
+      map['media_file_path'] = Variable<String>(mediaFilePath.value);
+    }
+    if (mediaType.present) {
+      map['media_type'] = Variable<String>(mediaType.value);
     }
     if (aiConfidence.present) {
       map['ai_confidence'] = Variable<double>(aiConfidence.value);
@@ -1984,6 +2088,8 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
           ..write('subcategoryId: $subcategoryId, ')
           ..write('transactionDate: $transactionDate, ')
           ..write('originalInput: $originalInput, ')
+          ..write('mediaFilePath: $mediaFilePath, ')
+          ..write('mediaType: $mediaType, ')
           ..write('aiConfidence: $aiConfidence, ')
           ..write('aiSource: $aiSource, ')
           ..write('userConfirmed: $userConfirmed, ')
@@ -3048,6 +3154,29 @@ class $ConversationMessagesTable extends ConversationMessages
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _mediaTypeMeta = const VerificationMeta(
+    'mediaType',
+  );
+  @override
+  late final GeneratedColumn<String> mediaType = GeneratedColumn<String>(
+    'media_type',
+    aliasedName,
+    true,
+    additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 10),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _mediaFilePathMeta = const VerificationMeta(
+    'mediaFilePath',
+  );
+  @override
+  late final GeneratedColumn<String> mediaFilePath = GeneratedColumn<String>(
+    'media_file_path',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _functionNameMeta = const VerificationMeta(
     'functionName',
   );
@@ -3113,6 +3242,8 @@ class $ConversationMessagesTable extends ConversationMessages
     conversationId,
     role,
     content,
+    mediaType,
+    mediaFilePath,
     functionName,
     functionArgs,
     functionResult,
@@ -3160,6 +3291,21 @@ class $ConversationMessagesTable extends ConversationMessages
       );
     } else if (isInserting) {
       context.missing(_contentMeta);
+    }
+    if (data.containsKey('media_type')) {
+      context.handle(
+        _mediaTypeMeta,
+        mediaType.isAcceptableOrUnknown(data['media_type']!, _mediaTypeMeta),
+      );
+    }
+    if (data.containsKey('media_file_path')) {
+      context.handle(
+        _mediaFilePathMeta,
+        mediaFilePath.isAcceptableOrUnknown(
+          data['media_file_path']!,
+          _mediaFilePathMeta,
+        ),
+      );
     }
     if (data.containsKey('function_name')) {
       context.handle(
@@ -3230,6 +3376,14 @@ class $ConversationMessagesTable extends ConversationMessages
         DriftSqlType.string,
         data['${effectivePrefix}content'],
       )!,
+      mediaType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}media_type'],
+      ),
+      mediaFilePath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}media_file_path'],
+      ),
       functionName: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}function_name'],
@@ -3265,6 +3419,8 @@ class ConversationMessage extends DataClass
   final String conversationId;
   final String role;
   final String content;
+  final String? mediaType;
+  final String? mediaFilePath;
   final String? functionName;
   final String? functionArgs;
   final String? functionResult;
@@ -3277,6 +3433,8 @@ class ConversationMessage extends DataClass
     required this.conversationId,
     required this.role,
     required this.content,
+    this.mediaType,
+    this.mediaFilePath,
     this.functionName,
     this.functionArgs,
     this.functionResult,
@@ -3290,6 +3448,12 @@ class ConversationMessage extends DataClass
     map['conversation_id'] = Variable<String>(conversationId);
     map['role'] = Variable<String>(role);
     map['content'] = Variable<String>(content);
+    if (!nullToAbsent || mediaType != null) {
+      map['media_type'] = Variable<String>(mediaType);
+    }
+    if (!nullToAbsent || mediaFilePath != null) {
+      map['media_file_path'] = Variable<String>(mediaFilePath);
+    }
     if (!nullToAbsent || functionName != null) {
       map['function_name'] = Variable<String>(functionName);
     }
@@ -3310,6 +3474,12 @@ class ConversationMessage extends DataClass
       conversationId: Value(conversationId),
       role: Value(role),
       content: Value(content),
+      mediaType: mediaType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mediaType),
+      mediaFilePath: mediaFilePath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mediaFilePath),
       functionName: functionName == null && nullToAbsent
           ? const Value.absent()
           : Value(functionName),
@@ -3334,6 +3504,8 @@ class ConversationMessage extends DataClass
       conversationId: serializer.fromJson<String>(json['conversationId']),
       role: serializer.fromJson<String>(json['role']),
       content: serializer.fromJson<String>(json['content']),
+      mediaType: serializer.fromJson<String?>(json['mediaType']),
+      mediaFilePath: serializer.fromJson<String?>(json['mediaFilePath']),
       functionName: serializer.fromJson<String?>(json['functionName']),
       functionArgs: serializer.fromJson<String?>(json['functionArgs']),
       functionResult: serializer.fromJson<String?>(json['functionResult']),
@@ -3349,6 +3521,8 @@ class ConversationMessage extends DataClass
       'conversationId': serializer.toJson<String>(conversationId),
       'role': serializer.toJson<String>(role),
       'content': serializer.toJson<String>(content),
+      'mediaType': serializer.toJson<String?>(mediaType),
+      'mediaFilePath': serializer.toJson<String?>(mediaFilePath),
       'functionName': serializer.toJson<String?>(functionName),
       'functionArgs': serializer.toJson<String?>(functionArgs),
       'functionResult': serializer.toJson<String?>(functionResult),
@@ -3362,6 +3536,8 @@ class ConversationMessage extends DataClass
     String? conversationId,
     String? role,
     String? content,
+    Value<String?> mediaType = const Value.absent(),
+    Value<String?> mediaFilePath = const Value.absent(),
     Value<String?> functionName = const Value.absent(),
     Value<String?> functionArgs = const Value.absent(),
     Value<String?> functionResult = const Value.absent(),
@@ -3372,6 +3548,10 @@ class ConversationMessage extends DataClass
     conversationId: conversationId ?? this.conversationId,
     role: role ?? this.role,
     content: content ?? this.content,
+    mediaType: mediaType.present ? mediaType.value : this.mediaType,
+    mediaFilePath: mediaFilePath.present
+        ? mediaFilePath.value
+        : this.mediaFilePath,
     functionName: functionName.present ? functionName.value : this.functionName,
     functionArgs: functionArgs.present ? functionArgs.value : this.functionArgs,
     functionResult: functionResult.present
@@ -3388,6 +3568,10 @@ class ConversationMessage extends DataClass
           : this.conversationId,
       role: data.role.present ? data.role.value : this.role,
       content: data.content.present ? data.content.value : this.content,
+      mediaType: data.mediaType.present ? data.mediaType.value : this.mediaType,
+      mediaFilePath: data.mediaFilePath.present
+          ? data.mediaFilePath.value
+          : this.mediaFilePath,
       functionName: data.functionName.present
           ? data.functionName.value
           : this.functionName,
@@ -3411,6 +3595,8 @@ class ConversationMessage extends DataClass
           ..write('conversationId: $conversationId, ')
           ..write('role: $role, ')
           ..write('content: $content, ')
+          ..write('mediaType: $mediaType, ')
+          ..write('mediaFilePath: $mediaFilePath, ')
           ..write('functionName: $functionName, ')
           ..write('functionArgs: $functionArgs, ')
           ..write('functionResult: $functionResult, ')
@@ -3426,6 +3612,8 @@ class ConversationMessage extends DataClass
     conversationId,
     role,
     content,
+    mediaType,
+    mediaFilePath,
     functionName,
     functionArgs,
     functionResult,
@@ -3440,6 +3628,8 @@ class ConversationMessage extends DataClass
           other.conversationId == this.conversationId &&
           other.role == this.role &&
           other.content == this.content &&
+          other.mediaType == this.mediaType &&
+          other.mediaFilePath == this.mediaFilePath &&
           other.functionName == this.functionName &&
           other.functionArgs == this.functionArgs &&
           other.functionResult == this.functionResult &&
@@ -3453,6 +3643,8 @@ class ConversationMessagesCompanion
   final Value<String> conversationId;
   final Value<String> role;
   final Value<String> content;
+  final Value<String?> mediaType;
+  final Value<String?> mediaFilePath;
   final Value<String?> functionName;
   final Value<String?> functionArgs;
   final Value<String?> functionResult;
@@ -3463,6 +3655,8 @@ class ConversationMessagesCompanion
     this.conversationId = const Value.absent(),
     this.role = const Value.absent(),
     this.content = const Value.absent(),
+    this.mediaType = const Value.absent(),
+    this.mediaFilePath = const Value.absent(),
     this.functionName = const Value.absent(),
     this.functionArgs = const Value.absent(),
     this.functionResult = const Value.absent(),
@@ -3474,6 +3668,8 @@ class ConversationMessagesCompanion
     required String conversationId,
     required String role,
     required String content,
+    this.mediaType = const Value.absent(),
+    this.mediaFilePath = const Value.absent(),
     this.functionName = const Value.absent(),
     this.functionArgs = const Value.absent(),
     this.functionResult = const Value.absent(),
@@ -3488,6 +3684,8 @@ class ConversationMessagesCompanion
     Expression<String>? conversationId,
     Expression<String>? role,
     Expression<String>? content,
+    Expression<String>? mediaType,
+    Expression<String>? mediaFilePath,
     Expression<String>? functionName,
     Expression<String>? functionArgs,
     Expression<String>? functionResult,
@@ -3499,6 +3697,8 @@ class ConversationMessagesCompanion
       if (conversationId != null) 'conversation_id': conversationId,
       if (role != null) 'role': role,
       if (content != null) 'content': content,
+      if (mediaType != null) 'media_type': mediaType,
+      if (mediaFilePath != null) 'media_file_path': mediaFilePath,
       if (functionName != null) 'function_name': functionName,
       if (functionArgs != null) 'function_args': functionArgs,
       if (functionResult != null) 'function_result': functionResult,
@@ -3512,6 +3712,8 @@ class ConversationMessagesCompanion
     Value<String>? conversationId,
     Value<String>? role,
     Value<String>? content,
+    Value<String?>? mediaType,
+    Value<String?>? mediaFilePath,
     Value<String?>? functionName,
     Value<String?>? functionArgs,
     Value<String?>? functionResult,
@@ -3523,6 +3725,8 @@ class ConversationMessagesCompanion
       conversationId: conversationId ?? this.conversationId,
       role: role ?? this.role,
       content: content ?? this.content,
+      mediaType: mediaType ?? this.mediaType,
+      mediaFilePath: mediaFilePath ?? this.mediaFilePath,
       functionName: functionName ?? this.functionName,
       functionArgs: functionArgs ?? this.functionArgs,
       functionResult: functionResult ?? this.functionResult,
@@ -3545,6 +3749,12 @@ class ConversationMessagesCompanion
     }
     if (content.present) {
       map['content'] = Variable<String>(content.value);
+    }
+    if (mediaType.present) {
+      map['media_type'] = Variable<String>(mediaType.value);
+    }
+    if (mediaFilePath.present) {
+      map['media_file_path'] = Variable<String>(mediaFilePath.value);
     }
     if (functionName.present) {
       map['function_name'] = Variable<String>(functionName.value);
@@ -3571,6 +3781,8 @@ class ConversationMessagesCompanion
           ..write('conversationId: $conversationId, ')
           ..write('role: $role, ')
           ..write('content: $content, ')
+          ..write('mediaType: $mediaType, ')
+          ..write('mediaFilePath: $mediaFilePath, ')
           ..write('functionName: $functionName, ')
           ..write('functionArgs: $functionArgs, ')
           ..write('functionResult: $functionResult, ')
@@ -6463,6 +6675,8 @@ typedef $$TransactionsTableCreateCompanionBuilder =
       Value<int?> subcategoryId,
       required DateTime transactionDate,
       Value<String?> originalInput,
+      Value<String?> mediaFilePath,
+      Value<String?> mediaType,
       Value<double?> aiConfidence,
       Value<String> aiSource,
       Value<bool> userConfirmed,
@@ -6480,6 +6694,8 @@ typedef $$TransactionsTableUpdateCompanionBuilder =
       Value<int?> subcategoryId,
       Value<DateTime> transactionDate,
       Value<String?> originalInput,
+      Value<String?> mediaFilePath,
+      Value<String?> mediaType,
       Value<double?> aiConfidence,
       Value<String> aiSource,
       Value<bool> userConfirmed,
@@ -6582,6 +6798,16 @@ class $$TransactionsTableFilterComposer
 
   ColumnFilters<String> get originalInput => $composableBuilder(
     column: $table.originalInput,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mediaFilePath => $composableBuilder(
+    column: $table.mediaFilePath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mediaType => $composableBuilder(
+    column: $table.mediaType,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6719,6 +6945,16 @@ class $$TransactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get mediaFilePath => $composableBuilder(
+    column: $table.mediaFilePath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mediaType => $composableBuilder(
+    column: $table.mediaType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<double> get aiConfidence => $composableBuilder(
     column: $table.aiConfidence,
     builder: (column) => ColumnOrderings(column),
@@ -6848,6 +7084,14 @@ class $$TransactionsTableAnnotationComposer
     column: $table.originalInput,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get mediaFilePath => $composableBuilder(
+    column: $table.mediaFilePath,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get mediaType =>
+      $composableBuilder(column: $table.mediaType, builder: (column) => column);
 
   GeneratedColumn<double> get aiConfidence => $composableBuilder(
     column: $table.aiConfidence,
@@ -6980,6 +7224,8 @@ class $$TransactionsTableTableManager
                 Value<int?> subcategoryId = const Value.absent(),
                 Value<DateTime> transactionDate = const Value.absent(),
                 Value<String?> originalInput = const Value.absent(),
+                Value<String?> mediaFilePath = const Value.absent(),
+                Value<String?> mediaType = const Value.absent(),
                 Value<double?> aiConfidence = const Value.absent(),
                 Value<String> aiSource = const Value.absent(),
                 Value<bool> userConfirmed = const Value.absent(),
@@ -6995,6 +7241,8 @@ class $$TransactionsTableTableManager
                 subcategoryId: subcategoryId,
                 transactionDate: transactionDate,
                 originalInput: originalInput,
+                mediaFilePath: mediaFilePath,
+                mediaType: mediaType,
                 aiConfidence: aiConfidence,
                 aiSource: aiSource,
                 userConfirmed: userConfirmed,
@@ -7012,6 +7260,8 @@ class $$TransactionsTableTableManager
                 Value<int?> subcategoryId = const Value.absent(),
                 required DateTime transactionDate,
                 Value<String?> originalInput = const Value.absent(),
+                Value<String?> mediaFilePath = const Value.absent(),
+                Value<String?> mediaType = const Value.absent(),
                 Value<double?> aiConfidence = const Value.absent(),
                 Value<String> aiSource = const Value.absent(),
                 Value<bool> userConfirmed = const Value.absent(),
@@ -7027,6 +7277,8 @@ class $$TransactionsTableTableManager
                 subcategoryId: subcategoryId,
                 transactionDate: transactionDate,
                 originalInput: originalInput,
+                mediaFilePath: mediaFilePath,
+                mediaType: mediaType,
                 aiConfidence: aiConfidence,
                 aiSource: aiSource,
                 userConfirmed: userConfirmed,
@@ -7983,6 +8235,8 @@ typedef $$ConversationMessagesTableCreateCompanionBuilder =
       required String conversationId,
       required String role,
       required String content,
+      Value<String?> mediaType,
+      Value<String?> mediaFilePath,
       Value<String?> functionName,
       Value<String?> functionArgs,
       Value<String?> functionResult,
@@ -7995,6 +8249,8 @@ typedef $$ConversationMessagesTableUpdateCompanionBuilder =
       Value<String> conversationId,
       Value<String> role,
       Value<String> content,
+      Value<String?> mediaType,
+      Value<String?> mediaFilePath,
       Value<String?> functionName,
       Value<String?> functionArgs,
       Value<String?> functionResult,
@@ -8064,6 +8320,16 @@ class $$ConversationMessagesTableFilterComposer
 
   ColumnFilters<String> get content => $composableBuilder(
     column: $table.content,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mediaType => $composableBuilder(
+    column: $table.mediaType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mediaFilePath => $composableBuilder(
+    column: $table.mediaFilePath,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8140,6 +8406,16 @@ class $$ConversationMessagesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get mediaType => $composableBuilder(
+    column: $table.mediaType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mediaFilePath => $composableBuilder(
+    column: $table.mediaFilePath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get functionName => $composableBuilder(
     column: $table.functionName,
     builder: (column) => ColumnOrderings(column),
@@ -8206,6 +8482,14 @@ class $$ConversationMessagesTableAnnotationComposer
 
   GeneratedColumn<String> get content =>
       $composableBuilder(column: $table.content, builder: (column) => column);
+
+  GeneratedColumn<String> get mediaType =>
+      $composableBuilder(column: $table.mediaType, builder: (column) => column);
+
+  GeneratedColumn<String> get mediaFilePath => $composableBuilder(
+    column: $table.mediaFilePath,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get functionName => $composableBuilder(
     column: $table.functionName,
@@ -8289,6 +8573,8 @@ class $$ConversationMessagesTableTableManager
                 Value<String> conversationId = const Value.absent(),
                 Value<String> role = const Value.absent(),
                 Value<String> content = const Value.absent(),
+                Value<String?> mediaType = const Value.absent(),
+                Value<String?> mediaFilePath = const Value.absent(),
                 Value<String?> functionName = const Value.absent(),
                 Value<String?> functionArgs = const Value.absent(),
                 Value<String?> functionResult = const Value.absent(),
@@ -8299,6 +8585,8 @@ class $$ConversationMessagesTableTableManager
                 conversationId: conversationId,
                 role: role,
                 content: content,
+                mediaType: mediaType,
+                mediaFilePath: mediaFilePath,
                 functionName: functionName,
                 functionArgs: functionArgs,
                 functionResult: functionResult,
@@ -8311,6 +8599,8 @@ class $$ConversationMessagesTableTableManager
                 required String conversationId,
                 required String role,
                 required String content,
+                Value<String?> mediaType = const Value.absent(),
+                Value<String?> mediaFilePath = const Value.absent(),
                 Value<String?> functionName = const Value.absent(),
                 Value<String?> functionArgs = const Value.absent(),
                 Value<String?> functionResult = const Value.absent(),
@@ -8321,6 +8611,8 @@ class $$ConversationMessagesTableTableManager
                 conversationId: conversationId,
                 role: role,
                 content: content,
+                mediaType: mediaType,
+                mediaFilePath: mediaFilePath,
                 functionName: functionName,
                 functionArgs: functionArgs,
                 functionResult: functionResult,

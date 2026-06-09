@@ -1,153 +1,223 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// 用户自定义的 LLM 服务商配置
+// ============================================================
+// 模型能力枚举
+// ============================================================
+
+/// AI 模型能力类型
+enum ModelCapability {
+  /// 文本模型 — 用于记账解析、AI 对话
+  text(
+    '文本模型',
+    '用于记账解析、AI 对话',
+    Icons.text_fields,
+    '📝',
+    [], // 文本能力不做关键词筛选
+  ),
+
+  /// 视觉模型 — 用于拍照识别小票/发票
+  vision(
+    '视觉模型',
+    '用于拍照识别小票/发票',
+    Icons.image,
+    '👁',
+    ['vision', 'gpt-4o', 'gpt-4.1', 'claude-sonnet', 'claude-opus', 'qwen-vl', 'glm-4v', 'internvl', 'deepseek-vl'],
+  ),
+
+  /// 语音模型 — 用于语音转文字
+  audio(
+    '语音模型',
+    '用于语音转文字',
+    Icons.mic,
+    '🎤',
+    ['whisper', 'tts', 'audio', 'asr', 'sense-voice', 'paraformer'],
+  );
+
+  final String label;
+  final String description;
+  final IconData icon;
+  final String emoji;
+  final List<String> filterKeywords;
+
+  const ModelCapability(this.label, this.description, this.icon, this.emoji, this.filterKeywords);
+}
+
+// ============================================================
+// 单个模型配置
+// ============================================================
+
+class ModelConfig {
+  final String modelName;
+
+  const ModelConfig({required this.modelName});
+
+  Map<String, dynamic> toJson() => {'modelName': modelName};
+
+  factory ModelConfig.fromJson(Map<String, dynamic> json) =>
+      ModelConfig(modelName: json['modelName'] as String? ?? '');
+}
+
+// ============================================================
+// 用户自定义的 LLM 服务商配置
+// ============================================================
+
 class LlmProvider {
-  final String id; // 唯一标识
-  final String name; // 服务商名称（如 "DeepSeek"、"通义千问"）
-  final String apiKey; // API Key
-  final String baseUrl; // 请求地址（如 https://api.deepseek.com/v1）
-  final String model; // 模型名称（如 deepseek-chat）
-  final double temperature; // 温度参数 0.0-1.0
-  final int maxTokens; // 最大 token 数
-  final int timeoutSeconds; // 超时时间（秒）
-  final String providerKey; // 预设 key（如 'deepseek'）或 'custom'
+  final String id;
+  final String name;
+  final String apiKey;
+  final String baseUrl;
+  final double temperature;
+  final int maxTokens;
+  final int timeoutSeconds;
+  final String providerKey;
+
+  /// 按能力分组的模型配置
+  final Map<String, ModelConfig> models;
 
   const LlmProvider({
     required this.id,
     required this.name,
     required this.apiKey,
     required this.baseUrl,
-    required this.model,
     this.temperature = 0.0,
     this.maxTokens = 1000,
     this.timeoutSeconds = 30,
     this.providerKey = 'custom',
+    this.models = const {},
   });
 
-  /// 是否配置完整（名称、API Key、地址、模型都非空）
+  /// 是否配置完整（至少配置了一个模型）
   bool get isComplete =>
       name.isNotEmpty &&
       apiKey.isNotEmpty &&
       baseUrl.isNotEmpty &&
-      model.isNotEmpty;
+      models.values.any((m) => m.modelName.isNotEmpty);
+
+  /// 获取指定能力的模型名称
+  String? getModelForCapability(ModelCapability capability) {
+    final config = models[capability.name];
+    if (config != null && config.modelName.isNotEmpty) return config.modelName;
+    return null;
+  }
+
+  /// 获取所有已配置的能力列表
+  List<ModelCapability> get configuredCapabilities {
+    return ModelCapability.values.where((cap) => getModelForCapability(cap) != null).toList();
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
         'apiKey': apiKey,
         'baseUrl': baseUrl,
-        'model': model,
         'temperature': temperature,
         'maxTokens': maxTokens,
         'timeoutSeconds': timeoutSeconds,
         'providerKey': providerKey,
+        'models': models.map((k, v) => MapEntry(k, v.toJson())),
       };
 
-  factory LlmProvider.fromJson(Map<String, dynamic> json) => LlmProvider(
-        id: json['id'] as String,
-        name: json['name'] as String? ?? '',
-        apiKey: json['apiKey'] as String? ?? '',
-        baseUrl: json['baseUrl'] as String? ?? '',
-        model: json['model'] as String? ?? '',
-        temperature: (json['temperature'] as num?)?.toDouble() ?? 0.0,
-        maxTokens: json['maxTokens'] as int? ?? 1000,
-        timeoutSeconds: json['timeoutSeconds'] as int? ?? 30,
-        providerKey: json['providerKey'] as String? ?? 'custom',
-      );
+  factory LlmProvider.fromJson(Map<String, dynamic> json) {
+    final modelsJson = json['models'] as Map<String, dynamic>? ?? {};
+    final models = <String, ModelConfig>{};
+    for (final entry in modelsJson.entries) {
+      if (entry.value is Map<String, dynamic>) {
+        models[entry.key] = ModelConfig.fromJson(entry.value as Map<String, dynamic>);
+      }
+    }
+
+    return LlmProvider(
+      id: json['id'] as String,
+      name: json['name'] as String? ?? '',
+      apiKey: json['apiKey'] as String? ?? '',
+      baseUrl: json['baseUrl'] as String? ?? '',
+      temperature: (json['temperature'] as num?)?.toDouble() ?? 0.0,
+      maxTokens: json['maxTokens'] as int? ?? 1000,
+      timeoutSeconds: json['timeoutSeconds'] as int? ?? 30,
+      providerKey: json['providerKey'] as String? ?? 'custom',
+      models: models,
+    );
+  }
 
   LlmProvider copyWith({
     String? name,
     String? apiKey,
     String? baseUrl,
-    String? model,
     double? temperature,
     int? maxTokens,
     int? timeoutSeconds,
     String? providerKey,
+    Map<String, ModelConfig>? models,
   }) {
     return LlmProvider(
       id: id,
       name: name ?? this.name,
       apiKey: apiKey ?? this.apiKey,
       baseUrl: baseUrl ?? this.baseUrl,
-      model: model ?? this.model,
       temperature: temperature ?? this.temperature,
       maxTokens: maxTokens ?? this.maxTokens,
       timeoutSeconds: timeoutSeconds ?? this.timeoutSeconds,
       providerKey: providerKey ?? this.providerKey,
+      models: models ?? this.models,
     );
   }
 }
 
-/// LLM 服务配置管理（本地存储）
+// ============================================================
+// LLM 服务配置管理（本地存储）
+// ============================================================
+
 class LlmConfigManager {
   static const _keyProviders = 'llm_providers';
   static const _keyActiveId = 'llm_active_provider_id';
 
-  /// 加载所有用户配置的服务商
   static Future<List<LlmProvider>> loadProviders() async {
     final prefs = await SharedPreferences.getInstance();
     final jsonStr = prefs.getString(_keyProviders);
     if (jsonStr == null || jsonStr.isEmpty) return [];
-
     try {
       final list = jsonDecode(jsonStr) as List<dynamic>;
-      return list
-          .map((e) => LlmProvider.fromJson(e as Map<String, dynamic>))
-          .toList();
+      return list.map((e) => LlmProvider.fromJson(e as Map<String, dynamic>)).toList();
     } catch (_) {
       return [];
     }
   }
 
-  /// 保存所有服务商配置
   static Future<void> saveProviders(List<LlmProvider> providers) async {
     final prefs = await SharedPreferences.getInstance();
-    final jsonStr = jsonEncode(providers.map((p) => p.toJson()).toList());
-    await prefs.setString(_keyProviders, jsonStr);
+    await prefs.setString(_keyProviders, jsonEncode(providers.map((p) => p.toJson()).toList()));
   }
 
-  /// 获取当前激活的服务商 ID
   static Future<String?> getActiveProviderId() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_keyActiveId);
   }
 
-  /// 设置当前激活的服务商
   static Future<void> setActiveProviderId(String id) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyActiveId, id);
   }
 
-  /// 获取当前激活的服务商配置
   static Future<LlmProvider?> getActiveProvider() async {
     final providers = await loadProviders();
     if (providers.isEmpty) return null;
-
     final activeId = await getActiveProviderId();
     if (activeId != null) {
       final match = providers.where((p) => p.id == activeId);
       if (match.isNotEmpty) return match.first;
     }
-
-    // 返回第一个配置完整的服务商
     return providers.where((p) => p.isComplete).firstOrNull ?? providers.first;
   }
 
-  /// 添加服务商
   static Future<void> addProvider(LlmProvider provider) async {
     final providers = await loadProviders();
     providers.add(provider);
     await saveProviders(providers);
-
-    // 如果是第一个，自动设为激活
-    if (providers.length == 1) {
-      await setActiveProviderId(provider.id);
-    }
+    if (providers.length == 1) await setActiveProviderId(provider.id);
   }
 
-  /// 更新服务商
   static Future<void> updateProvider(LlmProvider provider) async {
     final providers = await loadProviders();
     final index = providers.indexWhere((p) => p.id == provider.id);
@@ -157,49 +227,36 @@ class LlmConfigManager {
     }
   }
 
-  /// 删除服务商
   static Future<void> deleteProvider(String id) async {
     final providers = await loadProviders();
     providers.removeWhere((p) => p.id == id);
     await saveProviders(providers);
-
-    // 如果删除的是当前激活的，切换到第一个
     final activeId = await getActiveProviderId();
     if (activeId == id && providers.isNotEmpty) {
       await setActiveProviderId(providers.first.id);
     }
   }
 
-  /// 导出所有配置为 JSON 字符串（用于数据备份/分享）
   static Future<String> exportConfig() async {
     final providers = await loadProviders();
     final activeId = await getActiveProviderId();
-    final exportData = {
-      'version': 1,
+    return const JsonEncoder.withIndent('  ').convert({
+      'version': 2,
       'exportedAt': DateTime.now().toIso8601String(),
       'providers': providers.map((p) => p.toJson()).toList(),
       'activeProviderId': activeId,
-    };
-    return const JsonEncoder.withIndent('  ').convert(exportData);
+    });
   }
 
-  /// 从 JSON 字符串导入配置
-  /// 返回导入的服务商数量，失败返回 -1
   static Future<int> importConfig(String jsonStr) async {
     try {
       final data = jsonDecode(jsonStr) as Map<String, dynamic>;
-      final list = data['providers'] as List<dynamic>;
-      final providers = list
+      final providers = (data['providers'] as List<dynamic>)
           .map((e) => LlmProvider.fromJson(e as Map<String, dynamic>))
           .toList();
-
       await saveProviders(providers);
-
       final activeId = data['activeProviderId'] as String?;
-      if (activeId != null) {
-        await setActiveProviderId(activeId);
-      }
-
+      if (activeId != null) await setActiveProviderId(activeId);
       return providers.length;
     } catch (_) {
       return -1;
@@ -207,9 +264,12 @@ class LlmConfigManager {
   }
 }
 
-/// 聊天消息
+// ============================================================
+// 聊天消息 / 请求 / 响应
+// ============================================================
+
 class ChatMessage {
-  final String role; // system / user / assistant
+  final String role;
   final String content;
 
   const ChatMessage({required this.role, required this.content});
@@ -217,22 +277,22 @@ class ChatMessage {
   Map<String, String> toJson() => {'role': role, 'content': content};
 }
 
-/// LLM 请求
 class LlmRequest {
   final List<ChatMessage> messages;
   final String? model;
   final double? temperature;
   final int? maxTokens;
+  final ModelCapability? capability;
 
   const LlmRequest({
     required this.messages,
     this.model,
     this.temperature,
     this.maxTokens,
+    this.capability,
   });
 }
 
-/// LLM 响应
 class LlmResponse {
   final String content;
   final String model;
@@ -249,9 +309,8 @@ class LlmResponse {
   });
 }
 
-/// 记账解析结果
 class TransactionParseResult {
-  final String type; // expense / income
+  final String type;
   final double amount;
   final String category;
   final String? subcategory;
@@ -272,7 +331,6 @@ class TransactionParseResult {
   });
 }
 
-/// LLM 异常
 class LlmException implements Exception {
   final String message;
   const LlmException(this.message);

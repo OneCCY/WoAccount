@@ -2,10 +2,15 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import '../../../../core/ai/prompt_templates.dart';
 import '../../../../core/ai/rule_engine.dart';
+import '../../../../core/config/ai_provider_presets.dart';
 import '../../domain/repositories/llm_repository.dart';
 import '../models/llm_config.dart';
 
 /// LLM 服务实现（Data 层）
+///
+/// 支持两种 API 格式：
+/// - OpenAI 兼容格式（/v1/chat/completions）
+/// - Anthropic Messages API 格式（/messages）
 class LlmRepositoryImpl implements LlmRepository {
   final Dio _dio;
 
@@ -16,6 +21,16 @@ class LlmRepositoryImpl implements LlmRepository {
     return await LlmConfigManager.getActiveProvider();
   }
 
+  /// 获取指定能力的模型名称
+  /// 优先使用 request.model → request.capability 对应的模型 → text 模型
+  String _resolveModel(LlmProvider provider, LlmRequest request) {
+    if (request.model != null && request.model!.isNotEmpty) return request.model!;
+    final cap = request.capability ?? ModelCapability.text;
+    final capModel = provider.getModelForCapability(cap);
+    if (capModel != null) return capModel;
+    throw const LlmException('未配置对应能力的模型');
+  }
+
   @override
   Future<LlmResponse> chat(LlmRequest request) async {
     final provider = await LlmConfigManager.getActiveProvider();
@@ -24,41 +39,114 @@ class LlmRepositoryImpl implements LlmRepository {
       throw const LlmException('请先在设置中添加并配置 AI 服务商');
     }
 
+    final model = _resolveModel(provider, request);
+
+    // 判断 API 格式
+    final preset = getPresetByKey(provider.providerKey);
+    final isAnthropic = preset?.apiFormat == ApiFormat.anthropic;
+
     try {
-      final response = await _dio.post(
-        '${provider.baseUrl}/chat/completions',
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer ${provider.apiKey}',
-            'Content-Type': 'application/json',
-          },
-          sendTimeout: Duration(seconds: provider.timeoutSeconds),
-          receiveTimeout: Duration(seconds: provider.timeoutSeconds),
-        ),
-        data: {
-          'model': request.model ?? provider.model,
-          'messages': request.messages.map((m) => m.toJson()).toList(),
-          'temperature': request.temperature ?? provider.temperature,
-          'max_tokens': request.maxTokens ?? provider.maxTokens,
-        },
-      );
-
-      final data = response.data as Map<String, dynamic>;
-      final usage = data['usage'] as Map<String, dynamic>? ?? {};
-      final choices = data['choices'] as List<dynamic>;
-      final messageContent =
-          (choices[0] as Map<String, dynamic>)['message']['content'] as String;
-
-      return LlmResponse(
-        content: messageContent,
-        model: data['model'] as String? ?? provider.model,
-        promptTokens: usage['prompt_tokens'] as int? ?? 0,
-        completionTokens: usage['completion_tokens'] as int? ?? 0,
-        totalTokens: usage['total_tokens'] as int? ?? 0,
-      );
+      if (isAnthropic) {
+        return await _chatAnthropic(provider, request, model);
+      } else {
+        return await _chatOpenAI(provider, request, model);
+      }
     } on DioException catch (e) {
       throw LlmException(_parseDioError(e));
     }
+  }
+
+  /// OpenAI 兼容格式调用
+  Future<LlmResponse> _chatOpenAI(LlmProvider provider, LlmRequest request, String model) async {
+    final response = await _dio.post(
+      '${provider.baseUrl}/chat/completions',
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer ${provider.apiKey}',
+          'Content-Type': 'application/json',
+        },
+        sendTimeout: Duration(seconds: provider.timeoutSeconds),
+        receiveTimeout: Duration(seconds: provider.timeoutSeconds),
+      ),
+      data: {
+        'model': model,
+        'messages': request.messages.map((m) => m.toJson()).toList(),
+        'temperature': request.temperature ?? provider.temperature,
+        'max_tokens': request.maxTokens ?? provider.maxTokens,
+      },
+    );
+
+    final data = response.data as Map<String, dynamic>;
+    final usage = data['usage'] as Map<String, dynamic>? ?? {};
+    final choices = data['choices'] as List<dynamic>;
+    final messageContent =
+        (choices[0] as Map<String, dynamic>)['message']['content'] as String;
+
+    return LlmResponse(
+      content: messageContent,
+      model: data['model'] as String? ?? model,
+      promptTokens: usage['prompt_tokens'] as int? ?? 0,
+      completionTokens: usage['completion_tokens'] as int? ?? 0,
+      totalTokens: usage['total_tokens'] as int? ?? 0,
+    );
+  }
+
+  /// Anthropic Messages API 格式调用
+  Future<LlmResponse> _chatAnthropic(LlmProvider provider, LlmRequest request, String model) async {
+    // 分离 system 消息和 user/assistant 消息
+    String? systemPrompt;
+    final messages = <Map<String, String>>[];
+    for (final msg in request.messages) {
+      if (msg.role == 'system') {
+        systemPrompt = msg.content;
+      } else {
+        messages.add({'role': msg.role, 'content': msg.content});
+      }
+    }
+
+    // 如果没有 user/assistant 消息，添加一个空的 user 消息
+    if (messages.isEmpty) {
+      messages.add({'role': 'user', 'content': 'Hello'});
+    }
+
+    final requestBody = <String, dynamic>{
+      'model': model,
+      'messages': messages,
+      'max_tokens': request.maxTokens ?? provider.maxTokens,
+    };
+    if (systemPrompt != null) {
+      requestBody['system'] = systemPrompt;
+    }
+    if (request.temperature != null || provider.temperature > 0) {
+      requestBody['temperature'] = request.temperature ?? provider.temperature;
+    }
+
+    final response = await _dio.post(
+      '${provider.baseUrl}/messages',
+      options: Options(
+        headers: {
+          'x-api-key': provider.apiKey,
+          'anthropic-version': '2023-06-01',
+          'Content-Type': 'application/json',
+        },
+        sendTimeout: Duration(seconds: provider.timeoutSeconds),
+        receiveTimeout: Duration(seconds: provider.timeoutSeconds),
+      ),
+      data: requestBody,
+    );
+
+    final data = response.data as Map<String, dynamic>;
+    final usage = data['usage'] as Map<String, dynamic>? ?? {};
+    final content = data['content'] as List<dynamic>;
+    final textContent = (content[0] as Map<String, dynamic>)['text'] as String;
+
+    return LlmResponse(
+      content: textContent,
+      model: data['model'] as String? ?? model,
+      promptTokens: usage['input_tokens'] as int? ?? 0,
+      completionTokens: usage['output_tokens'] as int? ?? 0,
+      totalTokens: (usage['input_tokens'] as int? ?? 0) + (usage['output_tokens'] as int? ?? 0),
+    );
   }
 
   @override
@@ -73,13 +161,14 @@ class LlmRepositoryImpl implements LlmRepository {
         throw const LlmException('请先在设置中添加 AI 服务商，或输入更明确的描述（如"午饭拉面25"）');
       }
 
-      // 调用 LLM
+      // 调用 LLM（使用文本能力）
       final response = await chat(LlmRequest(
         messages: [
           ChatMessage(role: 'system', content: PromptTemplates.parseTransactionSystem),
           ChatMessage(role: 'user', content: PromptTemplates.parseTransactionUser(input)),
         ],
         temperature: 0.0,
+        capability: ModelCapability.text,
       ));
 
       return _parseTransactionResponse(response.content);
@@ -94,28 +183,64 @@ class LlmRepositoryImpl implements LlmRepository {
   @override
   Future<bool> testConnection(LlmProvider provider) async {
     try {
-      final response = await _dio.post(
-        '${provider.baseUrl}/chat/completions',
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer ${provider.apiKey}',
-            'Content-Type': 'application/json',
-          },
-          sendTimeout: Duration(seconds: provider.timeoutSeconds),
-          receiveTimeout: Duration(seconds: provider.timeoutSeconds),
-        ),
-        data: {
-          'model': provider.model,
-          'messages': [
-            {'role': 'user', 'content': 'Hello'}
-          ],
-          'max_tokens': 10,
-        },
-      );
-      return response.statusCode == 200;
+      final preset = getPresetByKey(provider.providerKey);
+      final isAnthropic = preset?.apiFormat == ApiFormat.anthropic;
+
+      if (isAnthropic) {
+        return await _testConnectionAnthropic(provider);
+      } else {
+        return await _testConnectionOpenAI(provider);
+      }
     } catch (_) {
       return false;
     }
+  }
+
+  /// 测试 OpenAI 兼容连接
+  Future<bool> _testConnectionOpenAI(LlmProvider provider) async {
+    final response = await _dio.post(
+      '${provider.baseUrl}/chat/completions',
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer ${provider.apiKey}',
+          'Content-Type': 'application/json',
+        },
+        sendTimeout: Duration(seconds: provider.timeoutSeconds),
+        receiveTimeout: Duration(seconds: provider.timeoutSeconds),
+      ),
+      data: {
+        'model': provider.getModelForCapability(ModelCapability.text) ?? '',
+        'messages': [
+          {'role': 'user', 'content': 'Hello'}
+        ],
+        'max_tokens': 10,
+      },
+    );
+    return response.statusCode == 200;
+  }
+
+  /// 测试 Anthropic 连接
+  Future<bool> _testConnectionAnthropic(LlmProvider provider) async {
+    final response = await _dio.post(
+      '${provider.baseUrl}/messages',
+      options: Options(
+        headers: {
+          'x-api-key': provider.apiKey,
+          'anthropic-version': '2023-06-01',
+          'Content-Type': 'application/json',
+        },
+        sendTimeout: Duration(seconds: provider.timeoutSeconds),
+        receiveTimeout: Duration(seconds: provider.timeoutSeconds),
+      ),
+      data: {
+        'model': provider.getModelForCapability(ModelCapability.text) ?? '',
+        'messages': [
+          {'role': 'user', 'content': 'Hello'}
+        ],
+        'max_tokens': 10,
+      },
+    );
+    return response.statusCode == 200;
   }
 
   /// 解析 LLM 返回的交易 JSON（支持单笔和多笔）

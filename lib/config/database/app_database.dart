@@ -17,6 +17,8 @@ class Transactions extends Table {
   IntColumn get subcategoryId => integer().nullable().references(Categories, #id)();
   DateTimeColumn get transactionDate => dateTime()();
   TextColumn get originalInput => text().nullable()();
+  TextColumn get mediaFilePath => text().nullable()();
+  TextColumn get mediaType => text().withLength(max: 10).nullable()();
   RealColumn get aiConfidence => real().nullable()();
   TextColumn get aiSource => text().withLength(max: 20).withDefault(const Constant('manual'))();
   BoolColumn get userConfirmed => boolean().withDefault(const Constant(false))();
@@ -96,6 +98,8 @@ class ConversationMessages extends Table {
   TextColumn get conversationId => text().withLength(max: 50)();
   TextColumn get role => text().withLength(max: 20)();
   TextColumn get content => text()();
+  TextColumn get mediaType => text().withLength(max: 10).nullable()();
+  TextColumn get mediaFilePath => text().nullable()();
   TextColumn get functionName => text().nullable()();
   TextColumn get functionArgs => text().nullable()();
   TextColumn get functionResult => text().nullable()();
@@ -172,7 +176,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -228,6 +232,14 @@ class AppDatabase extends _$AppDatabase {
         await m.addColumn(budgets, budgets.accountBookId);
         await m.addColumn(aiTrainingRecords, aiTrainingRecords.accountBookId);
         await m.addColumn(conversationMessages, conversationMessages.accountBookId);
+      }
+      if (from < 6) {
+        // 给交易表添加媒体字段
+        await m.addColumn(transactions, transactions.mediaFilePath);
+        await m.addColumn(transactions, transactions.mediaType);
+        // 给对话消息表添加媒体字段
+        await m.addColumn(conversationMessages, conversationMessages.mediaType);
+        await m.addColumn(conversationMessages, conversationMessages.mediaFilePath);
       }
     },
   );
