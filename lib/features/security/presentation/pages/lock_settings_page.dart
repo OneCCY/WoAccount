@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -67,16 +68,18 @@ class _LockSettingsPageState extends State<LockSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('密码锁设置')),
+        appBar: AppBar(title: Text(l10n.securityLockSettings)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
       backgroundColor: context.colors.background,
-      appBar: AppBar(title: const Text('密码锁设置')),
+      appBar: AppBar(title: Text(l10n.securityLockSettings)),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -87,7 +90,7 @@ class _LockSettingsPageState extends State<LockSettingsPage> {
               children: [
                 _buildSwitchItem(
                   icon: Icons.lock_outline,
-                  title: '启用密码锁',
+                  title: l10n.securityEnableLock,
                   value: _lockEnabled,
                   onChanged: (v) {
                     setState(() {
@@ -105,25 +108,25 @@ class _LockSettingsPageState extends State<LockSettingsPage> {
 
               // 解锁方式选择（多选）
               _buildSection(
-                title: '解锁方式（可多选）',
+                title: l10n.securityUnlockMethods,
                 children: [
                   _buildLockTypeCheckbox(
                     icon: Icons.pin_outlined,
-                    title: '数字密码',
-                    subtitle: '四位数字密码解锁',
+                    title: l10n.securityPinCode,
+                    subtitle: l10n.securityPinCodeDesc,
                     type: 'pin',
                   ),
                   if (_biometricAvailable)
                     _buildLockTypeCheckbox(
                       icon: Icons.fingerprint,
-                      title: '指纹解锁',
-                      subtitle: '使用设备指纹快速解锁',
+                      title: l10n.securityBiometric,
+                      subtitle: l10n.securityBiometricDesc,
                       type: 'biometric',
                     ),
                   _buildLockTypeCheckbox(
                     icon: Icons.gesture_outlined,
-                    title: '图案解锁',
-                    subtitle: '绘制图案解锁',
+                    title: l10n.securityPatternLock,
+                    subtitle: l10n.securityPatternLockDesc,
                     type: 'pattern',
                   ),
                 ],
@@ -135,7 +138,7 @@ class _LockSettingsPageState extends State<LockSettingsPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
                 child: Text(
-                  '勾选多种解锁方式后，解锁界面会出现切换按钮。指纹解锁需要设备支持生物识别功能。',
+                  l10n.securityLockHint,
                   style: context.textStyles.caption.copyWith(color: context.colors.textTertiary),
                 ),
               ),
@@ -223,7 +226,7 @@ class _LockSettingsPageState extends State<LockSettingsPage> {
             } else if (type == 'biometric') {
               try {
                 success = await _localAuth.authenticate(
-                  localizedReason: '验证指纹以启用指纹解锁',
+                  localizedReason: AppLocalizations.of(context)!.securityBiometricVerify,
                   options: const AuthenticationOptions(
                     stickyAuth: true,
                     biometricOnly: true,
@@ -232,7 +235,7 @@ class _LockSettingsPageState extends State<LockSettingsPage> {
               } catch (e) {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('指纹验证失败: $e'), duration: const Duration(milliseconds: 500)),
+                    SnackBar(content: Text(AppLocalizations.of(context)!.securityBiometricFail(e.toString())), duration: const Duration(milliseconds: 500)),
                   );
                 }
               }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/di/providers.dart';
+import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -15,6 +17,7 @@ class BudgetPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
     final repo = ref.read(budgetRepositoryProvider);
     final bookId = ref.read(currentBookProvider);
@@ -22,7 +25,7 @@ class BudgetPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: AppBar(
-        title: const Text('预算管理'),
+        title: Text(l10n.budgetTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit_outlined),
@@ -54,11 +57,11 @@ class BudgetPage extends ConsumerWidget {
                 children: [
                   Icon(Icons.account_balance_wallet_outlined, size: 48, color: context.colors.textTertiary),
                   const SizedBox(height: 16),
-                  Text('暂未设置预算', style: context.textStyles.callout.copyWith(color: context.colors.textSecondary)),
+                  Text(l10n.budgetEmpty, style: context.textStyles.callout.copyWith(color: context.colors.textSecondary)),
                   const SizedBox(height: 8),
                   ElevatedButton(
                     onPressed: () => context.push('/budget/setting'),
-                    child: const Text('设置预算'),
+                    child: Text(l10n.budgetSetButton),
                   ),
                 ],
               ),
@@ -92,6 +95,7 @@ class BudgetPage extends ConsumerWidget {
   }
 
   Widget _buildTotalCard(BuildContext context, double total, double spent) {
+    final l10n = AppLocalizations.of(context)!;
     final percentage = total > 0 ? (spent / total * 100) : 0.0;
     final remaining = total - spent;
 
@@ -110,10 +114,10 @@ class BudgetPage extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('本月总预算', style: context.textStyles.footnote.copyWith(color: const Color(0xFFE65100))),
+            Text(l10n.budgetMonthlyTotal, style: context.textStyles.footnote.copyWith(color: const Color(0xFFE65100))),
             const SizedBox(height: 8),
             Text(
-              '¥${total.toStringAsFixed(0)}',
+              context.localeProvider.currency.formatAmount(total, decimals: 0),
               style: context.textStyles.amountLarge.copyWith(color: const Color(0xFFE65100)),
             ),
             const SizedBox(height: 12),
@@ -133,8 +137,8 @@ class BudgetPage extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('已消费 ¥${spent.toStringAsFixed(0)}', style: context.textStyles.caption),
-                Text('剩余 ¥${remaining.toStringAsFixed(0)}', style: context.textStyles.caption),
+                Text(l10n.budgetSpent(context.localeProvider.currency.formatAmount(spent, decimals: 0)), style: context.textStyles.caption),
+                Text(l10n.budgetRemaining(context.localeProvider.currency.formatAmount(remaining, decimals: 0)), style: context.textStyles.caption),
               ],
             ),
           ],
@@ -144,6 +148,7 @@ class BudgetPage extends ConsumerWidget {
   }
 
   Widget _buildOverBudgetWarning(BuildContext context, List<BudgetProgress> progresses) {
+    final l10n = AppLocalizations.of(context)!;
     final overBudget = progresses.where((p) => p.isOverBudget).toList();
 
     return Padding(
@@ -160,7 +165,10 @@ class BudgetPage extends ConsumerWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                '${overBudget.first.category?.name ?? '某分类'}预算已超支 ¥${(overBudget.first.spent - overBudget.first.budget.amount).toStringAsFixed(0)}',
+                l10n.budgetOverSpent(
+                  overBudget.first.category?.name ?? l10n.budgetUnknownCategory,
+                  context.localeProvider.currency.formatAmount(overBudget.first.spent - overBudget.first.budget.amount, decimals: 0),
+                ),
                 style: context.textStyles.caption.copyWith(color: context.colors.error),
               ),
             ),
@@ -216,7 +224,7 @@ class BudgetPage extends ConsumerWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(cat?.name ?? '未分类', style: context.textStyles.body),
+                          Text(cat?.name ?? AppLocalizations.of(context)!.budgetUncategorized, style: context.textStyles.body),
                           Text(
                             '${percentage.toStringAsFixed(1)}%',
                             style: context.textStyles.caption.copyWith(color: barColor),
@@ -242,13 +250,13 @@ class BudgetPage extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      '¥${progress.spent.toStringAsFixed(0)}',
+                      context.localeProvider.currency.formatAmount(progress.spent, decimals: 0),
                       style: context.textStyles.amountSmall.copyWith(
                         color: progress.isOverBudget ? context.colors.error : context.colors.textPrimary,
                       ),
                     ),
                     Text(
-                      '/ ¥${progress.budget.amount.toStringAsFixed(0)}',
+                      '/ ${context.localeProvider.currency.formatAmount(progress.budget.amount, decimals: 0)}',
                       style: context.textStyles.caption,
                     ),
                   ],

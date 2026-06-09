@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/di/providers.dart';
+import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -41,6 +43,7 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final totalBudget = _progresses
         .where((p) => p.budget.categoryId == null)
         .fold<double>(0, (sum, p) => sum + p.budget.amount);
@@ -52,7 +55,7 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> {
 
     return Scaffold(
       backgroundColor: context.colors.background,
-      appBar: AppBar(title: const Text('预算设置')),
+      appBar: AppBar(title: Text(l10n.budgetSettingTitle)),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -62,12 +65,12 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> {
 
                   // 总预算显示
                   Text(
-                    '¥${totalBudget.toStringAsFixed(0)}',
+                    context.localeProvider.currency.formatAmount(totalBudget, decimals: 0),
                     style: context.textStyles.amountLarge,
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '已设置 ${categoryProgresses.length} 个分类预算',
+                    l10n.budgetCategoryCount('${categoryProgresses.length}'),
                     style: context.textStyles.caption,
                   ),
 
@@ -87,7 +90,7 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> {
                     child: OutlinedButton.icon(
                       onPressed: _onAddCategoryBudget,
                       icon: const Icon(Icons.add, size: 18),
-                      label: const Text('添加分类预算'),
+                      label: Text(l10n.budgetAddCategoryBudget),
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 48),
                         side: BorderSide(color: context.colors.primary),
@@ -106,6 +109,7 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> {
   }
 
   Widget _buildUsageBar(double total, double spent) {
+    final l10n = AppLocalizations.of(context)!;
     final percentage = total > 0 ? (spent / total * 100) : 0.0;
     final barColor = percentage > 90
         ? context.colors.error
@@ -136,8 +140,8 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('已使用 ${percentage.toStringAsFixed(1)}%', style: context.textStyles.caption),
-                Text('剩余 ¥${(total - spent).toStringAsFixed(0)}', style: context.textStyles.caption),
+                Text(l10n.budgetUsedPercent(percentage.toStringAsFixed(1)), style: context.textStyles.caption),
+                Text(l10n.budgetRemaining(context.localeProvider.currency.formatAmount(total - spent, decimals: 0)), style: context.textStyles.caption),
               ],
             ),
           ],
@@ -147,6 +151,7 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> {
   }
 
   Widget _buildCategoryBudgetItem(BuildContext context, BudgetProgress progress) {
+    final l10n = AppLocalizations.of(context)!;
     final cat = progress.category;
     final color = _parseColor(context, cat?.color);
 
@@ -179,17 +184,17 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(cat?.name ?? '未分类', style: context.textStyles.body),
+                  Text(cat?.name ?? AppLocalizations.of(context)!.budgetUncategorized, style: context.textStyles.body),
                   const SizedBox(height: 4),
                   Text(
-                    '已消费 ¥${progress.spent.toStringAsFixed(0)}',
+                    l10n.budgetSpent(context.localeProvider.currency.formatAmount(progress.spent, decimals: 0)),
                     style: context.textStyles.caption,
                   ),
                 ],
               ),
             ),
             Text(
-              '¥${progress.budget.amount.toStringAsFixed(0)}',
+              context.localeProvider.currency.formatAmount(progress.budget.amount, decimals: 0),
               style: context.textStyles.amountSmall,
             ),
             const SizedBox(width: 8),
@@ -206,14 +211,14 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> {
   void _onAddCategoryBudget() {
     // TODO: 显示分类选择 + 金额输入对话框
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('添加分类预算功能开发中'), behavior: SnackBarBehavior.floating, duration: Duration(milliseconds: 500)),
+      SnackBar(content: Text(AppLocalizations.of(context)!.budgetAddCategoryBudgetDeveloping), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 500)),
     );
   }
 
   void _onEditBudget(BudgetProgress progress) {
     // TODO: 编辑预算金额
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('编辑预算功能开发中'), behavior: SnackBarBehavior.floating, duration: Duration(milliseconds: 500)),
+      SnackBar(content: Text(AppLocalizations.of(context)!.budgetEditBudgetDeveloping), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 500)),
     );
   }
 

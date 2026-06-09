@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../config/database/app_database.dart';
+import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -47,9 +49,11 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('账本详情')),
+        appBar: AppBar(title: Text(l10n.bookDetailTitle)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -57,8 +61,8 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
     final book = _book;
     if (book == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('账本详情')),
-        body: const Center(child: Text('账本不存在')),
+        appBar: AppBar(title: Text(l10n.bookDetailTitle)),
+        body: Center(child: Text(l10n.bookDetailNotExist)),
       );
     }
 
@@ -68,7 +72,7 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: AppBar(
-        title: const Text('账本详情'),
+        title: Text(l10n.bookDetailTitle),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -89,11 +93,11 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
                 padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
                 child: Row(
                   children: [
-                    Expanded(child: _buildStatCard(context, '本月支出', '¥${_stats!.totalExpense.toStringAsFixed(0)}', context.colors.error)),
+                    Expanded(child: _buildStatCard(context, l10n.bookMonthlyExpense, context.localeProvider.currency.formatAmount(_stats!.totalExpense, decimals: 0), context.colors.error)),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildStatCard(context, '本月收入', '¥${_stats!.totalIncome.toStringAsFixed(0)}', context.colors.success)),
+                    Expanded(child: _buildStatCard(context, l10n.bookMonthlyIncome, context.localeProvider.currency.formatAmount(_stats!.totalIncome, decimals: 0), context.colors.success)),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildStatCard(context, '交易笔数', '${_stats!.count}', context.colors.textSecondary)),
+                    Expanded(child: _buildStatCard(context, l10n.bookDetailExpenseCount, '${_stats!.count}', context.colors.textSecondary)),
                   ],
                 ),
               ),
@@ -102,21 +106,21 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
             const SizedBox(height: 32),
 
             // 功能菜单
-            _buildMenuSection(context, '常规操作', [
+            _buildMenuSection(context, l10n.bookDetailNormalSection, [
               if (!book.isDefault)
-                _MenuItemData(Icons.check_circle_outline, '设为默认账本', onTap: () => _onSetDefault(book)),
-              _MenuItemData(Icons.swap_horiz, '切换到此账本', onTap: () => _onSwitchToBook(book)),
+                _MenuItemData(Icons.check_circle_outline, l10n.bookDetailSetDefault, onTap: () => _onSetDefault(book)),
+              _MenuItemData(Icons.swap_horiz, l10n.bookDetailSwitchTo, onTap: () => _onSwitchToBook(book)),
             ]),
 
             const SizedBox(height: 16),
 
             // 危险区域
-            _buildMenuSection(context, '危险操作', [
-              _MenuItemData(Icons.delete_sweep_outlined, '清空账本数据', onTap: () => _onClearData(book), isDestructive: true),
+            _buildMenuSection(context, l10n.bookDetailDangerSection, [
+              _MenuItemData(Icons.delete_sweep_outlined, l10n.bookDetailClearData, onTap: () => _onClearData(book), isDestructive: true),
               if (!book.isDefault)
-                _MenuItemData(Icons.delete_forever_outlined, '删除账本', onTap: () => _onDeleteBook(book), isDestructive: true),
+                _MenuItemData(Icons.delete_forever_outlined, l10n.bookDeleteTitle, onTap: () => _onDeleteBook(book), isDestructive: true),
               if (book.isDefault)
-                _MenuItemData(Icons.lock_outline, '默认账本不可删除', isDestructive: true),
+                _MenuItemData(Icons.lock_outline, l10n.bookDetailDefaultNotDeletable, isDestructive: true),
             ]),
 
             const SizedBox(height: 40),
@@ -152,7 +156,7 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
           Padding(
             padding: const EdgeInsets.only(left: 4, bottom: 8),
             child: Text(title, style: context.textStyles.footnote.copyWith(
-              color: title == '危险操作' ? context.colors.error : context.colors.textTertiary,
+              color: title == AppLocalizations.of(context)!.bookDetailDangerSection ? context.colors.error : context.colors.textTertiary,
             )),
           ),
           Container(
@@ -197,7 +201,7 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
     _loadData();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('已设为默认账本'), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
+        SnackBar(content: Text(AppLocalizations.of(context)!.bookDetailSetDefaultSuccess), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
       );
     }
   }
@@ -206,24 +210,25 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
     ref.read(currentBookProvider.notifier).state = book.id;
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('已切换到 ${book.name}'), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
+        SnackBar(content: Text(AppLocalizations.of(context)!.bookSwitchedTo(book.name)), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
       );
       Navigator.pop(context);
     }
   }
 
   Future<void> _onClearData(AccountBook book) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('清空数据'),
-        content: Text('确定要清空「${book.name}」的所有交易记录和对话历史吗？\n\n此操作不可撤销。'),
+        title: Text(l10n.bookDetailClearTitle),
+        content: Text(l10n.bookDetailClearConfirm(book.name)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.commonCancel)),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: context.colors.error),
-            child: const Text('清空'),
+            child: Text(l10n.bookDetailClear),
           ),
         ],
       ),
@@ -233,7 +238,7 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
       // TODO: 实现清空账本数据的逻辑（删除关联的交易和对话）
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('数据已清空'), behavior: SnackBarBehavior.floating, duration: Duration(milliseconds: 800)),
+          SnackBar(content: Text(l10n.bookDetailCleared), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
         );
         _loadData();
       }
@@ -241,17 +246,18 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
   }
 
   Future<void> _onDeleteBook(AccountBook book) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('删除账本'),
-        content: Text('确定要删除「${book.name}」吗？\n\n该账本下的所有数据将被清除，此操作不可撤销。'),
+        title: Text(l10n.bookDeleteTitle),
+        content: Text(l10n.bookDetailDeleteConfirm(book.name)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.commonCancel)),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: context.colors.error),
-            child: const Text('删除'),
+            child: Text(l10n.bookDelete),
           ),
         ],
       ),
@@ -262,19 +268,20 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
       if (success && mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('账本已删除'), behavior: SnackBarBehavior.floating, duration: Duration(milliseconds: 800)),
+          SnackBar(content: Text(l10n.bookDeleted), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
         );
       }
     }
   }
 
   String _typeToLabel(String type) {
+    final l10n = AppLocalizations.of(context)!;
     switch (type) {
-      case 'personal': return '个人账本';
-      case 'family': return '家庭账本';
-      case 'travel': return '旅行账本';
-      case 'business': return '生意账本';
-      case 'other': return '其他';
+      case 'personal': return l10n.bookDetailTypePersonal;
+      case 'family': return l10n.bookDetailTypeFamily;
+      case 'travel': return l10n.bookDetailTypeTravel;
+      case 'business': return l10n.bookDetailTypeBusiness;
+      case 'other': return l10n.bookDetailTypeOther;
       default: return type;
     }
   }

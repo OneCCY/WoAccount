@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
@@ -23,17 +24,18 @@ class _PatternLockPageState extends State<PatternLockPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isSetup = widget.mode == 'setup';
     final title = isSetup
-        ? (_isConfirming ? '请再次绘制图案确认' : '绘制解锁图案')
-        : '请绘制图案解锁';
-    final subtitle = isSetup ? (_isConfirming ? '请绘制与刚才相同的图案' : '连接至少4个点') : '';
+        ? (_isConfirming ? l10n.securityConfirmPattern : l10n.securityDrawPattern)
+        : l10n.securityDrawToUnlock;
+    final subtitle = isSetup ? (_isConfirming ? l10n.securityConfirmPatternHint : l10n.securityPatternHint) : '';
 
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: isSetup
           ? AppBar(
-              title: const Text('设置图案锁'),
+              title: Text(l10n.securitySetPatternLock),
               backgroundColor: Colors.transparent,
               elevation: 0,
             )
@@ -90,7 +92,7 @@ class _PatternLockPageState extends State<PatternLockPage> {
                     });
                   },
                   child: Text(
-                    '重新绘制',
+                    l10n.securityRedraw,
                     style: context.textStyles.body.copyWith(
                       color: context.colors.primary,
                     ),
@@ -116,7 +118,7 @@ class _PatternLockPageState extends State<PatternLockPage> {
 
   void _onPatternComplete(List<int> pattern) {
     if (pattern.length < 4) {
-      setState(() => _error = '请至少连接4个点');
+      setState(() => _error = AppLocalizations.of(context)!.securityPatternMinDots);
       HapticFeedback.heavyImpact();
       return;
     }
@@ -134,7 +136,7 @@ class _PatternLockPageState extends State<PatternLockPage> {
           _savePattern(pattern);
         } else {
           setState(() {
-            _error = '两次图案不一致，请重新绘制';
+            _error = AppLocalizations.of(context)!.securityPatternMismatch;
             _currentPattern = [];
             _isConfirming = false;
           });
@@ -167,9 +169,9 @@ class _PatternLockPageState extends State<PatternLockPage> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('图案设置成功'),
-          duration: Duration(milliseconds: 500),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.securityPatternSetSuccess),
+          duration: const Duration(milliseconds: 500),
         ),
       );
       Navigator.of(context).pop(true);
@@ -188,7 +190,7 @@ class _PatternLockPageState extends State<PatternLockPage> {
       }
     } else {
       setState(() {
-        _error = '图案错误，请重试';
+        _error = AppLocalizations.of(context)!.securityPatternWrong;
         _currentPattern = [];
       });
       HapticFeedback.heavyImpact();

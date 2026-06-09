@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/di/providers.dart';
+import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -133,10 +135,11 @@ class _ReportPageState extends ConsumerState<ReportPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: AppBar(
-        title: const Text('报表分析'),
+        title: Text(l10n.reportTitle),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -167,7 +170,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
                     const SizedBox(height: 24),
 
                     // 分类占比标题 + 饼图
-                    _buildSectionTitle('分类占比'),
+                    _buildSectionTitle(l10n.reportCategoryDistribution),
                     const SizedBox(height: 8),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
@@ -180,7 +183,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
                     const SizedBox(height: 24),
 
                     // 分类排行榜
-                    _buildSectionTitle('分类排行'),
+                    _buildSectionTitle(l10n.reportCategoryRanking),
                     const SizedBox(height: 8),
                     CategoryRankingList(
                       data: _summary?.categoryStats ?? [],
@@ -196,6 +199,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
   }
 
   Widget _buildPeriodSelector() {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
       child: Container(
@@ -207,9 +211,9 @@ class _ReportPageState extends ConsumerState<ReportPage> {
           children: ReportPeriod.values.map((p) {
             final isSelected = _period == p;
             final label = switch (p) {
-              ReportPeriod.week => '周',
-              ReportPeriod.month => '月',
-              ReportPeriod.year => '年',
+              ReportPeriod.week => l10n.reportPeriodWeek,
+              ReportPeriod.month => l10n.reportPeriodMonth,
+              ReportPeriod.year => l10n.reportPeriodYear,
             };
             return Expanded(
               child: GestureDetector(
@@ -272,13 +276,14 @@ class _ReportPageState extends ConsumerState<ReportPage> {
   }
 
   Widget _buildTypeSelector() {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
       child: Row(
         children: [
-          _buildTypeChip('支出', _isExpense, () => _onTypeChanged(true)),
+          _buildTypeChip(l10n.reportTypeExpense, _isExpense, () => _onTypeChanged(true)),
           const SizedBox(width: 12),
-          _buildTypeChip('收入', !_isExpense, () => _onTypeChanged(false)),
+          _buildTypeChip(l10n.reportTypeIncome, !_isExpense, () => _onTypeChanged(false)),
         ],
       ),
     );
@@ -307,10 +312,11 @@ class _ReportPageState extends ConsumerState<ReportPage> {
   }
 
   Widget _buildSummaryCard() {
+    final l10n = AppLocalizations.of(context)!;
     final summary = _summary;
     if (summary == null) return const SizedBox.shrink();
 
-    final label = _isExpense ? '总支出' : '总收入';
+    final label = _isExpense ? l10n.reportTotalExpense : l10n.reportTotalIncome;
     final color = _isExpense ? context.colors.expense : context.colors.income;
 
     return Padding(
@@ -335,18 +341,18 @@ class _ReportPageState extends ConsumerState<ReportPage> {
             Text(label, style: AppTextStyles.footnote.copyWith(color: context.colors.textSecondary)),
             const SizedBox(height: 4),
             Text(
-              '¥${_formatAmount(summary.totalAmount)}',
+              context.localeProvider.currency.formatAbbreviated(summary.totalAmount),
               style: AppTextStyles.amountLarge.copyWith(color: color),
             ),
             const SizedBox(height: 12),
             Row(
               children: [
-                _buildSummaryStat('笔数', '${summary.transactionCount}笔'),
+                _buildSummaryStat(l10n.reportCount, l10n.reportCountUnit('${summary.transactionCount}')),
                 const SizedBox(width: 24),
                 if (summary.dailyAverage != null)
-                  _buildSummaryStat('日均', '¥${summary.dailyAverage!.toStringAsFixed(0)}'),
+                  _buildSummaryStat(l10n.reportDailyAverage, context.localeProvider.currency.formatAmount(summary.dailyAverage!, decimals: 0)),
                 const SizedBox(width: 24),
-                _buildSummaryStat('分类', '${summary.categoryStats.length}个'),
+                _buildSummaryStat(l10n.reportCategoryCount, l10n.reportCategoryCountUnit('${summary.categoryStats.length}')),
               ],
             ),
           ],
@@ -384,15 +390,5 @@ class _ReportPageState extends ConsumerState<ReportPage> {
         ],
       ),
     );
-  }
-
-  String _formatAmount(double amount) {
-    if (amount >= 10000) {
-      return '${(amount / 10000).toStringAsFixed(2)}万';
-    } else if (amount >= 1000) {
-      return amount.toStringAsFixed(0);
-    } else {
-      return amount.toStringAsFixed(2);
-    }
   }
 }

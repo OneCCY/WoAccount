@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
@@ -26,16 +27,17 @@ class _PinLockPageState extends State<PinLockPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isSetup = widget.mode == 'setup';
     final title = isSetup
-        ? (_isConfirming ? '请再次输入新密码' : '设置四位数字密码')
-        : '请输入密码解锁';
+        ? (_isConfirming ? l10n.securityConfirmPinTitle : l10n.securitySetPinTitle)
+        : l10n.securityEnterPin;
 
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: isSetup
           ? AppBar(
-              title: const Text('设置密码锁'),
+              title: Text(l10n.securitySetPinLock),
               backgroundColor: Colors.transparent,
               elevation: 0,
             )
@@ -225,7 +227,7 @@ class _PinLockPageState extends State<PinLockPage> {
       }
     } else {
       setState(() {
-        _error = '密码错误，请重试';
+        _error = AppLocalizations.of(context)!.securityPinWrong;
         _pin = '';
         _isVerifying = false;
       });
@@ -248,13 +250,13 @@ class _PinLockPageState extends State<PinLockPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('密码设置成功'), duration: Duration(milliseconds: 500)),
+          SnackBar(content: Text(AppLocalizations.of(context)!.securityPinSetSuccess), duration: const Duration(milliseconds: 500)),
         );
         Navigator.of(context).pop(true);
       }
     } else {
       setState(() {
-        _error = '两次输入不一致，请重新设置';
+        _error = AppLocalizations.of(context)!.securityPinMismatch;
         _pin = '';
         _confirmPin = '';
         _isConfirming = false;

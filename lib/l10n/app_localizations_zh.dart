@@ -19,6 +19,1029 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get navProfile => '我的';
+
+  @override
+  String get commonCancel => '取消';
+
+  @override
+  String get commonConfirm => '确定';
+
+  @override
+  String get commonEditCategory => '修改分类';
+
+  @override
+  String get commonEditAmount => '修改金额';
+
+  @override
+  String get commonEditDescription => '修改描述';
+
+  @override
+  String get commonSave => '保存';
+
+  @override
+  String get commonDelete => '删除';
+
+  @override
+  String get chatPageTitle => 'AI 记账';
+
+  @override
+  String get chatPageVoicePlaceholder => '🎤 语音消息';
+
+  @override
+  String get chatPageImagePlaceholder => '📷 图片消息';
+
+  @override
+  String chatPageVoiceTranscription(String text) {
+    return '🎤 语音转文字：$text';
+  }
+
+  @override
+  String chatPageImageRecognition(String text) {
+    return '📷 图片识别结果：$text';
+  }
+
+  @override
+  String get chatPageNoSubcategory => '暂无';
+
+  @override
+  String get chatPageConfigAiError => '请先在设置中添加并配置 AI 服务商';
+
+  @override
+  String chatPageParseError(String error) {
+    return '❌ 解析失败：$error\n\n请尝试更明确的描述，如\"午饭拉面25\"';
+  }
+
+  @override
+  String get chatPageNoCategoryError => '没有可用分类，请先在分类管理中添加分类';
+
+  @override
+  String chatPageSaveSuccess(
+    String amount,
+    String category,
+    String description,
+    String date,
+  ) {
+    return '✅ 已保存\n$amount · $category\n$description · $date';
+  }
+
+  @override
+  String chatPageSaveFailed(String error) {
+    return '保存失败: $error';
+  }
+
+  @override
+  String get chatPageEmptyTitle => '开始记账吧';
+
+  @override
+  String get chatPageEmptyHint => '试试输入 \"午饭拉面25\" 或 \"吃饭24，洗衣服34\"';
+
+  @override
+  String get chatPageEmptyInstruction => '长按记账按钮可语音输入 🎤 · 点击右侧按钮拍照识别 📷';
+
+  @override
+  String get chatPageAiParsing => 'AI 正在解析...';
+
+  @override
+  String get chatBubbleImageFailed => '图片加载失败';
+
+  @override
+  String get chatInputMicPermission => '请授权麦克风权限';
+
+  @override
+  String get chatInputRecordShort => '录音时间太短';
+
+  @override
+  String chatInputImageFailed(String error) {
+    return '获取图片失败: $error';
+  }
+
+  @override
+  String get chatInputCamera => '拍照';
+
+  @override
+  String get chatInputGallery => '从相册选择';
+
+  @override
+  String get chatInputVoiceHint => '松手发送，左滑取消 ↖';
+
+  @override
+  String get chatInputTextHint => '说点什么...';
+
+  @override
+  String get chatConfirmTitle => 'AI 解析结果';
+
+  @override
+  String get chatConfirmCategory => '分类';
+
+  @override
+  String get chatConfirmDescription => '描述';
+
+  @override
+  String get chatConfirmDate => '日期';
+
+  @override
+  String get chatConfirmAmount => '金额';
+
+  @override
+  String get chatConfirmSave => '确认保存';
+
+  @override
+  String get chatConfirmInputCategory => '输入分类名称';
+
+  @override
+  String get chatConfirmInputDescription => '输入描述';
+
+  @override
+  String get chatConfirmInputAmount => '输入金额';
+
+  @override
+  String get homePageAiNotConfigured => '尚未配置 AI 服务，将使用基础规则解析';
+
+  @override
+  String get homePageGoSettings => '去配置';
+
+  @override
+  String get homePageNoContent => '未识别到内容';
+
+  @override
+  String homePageRecordFailed(String error) {
+    return '记账失败：$error';
+  }
+
+  @override
+  String homePageRecordSuccess(String amount) {
+    return '记账成功：$amount';
+  }
+
+  @override
+  String homePageSaveFailed(String error) {
+    return '保存失败：$error';
+  }
+
+  @override
+  String get homePageBudgetAlert => '今日消费已超过日均预算的80%';
+
+  @override
+  String get homeInputManual => '手动记账';
+
+  @override
+  String get homeInputHint => '午饭吃了碗拉面25元';
+
+  @override
+  String get homeInputCamera => '拍照识别';
+
+  @override
+  String get homeConfirmTitle => '🤖 AI解析结果';
+
+  @override
+  String homeConfirmOriginalInput(String input) {
+    return '原始输入: $input';
+  }
+
+  @override
+  String get homeConfirmAmount => '💰 金额';
+
+  @override
+  String get homeConfirmDate => '📅 日期';
+
+  @override
+  String get homeConfirmCategory => '🍜 分类';
+
+  @override
+  String get homeConfirmParseTime => '⏱️ 解析耗时';
+
+  @override
+  String get homeConfirmDescription => '📝 描述';
+
+  @override
+  String get homeConfirmConfidence => '置信度';
+
+  @override
+  String get homeConfirmEditDate => '修改日期';
+
+  @override
+  String get homeConfirmRecord => '确认记账';
+
+  @override
+  String get homeEntryTitle => 'AI 助手';
+
+  @override
+  String get homeEntrySubtitle => '智能记账 · 消费分析 · 问答查询';
+
+  @override
+  String get homeBudgetDetails => '详情';
+
+  @override
+  String get txnSearchHint => '搜索账单';
+
+  @override
+  String get txnBudget => '预算';
+
+  @override
+  String get txnToday => '今天';
+
+  @override
+  String get txnPeriodDay => '本日';
+
+  @override
+  String get txnPeriodWeek => '本周';
+
+  @override
+  String get txnPeriodMonth => '本月';
+
+  @override
+  String txnExpense(String period) {
+    return '$period支出';
+  }
+
+  @override
+  String txnIncome(String period) {
+    return '$period收入';
+  }
+
+  @override
+  String get txnBalance => '结余';
+
+  @override
+  String get txnSortByTime => '按时间';
+
+  @override
+  String get txnSortByAmount => '按金额';
+
+  @override
+  String get txnEmpty => '暂无账单记录';
+
+  @override
+  String get txnDayDetailEmpty => '当日无账单记录';
+
+  @override
+  String get txnDayFormat => 'M月d日';
+
+  @override
+  String get txnMonthFormat => 'yyyy年M月';
+
+  @override
+  String txnGroupExpenseLabel(String amount) {
+    return '支出 $amount';
+  }
+
+  @override
+  String txnGroupIncomeLabel(String amount) {
+    return '收入 $amount';
+  }
+
+  @override
+  String get txnGroupUncategorized => '未分类';
+
+  @override
+  String get txnGroupNoSubcategory => '暂无';
+
+  @override
+  String get viewDay => '日';
+
+  @override
+  String get viewWeek => '周';
+
+  @override
+  String get viewMonth => '月';
+
+  @override
+  String get txnDetailTitle => '账单详情';
+
+  @override
+  String get txnDetailSaved => '已保存';
+
+  @override
+  String get txnDetailDeleteConfirmTitle => '确认删除';
+
+  @override
+  String get txnDetailDeleteConfirmContent => '删除后将无法恢复，确定要删除这条账单吗？';
+
+  @override
+  String get txnDetailNotFound => '账单不存在';
+
+  @override
+  String get txnDetailUncategorized => '未分类';
+
+  @override
+  String get txnDetailCategory => '分类';
+
+  @override
+  String get txnDetailAmount => '金额';
+
+  @override
+  String get txnDetailDate => '日期';
+
+  @override
+  String get txnDetailNote => '备注';
+
+  @override
+  String get txnDetailAddNoteHint => '点击添加备注';
+
+  @override
+  String get txnDetailAiRecord => 'AI解析记录';
+
+  @override
+  String get txnDetailOriginalInput => '原始输入';
+
+  @override
+  String get txnDetailParseSource => '解析来源';
+
+  @override
+  String get txnDetailConfidence => '置信度';
+
+  @override
+  String get txnDetailCreatedAt => '创建时间';
+
+  @override
+  String get entryTitle => '记账';
+
+  @override
+  String get entryBookType => '日常记账';
+
+  @override
+  String get entryExpense => '支出';
+
+  @override
+  String get entryIncome => '收入';
+
+  @override
+  String get entryOther => '其他';
+
+  @override
+  String entrySubCategoryTitle(String name) {
+    return '$name - 子分类';
+  }
+
+  @override
+  String get entryNoteHint => '添加备注...';
+
+  @override
+  String get entryNumpadToday => '今天';
+
+  @override
+  String get entryNumpadDelete => '删除';
+
+  @override
+  String get entryNumpadDone => '完成';
+
+  @override
+  String entrySuccess(String amount) {
+    return '记账成功：$amount';
+  }
+
+  @override
+  String entryFailure(String error) {
+    return '记账失败：$error';
+  }
+
+  @override
+  String get profileCheckedIn => '已打卡';
+
+  @override
+  String get profileCheckIn => '打卡';
+
+  @override
+  String get profileConsecutiveDays => '连续打卡';
+
+  @override
+  String get profileTotalCheckInDays => '打卡总天数';
+
+  @override
+  String get profileTotalTransactions => '记账总笔数';
+
+  @override
+  String get profileFuncTheme => '主题切换';
+
+  @override
+  String get profileFuncAccountBooks => '我的账本';
+
+  @override
+  String get profileFuncBudget => '预算管理';
+
+  @override
+  String get profileFuncCategories => '分类管理';
+
+  @override
+  String get profileFuncReports => '报表分析';
+
+  @override
+  String get profileToolsAndServices => '工具与服务';
+
+  @override
+  String get profileMenuPasswordLock => '密码锁';
+
+  @override
+  String get profileMenuAcCoins => 'AC币';
+
+  @override
+  String get profileMenuAiConfig => 'AI 配置';
+
+  @override
+  String get profileMenuDataBackup => '数据备份';
+
+  @override
+  String get profileMenuImport => '账单导入';
+
+  @override
+  String get profileMenuExport => '账单导出';
+
+  @override
+  String get profileMenuFeedback => '用户反馈';
+
+  @override
+  String get profileMenuSettings => '设置';
+
+  @override
+  String profileFeatureComingSoon(String label) {
+    return '$label功能即将推出';
+  }
+
+  @override
+  String get profileAlreadyCheckedIn => '今天已经打过卡了';
+
+  @override
+  String get profileCheckInSuccess => '打卡成功！';
+
+  @override
+  String profileCheckInFailure(String error) {
+    return '打卡失败: $error';
+  }
+
+  @override
+  String get profileThemeLight => '浅色模式';
+
+  @override
+  String get profileThemeDark => '深色模式';
+
+  @override
+  String get profileThemeSystem => '跟随系统';
+
+  @override
+  String profileUserId(String uid) {
+    return 'ID: $uid';
+  }
+
+  @override
+  String get profileEditTitle => '个人资料';
+
+  @override
+  String get profileEditNickname => '昵称';
+
+  @override
+  String get profileEditId => 'ID';
+
+  @override
+  String get profileEditGender => '性别';
+
+  @override
+  String get profileEditEmail => '邮箱';
+
+  @override
+  String get profileEditPhone => '手机';
+
+  @override
+  String get profileEditNotSet => '未设置';
+
+  @override
+  String get profileEditNotFound => '未找到用户资料';
+
+  @override
+  String get profileEditGenderMale => '男';
+
+  @override
+  String get profileEditGenderFemale => '女';
+
+  @override
+  String get profileEditGenderSecret => '保密';
+
+  @override
+  String get profileEditLogout => '退出登录';
+
+  @override
+  String get profileEditLogoutConfirmContent => '确定要退出登录吗？';
+
+  @override
+  String get profileEditLogoutExit => '退出';
+
+  @override
+  String get profileEditLogoutComingSoon => '退出登录功能即将完善';
+
+  @override
+  String get profileEditDeleteAccount => '申请注销账号';
+
+  @override
+  String get profileEditDeleteAccountConfirmContent => '注销账号后数据将无法恢复，确定要申请注销吗？';
+
+  @override
+  String get profileEditDeleteAccountSubmit => '申请注销';
+
+  @override
+  String get profileEditDeleteAccountSubmitted => '注销申请已提交';
+
+  @override
+  String get settingsTitle => '系统设置';
+
+  @override
+  String get settingsGeneral => '通用';
+
+  @override
+  String get settingsLanguage => '语言';
+
+  @override
+  String get settingsDarkMode => '深色模式';
+
+  @override
+  String get settingsCurrency => '货币';
+
+  @override
+  String get settingsData => '数据';
+
+  @override
+  String get settingsAutoBackup => '自动备份';
+
+  @override
+  String get settingsBackupFrequency => '备份频率';
+
+  @override
+  String get settingsBackupDaily => '每天';
+
+  @override
+  String get settingsRestoreData => '恢复数据';
+
+  @override
+  String get settingsAbout => '关于';
+
+  @override
+  String get settingsDangerZone => '危险区';
+
+  @override
+  String get settingsClearData => '清除所有数据';
+
+  @override
+  String get settingsClearConfirm => '此操作不可恢复，确定要清除所有数据吗？';
+
+  @override
+  String get settingsDeleteAccount => '注销账号';
+
+  @override
+  String get settingsDeleteConfirm => '注销后所有数据将被永久删除，确定要继续吗？';
+
+  @override
+  String get budgetTitle => '预算管理';
+
+  @override
+  String get budgetEmpty => '暂未设置预算';
+
+  @override
+  String get budgetSetButton => '设置预算';
+
+  @override
+  String get budgetSettingTitle => '预算设置';
+
+  @override
+  String get budgetMonthlyTotal => '本月总预算';
+
+  @override
+  String budgetSpent(String amount) {
+    return '已消费 $amount';
+  }
+
+  @override
+  String budgetRemaining(String amount) {
+    return '剩余 $amount';
+  }
+
+  @override
+  String budgetOverSpent(String category, String amount) {
+    return '$category预算已超支 $amount';
+  }
+
+  @override
+  String get budgetUnknownCategory => '某分类';
+
+  @override
+  String get budgetUncategorized => '未分类';
+
+  @override
+  String budgetUsedPercent(String percent) {
+    return '已使用 $percent%';
+  }
+
+  @override
+  String budgetCategoryCount(String count) {
+    return '已设置 $count 个分类预算';
+  }
+
+  @override
+  String get budgetAddCategoryBudget => '添加分类预算';
+
+  @override
+  String get budgetAddCategoryBudgetDeveloping => '添加分类预算功能开发中';
+
+  @override
+  String get budgetEditBudgetDeveloping => '编辑预算功能开发中';
+
+  @override
+  String get bookTitle => '我的账本';
+
+  @override
+  String get bookCreate => '新建账本';
+
+  @override
+  String get bookDescription => '每个账本拥有独立的交易记录、预算和 AI 对话历史';
+
+  @override
+  String get bookDefault => '默认';
+
+  @override
+  String get bookMonthlyExpense => '本月支出';
+
+  @override
+  String get bookMonthlyIncome => '本月收入';
+
+  @override
+  String get bookTransactionCount => '笔数';
+
+  @override
+  String get bookSetDefault => '设为默认';
+
+  @override
+  String get bookDelete => '删除';
+
+  @override
+  String bookSwitchedTo(String name) {
+    return '已切换到 $name';
+  }
+
+  @override
+  String get bookDeleteTitle => '删除账本';
+
+  @override
+  String bookDeleteConfirm(String name) {
+    return '确定要删除「$name」吗？\n\n该账本下的所有交易记录、预算和对话历史将被清除，此操作不可撤销。';
+  }
+
+  @override
+  String get bookDeleted => '账本已删除';
+
+  @override
+  String bookCountUnit(String count) {
+    return '$count 笔';
+  }
+
+  @override
+  String get bookTypePersonal => '个人';
+
+  @override
+  String get bookTypeFamily => '家庭';
+
+  @override
+  String get bookTypeTravel => '旅行';
+
+  @override
+  String get bookTypeBusiness => '生意';
+
+  @override
+  String get bookTypeOther => '其他';
+
+  @override
+  String get bookDetailTitle => '账本详情';
+
+  @override
+  String get bookDetailNotExist => '账本不存在';
+
+  @override
+  String get bookDetailExpenseCount => '交易笔数';
+
+  @override
+  String get bookDetailNormalSection => '常规操作';
+
+  @override
+  String get bookDetailSetDefault => '设为默认账本';
+
+  @override
+  String get bookDetailSwitchTo => '切换到此账本';
+
+  @override
+  String get bookDetailDangerSection => '危险操作';
+
+  @override
+  String get bookDetailClearData => '清空账本数据';
+
+  @override
+  String get bookDetailDefaultNotDeletable => '默认账本不可删除';
+
+  @override
+  String get bookDetailSetDefaultSuccess => '已设为默认账本';
+
+  @override
+  String get bookDetailClearTitle => '清空数据';
+
+  @override
+  String bookDetailClearConfirm(String name) {
+    return '确定要清空「$name」的所有交易记录和对话历史吗？\n\n此操作不可撤销。';
+  }
+
+  @override
+  String get bookDetailClear => '清空';
+
+  @override
+  String get bookDetailCleared => '数据已清空';
+
+  @override
+  String bookDetailDeleteConfirm(String name) {
+    return '确定要删除「$name」吗？\n\n该账本下的所有数据将被清除，此操作不可撤销。';
+  }
+
+  @override
+  String get bookDetailTypePersonal => '个人账本';
+
+  @override
+  String get bookDetailTypeFamily => '家庭账本';
+
+  @override
+  String get bookDetailTypeTravel => '旅行账本';
+
+  @override
+  String get bookDetailTypeBusiness => '生意账本';
+
+  @override
+  String get bookDetailTypeOther => '其他';
+
+  @override
+  String get reportTitle => '报表分析';
+
+  @override
+  String get reportPeriodWeek => '周';
+
+  @override
+  String get reportPeriodMonth => '月';
+
+  @override
+  String get reportPeriodYear => '年';
+
+  @override
+  String get reportTypeExpense => '支出';
+
+  @override
+  String get reportTypeIncome => '收入';
+
+  @override
+  String get reportTotalExpense => '总支出';
+
+  @override
+  String get reportTotalIncome => '总收入';
+
+  @override
+  String get reportCount => '笔数';
+
+  @override
+  String reportCountUnit(String count) {
+    return '$count笔';
+  }
+
+  @override
+  String get reportDailyAverage => '日均';
+
+  @override
+  String get reportCategoryCount => '分类';
+
+  @override
+  String reportCategoryCountUnit(String count) {
+    return '$count个';
+  }
+
+  @override
+  String get reportCategoryDistribution => '分类占比';
+
+  @override
+  String get reportCategoryRanking => '分类排行';
+
+  @override
+  String get reportNoData => '暂无数据';
+
+  @override
+  String reportMonthLabel(String year, String month) {
+    return '$year年$month月';
+  }
+
+  @override
+  String reportYearLabel(String year) {
+    return '$year年';
+  }
+
+  @override
+  String reportWeekLabel(String start, String end) {
+    return '$start - $end';
+  }
+
+  @override
+  String get securityLockSettings => '密码锁设置';
+
+  @override
+  String get securityEnableLock => '启用密码锁';
+
+  @override
+  String get securityUnlockMethods => '解锁方式（可多选）';
+
+  @override
+  String get securityPinCode => '数字密码';
+
+  @override
+  String get securityPinCodeDesc => '四位数字密码解锁';
+
+  @override
+  String get securityBiometric => '指纹解锁';
+
+  @override
+  String get securityBiometricDesc => '使用设备指纹快速解锁';
+
+  @override
+  String get securityPatternLock => '图案解锁';
+
+  @override
+  String get securityPatternLockDesc => '绘制图案解锁';
+
+  @override
+  String get securityLockHint => '勾选多种解锁方式后，解锁界面会出现切换按钮。指纹解锁需要设备支持生物识别功能。';
+
+  @override
+  String get securityBiometricVerify => '验证指纹以启用指纹解锁';
+
+  @override
+  String securityBiometricFail(String error) {
+    return '指纹验证失败: $error';
+  }
+
+  @override
+  String get securitySetPinLock => '设置密码锁';
+
+  @override
+  String get securitySetPinTitle => '设置四位数字密码';
+
+  @override
+  String get securityConfirmPinTitle => '请再次输入新密码';
+
+  @override
+  String get securityEnterPin => '请输入密码解锁';
+
+  @override
+  String get securityPinWrong => '密码错误，请重试';
+
+  @override
+  String get securityPinMismatch => '两次输入不一致，请重新设置';
+
+  @override
+  String get securityPinSetSuccess => '密码设置成功';
+
+  @override
+  String get securitySetPatternLock => '设置图案锁';
+
+  @override
+  String get securityDrawPattern => '绘制解锁图案';
+
+  @override
+  String get securityConfirmPattern => '请再次绘制图案确认';
+
+  @override
+  String get securityDrawToUnlock => '请绘制图案解锁';
+
+  @override
+  String get securityPatternHint => '连接至少4个点';
+
+  @override
+  String get securityConfirmPatternHint => '请绘制与刚才相同的图案';
+
+  @override
+  String get securityRedraw => '重新绘制';
+
+  @override
+  String get securityPatternMinDots => '请至少连接4个点';
+
+  @override
+  String get securityPatternMismatch => '两次图案不一致，请重新绘制';
+
+  @override
+  String get securityPatternSetSuccess => '图案设置成功';
+
+  @override
+  String get securityPatternWrong => '图案错误，请重试';
+
+  @override
+  String get securityAuthRequired => '请验证身份以解锁应用';
+
+  @override
+  String get securitySelectUnlockMethod => '选择解锁方式';
+
+  @override
+  String get securitySwitchUnlockMethod => '切换解锁方式';
+
+  @override
+  String get securityVerifyFingerprint => '请验证指纹';
+
+  @override
+  String get securityTouchToUnlock => '触摸指纹传感器以解锁应用';
+
+  @override
+  String get securityRetryFingerprint => '重试指纹';
+
+  @override
+  String get checkinTitle => '打卡日历';
+
+  @override
+  String get checkinAlreadyCheckedIn => '今天已经打过卡了';
+
+  @override
+  String get checkinCheckInSuccess => '打卡成功！+10 AC币';
+
+  @override
+  String get checkinRewardDaily => '每日打卡奖励';
+
+  @override
+  String get checkinStreak365 => '连续打卡一年！+2000 AC币';
+
+  @override
+  String get checkinStreak180 => '连续打卡半年！+1000 AC币';
+
+  @override
+  String get checkinStreak30 => '连续打卡一个月！+300 AC币';
+
+  @override
+  String get checkinStreak7 => '连续打卡7天！+70 AC币';
+
+  @override
+  String get checkinReward365 => '连续打卡365天奖励';
+
+  @override
+  String get checkinReward180 => '连续打卡180天奖励';
+
+  @override
+  String get checkinReward30 => '连续打卡30天奖励';
+
+  @override
+  String get checkinReward7 => '连续打卡7天奖励';
+
+  @override
+  String get checkinMakeupSelectHint => '请先选择一个未打卡的日期';
+
+  @override
+  String get checkinMakeupFutureError => '只能补签过去的日期';
+
+  @override
+  String get checkinMakeupAlreadyChecked => '该日期已打卡';
+
+  @override
+  String get checkinMakeupInsufficient => 'AC币不足，补签需要100 AC币';
+
+  @override
+  String get checkinMakeupConfirmTitle => '补签确认';
+
+  @override
+  String checkinMakeupConfirmContent(String date, String balance) {
+    return '确定要补签 $date 吗？\n将消耗 100 AC币（当前余额: $balance）';
+  }
+
+  @override
+  String get checkinMakeupConfirm => '确认补签';
+
+  @override
+  String get checkinMakeupSuccess => '补签成功！';
+
+  @override
+  String checkinMakeupCost(String date) {
+    return '补签 $date';
+  }
+
+  @override
+  String get checkinConsecutiveDays => '连续打卡';
+
+  @override
+  String get checkinAcBalance => 'AC币余额';
+
+  @override
+  String get checkinTodayStatus => '今日状态';
+
+  @override
+  String get checkinMakeupButton => '补签 (-100 AC币)';
+
+  @override
+  String get checkinMakeupSelectButton => '选择日期后补签';
+
+  @override
+  String get checkinTodayCheckIn => '已打卡';
+
+  @override
+  String get checkinTodayCheckInButton => '今日打卡 +10';
+
+  @override
+  String get acCoinTitle => 'AC币记录';
+
+  @override
+  String get acCoinCurrentBalance => '当前余额';
+
+  @override
+  String get acCoinEmpty => '暂无AC币记录';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -36,4 +1059,1027 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get navProfile => '我的';
+
+  @override
+  String get commonCancel => '取消';
+
+  @override
+  String get commonConfirm => '確定';
+
+  @override
+  String get commonEditCategory => '修改分類';
+
+  @override
+  String get commonEditAmount => '修改金額';
+
+  @override
+  String get commonEditDescription => '修改描述';
+
+  @override
+  String get commonSave => '儲存';
+
+  @override
+  String get commonDelete => '刪除';
+
+  @override
+  String get chatPageTitle => 'AI 記帳';
+
+  @override
+  String get chatPageVoicePlaceholder => '🎤 語音訊息';
+
+  @override
+  String get chatPageImagePlaceholder => '📷 圖片訊息';
+
+  @override
+  String chatPageVoiceTranscription(String text) {
+    return '🎤 語音轉文字：$text';
+  }
+
+  @override
+  String chatPageImageRecognition(String text) {
+    return '📷 圖片辨識結果：$text';
+  }
+
+  @override
+  String get chatPageNoSubcategory => '暫無';
+
+  @override
+  String get chatPageConfigAiError => '請先在設定中新增並配置 AI 服務商';
+
+  @override
+  String chatPageParseError(String error) {
+    return '❌ 解析失敗：$error\n\n請嘗試更明確的描述，如\"午餐拉麵25\"';
+  }
+
+  @override
+  String get chatPageNoCategoryError => '沒有可用分類，請先在分類管理中新增分類';
+
+  @override
+  String chatPageSaveSuccess(
+    String amount,
+    String category,
+    String description,
+    String date,
+  ) {
+    return '✅ 已儲存\n$amount · $category\n$description · $date';
+  }
+
+  @override
+  String chatPageSaveFailed(String error) {
+    return '儲存失敗: $error';
+  }
+
+  @override
+  String get chatPageEmptyTitle => '開始記帳吧';
+
+  @override
+  String get chatPageEmptyHint => '試試輸入 \"午餐拉麵25\" 或 \"吃飯24，洗衣服34\"';
+
+  @override
+  String get chatPageEmptyInstruction => '長按記帳按鈕可語音輸入 🎤 · 點擊右側按鈕拍照辨識 📷';
+
+  @override
+  String get chatPageAiParsing => 'AI 正在解析...';
+
+  @override
+  String get chatBubbleImageFailed => '圖片載入失敗';
+
+  @override
+  String get chatInputMicPermission => '請授權麥克風權限';
+
+  @override
+  String get chatInputRecordShort => '錄音時間太短';
+
+  @override
+  String chatInputImageFailed(String error) {
+    return '取得圖片失敗: $error';
+  }
+
+  @override
+  String get chatInputCamera => '拍照';
+
+  @override
+  String get chatInputGallery => '從相簿選擇';
+
+  @override
+  String get chatInputVoiceHint => '鬆手傳送，左滑取消 ↖';
+
+  @override
+  String get chatInputTextHint => '說點什麼...';
+
+  @override
+  String get chatConfirmTitle => 'AI 解析結果';
+
+  @override
+  String get chatConfirmCategory => '分類';
+
+  @override
+  String get chatConfirmDescription => '描述';
+
+  @override
+  String get chatConfirmDate => '日期';
+
+  @override
+  String get chatConfirmAmount => '金額';
+
+  @override
+  String get chatConfirmSave => '確認儲存';
+
+  @override
+  String get chatConfirmInputCategory => '輸入分類名稱';
+
+  @override
+  String get chatConfirmInputDescription => '輸入描述';
+
+  @override
+  String get chatConfirmInputAmount => '輸入金額';
+
+  @override
+  String get homePageAiNotConfigured => '尚未配置 AI 服務，將使用基礎規則解析';
+
+  @override
+  String get homePageGoSettings => '前往設定';
+
+  @override
+  String get homePageNoContent => '未辨識到內容';
+
+  @override
+  String homePageRecordFailed(String error) {
+    return '記帳失敗：$error';
+  }
+
+  @override
+  String homePageRecordSuccess(String amount) {
+    return '記帳成功：$amount';
+  }
+
+  @override
+  String homePageSaveFailed(String error) {
+    return '儲存失敗：$error';
+  }
+
+  @override
+  String get homePageBudgetAlert => '今日消費已超過日均預算的80%';
+
+  @override
+  String get homeInputManual => '手動記帳';
+
+  @override
+  String get homeInputHint => '午餐吃了碗拉麵25元';
+
+  @override
+  String get homeInputCamera => '拍照辨識';
+
+  @override
+  String get homeConfirmTitle => '🤖 AI解析結果';
+
+  @override
+  String homeConfirmOriginalInput(String input) {
+    return '原始輸入: $input';
+  }
+
+  @override
+  String get homeConfirmAmount => '💰 金額';
+
+  @override
+  String get homeConfirmDate => '📅 日期';
+
+  @override
+  String get homeConfirmCategory => '🍜 分類';
+
+  @override
+  String get homeConfirmParseTime => '⏱️ 解析耗時';
+
+  @override
+  String get homeConfirmDescription => '📝 描述';
+
+  @override
+  String get homeConfirmConfidence => '信心度';
+
+  @override
+  String get homeConfirmEditDate => '修改日期';
+
+  @override
+  String get homeConfirmRecord => '確認記帳';
+
+  @override
+  String get homeEntryTitle => 'AI 助手';
+
+  @override
+  String get homeEntrySubtitle => '智慧記帳 · 消費分析 · 問答查詢';
+
+  @override
+  String get homeBudgetDetails => '詳情';
+
+  @override
+  String get txnSearchHint => '搜尋帳單';
+
+  @override
+  String get txnBudget => '預算';
+
+  @override
+  String get txnToday => '今天';
+
+  @override
+  String get txnPeriodDay => '本日';
+
+  @override
+  String get txnPeriodWeek => '本週';
+
+  @override
+  String get txnPeriodMonth => '本月';
+
+  @override
+  String txnExpense(String period) {
+    return '$period支出';
+  }
+
+  @override
+  String txnIncome(String period) {
+    return '$period收入';
+  }
+
+  @override
+  String get txnBalance => '結餘';
+
+  @override
+  String get txnSortByTime => '按時間';
+
+  @override
+  String get txnSortByAmount => '按金額';
+
+  @override
+  String get txnEmpty => '暫無帳單記錄';
+
+  @override
+  String get txnDayDetailEmpty => '當日無帳單記錄';
+
+  @override
+  String get txnDayFormat => 'M月d日';
+
+  @override
+  String get txnMonthFormat => 'yyyy年M月';
+
+  @override
+  String txnGroupExpenseLabel(String amount) {
+    return '支出 $amount';
+  }
+
+  @override
+  String txnGroupIncomeLabel(String amount) {
+    return '收入 $amount';
+  }
+
+  @override
+  String get txnGroupUncategorized => '未分類';
+
+  @override
+  String get txnGroupNoSubcategory => '暫無';
+
+  @override
+  String get viewDay => '日';
+
+  @override
+  String get viewWeek => '週';
+
+  @override
+  String get viewMonth => '月';
+
+  @override
+  String get txnDetailTitle => '帳單詳情';
+
+  @override
+  String get txnDetailSaved => '已儲存';
+
+  @override
+  String get txnDetailDeleteConfirmTitle => '確認刪除';
+
+  @override
+  String get txnDetailDeleteConfirmContent => '刪除後將無法恢復，確定要刪除這條帳單嗎？';
+
+  @override
+  String get txnDetailNotFound => '帳單不存在';
+
+  @override
+  String get txnDetailUncategorized => '未分類';
+
+  @override
+  String get txnDetailCategory => '分類';
+
+  @override
+  String get txnDetailAmount => '金額';
+
+  @override
+  String get txnDetailDate => '日期';
+
+  @override
+  String get txnDetailNote => '備註';
+
+  @override
+  String get txnDetailAddNoteHint => '點擊新增備註';
+
+  @override
+  String get txnDetailAiRecord => 'AI解析記錄';
+
+  @override
+  String get txnDetailOriginalInput => '原始輸入';
+
+  @override
+  String get txnDetailParseSource => '解析來源';
+
+  @override
+  String get txnDetailConfidence => '信心度';
+
+  @override
+  String get txnDetailCreatedAt => '建立時間';
+
+  @override
+  String get entryTitle => '記帳';
+
+  @override
+  String get entryBookType => '日常記帳';
+
+  @override
+  String get entryExpense => '支出';
+
+  @override
+  String get entryIncome => '收入';
+
+  @override
+  String get entryOther => '其他';
+
+  @override
+  String entrySubCategoryTitle(String name) {
+    return '$name - 子分類';
+  }
+
+  @override
+  String get entryNoteHint => '新增備註...';
+
+  @override
+  String get entryNumpadToday => '今天';
+
+  @override
+  String get entryNumpadDelete => '刪除';
+
+  @override
+  String get entryNumpadDone => '完成';
+
+  @override
+  String entrySuccess(String amount) {
+    return '記帳成功：$amount';
+  }
+
+  @override
+  String entryFailure(String error) {
+    return '記帳失敗：$error';
+  }
+
+  @override
+  String get profileCheckedIn => '已打卡';
+
+  @override
+  String get profileCheckIn => '打卡';
+
+  @override
+  String get profileConsecutiveDays => '連續打卡';
+
+  @override
+  String get profileTotalCheckInDays => '打卡總天數';
+
+  @override
+  String get profileTotalTransactions => '記帳總筆數';
+
+  @override
+  String get profileFuncTheme => '主題切換';
+
+  @override
+  String get profileFuncAccountBooks => '我的帳本';
+
+  @override
+  String get profileFuncBudget => '預算管理';
+
+  @override
+  String get profileFuncCategories => '分類管理';
+
+  @override
+  String get profileFuncReports => '報表分析';
+
+  @override
+  String get profileToolsAndServices => '工具與服務';
+
+  @override
+  String get profileMenuPasswordLock => '密碼鎖';
+
+  @override
+  String get profileMenuAcCoins => 'AC幣';
+
+  @override
+  String get profileMenuAiConfig => 'AI 配置';
+
+  @override
+  String get profileMenuDataBackup => '資料備份';
+
+  @override
+  String get profileMenuImport => '帳單匯入';
+
+  @override
+  String get profileMenuExport => '帳單匯出';
+
+  @override
+  String get profileMenuFeedback => '使用者回饋';
+
+  @override
+  String get profileMenuSettings => '設定';
+
+  @override
+  String profileFeatureComingSoon(String label) {
+    return '$label功能即將推出';
+  }
+
+  @override
+  String get profileAlreadyCheckedIn => '今天已經打過卡了';
+
+  @override
+  String get profileCheckInSuccess => '打卡成功！';
+
+  @override
+  String profileCheckInFailure(String error) {
+    return '打卡失敗: $error';
+  }
+
+  @override
+  String get profileThemeLight => '淺色模式';
+
+  @override
+  String get profileThemeDark => '深色模式';
+
+  @override
+  String get profileThemeSystem => '跟隨系統';
+
+  @override
+  String profileUserId(String uid) {
+    return 'ID: $uid';
+  }
+
+  @override
+  String get profileEditTitle => '個人資料';
+
+  @override
+  String get profileEditNickname => '暱稱';
+
+  @override
+  String get profileEditId => 'ID';
+
+  @override
+  String get profileEditGender => '性別';
+
+  @override
+  String get profileEditEmail => '信箱';
+
+  @override
+  String get profileEditPhone => '手機';
+
+  @override
+  String get profileEditNotSet => '未設定';
+
+  @override
+  String get profileEditNotFound => '未找到使用者資料';
+
+  @override
+  String get profileEditGenderMale => '男';
+
+  @override
+  String get profileEditGenderFemale => '女';
+
+  @override
+  String get profileEditGenderSecret => '保密';
+
+  @override
+  String get profileEditLogout => '登出';
+
+  @override
+  String get profileEditLogoutConfirmContent => '確定要登出嗎？';
+
+  @override
+  String get profileEditLogoutExit => '登出';
+
+  @override
+  String get profileEditLogoutComingSoon => '登出功能即將完善';
+
+  @override
+  String get profileEditDeleteAccount => '申請註銷帳號';
+
+  @override
+  String get profileEditDeleteAccountConfirmContent => '註銷帳號後資料將無法恢復，確定要申請註銷嗎？';
+
+  @override
+  String get profileEditDeleteAccountSubmit => '申請註銷';
+
+  @override
+  String get profileEditDeleteAccountSubmitted => '註銷申請已提交';
+
+  @override
+  String get settingsTitle => '系統設定';
+
+  @override
+  String get settingsGeneral => '一般';
+
+  @override
+  String get settingsLanguage => '語言';
+
+  @override
+  String get settingsDarkMode => '深色模式';
+
+  @override
+  String get settingsCurrency => '貨幣';
+
+  @override
+  String get settingsData => '資料';
+
+  @override
+  String get settingsAutoBackup => '自動備份';
+
+  @override
+  String get settingsBackupFrequency => '備份頻率';
+
+  @override
+  String get settingsBackupDaily => '每天';
+
+  @override
+  String get settingsRestoreData => '還原資料';
+
+  @override
+  String get settingsAbout => '關於';
+
+  @override
+  String get settingsDangerZone => '危險區';
+
+  @override
+  String get settingsClearData => '清除所有資料';
+
+  @override
+  String get settingsClearConfirm => '此操作不可恢復，確定要清除所有資料嗎？';
+
+  @override
+  String get settingsDeleteAccount => '註銷帳號';
+
+  @override
+  String get settingsDeleteConfirm => '註銷後所有資料將被永久刪除，確定要繼續嗎？';
+
+  @override
+  String get budgetTitle => '預算管理';
+
+  @override
+  String get budgetEmpty => '暫未設定預算';
+
+  @override
+  String get budgetSetButton => '設定預算';
+
+  @override
+  String get budgetSettingTitle => '預算設定';
+
+  @override
+  String get budgetMonthlyTotal => '本月總預算';
+
+  @override
+  String budgetSpent(String amount) {
+    return '已消費 $amount';
+  }
+
+  @override
+  String budgetRemaining(String amount) {
+    return '剩餘 $amount';
+  }
+
+  @override
+  String budgetOverSpent(String category, String amount) {
+    return '$category預算已超支 $amount';
+  }
+
+  @override
+  String get budgetUnknownCategory => '某分類';
+
+  @override
+  String get budgetUncategorized => '未分類';
+
+  @override
+  String budgetUsedPercent(String percent) {
+    return '已使用 $percent%';
+  }
+
+  @override
+  String budgetCategoryCount(String count) {
+    return '已設定 $count 個分類預算';
+  }
+
+  @override
+  String get budgetAddCategoryBudget => '新增分類預算';
+
+  @override
+  String get budgetAddCategoryBudgetDeveloping => '新增分類預算功能開發中';
+
+  @override
+  String get budgetEditBudgetDeveloping => '編輯預算功能開發中';
+
+  @override
+  String get bookTitle => '我的帳本';
+
+  @override
+  String get bookCreate => '新建帳本';
+
+  @override
+  String get bookDescription => '每個帳本擁有獨立的交易記錄、預算和 AI 對話歷史';
+
+  @override
+  String get bookDefault => '預設';
+
+  @override
+  String get bookMonthlyExpense => '本月支出';
+
+  @override
+  String get bookMonthlyIncome => '本月收入';
+
+  @override
+  String get bookTransactionCount => '筆數';
+
+  @override
+  String get bookSetDefault => '設為預設';
+
+  @override
+  String get bookDelete => '刪除';
+
+  @override
+  String bookSwitchedTo(String name) {
+    return '已切換到 $name';
+  }
+
+  @override
+  String get bookDeleteTitle => '刪除帳本';
+
+  @override
+  String bookDeleteConfirm(String name) {
+    return '確定要刪除「$name」嗎？\n\n該帳本下的所有交易記錄、預算和對話歷史將被清除，此操作不可撤銷。';
+  }
+
+  @override
+  String get bookDeleted => '帳本已刪除';
+
+  @override
+  String bookCountUnit(String count) {
+    return '$count 筆';
+  }
+
+  @override
+  String get bookTypePersonal => '個人';
+
+  @override
+  String get bookTypeFamily => '家庭';
+
+  @override
+  String get bookTypeTravel => '旅行';
+
+  @override
+  String get bookTypeBusiness => '生意';
+
+  @override
+  String get bookTypeOther => '其他';
+
+  @override
+  String get bookDetailTitle => '帳本詳情';
+
+  @override
+  String get bookDetailNotExist => '帳本不存在';
+
+  @override
+  String get bookDetailExpenseCount => '交易筆數';
+
+  @override
+  String get bookDetailNormalSection => '常規操作';
+
+  @override
+  String get bookDetailSetDefault => '設為預設帳本';
+
+  @override
+  String get bookDetailSwitchTo => '切換到此帳本';
+
+  @override
+  String get bookDetailDangerSection => '危險操作';
+
+  @override
+  String get bookDetailClearData => '清空帳本資料';
+
+  @override
+  String get bookDetailDefaultNotDeletable => '預設帳本不可刪除';
+
+  @override
+  String get bookDetailSetDefaultSuccess => '已設為預設帳本';
+
+  @override
+  String get bookDetailClearTitle => '清空資料';
+
+  @override
+  String bookDetailClearConfirm(String name) {
+    return '確定要清空「$name」的所有交易記錄和對話歷史嗎？\n\n此操作不可撤銷。';
+  }
+
+  @override
+  String get bookDetailClear => '清空';
+
+  @override
+  String get bookDetailCleared => '資料已清空';
+
+  @override
+  String bookDetailDeleteConfirm(String name) {
+    return '確定要刪除「$name」嗎？\n\n該帳本下的所有資料將被清除，此操作不可撤銷。';
+  }
+
+  @override
+  String get bookDetailTypePersonal => '個人帳本';
+
+  @override
+  String get bookDetailTypeFamily => '家庭帳本';
+
+  @override
+  String get bookDetailTypeTravel => '旅行帳本';
+
+  @override
+  String get bookDetailTypeBusiness => '生意帳本';
+
+  @override
+  String get bookDetailTypeOther => '其他';
+
+  @override
+  String get reportTitle => '報表分析';
+
+  @override
+  String get reportPeriodWeek => '週';
+
+  @override
+  String get reportPeriodMonth => '月';
+
+  @override
+  String get reportPeriodYear => '年';
+
+  @override
+  String get reportTypeExpense => '支出';
+
+  @override
+  String get reportTypeIncome => '收入';
+
+  @override
+  String get reportTotalExpense => '總支出';
+
+  @override
+  String get reportTotalIncome => '總收入';
+
+  @override
+  String get reportCount => '筆數';
+
+  @override
+  String reportCountUnit(String count) {
+    return '$count筆';
+  }
+
+  @override
+  String get reportDailyAverage => '日均';
+
+  @override
+  String get reportCategoryCount => '分類';
+
+  @override
+  String reportCategoryCountUnit(String count) {
+    return '$count個';
+  }
+
+  @override
+  String get reportCategoryDistribution => '分類佔比';
+
+  @override
+  String get reportCategoryRanking => '分類排行';
+
+  @override
+  String get reportNoData => '暫無資料';
+
+  @override
+  String reportMonthLabel(String year, String month) {
+    return '$year年$month月';
+  }
+
+  @override
+  String reportYearLabel(String year) {
+    return '$year年';
+  }
+
+  @override
+  String reportWeekLabel(String start, String end) {
+    return '$start - $end';
+  }
+
+  @override
+  String get securityLockSettings => '密碼鎖設定';
+
+  @override
+  String get securityEnableLock => '啟用密碼鎖';
+
+  @override
+  String get securityUnlockMethods => '解鎖方式（可多選）';
+
+  @override
+  String get securityPinCode => '數字密碼';
+
+  @override
+  String get securityPinCodeDesc => '四位數字密碼解鎖';
+
+  @override
+  String get securityBiometric => '指紋解鎖';
+
+  @override
+  String get securityBiometricDesc => '使用裝置指紋快速解鎖';
+
+  @override
+  String get securityPatternLock => '圖案解鎖';
+
+  @override
+  String get securityPatternLockDesc => '繪製圖案解鎖';
+
+  @override
+  String get securityLockHint => '勾選多種解鎖方式後，解鎖介面會出現切換按鈕。指紋解鎖需要裝置支援生物辨識功能。';
+
+  @override
+  String get securityBiometricVerify => '驗證指紋以啟用指紋解鎖';
+
+  @override
+  String securityBiometricFail(String error) {
+    return '指紋驗證失敗: $error';
+  }
+
+  @override
+  String get securitySetPinLock => '設定密碼鎖';
+
+  @override
+  String get securitySetPinTitle => '設定四位數字密碼';
+
+  @override
+  String get securityConfirmPinTitle => '請再次輸入新密碼';
+
+  @override
+  String get securityEnterPin => '請輸入密碼解鎖';
+
+  @override
+  String get securityPinWrong => '密碼錯誤，請重試';
+
+  @override
+  String get securityPinMismatch => '兩次輸入不一致，請重新設定';
+
+  @override
+  String get securityPinSetSuccess => '密碼設定成功';
+
+  @override
+  String get securitySetPatternLock => '設定圖案鎖';
+
+  @override
+  String get securityDrawPattern => '繪製解鎖圖案';
+
+  @override
+  String get securityConfirmPattern => '請再次繪製圖案確認';
+
+  @override
+  String get securityDrawToUnlock => '請繪製圖案解鎖';
+
+  @override
+  String get securityPatternHint => '連接至少4個點';
+
+  @override
+  String get securityConfirmPatternHint => '請繪製與剛才相同的圖案';
+
+  @override
+  String get securityRedraw => '重新繪製';
+
+  @override
+  String get securityPatternMinDots => '請至少連接4個點';
+
+  @override
+  String get securityPatternMismatch => '兩次圖案不一致，請重新繪製';
+
+  @override
+  String get securityPatternSetSuccess => '圖案設定成功';
+
+  @override
+  String get securityPatternWrong => '圖案錯誤，請重試';
+
+  @override
+  String get securityAuthRequired => '請驗證身份以解鎖應用程式';
+
+  @override
+  String get securitySelectUnlockMethod => '選擇解鎖方式';
+
+  @override
+  String get securitySwitchUnlockMethod => '切換解鎖方式';
+
+  @override
+  String get securityVerifyFingerprint => '請驗證指紋';
+
+  @override
+  String get securityTouchToUnlock => '觸摸指紋感測器以解鎖應用程式';
+
+  @override
+  String get securityRetryFingerprint => '重試指紋';
+
+  @override
+  String get checkinTitle => '打卡日曆';
+
+  @override
+  String get checkinAlreadyCheckedIn => '今天已經打過卡了';
+
+  @override
+  String get checkinCheckInSuccess => '打卡成功！+10 AC幣';
+
+  @override
+  String get checkinRewardDaily => '每日打卡獎勵';
+
+  @override
+  String get checkinStreak365 => '連續打卡一年！+2000 AC幣';
+
+  @override
+  String get checkinStreak180 => '連續打卡半年！+1000 AC幣';
+
+  @override
+  String get checkinStreak30 => '連續打卡一個月！+300 AC幣';
+
+  @override
+  String get checkinStreak7 => '連續打卡7天！+70 AC幣';
+
+  @override
+  String get checkinReward365 => '連續打卡365天獎勵';
+
+  @override
+  String get checkinReward180 => '連續打卡180天獎勵';
+
+  @override
+  String get checkinReward30 => '連續打卡30天獎勵';
+
+  @override
+  String get checkinReward7 => '連續打卡7天獎勵';
+
+  @override
+  String get checkinMakeupSelectHint => '請先選擇一個未打卡的日期';
+
+  @override
+  String get checkinMakeupFutureError => '只能補簽過去的日期';
+
+  @override
+  String get checkinMakeupAlreadyChecked => '該日期已打卡';
+
+  @override
+  String get checkinMakeupInsufficient => 'AC幣不足，補簽需要100 AC幣';
+
+  @override
+  String get checkinMakeupConfirmTitle => '補簽確認';
+
+  @override
+  String checkinMakeupConfirmContent(String date, String balance) {
+    return '確定要補簽 $date 嗎？\n將消耗 100 AC幣（目前餘額: $balance）';
+  }
+
+  @override
+  String get checkinMakeupConfirm => '確認補簽';
+
+  @override
+  String get checkinMakeupSuccess => '補簽成功！';
+
+  @override
+  String checkinMakeupCost(String date) {
+    return '補簽 $date';
+  }
+
+  @override
+  String get checkinConsecutiveDays => '連續打卡';
+
+  @override
+  String get checkinAcBalance => 'AC幣餘額';
+
+  @override
+  String get checkinTodayStatus => '今日狀態';
+
+  @override
+  String get checkinMakeupButton => '補簽 (-100 AC幣)';
+
+  @override
+  String get checkinMakeupSelectButton => '選擇日期後補簽';
+
+  @override
+  String get checkinTodayCheckIn => '已打卡';
+
+  @override
+  String get checkinTodayCheckInButton => '今日打卡 +10';
+
+  @override
+  String get acCoinTitle => 'AC幣記錄';
+
+  @override
+  String get acCoinCurrentBalance => '目前餘額';
+
+  @override
+  String get acCoinEmpty => '暫無AC幣記錄';
 }

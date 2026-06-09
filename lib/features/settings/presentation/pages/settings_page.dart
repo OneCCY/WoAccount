@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../core/locale/app_currency.dart';
 import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -40,7 +41,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    
+    final l10n = AppLocalizations.of(context)!;
+
     final themeProvider = ref.watch(themeProviderOverrideProvider);
     final isDark = themeProvider.themeMode == ThemeMode.dark ||
         (themeProvider.themeMode == ThemeMode.system &&
@@ -48,7 +50,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
     return Scaffold(
       backgroundColor: context.colors.background,
-      appBar: AppBar(title: const Text('系统设置')),
+      appBar: AppBar(title: Text(l10n.settingsTitle)),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -56,10 +58,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
             // 通用设置
             _buildGroup(
-              title: '通用',
+              title: l10n.settingsGeneral,
               children: [
                 _buildLocaleRow(),
-                _buildSwitchRow('深色模式', isDark, (v) {
+                _buildSwitchRow(l10n.settingsDarkMode, isDark, (v) {
                   themeProvider.setThemeMode(v ? ThemeMode.dark : ThemeMode.light);
                 }),
                 _buildCurrencyRow(),
@@ -68,14 +70,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
             // 数据设置
             _buildGroup(
-              title: '数据',
+              title: l10n.settingsData,
               children: [
-                _buildSwitchRow('自动备份', _autoBackup, (v) {
+                _buildSwitchRow(l10n.settingsAutoBackup, _autoBackup, (v) {
                   setState(() => _autoBackup = v);
                   _saveBool('autoBackup', v);
                 }),
-                _buildInfoRow('备份频率', '每天'),
-                _buildNavRow('恢复数据', () {
+                _buildInfoRow(l10n.settingsBackupFrequency, l10n.settingsBackupDaily),
+                _buildNavRow(l10n.settingsRestoreData, () {
                   // TODO: 恢复数据
                 }),
               ],
@@ -83,7 +85,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
             // 关于
             _buildGroup(
-              title: '关于',
+              title: l10n.settingsAbout,
               children: [
                 Padding(
                   padding: const EdgeInsets.all(16),
@@ -119,13 +121,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
             // 危险区
             _buildGroup(
-              title: '危险区',
+              title: l10n.settingsDangerZone,
               children: [
-                _buildDangerRow('清除所有数据', () {
-                  _showConfirmDialog('清除所有数据', '此操作不可恢复，确定要清除所有数据吗？');
+                _buildDangerRow(l10n.settingsClearData, () {
+                  _showConfirmDialog(l10n.settingsClearData, l10n.settingsClearConfirm);
                 }),
-                _buildDangerRow('注销账号', () {
-                  _showConfirmDialog('注销账号', '注销后所有数据将被永久删除，确定要继续吗？');
+                _buildDangerRow(l10n.settingsDeleteAccount, () {
+                  _showConfirmDialog(l10n.settingsDeleteAccount, l10n.settingsDeleteConfirm);
                 }),
               ],
             ),
@@ -191,7 +193,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Widget _buildLocaleRow() {
     final localeProvider = ref.watch(localeProviderOverrideProvider);
     return _SettingRow(
-      label: '语言',
+      label: AppLocalizations.of(context)!.settingsLanguage,
       trailing: Text(localeProvider.localeDisplayName, style: AppTextStyles.footnote),
       onTap: _showLanguagePicker,
     );
@@ -202,7 +204,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final localeProvider = ref.watch(localeProviderOverrideProvider);
     final c = localeProvider.currency;
     return _SettingRow(
-      label: '货币',
+      label: AppLocalizations.of(context)!.settingsCurrency,
       trailing: Text('${c.code} (${c.symbol})', style: AppTextStyles.footnote),
       onTap: _showCurrencyPicker,
     );
@@ -300,11 +302,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('取消'),
+            child: Text(AppLocalizations.of(context)!.commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text('确定', style: TextStyle(color: context.colors.error)),
+            child: Text(AppLocalizations.of(context)!.commonConfirm, style: TextStyle(color: context.colors.error)),
           ),
         ],
       ),

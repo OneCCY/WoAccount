@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../config/database/app_database.dart';
+import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -49,13 +51,14 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final defaultBook = _books.where((b) => b.isDefault).firstOrNull;
     final otherBooks = _books.where((b) => !b.isDefault).toList();
 
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: AppBar(
-        title: const Text('我的账本'),
+        title: Text(l10n.bookTitle),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -78,7 +81,7 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
                     child: OutlinedButton.icon(
                       onPressed: _onCreateBook,
                       icon: const Icon(Icons.add, size: 18),
-                      label: const Text('新建账本'),
+                      label: Text(l10n.bookCreate),
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 48),
                         side: BorderSide(color: context.colors.primary),
@@ -95,7 +98,7 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
                     child: Text(
-                      '每个账本拥有独立的交易记录、预算和 AI 对话历史',
+                      l10n.bookDescription,
                       style: context.textStyles.caption.copyWith(color: context.colors.textTertiary),
                       textAlign: TextAlign.center,
                     ),
@@ -109,6 +112,7 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
   }
 
   Widget _buildDefaultCard(AccountBook book) {
+    final l10n = AppLocalizations.of(context)!;
     final stats = _statsMap[book.id];
     final typeLabel = _typeToLabel(book.type);
     final icon = book.icon ?? '📒';
@@ -157,7 +161,7 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
                                 color: Colors.white.withValues(alpha: 0.25),
                                 borderRadius: BorderRadius.circular(4),
                               ),
-                              child: Text('默认', style: context.textStyles.caption.copyWith(color: Colors.white)),
+                              child: Text(l10n.bookDefault, style: context.textStyles.caption.copyWith(color: Colors.white)),
                             ),
                           ],
                         ),
@@ -174,11 +178,11 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
                 // 月度收支
                 Row(
                   children: [
-                    _buildStatItem('本月支出', '¥${stats.totalExpense.toStringAsFixed(0)}'),
+                    _buildStatItem(l10n.bookMonthlyExpense, context.localeProvider.currency.formatAmount(stats.totalExpense, decimals: 0)),
                     const SizedBox(width: 24),
-                    _buildStatItem('本月收入', '¥${stats.totalIncome.toStringAsFixed(0)}'),
+                    _buildStatItem(l10n.bookMonthlyIncome, context.localeProvider.currency.formatAmount(stats.totalIncome, decimals: 0)),
                     const Spacer(),
-                    _buildStatItem('笔数', '${stats.count}'),
+                    _buildStatItem(l10n.bookTransactionCount, '${stats.count}'),
                   ],
                 ),
               ],
@@ -201,6 +205,7 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
   }
 
   Widget _buildBookItem(AccountBook book) {
+    final l10n = AppLocalizations.of(context)!;
     final stats = _statsMap[book.id];
     final typeLabel = _typeToLabel(book.type);
     final icon = book.icon ?? '📒';
@@ -219,14 +224,14 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
               backgroundColor: context.colors.primary,
               foregroundColor: Colors.white,
               icon: Icons.check_circle_outline,
-              label: '设为默认',
+              label: l10n.bookSetDefault,
             ),
             SlidableAction(
               onPressed: (_) => _onDeleteBook(book),
               backgroundColor: context.colors.error,
               foregroundColor: Colors.white,
               icon: Icons.delete_outline,
-              label: '删除',
+              label: l10n.bookDelete,
             ),
           ],
         ),
@@ -288,7 +293,7 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      '${stats?.count ?? 0} 笔',
+                      l10n.bookCountUnit('${stats?.count ?? 0}'),
                       style: context.textStyles.caption.copyWith(color: context.colors.textSecondary),
                     ),
                     const SizedBox(height: 2),
@@ -314,23 +319,24 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
     _loadData();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('已切换到 ${book.name}'), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
+        SnackBar(content: Text(AppLocalizations.of(context)!.bookSwitchedTo(book.name)), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
       );
     }
   }
 
   Future<void> _onDeleteBook(AccountBook book) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('删除账本'),
-        content: Text('确定要删除「${book.name}」吗？\n\n该账本下的所有交易记录、预算和对话历史将被清除，此操作不可撤销。'),
+        title: Text(l10n.bookDeleteTitle),
+        content: Text(l10n.bookDeleteConfirm(book.name)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.commonCancel)),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: context.colors.error),
-            child: const Text('删除'),
+            child: Text(l10n.bookDelete),
           ),
         ],
       ),
@@ -342,7 +348,7 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
         _loadData();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('账本已删除'), behavior: SnackBarBehavior.floating, duration: Duration(milliseconds: 800)),
+            SnackBar(content: Text(l10n.bookDeleted), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
           );
         }
       }
@@ -368,12 +374,13 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
   }
 
   String _typeToLabel(String type) {
+    final l10n = AppLocalizations.of(context)!;
     switch (type) {
-      case 'personal': return '个人';
-      case 'family': return '家庭';
-      case 'travel': return '旅行';
-      case 'business': return '生意';
-      case 'other': return '其他';
+      case 'personal': return l10n.bookTypePersonal;
+      case 'family': return l10n.bookTypeFamily;
+      case 'travel': return l10n.bookTypeTravel;
+      case 'business': return l10n.bookTypeBusiness;
+      case 'other': return l10n.bookTypeOther;
       default: return type;
     }
   }

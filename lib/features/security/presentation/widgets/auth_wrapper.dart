@@ -60,7 +60,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
   Future<void> _tryBiometricAuth() async {
     try {
       final didAuth = await _localAuth.authenticate(
-        localizedReason: '请验证身份以解锁应用',
+        localizedReason: AppLocalizations.of(context)!.securityAuthRequired,
         options: const AuthenticationOptions(
           stickyAuth: true,
           biometricOnly: false, // 允许设备密码作为后备
@@ -146,9 +146,9 @@ class _AuthWrapperState extends State<AuthWrapper> {
     if (navContext == null) return;
 
     final labels = {
-      'pin': '数字密码',
-      'pattern': '图案解锁',
-      'biometric': '指纹解锁',
+      'pin': AppLocalizations.of(navContext)!.securityPinCode,
+      'pattern': AppLocalizations.of(navContext)!.securityPatternLock,
+      'biometric': AppLocalizations.of(navContext)!.securityBiometric,
     };
     final icons = {
       'pin': Icons.pin_outlined,
@@ -162,9 +162,9 @@ class _AuthWrapperState extends State<AuthWrapper> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('选择解锁方式', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(AppLocalizations.of(navContext)!.securitySelectUnlockMethod, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
             ),
             ..._enabledTypes.map((type) => ListTile(
               leading: Icon(icons[type] ?? Icons.lock),
@@ -205,7 +205,7 @@ class _PinAuthScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 child: TextButton(
                   onPressed: onSwitchType,
-                  child: const Text('切换解锁方式'),
+                  child: Text(AppLocalizations.of(context)!.securitySwitchUnlockMethod),
                 ),
               ),
             ),
@@ -236,7 +236,7 @@ class _PatternAuthScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 child: TextButton(
                   onPressed: onSwitchType,
-                  child: const Text('切换解锁方式'),
+                  child: Text(AppLocalizations.of(context)!.securitySwitchUnlockMethod),
                 ),
               ),
             ),
@@ -268,19 +268,19 @@ class _BiometricAuthScreen extends StatelessWidget {
             children: [
               const Icon(Icons.fingerprint, size: 80, color: Colors.grey),
               const SizedBox(height: 24),
-              const Text('请验证指纹', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+              Text(AppLocalizations.of(context)!.securityVerifyFingerprint, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
-              const Text('触摸指纹传感器以解锁应用', style: TextStyle(color: Colors.grey)),
+              Text(AppLocalizations.of(context)!.securityTouchToUnlock, style: const TextStyle(color: Colors.grey)),
               const SizedBox(height: 40),
               ElevatedButton(
                 onPressed: onRetryBiometric,
-                child: const Text('重试指纹'),
+                child: Text(AppLocalizations.of(context)!.securityRetryFingerprint),
               ),
               if (onSwitchType != null) ...[
                 const SizedBox(height: 16),
                 TextButton(
                   onPressed: onSwitchType,
-                  child: const Text('切换解锁方式'),
+                  child: Text(AppLocalizations.of(context)!.securitySwitchUnlockMethod),
                 ),
               ],
             ],

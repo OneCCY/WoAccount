@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
+import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/repositories/report_repository.dart';
@@ -25,7 +27,7 @@ class CategoryRankingList extends StatelessWidget {
             children: [
               Icon(Icons.bar_chart, size: 48, color: context.colors.textTertiary),
               const SizedBox(height: 8),
-              Text('暂无数据', style: AppTextStyles.body.copyWith(color: context.colors.textTertiary)),
+              Text(AppLocalizations.of(context)!.reportNoData, style: AppTextStyles.body.copyWith(color: context.colors.textTertiary)),
             ],
           ),
         ),
@@ -85,7 +87,7 @@ class CategoryRankingList extends StatelessWidget {
                   children: [
                     Text(stat.categoryName, style: AppTextStyles.body),
                     Text(
-                      '¥${_formatAmount(stat.amount)}',
+                      context.localeProvider.currency.formatAbbreviated(stat.amount),
                       style: AppTextStyles.amountSmall.copyWith(
                         color: isExpense ? context.colors.expense : context.colors.income,
                       ),
@@ -119,16 +121,6 @@ class CategoryRankingList extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatAmount(double amount) {
-    if (amount >= 10000) {
-      return '${(amount / 10000).toStringAsFixed(1)}万';
-    } else if (amount >= 1000) {
-      return amount.toStringAsFixed(0);
-    } else {
-      return amount.toStringAsFixed(2);
-    }
   }
 
   Color _parseColor(BuildContext context, String? hex, int index) {
