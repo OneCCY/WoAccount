@@ -56,6 +56,18 @@ class MediaStorageService {
     return file.path;
   }
 
+  /// 保存图片文件（从临时路径复制到永久存储），返回完整文件路径
+  Future<String> saveImageFile(String tempPath, {String? filename}) async {
+    final dir = await _getTypeDir(MediaType.image);
+    final name = filename ?? '${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final destPath = p.join(dir.path, name);
+    final tempFile = File(tempPath);
+    if (tempFile.existsSync()) {
+      await tempFile.copy(destPath);
+    }
+    return destPath;
+  }
+
   /// 保存音频文件（从临时路径移动到永久存储），返回完整文件路径
   Future<String> saveAudio(String tempPath, {String? filename}) async {
     final dir = await _getTypeDir(MediaType.audio);

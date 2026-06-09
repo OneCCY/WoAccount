@@ -53,10 +53,10 @@ class TransactionPipeline {
 
   TransactionPipeline({
     required this._llmRepo,
-    required VoiceRecognitionService voiceService,
+    required this._voiceService,
     required this._imageService,
     required this._mediaStorage,
-  }) : _voiceService = voiceService;
+  });
 
   /// 处理文本输入
   Future<PipelineResult> processText(String text) async {
@@ -106,15 +106,12 @@ class TransactionPipeline {
     required LlmProvider provider,
   }) async {
     // 1. 保存图片到永久存储
-    final imageBytes = await _mediaStorage.getFileSize(imageTempPath) > 0
-        ? null // 已存在，直接用路径
-        : null;
-    final savedPath = imageTempPath; // 图片由 image_picker 已保存
+    final savedPath = await _mediaStorage.saveImageFile(imageTempPath);
 
     // 2. 视觉模型识别图片内容
     final recognizedText = await _imageService.recognize(
       provider,
-      imageTempPath,
+      savedPath,
     );
 
     if (recognizedText.trim().isEmpty) {

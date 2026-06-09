@@ -201,7 +201,6 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
             provider: provider,
           );
           // 更新用户消息为转写文本
-          final transcribedText = '${source.emoji} ${result.normalizedText}';
           await _chatRepo.insertMessage(
             ConversationMessagesCompanion.insert(
               conversationId: _conversationId,
