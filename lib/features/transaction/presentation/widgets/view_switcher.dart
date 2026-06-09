@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 
 /// 视图类型枚举
@@ -17,6 +18,7 @@ class ViewSwitcher extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
         color: context.colors.background,
@@ -25,9 +27,9 @@ class ViewSwitcher extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildTab(context, '日', ViewType.day),
-          _buildTab(context, '周', ViewType.week),
-          _buildTab(context, '月', ViewType.month),
+          _buildTab(context, l10n.viewDay, ViewType.day),
+          _buildTab(context, l10n.viewWeek, ViewType.week),
+          _buildTab(context, l10n.viewMonth, ViewType.month),
         ],
       ),
     );

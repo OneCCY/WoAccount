@@ -5,6 +5,7 @@ import 'package:drift/drift.dart' hide Column;
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -93,15 +94,16 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
   }
 
   void _pickGender() {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       builder: (ctx) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(title: const Text('男'), onTap: () { _updateProfile(const UserProfilesCompanion(gender: Value('男'))); Navigator.pop(ctx); }),
-            ListTile(title: const Text('女'), onTap: () { _updateProfile(const UserProfilesCompanion(gender: Value('女'))); Navigator.pop(ctx); }),
-            ListTile(title: const Text('保密'), onTap: () { _updateProfile(const UserProfilesCompanion(gender: Value('保密'))); Navigator.pop(ctx); }),
+            ListTile(title: Text(l10n.profileEditGenderMale), onTap: () { _updateProfile(const UserProfilesCompanion(gender: Value('男'))); Navigator.pop(ctx); }),
+            ListTile(title: Text(l10n.profileEditGenderFemale), onTap: () { _updateProfile(const UserProfilesCompanion(gender: Value('女'))); Navigator.pop(ctx); }),
+            ListTile(title: Text(l10n.profileEditGenderSecret), onTap: () { _updateProfile(const UserProfilesCompanion(gender: Value('保密'))); Navigator.pop(ctx); }),
           ],
         ),
       ),
@@ -109,49 +111,52 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
   }
 
   Future<void> _logout() async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('退出登录'),
-        content: const Text('确定要退出登录吗？'),
+        title: Text(l10n.profileEditLogout),
+        content: Text(l10n.profileEditLogoutConfirmContent),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text('退出', style: TextStyle(color: context.colors.expense))),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.commonCancel)),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l10n.profileEditLogoutExit, style: TextStyle(color: context.colors.expense))),
         ],
       ),
     );
     if (confirmed == true && mounted) {
       // TODO: 实际退出逻辑（清除 token、跳转登录页）
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('退出登录功能即将完善'), behavior: SnackBarBehavior.floating),
+        SnackBar(content: Text(l10n.profileEditLogoutComingSoon), behavior: SnackBarBehavior.floating),
       );
     }
   }
 
   Future<void> _deleteAccount() async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('申请注销账号'),
-        content: const Text('注销账号后数据将无法恢复，确定要申请注销吗？'),
+        title: Text(l10n.profileEditDeleteAccount),
+        content: Text(l10n.profileEditDeleteAccountConfirmContent),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text('申请注销', style: TextStyle(color: context.colors.expense))),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.commonCancel)),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l10n.profileEditDeleteAccountSubmit, style: TextStyle(color: context.colors.expense))),
         ],
       ),
     );
     if (confirmed == true && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('注销申请已提交'), behavior: SnackBarBehavior.floating),
+        SnackBar(content: Text(l10n.profileEditDeleteAccountSubmitted), behavior: SnackBarBehavior.floating),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('个人资料')),
+        appBar: AppBar(title: Text(l10n.profileEditTitle)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -159,14 +164,14 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
     final profile = _profile;
     if (profile == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('个人资料')),
-        body: const Center(child: Text('未找到用户资料')),
+        appBar: AppBar(title: Text(l10n.profileEditTitle)),
+        body: Center(child: Text(l10n.profileEditNotFound)),
       );
     }
 
     return Scaffold(
       backgroundColor: context.colors.background,
-      appBar: AppBar(title: const Text('个人资料')),
+      appBar: AppBar(title: Text(l10n.profileEditTitle)),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -175,10 +180,10 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
             _buildAvatarSection(profile),
             const SizedBox(height: 16),
             // 信息列表
-            _buildInfoCard(profile),
+            _buildInfoCard(profile, l10n),
             const SizedBox(height: 16),
             // 危险操作
-            _buildDangerCard(),
+            _buildDangerCard(l10n),
             const SizedBox(height: 40),
           ],
         ),
@@ -218,7 +223,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
     );
   }
 
-  Widget _buildInfoCard(UserProfile profile) {
+  Widget _buildInfoCard(UserProfile profile, AppLocalizations l10n) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
       decoration: BoxDecoration(
@@ -228,20 +233,20 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-          _buildRow('昵称', profile.nickname, () {
-            _editField('昵称', profile.nickname, (v) {
+          _buildRow(l10n.profileEditNickname, profile.nickname, () {
+            _editField(l10n.profileEditNickname, profile.nickname, (v) {
               if (v.isNotEmpty) _updateProfile(UserProfilesCompanion(nickname: Value(v)));
             });
           }),
-          _buildRow('ID', profile.uid, null, readOnly: true),
-          _buildRow('性别', profile.gender ?? '未设置', _pickGender),
-          _buildRow('邮箱', profile.email ?? '未设置', () {
-            _editField('邮箱', profile.email, (v) {
+          _buildRow(l10n.profileEditId, profile.uid, null, readOnly: true),
+          _buildRow(l10n.profileEditGender, profile.gender ?? l10n.profileEditNotSet, _pickGender),
+          _buildRow(l10n.profileEditEmail, profile.email ?? l10n.profileEditNotSet, () {
+            _editField(l10n.profileEditEmail, profile.email, (v) {
               _updateProfile(UserProfilesCompanion(email: Value(v.isEmpty ? null : v)));
             }, keyboardType: TextInputType.emailAddress);
           }),
-          _buildRow('手机', profile.phone ?? '未设置', () {
-            _editField('手机', profile.phone, (v) {
+          _buildRow(l10n.profileEditPhone, profile.phone ?? l10n.profileEditNotSet, () {
+            _editField(l10n.profileEditPhone, profile.phone, (v) {
               _updateProfile(UserProfilesCompanion(phone: Value(v.isEmpty ? null : v)));
             }, keyboardType: TextInputType.phone);
           }, showDivider: false),
@@ -272,7 +277,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
     );
   }
 
-  Widget _buildDangerCard() {
+  Widget _buildDangerCard(AppLocalizations l10n) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
       decoration: BoxDecoration(
@@ -290,7 +295,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
                 children: [
                   Icon(Icons.logout, size: 20, color: context.colors.expense),
                   const SizedBox(width: 12),
-                  Text('退出登录', style: context.textStyles.body.copyWith(color: context.colors.expense)),
+                  Text(l10n.profileEditLogout, style: context.textStyles.body.copyWith(color: context.colors.expense)),
                 ],
               ),
             ),
@@ -304,7 +309,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
                 children: [
                   Icon(Icons.delete_forever_outlined, size: 20, color: context.colors.expense),
                   const SizedBox(width: 12),
-                  Text('申请注销账号', style: context.textStyles.body.copyWith(color: context.colors.expense)),
+                  Text(l10n.profileEditDeleteAccount, style: context.textStyles.body.copyWith(color: context.colors.expense)),
                 ],
               ),
             ),

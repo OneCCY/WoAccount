@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' hide Column;
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
+import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -44,24 +46,25 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: context.colors.background,
       body: Column(
         children: [
           SizedBox(height: MediaQuery.of(context).padding.top),
-          _buildTopBar(),
-          _buildTypeTabs(),
+          _buildTopBar(l10n),
+          _buildTypeTabs(l10n),
           Expanded(child: _buildCategoryGrid()),
           if (_selectedCategory != null) _buildSelectedCategoryBar(),
-          _buildNoteAmountRow(),
-          _buildNumpad(),
+          _buildNoteAmountRow(l10n),
+          _buildNumpad(l10n),
         ],
       ),
     );
   }
 
   /// 顶部栏
-  Widget _buildTopBar() {
+  Widget _buildTopBar(AppLocalizations l10n) {
     return Container(
       height: 48,
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
@@ -75,7 +78,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
             constraints: const BoxConstraints(),
           ),
           const SizedBox(width: 8),
-          Text('记账', style: context.textStyles.h3),
+          Text(l10n.entryTitle, style: context.textStyles.h3),
           const Spacer(),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -84,7 +87,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
               borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
             ),
             child: Text(
-              '日常记账',
+              l10n.entryBookType,
               style: context.textStyles.caption.copyWith(color: context.colors.primaryDark),
             ),
           ),
@@ -94,7 +97,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
   }
 
   /// 类型切换 Tab
-  Widget _buildTypeTabs() {
+  Widget _buildTypeTabs(AppLocalizations l10n) {
     return Container(
       color: context.colors.surface,
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
@@ -102,9 +105,9 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
         children: EntryType.values.map((type) {
           final isActive = _entryType == type;
           final label = switch (type) {
-            EntryType.expense => '支出',
-            EntryType.income => '收入',
-            EntryType.other => '其他',
+            EntryType.expense => l10n.entryExpense,
+            EntryType.income => l10n.entryIncome,
+            EntryType.other => l10n.entryOther,
           };
           return GestureDetector(
             onTap: () {
@@ -238,7 +241,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
                         constraints: const BoxConstraints(),
                       ),
                       const SizedBox(width: 8),
-                      Text('${parent.name} - 子分类', style: context.textStyles.h3),
+                      Text(AppLocalizations.of(context)!.entrySubCategoryTitle(parent.name), style: context.textStyles.h3),
                     ],
                   ),
                 ),
@@ -309,7 +312,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
   }
 
   /// 备注输入 + 金额显示
-  Widget _buildNoteAmountRow() {
+  Widget _buildNoteAmountRow(AppLocalizations l10n) {
     final amountColor = switch (_entryType) {
       EntryType.expense => context.colors.expense,
       EntryType.income => context.colors.income,
@@ -326,7 +329,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
             child: TextField(
               style: context.textStyles.body,
               decoration: InputDecoration(
-                hintText: '添加备注...',
+                hintText: l10n.entryNoteHint,
                 hintStyle: context.textStyles.body.copyWith(color: context.colors.textHint),
                 border: InputBorder.none,
                 isDense: true,
@@ -347,7 +350,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
   }
 
   /// 自定义数字键盘
-  Widget _buildNumpad() {
+  Widget _buildNumpad(AppLocalizations l10n) {
     return Container(
       color: context.colors.surface,
       padding: const EdgeInsets.fromLTRB(4, 4, 4, 4),
@@ -361,7 +364,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
                 _NumpadKey(label: '2', onTap: () => _onDigit('2')),
                 _NumpadKey(label: '3', onTap: () => _onDigit('3')),
                 _NumpadKey(
-                  label: '今天',
+                  label: l10n.entryNumpadToday,
                   onTap: () => setState(() => _showDatePicker = !_showDatePicker),
                   textStyle: context.textStyles.caption.copyWith(color: context.colors.primary),
                 ),
@@ -373,7 +376,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
                 _NumpadKey(label: '5', onTap: () => _onDigit('5')),
                 _NumpadKey(label: '6', onTap: () => _onDigit('6')),
                 _NumpadKey(
-                  label: '删除',
+                  label: l10n.entryNumpadDelete,
                   onTap: _onDelete,
                   icon: Icons.backspace_outlined,
                 ),
@@ -396,7 +399,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
                 _NumpadKey(label: '.', onTap: _onDot),
                 _NumpadKey(label: '0', onTap: () => _onDigit('0')),
                 _NumpadKey(
-                  label: '完成',
+                  label: l10n.entryNumpadDone,
                   onTap: _onSubmit,
                   backgroundColor: _canSubmit ? context.colors.primary : context.colors.surfaceSecondary,
                   textStyle: AppTextStyles.buttonText.copyWith(
@@ -472,7 +475,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('记账成功：¥${amount.toStringAsFixed(2)}'),
+            content: Text(AppLocalizations.of(context)!.entrySuccess(context.localeProvider.currency.formatAmount(amount))),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -482,7 +485,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('记账失败：$e'),
+            content: Text(AppLocalizations.of(context)!.entryFailure(e.toString())),
             behavior: SnackBarBehavior.floating,
           ),
         );

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
+import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -29,6 +31,7 @@ class TransactionGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     double totalExpense = 0;
     double totalIncome = 0;
     for (final t in transactions) {
@@ -61,13 +64,13 @@ class TransactionGroup extends StatelessWidget {
               // 支出 + 收入明细
               if (totalExpense > 0)
                 Text(
-                  '支出 ¥${totalExpense.toStringAsFixed(2)}',
+                  l10n.txnGroupExpenseLabel(context.localeProvider.currency.formatAmount(totalExpense)),
                   style: context.textStyles.caption.copyWith(color: context.colors.expense),
                 ),
               if (totalExpense > 0 && totalIncome > 0) const SizedBox(width: 8),
               if (totalIncome > 0)
                 Text(
-                  '收入 ¥${totalIncome.toStringAsFixed(2)}',
+                  l10n.txnGroupIncomeLabel(context.localeProvider.currency.formatAmount(totalIncome)),
                   style: context.textStyles.caption.copyWith(color: context.colors.income),
                 ),
               const Spacer(),
@@ -79,7 +82,7 @@ class TransactionGroup extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        sortLabel == '按时间' ? Icons.access_time : Icons.sort,
+                        sortLabel == l10n.txnSortByTime ? Icons.access_time : Icons.sort,
                         size: 13,
                         color: context.colors.textTertiary,
                       ),
@@ -205,15 +208,15 @@ class _TransactionItemState extends State<_TransactionItem>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final categoryName = widget.category?.name;
     final (icon, bgColor) = _getCategoryStyle(categoryName);
     final isExpense = widget.category?.isExpense ?? true;
-    final amountPrefix = isExpense ? '-' : '+';
     final amountColor = isExpense ? context.colors.expense : context.colors.income;
     final screenWidth = MediaQuery.of(context).size.width;
 
     // 二级分类
-    final subName = widget.subcategory?.name ?? '暂无';
+    final subName = widget.subcategory?.name ?? l10n.txnGroupNoSubcategory;
 
     return GestureDetector(
       onHorizontalDragStart: _handleDragStart,
@@ -236,13 +239,13 @@ class _TransactionItemState extends State<_TransactionItem>
                 },
                 child: Container(
                   color: context.colors.error,
-                  child: const Center(
+                  child: Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.delete_outline, color: Colors.white, size: 22),
-                        SizedBox(height: 2),
-                        Text('删除', style: TextStyle(color: Colors.white, fontSize: 12)),
+                        const Icon(Icons.delete_outline, color: Colors.white, size: 22),
+                        const SizedBox(height: 2),
+                        Text(l10n.commonDelete, style: const TextStyle(color: Colors.white, fontSize: 12)),
                       ],
                     ),
                   ),
@@ -290,7 +293,7 @@ class _TransactionItemState extends State<_TransactionItem>
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                '${DateFormat('HH:mm:ss').format(widget.transaction.transactionDate)} · ${categoryName ?? '未分类'} · $subName',
+                                '${DateFormat('HH:mm:ss').format(widget.transaction.transactionDate)} · ${categoryName ?? l10n.txnGroupUncategorized} · $subName',
                                 style: context.textStyles.caption,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -300,7 +303,7 @@ class _TransactionItemState extends State<_TransactionItem>
                         ),
                         // 金额
                         Text(
-                          '$amountPrefix¥${widget.transaction.amount.toStringAsFixed(2)}',
+                          context.localeProvider.currency.formatWithSign(widget.transaction.amount, isExpense),
                           style: context.textStyles.amountList.copyWith(color: amountColor),
                         ),
                       ],

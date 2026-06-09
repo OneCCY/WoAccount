@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
+import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -61,6 +63,7 @@ class _AmountEditSheetState extends State<AmountEditSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final amountColor = widget.isExpense ? context.colors.expense : context.colors.income;
     final prefix = widget.isExpense ? '-' : '+';
 
@@ -89,7 +92,7 @@ class _AmountEditSheetState extends State<AmountEditSheet> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  '$prefix¥',
+                  '$prefix${context.localeProvider.currency.symbol}',
                   style: context.textStyles.h2.copyWith(color: amountColor),
                 ),
                 const SizedBox(width: 4),
@@ -128,7 +131,7 @@ class _AmountEditSheetState extends State<AmountEditSheet> {
                     children: [
                       _key('.'), _key('0'),
                       _KeyButton(
-                        label: '删除',
+                        label: l10n.commonDelete,
                         icon: Icons.backspace_outlined,
                         onTap: _onDelete,
                       ),
@@ -150,7 +153,7 @@ class _AmountEditSheetState extends State<AmountEditSheet> {
                                 child: SizedBox(
                                   height: 48,
                                   child: Center(
-                                    child: Text('取消', style: context.textStyles.body.copyWith(color: context.colors.textSecondary)),
+                                    child: Text(l10n.commonCancel, style: context.textStyles.body.copyWith(color: context.colors.textSecondary)),
                                   ),
                                 ),
                               ),
@@ -174,7 +177,7 @@ class _AmountEditSheetState extends State<AmountEditSheet> {
                                 child: SizedBox(
                                   height: 48,
                                   child: Center(
-                                    child: Text('确认', style: AppTextStyles.buttonText.copyWith(color: Colors.white)),
+                                    child: Text(l10n.commonConfirm, style: AppTextStyles.buttonText.copyWith(color: Colors.white)),
                                   ),
                                 ),
                               ),

@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -95,10 +96,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     if (_todayCheckedIn) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('今天已经打过卡了'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.profileAlreadyCheckedIn),
             behavior: SnackBarBehavior.floating,
-            duration: Duration(milliseconds: 800),
+            duration: const Duration(milliseconds: 800),
           ),
         );
       }
@@ -118,10 +119,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('打卡成功！'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.profileCheckInSuccess),
             behavior: SnackBarBehavior.floating,
-            duration: Duration(milliseconds: 800),
+            duration: const Duration(milliseconds: 800),
           ),
         );
       }
@@ -129,7 +130,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('打卡失败: $e'),
+            content: Text(AppLocalizations.of(context)!.profileCheckInFailure(e.toString())),
             behavior: SnackBarBehavior.floating,
             duration: const Duration(seconds: 2),
           ),
@@ -140,6 +141,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: Column(
         children: [
@@ -149,33 +151,33 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               child: Column(
                 children: [
                   // 用户卡片 + 打卡按钮
-                  _buildUserCard(),
+                  _buildUserCard(l10n),
                   const SizedBox(height: 12),
                   // 统计数据
-                  _buildStatsRow(),
+                  _buildStatsRow(l10n),
                   const SizedBox(height: 12),
                   // 功能菜单
-                  _buildFuncGrid(),
+                  _buildFuncGrid(l10n),
                   const SizedBox(height: 12),
                   // 工具与服务
                   _buildMenuGroup(
-                    title: '工具与服务',
+                    title: l10n.profileToolsAndServices,
                     context: context,
                     items: [
-                      _MenuItem(Icons.lock_outline, '密码锁'),
-                      _MenuItem(Icons.monetization_on_outlined, 'AC币'),
-                      _MenuItem(Icons.smart_toy_outlined, 'AI 配置'),
-                      _MenuItem(Icons.cloud_outlined, '数据备份'),
-                      _MenuItem(Icons.file_download_outlined, '账单导入'),
-                      _MenuItem(Icons.file_upload_outlined, '账单导出'),
-                      _MenuItem(Icons.chat_bubble_outline, '用户反馈'),
+                      _MenuItem(Icons.lock_outline, l10n.profileMenuPasswordLock),
+                      _MenuItem(Icons.monetization_on_outlined, l10n.profileMenuAcCoins),
+                      _MenuItem(Icons.smart_toy_outlined, l10n.profileMenuAiConfig),
+                      _MenuItem(Icons.cloud_outlined, l10n.profileMenuDataBackup),
+                      _MenuItem(Icons.file_download_outlined, l10n.profileMenuImport),
+                      _MenuItem(Icons.file_upload_outlined, l10n.profileMenuExport),
+                      _MenuItem(Icons.chat_bubble_outline, l10n.profileMenuFeedback),
                     ],
                   ),
                   const SizedBox(height: 12),
                   // 设置
                   _buildMenuGroup(
                     context: context,
-                    items: [_MenuItem(Icons.settings_outlined, '设置')],
+                    items: [_MenuItem(Icons.settings_outlined, l10n.profileMenuSettings)],
                   ),
                   const SizedBox(height: 20),
                 ],
@@ -188,7 +190,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }
 
   /// 用户卡片 + 打卡按钮
-  Widget _buildUserCard() {
+  Widget _buildUserCard(AppLocalizations l10n) {
     final avatarPath = _profile?.avatarPath;
     final nickname = _profile?.nickname ?? '用户';
     final uid = _profile?.uid ?? '';
@@ -240,7 +242,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     Text(nickname, style: context.textStyles.h3),
                     const SizedBox(height: 2),
                     Text(
-                      'ID: $uid',
+                      l10n.profileUserId(uid),
                       style: context.textStyles.caption.copyWith(
                         color: context.colors.textTertiary,
                       ),
@@ -282,7 +284,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    _todayCheckedIn ? '已打卡' : '打卡',
+                    _todayCheckedIn ? l10n.profileCheckedIn : l10n.profileCheckIn,
                     style: context.textStyles.footnote.copyWith(
                       color: _todayCheckedIn
                           ? context.colors.textTertiary
@@ -300,7 +302,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }
 
   /// 统计数据行：连续打卡 / 打卡总天数 / 记账总笔数
-  Widget _buildStatsRow() {
+  Widget _buildStatsRow(AppLocalizations l10n) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -310,11 +312,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       ),
       child: Row(
         children: [
-          _buildStatItem('$_consecutiveDays', '连续打卡'),
+          _buildStatItem('$_consecutiveDays', l10n.profileConsecutiveDays),
           _buildStatDivider(),
-          _buildStatItem('$_totalCheckInDays', '打卡总天数'),
+          _buildStatItem('$_totalCheckInDays', l10n.profileTotalCheckInDays),
           _buildStatDivider(),
-          _buildStatItem('$_totalTransactions', '记账总笔数'),
+          _buildStatItem('$_totalTransactions', l10n.profileTotalTransactions),
         ],
       ),
     );
@@ -352,13 +354,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }
 
   /// 功能网格（5列，无背景色图标）
-  Widget _buildFuncGrid() {
-    const items = [
-      _FuncItem(Icons.palette_outlined, '主题切换'),
-      _FuncItem(Icons.book_outlined, '我的账本'),
-      _FuncItem(Icons.account_balance_wallet_outlined, '预算管理'),
-      _FuncItem(Icons.category_outlined, '分类管理'),
-      _FuncItem(Icons.bar_chart_outlined, '报表分析'),
+  Widget _buildFuncGrid(AppLocalizations l10n) {
+    final items = [
+      _FuncItem(Icons.palette_outlined, l10n.profileFuncTheme),
+      _FuncItem(Icons.book_outlined, l10n.profileFuncAccountBooks),
+      _FuncItem(Icons.account_balance_wallet_outlined, l10n.profileFuncBudget),
+      _FuncItem(Icons.category_outlined, l10n.profileFuncCategories),
+      _FuncItem(Icons.bar_chart_outlined, l10n.profileFuncReports),
     ];
 
     return Container(
@@ -481,66 +483,54 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }
 
   void _onFuncTap(BuildContext context, String label) {
-    switch (label) {
-      case '主题切换':
-        _showThemePicker(context, ref);
-        break;
-      case '我的账本':
-        context.push('/account-books');
-        break;
-      case '预算管理':
-        context.push('/budget');
-        break;
-      case '分类管理':
-        context.push('/categories/manage');
-        break;
-      case 'AI 配置':
-        context.push('/settings/llm');
-        break;
-      case '报表分析':
-        context.push('/reports');
-        break;
-      case '数据备份':
-      case '账单导入':
-      case '账单导出':
-      case '用户反馈':
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('$label功能即将推出'),
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(milliseconds: 500),
-          ),
-        );
-        break;
+    final l10n = AppLocalizations.of(context)!;
+    if (label == l10n.profileFuncTheme) {
+      _showThemePicker(context, ref);
+    } else if (label == l10n.profileFuncAccountBooks) {
+      context.push('/account-books');
+    } else if (label == l10n.profileFuncBudget) {
+      context.push('/budget');
+    } else if (label == l10n.profileFuncCategories) {
+      context.push('/categories/manage');
+    } else if (label == l10n.profileMenuAiConfig) {
+      context.push('/settings/llm');
+    } else if (label == l10n.profileFuncReports) {
+      context.push('/reports');
+    } else if (label == l10n.profileMenuDataBackup ||
+        label == l10n.profileMenuImport ||
+        label == l10n.profileMenuExport ||
+        label == l10n.profileMenuFeedback) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.profileFeatureComingSoon(label)),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(milliseconds: 500),
+        ),
+      );
     }
   }
 
   void _onMenuTap(BuildContext context, String label) {
-    switch (label) {
-      case '密码锁':
-        context.push('/lock-settings');
-        break;
-      case 'AC币':
-        context.push('/ac-coins');
-        break;
-      case 'AI 配置':
-        context.push('/settings/llm');
-        break;
-      case '数据备份':
-      case '账单导入':
-      case '账单导出':
-      case '用户反馈':
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('$label功能即将推出'),
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(milliseconds: 500),
-          ),
-        );
-        break;
-      case '设置':
-        context.push('/settings');
-        break;
+    final l10n = AppLocalizations.of(context)!;
+    if (label == l10n.profileMenuPasswordLock) {
+      context.push('/lock-settings');
+    } else if (label == l10n.profileMenuAcCoins) {
+      context.push('/ac-coins');
+    } else if (label == l10n.profileMenuAiConfig) {
+      context.push('/settings/llm');
+    } else if (label == l10n.profileMenuDataBackup ||
+        label == l10n.profileMenuImport ||
+        label == l10n.profileMenuExport ||
+        label == l10n.profileMenuFeedback) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.profileFeatureComingSoon(label)),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(milliseconds: 500),
+        ),
+      );
+    } else if (label == l10n.profileMenuSettings) {
+      context.push('/settings');
     }
   }
 }
@@ -558,6 +548,7 @@ class _MenuItem {
 }
 
 void _showThemePicker(BuildContext context, WidgetRef ref) {
+  final l10n = AppLocalizations.of(context)!;
   final themeProvider = ref.read(themeProviderOverrideProvider);
   final current = themeProvider.themeMode;
 
@@ -569,7 +560,7 @@ void _showThemePicker(BuildContext context, WidgetRef ref) {
         children: [
           ListTile(
             leading: const Icon(Icons.light_mode),
-            title: const Text('浅色模式'),
+            title: Text(l10n.profileThemeLight),
             trailing: current == ThemeMode.light
                 ? Icon(Icons.check, color: context.colors.primary)
                 : null,
@@ -580,7 +571,7 @@ void _showThemePicker(BuildContext context, WidgetRef ref) {
           ),
           ListTile(
             leading: const Icon(Icons.dark_mode),
-            title: const Text('深色模式'),
+            title: Text(l10n.profileThemeDark),
             trailing: current == ThemeMode.dark
                 ? Icon(Icons.check, color: context.colors.primary)
                 : null,
@@ -591,7 +582,7 @@ void _showThemePicker(BuildContext context, WidgetRef ref) {
           ),
           ListTile(
             leading: const Icon(Icons.settings_brightness),
-            title: const Text('跟随系统'),
+            title: Text(l10n.profileThemeSystem),
             trailing: current == ThemeMode.system
                 ? Icon(Icons.check, color: context.colors.primary)
                 : null,

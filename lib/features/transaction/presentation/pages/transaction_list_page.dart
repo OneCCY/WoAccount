@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
+import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -53,6 +55,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final repo = ref.read(transactionRepositoryProvider);
     final catRepo = ref.read(categoryRepositoryProvider);
 
@@ -61,9 +64,9 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
         children: [
           SizedBox(height: MediaQuery.of(context).padding.top),
           _buildTopBar(),
-          _buildSearchBar(),
-          _buildStatsBar(repo),
-          Expanded(child: _buildContent(repo, catRepo)),
+          _buildSearchBar(l10n),
+          _buildStatsBar(repo, l10n),
+          Expanded(child: _buildContent(repo, catRepo, l10n)),
         ],
       ),
     );
@@ -156,15 +159,17 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
   }
 
   String _getPeriodLabel() {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).toString();
     switch (_currentView) {
       case ViewType.day:
-        return DateFormat('M月d日 EEEE', 'zh_CN').format(_currentDate);
+        return DateFormat('${l10n.txnDayFormat} EEEE', locale).format(_currentDate);
       case ViewType.week:
         final start = _currentDate.subtract(Duration(days: _currentDate.weekday - 1));
         final end = start.add(const Duration(days: 6));
-        return '${DateFormat('M月d日').format(start)} - ${DateFormat('M月d日').format(end)}';
+        return '${DateFormat(l10n.txnDayFormat, locale).format(start)} - ${DateFormat(l10n.txnDayFormat, locale).format(end)}';
       case ViewType.month:
-        return DateFormat('yyyy年M月').format(_currentDate);
+        return DateFormat(l10n.txnMonthFormat, locale).format(_currentDate);
     }
   }
 
@@ -194,7 +199,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
 
   // ==================== 搜索栏 ====================
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(AppLocalizations l10n) {
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: Responsive.s(context, AppDimensions.md),
@@ -204,7 +209,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
       child: Row(
         children: [
           // 左侧：回到今天按钮
-          _buildTodayButton(),
+          _buildTodayButton(l10n),
           SizedBox(width: Responsive.s(context, 8)),
           // 搜索框
           Expanded(
@@ -225,7 +230,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
                     SizedBox(width: Responsive.s(context, 6)),
                     Expanded(
                       child: Text(
-                        '搜索账单',
+                        l10n.txnSearchHint,
                         style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary),
                       ),
                     ),
@@ -250,7 +255,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
                   Icon(Icons.account_balance_wallet_outlined, size: 17, color: context.colors.textSecondary),
                   SizedBox(width: Responsive.s(context, 4)),
                   Text(
-                    '预算',
+                    l10n.txnBudget,
                     style: context.textStyles.footnote.copyWith(color: context.colors.textSecondary),
                   ),
                 ],
@@ -262,7 +267,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
     );
   }
 
-  Widget _buildTodayButton() {
+  Widget _buildTodayButton(AppLocalizations l10n) {
     return Material(
       color: context.colors.surfaceSecondary,
       borderRadius: BorderRadius.circular(Responsive.s(context, 8)),
@@ -274,7 +279,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: Responsive.s(context, 12), vertical: Responsive.s(context, 8)),
           child: Text(
-            '今天',
+            l10n.txnToday,
             style: context.textStyles.footnote.copyWith(
               color: context.colors.textSecondary,
               fontWeight: FontWeight.w600,
@@ -303,7 +308,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
 
   // ==================== 统计栏 ====================
 
-  Widget _buildStatsBar(TransactionRepository repo) {
+  Widget _buildStatsBar(TransactionRepository repo, AppLocalizations l10n) {
     return FutureBuilder<TransactionStats>(
       key: ValueKey(_refreshKey),
       future: _getCurrentPeriodStats(repo),
@@ -314,9 +319,9 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
         final balance = stats?.balance ?? 0;
 
         final label = switch (_currentView) {
-          ViewType.day => '本日',
-          ViewType.week => '本周',
-          ViewType.month => '本月',
+          ViewType.day => l10n.txnPeriodDay,
+          ViewType.week => l10n.txnPeriodWeek,
+          ViewType.month => l10n.txnPeriodMonth,
         };
 
         final isMonth = _currentView == ViewType.month;
@@ -329,8 +334,8 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
           child: Row(
             children: [
               _buildStatItem(
-                '$label支出',
-                '¥${expense.toStringAsFixed(2)}',
+                l10n.txnExpense(label),
+                context.localeProvider.currency.formatAmount(expense),
                 context.colors.expense,
                 isActive: !isMonth && _filterType == 'expense',
                 onTap: isMonth ? null : () {
@@ -344,8 +349,8 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
                 },
               ),
               _buildStatItem(
-                '$label收入',
-                '¥${income.toStringAsFixed(2)}',
+                l10n.txnIncome(label),
+                context.localeProvider.currency.formatAmount(income),
                 context.colors.income,
                 isActive: !isMonth && _filterType == 'income',
                 onTap: isMonth ? null : () {
@@ -358,7 +363,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
                   });
                 },
               ),
-              _buildStatItem('结余', '¥${balance.toStringAsFixed(2)}', context.colors.textPrimary),
+              _buildStatItem(l10n.txnBalance, context.localeProvider.currency.formatAmount(balance), context.colors.textPrimary),
             ],
           ),
         );
@@ -419,14 +424,14 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
 
   // ==================== 内容路由 ====================
 
-  Widget _buildContent(TransactionRepository repo, CategoryRepository catRepo) {
+  Widget _buildContent(TransactionRepository repo, CategoryRepository catRepo, AppLocalizations l10n) {
     switch (_currentView) {
       case ViewType.day:
-        return _buildDayView(repo, catRepo);
+        return _buildDayView(repo, catRepo, l10n);
       case ViewType.week:
-        return _buildWeekView(repo, catRepo);
+        return _buildWeekView(repo, catRepo, l10n);
       case ViewType.month:
-        return _buildMonthView(repo, catRepo);
+        return _buildMonthView(repo, catRepo, l10n);
     }
   }
 
@@ -458,7 +463,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
 
   // ==================== 日视图 ====================
 
-  Widget _buildDayView(TransactionRepository repo, CategoryRepository catRepo) {
+  Widget _buildDayView(TransactionRepository repo, CategoryRepository catRepo, AppLocalizations l10n) {
     final start = DateTime(_currentDate.year, _currentDate.month, _currentDate.day);
     final end = start.add(const Duration(days: 1));
 
@@ -481,7 +486,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
               final categoryMap = <int, Category>{for (final c in (catSnap.data ?? [])) c.id: c};
               final filtered = _applyFilterAndSort(dayTxns, categoryMap);
 
-              if (filtered.isEmpty) return _buildEmptyState();
+              if (filtered.isEmpty) return _buildEmptyState(l10n);
 
               final grouped = _groupByDate(filtered);
               return ListView.builder(
@@ -493,7 +498,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
                     date: entry.key,
                     transactions: entry.value,
                     categoryMap: categoryMap,
-                    sortLabel: _sortType == SortType.time ? '按时间' : '按金额',
+                    sortLabel: _sortType == SortType.time ? l10n.txnSortByTime : l10n.txnSortByAmount,
                     onSortToggle: () => setState(() {
                       _sortType = _sortType == SortType.time ? SortType.amount : SortType.time;
                     }),
@@ -515,7 +520,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
 
   // ==================== 周视图 ====================
 
-  Widget _buildWeekView(TransactionRepository repo, CategoryRepository catRepo) {
+  Widget _buildWeekView(TransactionRepository repo, CategoryRepository catRepo, AppLocalizations l10n) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final weekStart = _currentDate.subtract(Duration(days: _currentDate.weekday - 1));
@@ -655,9 +660,10 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
             final categoryMap = <int, Category>{for (final c in (catSnap.data ?? [])) c.id: c};
             final filtered = _applyFilterAndSort(dayTxns, categoryMap);
 
-            if (filtered.isEmpty) return _buildEmptyState();
+            if (filtered.isEmpty) return _buildEmptyState(AppLocalizations.of(context)!);
 
             final grouped = _groupByDate(filtered);
+            final l10n = AppLocalizations.of(context)!;
             return ListView.builder(
               padding: EdgeInsets.only(bottom: Responsive.s(context, 16)),
               itemCount: grouped.length,
@@ -667,7 +673,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
                   date: entry.key,
                   transactions: entry.value,
                   categoryMap: categoryMap,
-                  sortLabel: _sortType == SortType.time ? '按时间' : '按金额',
+                  sortLabel: _sortType == SortType.time ? l10n.txnSortByTime : l10n.txnSortByAmount,
                   onSortToggle: () => setState(() {
                     _sortType = _sortType == SortType.time ? SortType.amount : SortType.time;
                   }),
@@ -688,7 +694,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
 
   // ==================== 月视图（支持左右滑动切换月份） ====================
 
-  Widget _buildMonthView(TransactionRepository repo, CategoryRepository catRepo) {
+  Widget _buildMonthView(TransactionRepository repo, CategoryRepository catRepo, AppLocalizations l10n) {
     return GestureDetector(
       onHorizontalDragEnd: (details) {
         if (details.primaryVelocity == null) return;
@@ -898,14 +904,14 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
     return map;
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.receipt_long_outlined, size: Responsive.s(context, 48), color: context.colors.textTertiary),
           SizedBox(height: Responsive.s(context, AppDimensions.md)),
-          Text('暂无账单记录',
+          Text(l10n.txnEmpty,
               style: context.textStyles.callout.copyWith(
                 color: context.colors.textSecondary,
                 fontSize: Responsive.fs(context, 16),
@@ -925,6 +931,8 @@ class _DayDetailPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).toString();
     final repo = ref.read(transactionRepositoryProvider);
     final catRepo = ref.read(categoryRepositoryProvider);
     final start = DateTime(date.year, date.month, date.day);
@@ -933,7 +941,7 @@ class _DayDetailPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: AppBar(
-        title: Text(DateFormat('M月d日', 'zh_CN').format(date)),
+        title: Text(DateFormat(l10n.txnDayFormat, locale).format(date)),
         backgroundColor: context.colors.surface,
       ),
       body: StreamBuilder<List<Transaction>>(
@@ -953,7 +961,7 @@ class _DayDetailPage extends ConsumerWidget {
                 children: [
                   Icon(Icons.receipt_long_outlined, size: 48, color: context.colors.textTertiary),
                   const SizedBox(height: 16),
-                  Text('当日无账单记录', style: context.textStyles.callout.copyWith(color: context.colors.textSecondary)),
+                  Text(l10n.txnDayDetailEmpty, style: context.textStyles.callout.copyWith(color: context.colors.textSecondary)),
                 ],
               ),
             );

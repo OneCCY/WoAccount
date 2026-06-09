@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:intl/intl.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -49,24 +50,25 @@ class _AcCoinRecordsPageState extends ConsumerState<AcCoinRecordsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: AppBar(
-        title: const Text('AC币记录'),
+        title: Text(l10n.acCoinTitle),
         backgroundColor: context.colors.surface,
       ),
       body: Column(
         children: [
           // 余额卡片
-          _buildBalanceCard(),
+          _buildBalanceCard(l10n),
           // 记录列表
-          Expanded(child: _buildTransactionList()),
+          Expanded(child: _buildTransactionList(l10n)),
         ],
       ),
     );
   }
 
-  Widget _buildBalanceCard() {
+  Widget _buildBalanceCard(AppLocalizations l10n) {
     return Container(
       margin: const EdgeInsets.all(AppDimensions.md),
       padding: const EdgeInsets.all(20),
@@ -81,7 +83,7 @@ class _AcCoinRecordsPageState extends ConsumerState<AcCoinRecordsPage> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('当前余额', style: context.textStyles.caption.copyWith(color: Colors.white70)),
+              Text(l10n.acCoinCurrentBalance, style: context.textStyles.caption.copyWith(color: Colors.white70)),
               const SizedBox(height: 4),
               Text('$_balance', style: context.textStyles.h1.copyWith(color: Colors.white)),
             ],
@@ -91,7 +93,7 @@ class _AcCoinRecordsPageState extends ConsumerState<AcCoinRecordsPage> {
     );
   }
 
-  Widget _buildTransactionList() {
+  Widget _buildTransactionList(AppLocalizations l10n) {
     if (_transactions.isEmpty) {
       return Center(
         child: Column(
@@ -99,7 +101,7 @@ class _AcCoinRecordsPageState extends ConsumerState<AcCoinRecordsPage> {
           children: [
             Icon(Icons.monetization_on_outlined, size: 48, color: context.colors.textTertiary),
             const SizedBox(height: 16),
-            Text('暂无AC币记录', style: context.textStyles.callout.copyWith(color: context.colors.textSecondary)),
+            Text(l10n.acCoinEmpty, style: context.textStyles.callout.copyWith(color: context.colors.textSecondary)),
           ],
         ),
       );

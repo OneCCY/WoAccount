@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:intl/intl.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -94,7 +95,7 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
   Future<void> _checkIn() async {
     if (_todayCheckedIn) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('今天已经打过卡了'), behavior: SnackBarBehavior.floating, duration: Duration(milliseconds: 800)),
+        SnackBar(content: Text(AppLocalizations.of(context)!.checkinAlreadyCheckedIn), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
       );
       return;
     }
@@ -108,7 +109,7 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
     );
 
     // 发放每日打卡 AC 币
-    await _addAcCoins(db, 10, 'daily_checkin', '每日打卡奖励', today.millisecondsSinceEpoch);
+    await _addAcCoins(db, 10, 'daily_checkin', AppLocalizations.of(context)!.checkinRewardDaily, today.millisecondsSinceEpoch);
 
     // 检查连续打卡奖励
     final newConsecutive = _consecutiveDays + 1;
@@ -118,28 +119,29 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('打卡成功！+10 AC币'), behavior: SnackBarBehavior.floating, duration: Duration(milliseconds: 800)),
+        SnackBar(content: Text(AppLocalizations.of(context)!.checkinCheckInSuccess), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
       );
     }
   }
 
   Future<void> _checkStreakRewards(AppDatabase db, int consecutive, DateTime today) async {
+    final l10n = AppLocalizations.of(context)!;
     // 获取已领取的连续奖励类型
     final allTxns = await db.select(db.acCoinTransactions).get();
     final claimedTypes = allTxns.where((t) => t.type.startsWith('streak_')).map((t) => t.type).toSet();
 
     if (consecutive >= 365 && !claimedTypes.contains('streak_365d')) {
-      await _addAcCoins(db, 2000, 'streak_365d', '连续打卡365天奖励', today.millisecondsSinceEpoch);
-      _showRewardSnackBar('连续打卡一年！+2000 AC币');
+      await _addAcCoins(db, 2000, 'streak_365d', l10n.checkinReward365, today.millisecondsSinceEpoch);
+      _showRewardSnackBar(l10n.checkinStreak365);
     } else if (consecutive >= 180 && !claimedTypes.contains('streak_180d')) {
-      await _addAcCoins(db, 1000, 'streak_180d', '连续打卡180天奖励', today.millisecondsSinceEpoch);
-      _showRewardSnackBar('连续打卡半年！+1000 AC币');
+      await _addAcCoins(db, 1000, 'streak_180d', l10n.checkinReward180, today.millisecondsSinceEpoch);
+      _showRewardSnackBar(l10n.checkinStreak180);
     } else if (consecutive >= 30 && !claimedTypes.contains('streak_30d')) {
-      await _addAcCoins(db, 300, 'streak_30d', '连续打卡30天奖励', today.millisecondsSinceEpoch);
-      _showRewardSnackBar('连续打卡一个月！+300 AC币');
+      await _addAcCoins(db, 300, 'streak_30d', l10n.checkinReward30, today.millisecondsSinceEpoch);
+      _showRewardSnackBar(l10n.checkinStreak30);
     } else if (consecutive >= 7 && !claimedTypes.contains('streak_7d')) {
-      await _addAcCoins(db, 70, 'streak_7d', '连续打卡7天奖励', today.millisecondsSinceEpoch);
-      _showRewardSnackBar('连续打卡7天！+70 AC币');
+      await _addAcCoins(db, 70, 'streak_7d', l10n.checkinReward7, today.millisecondsSinceEpoch);
+      _showRewardSnackBar(l10n.checkinStreak7);
     }
   }
 
@@ -168,10 +170,11 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
   }
 
   Future<void> _makeupCheckIn() async {
+    final l10n = AppLocalizations.of(context)!;
     final selected = _selectedDay;
     if (selected == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请先选择一个未打卡的日期'), behavior: SnackBarBehavior.floating, duration: Duration(milliseconds: 800)),
+        SnackBar(content: Text(l10n.checkinMakeupSelectHint), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
       );
       return;
     }
@@ -182,21 +185,21 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
 
     if (!selectedDate.isBefore(today)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('只能补签过去的日期'), behavior: SnackBarBehavior.floating, duration: Duration(milliseconds: 800)),
+        SnackBar(content: Text(l10n.checkinMakeupFutureError), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
       );
       return;
     }
 
     if (_checkedDays.contains(selected.day)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('该日期已打卡'), behavior: SnackBarBehavior.floating, duration: Duration(milliseconds: 800)),
+        SnackBar(content: Text(l10n.checkinMakeupAlreadyChecked), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
       );
       return;
     }
 
     if (_acBalance < 100) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('AC币不足，补签需要100 AC币'), behavior: SnackBarBehavior.floating, duration: Duration(milliseconds: 800)),
+        SnackBar(content: Text(l10n.checkinMakeupInsufficient), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
       );
       return;
     }
@@ -205,13 +208,13 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('补签确认'),
-        content: Text('确定要补签 ${DateFormat('M月d日').format(selectedDate)} 吗？\n将消耗 100 AC币（当前余额: $_acBalance）'),
+        title: Text(l10n.checkinMakeupConfirmTitle),
+        content: Text(l10n.checkinMakeupConfirmContent(DateFormat('M月d日').format(selectedDate), '$_acBalance')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.commonCancel)),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text('确认补签', style: TextStyle(color: context.colors.primary)),
+            child: Text(l10n.checkinMakeupConfirm, style: TextStyle(color: context.colors.primary)),
           ),
         ],
       ),
@@ -234,7 +237,7 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
       userId: const Value(1),
       amount: -100,
       type: 'makeup_cost',
-      description: Value('补签 ${DateFormat('M月d日').format(selectedDate)}'),
+      description: Value(l10n.checkinMakeupCost(DateFormat('M月d日').format(selectedDate))),
       relatedDate: Value(selectedDate.millisecondsSinceEpoch),
     ));
 
@@ -248,36 +251,37 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('补签成功！'), behavior: SnackBarBehavior.floating, duration: Duration(milliseconds: 800)),
+        SnackBar(content: Text(l10n.checkinMakeupSuccess), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: AppBar(
-        title: const Text('打卡日历'),
+        title: Text(l10n.checkinTitle),
       ),
       body: Column(
         children: [
           // 统计信息
-          _buildStatsCard(),
+          _buildStatsCard(l10n),
           const SizedBox(height: 12),
           // 日历
           Expanded(child: _buildCalendar(today)),
           // 底部操作
-          _buildBottomBar(today),
+          _buildBottomBar(today, l10n),
         ],
       ),
     );
   }
 
-  Widget _buildStatsCard() {
+  Widget _buildStatsCard(AppLocalizations l10n) {
     return Container(
       margin: const EdgeInsets.all(AppDimensions.md),
       padding: const EdgeInsets.all(16),
@@ -287,11 +291,11 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
       ),
       child: Row(
         children: [
-          _statItem('$_consecutiveDays', '连续打卡'),
+          _statItem('$_consecutiveDays', l10n.checkinConsecutiveDays),
           _statDivider(),
-          _statItem('$_acBalance', 'AC币余额'),
+          _statItem('$_acBalance', l10n.checkinAcBalance),
           _statDivider(),
-          _statItem(_todayCheckedIn ? '✓' : '—', '今日状态'),
+          _statItem(_todayCheckedIn ? '✓' : '—', l10n.checkinTodayStatus),
         ],
       ),
     );
@@ -426,7 +430,7 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
     );
   }
 
-  Widget _buildBottomBar(DateTime today) {
+  Widget _buildBottomBar(DateTime today, AppLocalizations l10n) {
     final selected = _selectedDay;
     final canMakeup = selected != null &&
         selected.isBefore(today) &&
@@ -450,7 +454,7 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
             child: OutlinedButton.icon(
               onPressed: canMakeup ? _makeupCheckIn : null,
               icon: const Icon(Icons.edit_calendar, size: 18),
-              label: Text(canMakeup ? '补签 (-100 AC币)' : '选择日期后补签'),
+              label: Text(canMakeup ? l10n.checkinMakeupButton : l10n.checkinMakeupSelectButton),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
@@ -463,7 +467,7 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
             child: ElevatedButton.icon(
               onPressed: _todayCheckedIn ? null : _checkIn,
               icon: Icon(_todayCheckedIn ? Icons.check_circle : Icons.card_giftcard, size: 18, color: Colors.white),
-              label: Text(_todayCheckedIn ? '已打卡' : '今日打卡 +10', style: const TextStyle(color: Colors.white)),
+              label: Text(_todayCheckedIn ? l10n.checkinTodayCheckIn : l10n.checkinTodayCheckInButton, style: const TextStyle(color: Colors.white)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _todayCheckedIn ? context.colors.textHint : context.colors.primary,
                 disabledBackgroundColor: context.colors.textHint,
