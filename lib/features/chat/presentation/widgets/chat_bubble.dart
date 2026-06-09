@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
@@ -191,7 +192,7 @@ class ChatBubble extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '图片加载失败',
+                        AppLocalizations.of(context)!.chatBubbleImageFailed,
                         style: context.textStyles.caption.copyWith(
                           color: context.colors.textTertiary,
                         ),

@@ -1,5 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
+import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -23,9 +25,9 @@ class ConfirmCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isExpense = data.type == 'expense';
     final amountColor = isExpense ? context.colors.expense : context.colors.income;
-    final amountPrefix = isExpense ? '-' : '+';
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -69,7 +71,7 @@ class ConfirmCard extends StatelessWidget {
                       children: [
                         Icon(Icons.auto_awesome, size: 16, color: context.colors.primary),
                         const SizedBox(width: 6),
-                        Text('AI 解析结果', style: AppTextStyles.footnote.copyWith(
+                        Text(l10n.chatConfirmTitle, style: AppTextStyles.footnote.copyWith(
                           fontWeight: FontWeight.w600,
                           color: context.colors.primary,
                         )),
@@ -97,7 +99,7 @@ class ConfirmCard extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 14),
                     child: Text(
-                      '$amountPrefix¥${data.amount.toStringAsFixed(2)}',
+                      context.localeProvider.currency.formatWithSign(data.amount, isExpense),
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w700,
@@ -111,25 +113,25 @@ class ConfirmCard extends StatelessWidget {
                   // 可编辑信息行
                   _EditableRow(
                     icon: Icons.category_outlined,
-                    label: '分类',
+                    label: l10n.chatConfirmCategory,
                     value: data.category + (data.subcategory != null ? ' > ${data.subcategory}' : ''),
                     onTap: () => _editCategory(context),
                   ),
                   _EditableRow(
                     icon: Icons.edit_outlined,
-                    label: '描述',
+                    label: l10n.chatConfirmDescription,
                     value: data.description,
                     onTap: () => _editDescription(context),
                   ),
                   _EditableRow(
                     icon: Icons.calendar_today_outlined,
-                    label: '日期',
+                    label: l10n.chatConfirmDate,
                     value: DateFormat('yyyy-MM-dd').format(data.date),
                     onTap: () => _editDate(context),
                   ),
                   _EditableRow(
                     icon: Icons.attach_money,
-                    label: '金额',
+                    label: l10n.chatConfirmAmount,
                     value: data.amount.toStringAsFixed(2),
                     onTap: () => _editAmount(context),
                     showDivider: false,
@@ -150,7 +152,7 @@ class ConfirmCard extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
                               ),
                             ),
-                            child: Text('取消', style: AppTextStyles.body.copyWith(color: context.colors.textSecondary)),
+                            child: Text(l10n.commonCancel, style: AppTextStyles.body.copyWith(color: context.colors.textSecondary)),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -166,7 +168,7 @@ class ConfirmCard extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
                               ),
                             ),
-                            child: Text('确认保存', style: AppTextStyles.body.copyWith(
+                            child: Text(l10n.chatConfirmSave, style: AppTextStyles.body.copyWith(
                               color: context.colors.textOnPrimary,
                               fontWeight: FontWeight.w600,
                             )),
@@ -193,19 +195,20 @@ class ConfirmCard extends StatelessWidget {
   void _editCategory(BuildContext context) async {
     // TODO: 弹出分类选择器
     // 暂时用简单对话框
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: data.category);
     final result = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('修改分类'),
+        title: Text(l10n.commonEditCategory),
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(hintText: '输入分类名称', border: OutlineInputBorder()),
+          decoration: InputDecoration(hintText: l10n.chatConfirmInputCategory, border: OutlineInputBorder()),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
-          TextButton(onPressed: () => Navigator.pop(ctx, controller.text), child: const Text('确定')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.commonCancel)),
+          TextButton(onPressed: () => Navigator.pop(ctx, controller.text), child: Text(l10n.commonConfirm)),
         ],
       ),
     );
@@ -215,19 +218,20 @@ class ConfirmCard extends StatelessWidget {
   }
 
   void _editDescription(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: data.description);
     final result = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('修改描述'),
+        title: Text(l10n.commonEditDescription),
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(hintText: '输入描述', border: OutlineInputBorder()),
+          decoration: InputDecoration(hintText: l10n.chatConfirmInputDescription, border: OutlineInputBorder()),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
-          TextButton(onPressed: () => Navigator.pop(ctx, controller.text), child: const Text('确定')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.commonCancel)),
+          TextButton(onPressed: () => Navigator.pop(ctx, controller.text), child: Text(l10n.commonConfirm)),
         ],
       ),
     );
@@ -249,20 +253,21 @@ class ConfirmCard extends StatelessWidget {
   }
 
   void _editAmount(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: data.amount.toStringAsFixed(2));
     final result = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('修改金额'),
+        title: Text(l10n.commonEditAmount),
         content: TextField(
           controller: controller,
           autofocus: true,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(hintText: '输入金额', border: OutlineInputBorder()),
+          decoration: InputDecoration(hintText: l10n.chatConfirmInputAmount, border: OutlineInputBorder()),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
-          TextButton(onPressed: () => Navigator.pop(ctx, controller.text), child: const Text('确定')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.commonCancel)),
+          TextButton(onPressed: () => Navigator.pop(ctx, controller.text), child: Text(l10n.commonConfirm)),
         ],
       ),
     );

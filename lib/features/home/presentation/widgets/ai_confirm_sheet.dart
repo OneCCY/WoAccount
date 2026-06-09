@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
+import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 
@@ -94,7 +96,7 @@ class AiConfirmSheet extends StatelessWidget {
           ),
           // 标题
           Text(
-            '🤖 AI解析结果',
+            AppLocalizations.of(context)!.homeConfirmTitle,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -104,7 +106,7 @@ class AiConfirmSheet extends StatelessWidget {
           const SizedBox(height: 4),
           // 原始输入
           Text(
-            '原始输入: $originalInput',
+            AppLocalizations.of(context)!.homeConfirmOriginalInput(originalInput),
             style: TextStyle(
               fontSize: 13,
               color: context.colors.textSecondary,
@@ -136,15 +138,15 @@ class AiConfirmSheet extends StatelessWidget {
       mainAxisSpacing: 12,
       childAspectRatio: 2.2,
       children: [
-        _buildResultItem(context, '💰 金额', '¥${amount.toStringAsFixed(2)}'),
+        _buildResultItem(context, AppLocalizations.of(context)!.homeConfirmAmount, context.localeProvider.currency.formatAmount(amount)),
         _buildResultItem(
           context,
-          '📅 日期',
+          AppLocalizations.of(context)!.homeConfirmDate,
           '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
         ),
-        _buildResultItem(context, '🍜 分类', category),
-        _buildResultItem(context, '⏱️ 解析耗时', '${parseTimeMs}ms'),
-        _buildResultItem(context, '📝 描述', description, fullWidth: true),
+        _buildResultItem(context, AppLocalizations.of(context)!.homeConfirmCategory, category),
+        _buildResultItem(context, AppLocalizations.of(context)!.homeConfirmParseTime, '${parseTimeMs}ms'),
+        _buildResultItem(context, AppLocalizations.of(context)!.homeConfirmDescription, description, fullWidth: true),
       ],
     );
   }
@@ -180,7 +182,7 @@ class AiConfirmSheet extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('置信度', style: TextStyle(fontSize: 13, color: context.colors.textSecondary)),
+            Text(AppLocalizations.of(context)!.homeConfirmConfidence, style: TextStyle(fontSize: 13, color: context.colors.textSecondary)),
             Text('$percent%', style: TextStyle(fontSize: 13, color: context.colors.textSecondary)),
           ],
         ),
@@ -201,11 +203,11 @@ class AiConfirmSheet extends StatelessWidget {
   Widget _buildEditTags(BuildContext context) {
     return Row(
       children: [
-        _buildEditTag(context, '修改分类', onEditCategory),
+        _buildEditTag(context, AppLocalizations.of(context)!.commonEditCategory, onEditCategory),
         const SizedBox(width: 8),
-        _buildEditTag(context, '修改金额', onEditAmount),
+        _buildEditTag(context, AppLocalizations.of(context)!.commonEditAmount, onEditAmount),
         const SizedBox(width: 8),
-        _buildEditTag(context, '修改日期', onEditDate),
+        _buildEditTag(context, AppLocalizations.of(context)!.homeConfirmEditDate, onEditDate),
       ],
     );
   }
@@ -244,7 +246,7 @@ class AiConfirmSheet extends StatelessWidget {
               ),
               padding: const EdgeInsets.symmetric(vertical: 14),
             ),
-            child: Text('取消', style: TextStyle(color: context.colors.textSecondary)),
+            child: Text(AppLocalizations.of(context)!.commonCancel, style: TextStyle(color: context.colors.textSecondary)),
           ),
         ),
         const SizedBox(width: 12),
@@ -259,7 +261,7 @@ class AiConfirmSheet extends StatelessWidget {
               ),
               padding: const EdgeInsets.symmetric(vertical: 14),
             ),
-            child: const Text('确认记账', style: TextStyle(fontWeight: FontWeight.w600)),
+            child: Text(AppLocalizations.of(context)!.homeConfirmRecord, style: TextStyle(fontWeight: FontWeight.w600)),
           ),
         ),
       ],

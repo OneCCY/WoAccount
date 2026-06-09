@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:record/record.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
@@ -64,7 +65,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
     if (!await _audioRecorder.hasPermission()) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('请授权麦克风权限'), behavior: SnackBarBehavior.floating),
+          SnackBar(content: Text(AppLocalizations.of(context)!.chatInputMicPermission), behavior: SnackBarBehavior.floating),
         );
       }
       return;
@@ -125,7 +126,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
     if (duration.inMilliseconds < 500) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('录音时间太短'), behavior: SnackBarBehavior.floating, duration: Duration(milliseconds: 800)),
+          SnackBar(content: Text(AppLocalizations.of(context)!.chatInputRecordShort), behavior: SnackBarBehavior.floating, duration: Duration(milliseconds: 800)),
         );
       }
       return;
@@ -151,7 +152,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('获取图片失败: $e'), behavior: SnackBarBehavior.floating),
+          SnackBar(content: Text(AppLocalizations.of(context)!.chatInputImageFailed(e.toString())), behavior: SnackBarBehavior.floating),
         );
       }
     }
@@ -166,7 +167,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: const Text('拍照'),
+              title: Text(AppLocalizations.of(context)!.chatInputCamera),
               onTap: () {
                 Navigator.pop(ctx);
                 _pickImage(ImageSource.camera);
@@ -174,7 +175,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
             ),
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('从相册选择'),
+              title: Text(AppLocalizations.of(context)!.chatInputGallery),
               onTap: () {
                 Navigator.pop(ctx);
                 _pickImage(ImageSource.gallery);
@@ -227,7 +228,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
                   maxLines: null,
                   style: context.textStyles.body.copyWith(fontSize: 15),
                   decoration: InputDecoration(
-                    hintText: _isRecording ? '松手发送，左滑取消 ↖' : '说点什么...',
+                    hintText: _isRecording ? AppLocalizations.of(context)!.chatInputVoiceHint : AppLocalizations.of(context)!.chatInputTextHint,
                     hintStyle: context.textStyles.body.copyWith(
                       color: _isRecording ? context.colors.primary : context.colors.textHint,
                       fontSize: 15,
@@ -293,7 +294,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.edit_note, size: 22, color: context.colors.textOnPrimary),
-                    Text('记账', style: TextStyle(fontSize: 9, color: context.colors.textOnPrimary, fontWeight: FontWeight.w600)),
+                    Text(AppLocalizations.of(context)!.navRecord, style: TextStyle(fontSize: 9, color: context.colors.textOnPrimary, fontWeight: FontWeight.w600)),
                   ],
                 ),
         ),

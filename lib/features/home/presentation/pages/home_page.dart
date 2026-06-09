@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart' hide Column;
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../config/di/ai_providers.dart';
+import '../../../../core/locale/locale_provider.dart';
 import '../../../transaction/domain/repositories/transaction_repository.dart';
 import '../../../category/domain/repositories/category_repository.dart';
 import '../widgets/ai_input_bar.dart';
@@ -48,9 +50,9 @@ class _HomePageState extends ConsumerState<HomePage> {
     if ((provider == null || !provider.isComplete) && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('尚未配置 AI 服务，将使用基础规则解析'),
+          content: Text(AppLocalizations.of(context)!.homePageAiNotConfigured),
           action: SnackBarAction(
-            label: '去配置',
+            label: AppLocalizations.of(context)!.homePageGoSettings,
             onPressed: () => context.push('/settings/llm'),
           ),
           behavior: SnackBarBehavior.floating,
@@ -69,9 +71,10 @@ class _HomePageState extends ConsumerState<HomePage> {
       final llmRepo = ref.read(llmRepositoryProvider);
       final results = await llmRepo.parseTransaction(input);
       stopwatch.stop();
+      if (!mounted) return;
 
       if (results.isEmpty) {
-        _showSnackBar('未识别到内容');
+        _showSnackBar(AppLocalizations.of(context)!.homePageNoContent);
         return;
       }
 
@@ -125,7 +128,8 @@ class _HomePageState extends ConsumerState<HomePage> {
         },
       );
     } catch (e) {
-      _showSnackBar('记账失败：$e');
+      if (!mounted) return;
+      _showSnackBar(AppLocalizations.of(context)!.homePageRecordFailed(e.toString()));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -151,9 +155,11 @@ class _HomePageState extends ConsumerState<HomePage> {
         aiConfidence: Value(confidence),
         accountBookId: _bookId,
       ));
-      _showSnackBar('记账成功：¥${amount.toStringAsFixed(2)}');
+      if (!mounted) return;
+      _showSnackBar(AppLocalizations.of(context)!.homePageRecordSuccess(context.localeProvider.currency.formatAmount(amount)));
     } catch (e) {
-      _showSnackBar('保存失败：$e');
+      if (!mounted) return;
+      _showSnackBar(AppLocalizations.of(context)!.homePageSaveFailed(e.toString()));
     }
   }
 
@@ -181,8 +187,8 @@ class _HomePageState extends ConsumerState<HomePage> {
           SizedBox(height: MediaQuery.of(context).padding.top),
 
           // 预算提醒卡片
-          const BudgetInsightCard(
-            message: '今日消费已超过日均预算的80%',
+          BudgetInsightCard(
+            message: AppLocalizations.of(context)!.homePageBudgetAlert,
           ),
 
           // AI 助手入口

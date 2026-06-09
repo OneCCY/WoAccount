@@ -4,10 +4,12 @@ import 'package:drift/drift.dart' hide Column;
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:dio/dio.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../config/di/ai_providers.dart';
 import '../../../../core/ai/transaction_pipeline.dart';
+import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/media/media_storage_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
@@ -147,11 +149,11 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
       displayText = text.trim();
     } else if (voicePath != null) {
       source = InputSource.voice;
-      displayText = '🎤 语音消息'; // 先显示占位，转写后更新
+      displayText = AppLocalizations.of(context)!.chatPageVoicePlaceholder; // 先显示占位，转写后更新
       mediaFilePath = voicePath;
     } else if (imagePath != null) {
       source = InputSource.image;
-      displayText = '📷 图片消息';
+      displayText = AppLocalizations.of(context)!.chatPageImagePlaceholder;
       mediaFilePath = imagePath;
     } else {
       return;
@@ -187,8 +189,9 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
     // 2. 通过统一管线处理
     try {
       final provider = await ref.read(llmRepositoryProvider).getActiveProvider();
+      if (!mounted) return;
       if (provider == null || !provider.isComplete) {
-        throw const LlmException('请先在设置中添加并配置 AI 服务商');
+        throw LlmException(AppLocalizations.of(context)!.chatPageConfigAiError);
       }
 
       PipelineResult result;
@@ -201,12 +204,13 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
             audioTempPath: voicePath!,
             provider: provider,
           );
+          if (!mounted) return;
           // 更新用户消息为转写文本
           await _chatRepo.insertMessage(
             ConversationMessagesCompanion.insert(
               conversationId: _conversationId,
               role: 'assistant',
-              content: '🎤 语音转文字：${result.normalizedText}',
+              content: AppLocalizations.of(context)!.chatPageVoiceTranscription(result.normalizedText),
               accountBookId: _bookId,
             ),
           );
@@ -215,7 +219,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
               id: 0,
               conversationId: _conversationId,
               role: 'assistant',
-              content: '🎤 语音转文字：${result.normalizedText}',
+              content: AppLocalizations.of(context)!.chatPageVoiceTranscription(result.normalizedText),
               accountBookId: _bookId,
               createdAt: DateTime.now(),
             )));
@@ -226,12 +230,13 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
             imageTempPath: imagePath!,
             provider: provider,
           );
+          if (!mounted) return;
           // 显示图片识别结果
           await _chatRepo.insertMessage(
             ConversationMessagesCompanion.insert(
               conversationId: _conversationId,
               role: 'assistant',
-              content: '📷 图片识别结果：${result.normalizedText}',
+              content: AppLocalizations.of(context)!.chatPageImageRecognition(result.normalizedText),
               accountBookId: _bookId,
             ),
           );
@@ -240,7 +245,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
               id: 0,
               conversationId: _conversationId,
               role: 'assistant',
-              content: '📷 图片识别结果：${result.normalizedText}',
+              content: AppLocalizations.of(context)!.chatPageImageRecognition(result.normalizedText),
               accountBookId: _bookId,
               createdAt: DateTime.now(),
             )));
@@ -267,7 +272,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
           type: txn.type,
           category: matchedCategory.name,
           categoryId: matchedCategory.id,
-          subcategory: matchedSub?.name ?? '暂无',
+          subcategory: matchedSub?.name ?? (mounted ? AppLocalizations.of(context)!.chatPageNoSubcategory : 'N/A'),
           subcategoryId: matchedSub?.id,
           description: txn.description.isNotEmpty
               ? txn.description
@@ -280,6 +285,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
       }
 
       // 4. 显示确认卡片
+      if (!mounted) return;
       setState(() {
         for (final card in confirmCards) {
           _items.add(_ChatItem.confirm(card));
@@ -287,7 +293,8 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
         _isAiResponding = false;
       });
     } catch (e) {
-      final errorMsg = '❌ 解析失败：$e\n\n请尝试更明确的描述，如"午饭拉面25"';
+      if (!mounted) return;
+      final errorMsg = AppLocalizations.of(context)!.chatPageParseError(e.toString());
       await _chatRepo.insertMessage(
         ConversationMessagesCompanion.insert(
           conversationId: _conversationId,
@@ -315,8 +322,9 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
 
   Future<Category> _matchCategory(String categoryName, String type) async {
     final categories = await _catRepo.getTopLevel();
+    if (!mounted) throw Exception('Widget disposed');
     if (categories.isEmpty) {
-      throw Exception('没有可用分类，请先在分类管理中添加分类');
+      throw Exception(AppLocalizations.of(context)!.chatPageNoCategoryError);
     }
 
     final isExpense = type == 'expense';
@@ -384,10 +392,13 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
         mediaType: Value(data.mediaType),
       ));
 
-      final amountPrefix = data.type == 'expense' ? '-' : '+';
-      final summary = '✅ 已保存\n'
-          '$amountPrefix¥${data.amount.toStringAsFixed(2)} · ${data.category}\n'
-          '${data.description} · ${DateFormat('MM/dd').format(data.date)}';
+      if (!mounted) return;
+      final summary = AppLocalizations.of(context)!.chatPageSaveSuccess(
+          context.localeProvider.currency.formatWithSign(data.amount, data.type == 'expense'),
+          data.category,
+          data.description,
+          DateFormat('MM/dd').format(data.date),
+        );
 
       await _chatRepo.insertMessage(
         ConversationMessagesCompanion.insert(
@@ -416,7 +427,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('保存失败: $e'),
+            content: Text(AppLocalizations.of(context)!.chatPageSaveFailed(e.toString())),
             behavior: SnackBarBehavior.floating,
             backgroundColor: context.colors.error,
           ),
@@ -484,13 +495,13 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                 children: [
                   Icon(Icons.receipt_long_outlined, size: 16, color: context.colors.textSecondary),
                   const SizedBox(width: 4),
-                  Text('账单', style: AppTextStyles.caption.copyWith(color: context.colors.textSecondary)),
+                  Text(AppLocalizations.of(context)!.navTransactions, style: AppTextStyles.caption.copyWith(color: context.colors.textSecondary)),
                 ],
               ),
             ),
           ),
           const Spacer(),
-          Text('AI 记账', style: AppTextStyles.h3.copyWith(fontSize: 16)),
+          Text(AppLocalizations.of(context)!.chatPageTitle, style: AppTextStyles.h3.copyWith(fontSize: 16)),
           const Spacer(),
           const SizedBox(width: 56),
         ],
@@ -568,12 +579,12 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
         children: [
           Icon(Icons.chat_bubble_outline, size: 64, color: context.colors.textTertiary),
           const SizedBox(height: 16),
-          Text('开始记账吧', style: AppTextStyles.h3.copyWith(color: context.colors.textSecondary)),
+          Text(AppLocalizations.of(context)!.chatPageEmptyTitle, style: AppTextStyles.h3.copyWith(color: context.colors.textSecondary)),
           const SizedBox(height: 8),
-          Text('试试输入 "午饭拉面25" 或 "吃饭24，洗衣服34"',
+          Text(AppLocalizations.of(context)!.chatPageEmptyHint,
               style: AppTextStyles.body.copyWith(color: context.colors.textTertiary)),
           const SizedBox(height: 4),
-          Text('长按记账按钮可语音输入 🎤 · 点击右侧按钮拍照识别 📷',
+          Text(AppLocalizations.of(context)!.chatPageEmptyInstruction,
               style: AppTextStyles.caption.copyWith(color: context.colors.textTertiary)),
         ],
       ),
@@ -595,7 +606,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
           children: [
             SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: context.colors.textTertiary)),
             const SizedBox(width: 8),
-            Text('AI 正在解析...', style: AppTextStyles.caption),
+            Text(AppLocalizations.of(context)!.chatPageAiParsing, style: AppTextStyles.caption),
           ],
         ),
       ),

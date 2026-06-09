@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -54,14 +55,14 @@ class AiAssistantEntry extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'AI 助手',
+                        AppLocalizations.of(context)!.homeEntryTitle,
                         style: context.textStyles.h3.copyWith(
                           color: context.colors.primaryDark,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '智能记账 · 消费分析 · 问答查询',
+                        AppLocalizations.of(context)!.homeEntrySubtitle,
                         style: context.textStyles.footnote.copyWith(
                           color: context.colors.primaryLight,
                         ),

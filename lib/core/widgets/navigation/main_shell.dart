@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 
@@ -39,7 +40,7 @@ class MainShell extends StatelessWidget {
                 _NavItem(
                   icon: Icons.receipt_long_outlined,
                   activeIcon: Icons.receipt_long,
-                  label: '账单',
+                  label: AppLocalizations.of(context)!.navTransactions,
                   isActive: currentIndex == 0,
                   onTap: () => _onTap(context, 0),
                 ),
@@ -54,7 +55,7 @@ class MainShell extends StatelessWidget {
                 _NavItem(
                   icon: Icons.person_outline,
                   activeIcon: Icons.person,
-                  label: '我的',
+                  label: AppLocalizations.of(context)!.navProfile,
                   isActive: currentIndex == 2,
                   onTap: () => _onTap(context, 2),
                 ),
@@ -164,7 +165,7 @@ class _RecordButton extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.mic, size: 24, color: context.colors.textOnPrimary),
-                  Text('记账', style: TextStyle(fontSize: 9, color: context.colors.textOnPrimary, fontWeight: FontWeight.w600, height: 1)),
+                  Text(AppLocalizations.of(context)!.navRecord, style: TextStyle(fontSize: 9, color: context.colors.textOnPrimary, fontWeight: FontWeight.w600, height: 1)),
                 ],
               ),
             ),

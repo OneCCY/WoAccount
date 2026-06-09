@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -54,7 +55,7 @@ class _AiInputBarState extends State<AiInputBar> {
         top: false,
         child: Row(
           children: [
-            _SideButton(icon: Icons.add, onPressed: widget.onManualEntry, tooltip: '手动记账'),
+            _SideButton(icon: Icons.add, onPressed: widget.onManualEntry, tooltip: AppLocalizations.of(context)!.homeInputManual),
             const SizedBox(width: 10),
             Expanded(
               child: Container(
@@ -68,7 +69,7 @@ class _AiInputBarState extends State<AiInputBar> {
                   onSubmitted: (_) => _handleSubmit(),
                   style: context.textStyles.body,
                   decoration: InputDecoration(
-                    hintText: '午饭吃了碗拉面25元',
+                    hintText: AppLocalizations.of(context)!.homeInputHint,
                     hintStyle: context.textStyles.body.copyWith(color: context.colors.textHint),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -83,7 +84,7 @@ class _AiInputBarState extends State<AiInputBar> {
               ),
             ),
             const SizedBox(width: 10),
-            _SideButton(icon: Icons.camera_alt_outlined, onPressed: widget.onCamera, tooltip: '拍照识别'),
+            _SideButton(icon: Icons.camera_alt_outlined, onPressed: widget.onCamera, tooltip: AppLocalizations.of(context)!.homeInputCamera),
           ],
         ),
       ),

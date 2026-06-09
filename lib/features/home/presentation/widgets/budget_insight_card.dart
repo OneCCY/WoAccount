@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -52,7 +53,7 @@ class BudgetInsightCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '详情',
+                  AppLocalizations.of(context)!.homeBudgetDetails,
                   style: context.textStyles.footnote.copyWith(
                     color: context.colors.warning,
                     fontWeight: FontWeight.w500,
