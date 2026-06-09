@@ -69,4 +69,5 @@ dev_dependencies:
   mockito: ^5.4.5
 
 flutter:
+  generate: true
   uses-material-design: true

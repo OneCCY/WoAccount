@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/locale/app_currency.dart';
+import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -56,11 +58,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             _buildGroup(
               title: '通用',
               children: [
-                _buildInfoRow('语言', '简体中文'),
+                _buildLocaleRow(),
                 _buildSwitchRow('深色模式', isDark, (v) {
                   themeProvider.setThemeMode(v ? ThemeMode.dark : ThemeMode.light);
                 }),
-                _buildInfoRow('货币', 'CNY (¥)'),
+                _buildCurrencyRow(),
               ],
             ),
 
@@ -185,6 +187,101 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
+  /// 语言选择行
+  Widget _buildLocaleRow() {
+    final localeProvider = ref.watch(localeProviderOverrideProvider);
+    return _SettingRow(
+      label: '语言',
+      trailing: Text(localeProvider.localeDisplayName, style: AppTextStyles.footnote),
+      onTap: _showLanguagePicker,
+    );
+  }
+
+  /// 货币选择行
+  Widget _buildCurrencyRow() {
+    final localeProvider = ref.watch(localeProviderOverrideProvider);
+    final c = localeProvider.currency;
+    return _SettingRow(
+      label: '货币',
+      trailing: Text('${c.code} (${c.symbol})', style: AppTextStyles.footnote),
+      onTap: _showCurrencyPicker,
+    );
+  }
+
+  /// 语言选择底部弹窗
+  void _showLanguagePicker() {
+    final localeProvider = ref.read(localeProviderOverrideProvider);
+    final current = localeProvider.locale;
+
+    final options = <_LocaleOption>[
+      _LocaleOption(const Locale('zh', 'CN'), '简体中文', '🇨🇳'),
+      _LocaleOption(const Locale('zh', 'TW'), '繁體中文', '🇹🇼'),
+      _LocaleOption(const Locale('ja'), '日本語', '🇯🇵'),
+      _LocaleOption(const Locale('ko'), '한국어', '🇰🇷'),
+      _LocaleOption(const Locale('en', 'US'), 'English', '🇺🇸'),
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text('选择语言', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            ),
+            ...options.map((opt) => ListTile(
+              leading: Text(opt.flag, style: const TextStyle(fontSize: 24)),
+              title: Text(opt.label),
+              trailing: current == opt.locale
+                  ? Icon(Icons.check, color: context.colors.primary)
+                  : null,
+              onTap: () {
+                Navigator.pop(ctx);
+                localeProvider.setLocale(opt.locale);
+              },
+            )),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 货币选择底部弹窗
+  void _showCurrencyPicker() {
+    final localeProvider = ref.read(localeProviderOverrideProvider);
+    final current = localeProvider.currency;
+
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text('选择货币', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            ),
+            ...AppCurrency.values.map((currency) => ListTile(
+              leading: Text(currency.symbol, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              title: Text('${currency.code} — ${currency.label}'),
+              trailing: current == currency
+                  ? Icon(Icons.check, color: context.colors.primary)
+                  : null,
+              onTap: () {
+                Navigator.pop(ctx);
+                localeProvider.setCurrency(currency);
+              },
+            )),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildDangerRow(String label, VoidCallback onTap) {
     return _SettingRow(
       label: label,
@@ -257,4 +354,12 @@ class _SettingRow extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 语言选项数据
+class _LocaleOption {
+  final Locale locale;
+  final String label;
+  final String flag;
+  const _LocaleOption(this.locale, this.label, this.flag);
 }

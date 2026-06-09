@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:local_auth/local_auth.dart';
+import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../pages/pin_lock_page.dart';
 import '../pages/pattern_lock_page.dart';
@@ -9,8 +11,9 @@ import '../pages/pattern_lock_page.dart';
 /// 认证包装器
 class AuthWrapper extends StatefulWidget {
   final Widget child;
+  final Locale locale;
 
-  const AuthWrapper({super.key, required this.child});
+  const AuthWrapper({super.key, required this.child, this.locale = const Locale('zh', 'CN')});
 
   @override
   State<AuthWrapper> createState() => _AuthWrapperState();
@@ -80,12 +83,14 @@ class _AuthWrapperState extends State<AuthWrapper> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return MaterialApp(
+        locale: widget.locale,
         localizationsDelegates: const [
+          AppLocalizations.delegate,
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        supportedLocales: const [Locale('zh', 'CN'), Locale('en', 'US')],
+        supportedLocales: LocaleProvider.supportedLocales,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         home: const Scaffold(body: Center(child: CircularProgressIndicator())),
@@ -97,12 +102,14 @@ class _AuthWrapperState extends State<AuthWrapper> {
     return MaterialApp(
       navigatorKey: _navigatorKey,
       debugShowCheckedModeBanner: false,
+      locale: widget.locale,
       localizationsDelegates: const [
+        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [Locale('zh', 'CN'), Locale('en', 'US')],
+      supportedLocales: LocaleProvider.supportedLocales,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       home: _buildLockScreen(),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
+import 'core/locale/locale_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'config/routes/app_router.dart';
@@ -20,13 +22,19 @@ void main() async {
   final themeProvider = ThemeProvider();
   await themeProvider.load();
 
+  // 加载语言和货币设置
+  final localeProvider = LocaleProvider();
+  await localeProvider.load();
+
   runApp(
     ProviderScope(
       overrides: [
         themeProviderOverrideProvider.overrideWith((ref) => themeProvider),
+        localeProviderOverrideProvider.overrideWith((ref) => localeProvider),
       ],
-      child: const AuthWrapper(
-        child: WoAccountApp(),
+      child: AuthWrapper(
+        locale: localeProvider.locale,
+        child: const WoAccountApp(),
       ),
     ),
   );
@@ -43,6 +51,7 @@ class WoAccountApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeProvider = ref.watch(themeProviderOverrideProvider);
+    final localeProvider = ref.watch(localeProviderOverrideProvider);
 
     return MaterialApp.router(
       title: 'WoAccount',
@@ -50,17 +59,18 @@ class WoAccountApp extends ConsumerWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeProvider.themeMode,
-      routerConfig: AppRouter.router,
+
+      // 国际化配置
+      locale: localeProvider.locale,
       localizationsDelegates: const [
+        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [
-        Locale('zh', 'CN'),
-        Locale('en', 'US'),
-      ],
-      locale: const Locale('zh', 'CN'),
+      supportedLocales: LocaleProvider.supportedLocales,
+
+      routerConfig: AppRouter.router,
     );
   }
 }
