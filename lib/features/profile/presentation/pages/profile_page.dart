@@ -24,6 +24,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   int _totalCheckInDays = 0;
   int _totalTransactions = 0;
   bool _todayCheckedIn = false;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -32,6 +33,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }
 
   Future<void> _loadData() async {
+    if (mounted) setState(() => _isLoading = true);
     try {
       final db = ref.read(appDatabaseProvider);
 
@@ -101,10 +103,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           _totalCheckInDays = totalDays;
           _totalTransactions = count;
           _todayCheckedIn = checkedToday;
+          _isLoading = false;
         });
       }
     } catch (e) {
-      // 加载失败时静默处理，保留当前状态
+      if (mounted) setState(() => _isLoading = false);
       debugPrint('加载数据失败: $e');
     }
   }
@@ -160,7 +163,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      body: Column(
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator(color: context.colors.primary))
+          : Column(
         children: [
           SizedBox(height: MediaQuery.of(context).padding.top),
           Expanded(
