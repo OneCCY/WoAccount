@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
@@ -543,10 +544,40 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
 // 能力配置页 — 为某个能力选择服务商和模型
 // ============================================================
 
+/// 连接状态
+enum ConnectionStatus {
+  unknown,     // 未检测
+  testing,     // 检测中
+  connected,   // 已连接
+  disconnected, // 连接失败
+}
+
+/// 自动检测频率选项
+class _CheckIntervalOption {
+  final String label;
+  final Duration? duration; // null = 关闭
+  const _CheckIntervalOption(this.label, this.duration);
+}
+
+const _checkIntervalOptions = [
+  _CheckIntervalOption('关闭', null),
+  _CheckIntervalOption('10秒', Duration(seconds: 10)),
+  _CheckIntervalOption('30秒', Duration(seconds: 30)),
+  _CheckIntervalOption('1分钟', Duration(minutes: 1)),
+  _CheckIntervalOption('2分钟', Duration(minutes: 2)),
+  _CheckIntervalOption('5分钟', Duration(minutes: 5)),
+  _CheckIntervalOption('10分钟', Duration(minutes: 10)),
+  _CheckIntervalOption('30分钟', Duration(minutes: 30)),
+  _CheckIntervalOption('1小时', Duration(hours: 1)),
+];
+
 class _ProviderModelEntry {
   List<_FetchedModel> fetchedModels = [];
   String? selectedModel;
   bool isLoading = false;
+  ConnectionStatus connectionStatus = ConnectionStatus.unknown;
+  int? latencyMs;
+  String? lastError;
 }
 
 class _CapabilityConfigPage extends StatefulWidget {
@@ -564,6 +595,10 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
   late final Map<String, _ProviderModelEntry> _entries;
   late final TextEditingController _customModelCtrl;
 
+  // 自动检测
+  Timer? _autoCheckTimer;
+  int _intervalIndex = 0; // 默认：关闭
+
   @override
   void initState() {
     super.initState();
@@ -575,6 +610,7 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
   @override
   void dispose() {
     _customModelCtrl.dispose();
+    _autoCheckTimer?.cancel();
     super.dispose();
   }
 
@@ -725,6 +761,104 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
     }
   }
 
+  // ============================================================
+  // 连接状态检测
+  // ============================================================
+
+  Future<void> _checkConnection(LlmProvider provider) async {
+    final entry = _entries[provider.id];
+    if (entry == null) return;
+    if (provider.apiKey.isEmpty || provider.baseUrl.isEmpty) return;
+
+    setState(() {
+      entry.connectionStatus = ConnectionStatus.testing;
+      entry.lastError = null;
+    });
+
+    final stopwatch = Stopwatch()..start();
+    try {
+      final repo = LlmRepositoryImpl(Dio());
+      final success = await repo.testConnection(provider);
+      stopwatch.stop();
+
+      if (mounted) {
+        setState(() {
+          entry.connectionStatus = success ? ConnectionStatus.connected : ConnectionStatus.disconnected;
+          entry.latencyMs = success ? stopwatch.elapsedMilliseconds : null;
+          entry.lastError = success ? null : '连接失败';
+        });
+      }
+    } catch (e) {
+      stopwatch.stop();
+      if (mounted) {
+        setState(() {
+          entry.connectionStatus = ConnectionStatus.disconnected;
+          entry.latencyMs = null;
+          entry.lastError = e.toString();
+        });
+      }
+    }
+  }
+
+  void _checkAllConnections() {
+    for (final p in _providers) {
+      if (p.apiKey.isNotEmpty && p.baseUrl.isNotEmpty) {
+        _checkConnection(p);
+      }
+    }
+  }
+
+  void _onIntervalTap() {
+    setState(() {
+      _intervalIndex = (_intervalIndex + 1) % _checkIntervalOptions.length;
+    });
+    _applyAutoCheckInterval();
+  }
+
+  void _onIntervalLongPress() {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text('自动检测间隔', style: AppTextStyles.h3.copyWith(fontSize: 16)),
+            ),
+            ...List.generate(_checkIntervalOptions.length, (i) {
+              final opt = _checkIntervalOptions[i];
+              final isSelected = i == _intervalIndex;
+              return ListTile(
+                title: Text(opt.label),
+                trailing: isSelected ? Icon(Icons.check, color: context.colors.primary) : null,
+                tileColor: isSelected ? context.colors.primarySurface : null,
+                onTap: () {
+                  Navigator.pop(ctx);
+                  setState(() => _intervalIndex = i);
+                  _applyAutoCheckInterval();
+                },
+              );
+            }),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _applyAutoCheckInterval() {
+    _autoCheckTimer?.cancel();
+    final duration = _checkIntervalOptions[_intervalIndex].duration;
+    if (duration == null) return;
+
+    _autoCheckTimer = Timer.periodic(duration, (_) {
+      if (mounted) _checkAllConnections();
+    });
+    // 立即执行一次
+    _checkAllConnections();
+  }
+
   @override
   Widget build(BuildContext context) {
     final cap = widget.capability;
@@ -793,7 +927,7 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 服务商名称行
+            // 服务商名称行 + 连接状态
             Row(
               children: [
                 Text(preset?.icon ?? '🤖', style: const TextStyle(fontSize: 20)),
@@ -804,7 +938,9 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
                     style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600, fontSize: 15),
                   ),
                 ),
-                if (isActive)
+                if (entry != null) _buildConnectionStatusIndicator(entry),
+                if (isActive) ...[
+                  const SizedBox(width: 6),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
@@ -813,6 +949,7 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
                     ),
                     child: Text('使用中', style: AppTextStyles.caption.copyWith(color: context.colors.primary, fontSize: 11)),
                   ),
+                ],
               ],
             ),
             const SizedBox(height: 12),
@@ -841,10 +978,115 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
                   ),
                 ],
               ),
+              const SizedBox(height: 10),
+              // 检测连接 + 自动检测间隔
+              _buildConnectionCheckRow(provider, entry),
             ],
           ],
         ),
       ),
+    );
+  }
+
+  // ============================================================
+  // 连接状态显示
+  // ============================================================
+
+  Widget _buildConnectionStatusIndicator(_ProviderModelEntry entry) {
+    switch (entry.connectionStatus) {
+      case ConnectionStatus.connected:
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.check_circle, size: 14, color: context.colors.success),
+            if (entry.latencyMs != null) ...[
+              const SizedBox(width: 3),
+              Text('${entry.latencyMs}ms', style: AppTextStyles.caption.copyWith(color: context.colors.success, fontSize: 11)),
+            ],
+          ],
+        );
+      case ConnectionStatus.disconnected:
+        return Icon(Icons.error, size: 14, color: context.colors.error);
+      case ConnectionStatus.testing:
+        return const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2));
+      case ConnectionStatus.unknown:
+        return Icon(Icons.help_outline, size: 14, color: context.colors.textTertiary);
+    }
+  }
+
+  Widget _buildConnectionCheckRow(LlmProvider provider, _ProviderModelEntry entry) {
+    final canCheck = provider.apiKey.isNotEmpty && provider.baseUrl.isNotEmpty;
+    final intervalLabel = _checkIntervalOptions[_intervalIndex].label;
+
+    return Row(
+      children: [
+        // 检测连接按钮
+        SizedBox(
+          height: 32,
+          child: TextButton.icon(
+            onPressed: canCheck && entry.connectionStatus != ConnectionStatus.testing
+                ? () => _checkConnection(provider)
+                : null,
+            icon: entry.connectionStatus == ConnectionStatus.testing
+                ? const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 1.5))
+                : const Icon(Icons.wifi_tethering, size: 14),
+            label: Text(
+              entry.connectionStatus == ConnectionStatus.testing ? '检测中...' : '检测连接',
+              style: const TextStyle(fontSize: 12),
+            ),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          ),
+        ),
+
+        // 连接失败时显示错误信息
+        if (entry.connectionStatus == ConnectionStatus.disconnected && entry.lastError != null)
+          Expanded(
+            child: Text(
+              '失败',
+              style: AppTextStyles.caption.copyWith(color: context.colors.error, fontSize: 11),
+              overflow: TextOverflow.ellipsis,
+            ),
+          )
+        else
+          const Spacer(),
+
+        // 自动检测间隔
+        GestureDetector(
+          onTap: _onIntervalTap,
+          onLongPress: _onIntervalLongPress,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: _intervalIndex > 0
+                  ? context.colors.primarySurface
+                  : context.colors.background,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  _intervalIndex > 0 ? Icons.timer : Icons.timer_outlined,
+                  size: 13,
+                  color: _intervalIndex > 0 ? context.colors.primary : context.colors.textTertiary,
+                ),
+                const SizedBox(width: 3),
+                Text(
+                  intervalLabel,
+                  style: AppTextStyles.caption.copyWith(
+                    color: _intervalIndex > 0 ? context.colors.primary : context.colors.textTertiary,
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -863,15 +1105,15 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
             '选择${widget.capability.label}',
             style: AppTextStyles.body.copyWith(color: context.colors.textHint, fontSize: 14),
           ),
-          style: AppTextStyles.body.copyWith(fontSize: 14),
+          style: AppTextStyles.body.copyWith(fontSize: 14, color: context.colors.textPrimary),
           items: [
             ...entry.fetchedModels.map((m) => DropdownMenuItem(
               value: m.id,
-              child: Text(m.id, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14)),
+              child: Text(m.id, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 14, color: context.colors.textPrimary)),
             )),
             if (hasModels) ...[
               const DropdownMenuItem(value: '__custom__', child: Divider(height: 1)),
-              const DropdownMenuItem(value: '__custom__', child: Text('✏️ 手动输入...', style: TextStyle(fontSize: 14))),
+              DropdownMenuItem(value: '__custom__', child: Text('✏️ 手动输入...', style: TextStyle(fontSize: 14, color: context.colors.textPrimary))),
             ],
           ],
           onChanged: (v) {
@@ -1080,7 +1322,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
         child: DropdownButton<String>(
           value: _selectedPresetKey,
           isExpanded: true,
-          style: AppTextStyles.body,
+          style: AppTextStyles.body.copyWith(color: context.colors.textPrimary),
           items: [
             ...aiProviderPresets.map((p) => DropdownMenuItem(
               value: p.key,
@@ -1088,17 +1330,17 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
                 children: [
                   Text(p.icon, style: const TextStyle(fontSize: 18)),
                   const SizedBox(width: 8),
-                  Text(p.name),
+                  Text(p.name, style: TextStyle(color: context.colors.textPrimary)),
                 ],
               ),
             )),
-            const DropdownMenuItem(
+            DropdownMenuItem(
               value: kCustomProviderKey,
               child: Row(
                 children: [
-                  Text('✏️', style: TextStyle(fontSize: 18)),
-                  SizedBox(width: 8),
-                  Text('自定义'),
+                  const Text('✏️', style: TextStyle(fontSize: 18)),
+                  const SizedBox(width: 8),
+                  Text('自定义', style: TextStyle(color: context.colors.textPrimary)),
                 ],
               ),
             ),

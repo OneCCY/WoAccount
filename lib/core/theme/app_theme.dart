@@ -63,6 +63,10 @@ class AppTheme {
         hintStyle: AppTextStyles.body.copyWith(color: colors.textHint),
       ),
 
+      dropdownMenuTheme: DropdownMenuThemeData(
+        textStyle: AppTextStyles.body.copyWith(color: colors.textPrimary),
+      ),
+
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: colors.primary,
