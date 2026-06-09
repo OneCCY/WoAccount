@@ -98,14 +98,15 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
 
   Future<void> _loadMoreMessages() async {
     if (_items.isEmpty) return;
-    final firstMsg = _items.firstWhere((i) => i.message != null);
+    final firstMsg = _items.where((i) => i.message != null).firstOrNull;
+    if (firstMsg?.message == null) return;
     setState(() => _isLoadingMore = true);
 
     final older = await _chatRepo.getMessages(
       bookId: _bookId,
       conversationId: _conversationId,
       limit: _pageSize,
-      before: firstMsg.message!.createdAt,
+      before: firstMsg!.message!.createdAt,
     );
 
     setState(() {

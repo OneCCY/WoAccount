@@ -232,6 +232,11 @@ class AppDatabase extends _$AppDatabase {
         await m.addColumn(budgets, budgets.accountBookId);
         await m.addColumn(aiTrainingRecords, aiTrainingRecords.accountBookId);
         await m.addColumn(conversationMessages, conversationMessages.accountBookId);
+        // 回填已有行的 accountBookId（addColumn 对已有行填 NULL，需手动更新）
+        await customStatement('UPDATE transactions SET account_book_id = 1 WHERE account_book_id IS NULL');
+        await customStatement('UPDATE budgets SET account_book_id = 1 WHERE account_book_id IS NULL');
+        await customStatement('UPDATE ai_training_records SET account_book_id = 1 WHERE account_book_id IS NULL');
+        await customStatement('UPDATE conversation_messages SET account_book_id = 1 WHERE account_book_id IS NULL');
       }
       if (from < 6) {
         // 给交易表添加媒体字段

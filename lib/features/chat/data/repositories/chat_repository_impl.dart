@@ -56,7 +56,8 @@ class ChatRepositoryImpl implements ChatRepository {
 
     final results = await query.get();
     return results
-        .map((r) => r.read(_db.conversationMessages.conversationId)!)
+        .map((r) => r.read(_db.conversationMessages.conversationId) ?? '')
+        .where((id) => id.isNotEmpty)
         .toList();
   }
 
