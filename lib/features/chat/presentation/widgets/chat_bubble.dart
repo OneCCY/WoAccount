@@ -29,14 +29,18 @@ class ChatBubble extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
-        mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!isUser) _buildAvatar(context),
           if (!isUser) const SizedBox(width: 8),
           Flexible(
             child: Column(
-              crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              crossAxisAlignment: isUser
+                  ? CrossAxisAlignment.end
+                  : CrossAxisAlignment.start,
               children: [
                 _buildBubbleContent(context),
                 const SizedBox(height: 4),
@@ -80,13 +84,19 @@ class ChatBubble extends StatelessWidget {
           bottomRight: Radius.circular(isUser ? 4 : 16),
         ),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 4, offset: const Offset(0, 1)),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
         ],
       ),
       child: Text(
         content,
         style: context.textStyles.body.copyWith(
-          color: isUser ? context.colors.textOnPrimary : context.colors.textPrimary,
+          color: isUser
+              ? context.colors.textOnPrimary
+              : context.colors.textPrimary,
           height: 1.5,
         ),
       ),
@@ -106,19 +116,31 @@ class ChatBubble extends StatelessWidget {
           bottomRight: Radius.circular(isUser ? 4 : 16),
         ),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 4, offset: const Offset(0, 1)),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
         ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.mic, size: 18, color: isUser ? context.colors.textOnPrimary : context.colors.primary),
+          Icon(
+            Icons.mic,
+            size: 18,
+            color: isUser
+                ? context.colors.textOnPrimary
+                : context.colors.primary,
+          ),
           const SizedBox(width: 8),
           Flexible(
             child: Text(
               content,
               style: context.textStyles.body.copyWith(
-                color: isUser ? context.colors.textOnPrimary : context.colors.textPrimary,
+                color: isUser
+                    ? context.colors.textOnPrimary
+                    : context.colors.textPrimary,
                 height: 1.5,
                 fontSize: 14,
               ),
@@ -133,7 +155,9 @@ class ChatBubble extends StatelessWidget {
 
   Widget _buildImageBubble(BuildContext context) {
     return Column(
-      crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      crossAxisAlignment: isUser
+          ? CrossAxisAlignment.end
+          : CrossAxisAlignment.start,
       children: [
         if (mediaFilePath != null && File(mediaFilePath!).existsSync())
           GestureDetector(
@@ -142,22 +166,36 @@ class ChatBubble extends StatelessWidget {
               constraints: const BoxConstraints(maxWidth: 200, maxHeight: 200),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 6, offset: const Offset(0, 2))],
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               clipBehavior: Clip.antiAlias,
               child: Image.file(
                 File(mediaFilePath!),
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
+                errorBuilder: (_, _, _) => Container(
                   width: 120,
                   height: 80,
                   color: context.colors.surfaceSecondary,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.broken_image, color: context.colors.textTertiary),
+                      Icon(
+                        Icons.broken_image,
+                        color: context.colors.textTertiary,
+                      ),
                       const SizedBox(height: 4),
-                      Text('图片加载失败', style: context.textStyles.caption.copyWith(color: context.colors.textTertiary)),
+                      Text(
+                        '图片加载失败',
+                        style: context.textStyles.caption.copyWith(
+                          color: context.colors.textTertiary,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -168,7 +206,9 @@ class ChatBubble extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            color: isUser ? context.colors.primary.withValues(alpha: 0.85) : context.colors.surface,
+            color: isUser
+                ? context.colors.primary.withValues(alpha: 0.85)
+                : context.colors.surface,
             borderRadius: BorderRadius.only(
               topLeft: const Radius.circular(16),
               topRight: const Radius.circular(16),
@@ -179,13 +219,21 @@ class ChatBubble extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.camera_alt, size: 14, color: isUser ? context.colors.textOnPrimary.withValues(alpha: 0.8) : context.colors.textTertiary),
+              Icon(
+                Icons.camera_alt,
+                size: 14,
+                color: isUser
+                    ? context.colors.textOnPrimary.withValues(alpha: 0.8)
+                    : context.colors.textTertiary,
+              ),
               const SizedBox(width: 6),
               Flexible(
                 child: Text(
                   content,
                   style: context.textStyles.body.copyWith(
-                    color: isUser ? context.colors.textOnPrimary : context.colors.textPrimary,
+                    color: isUser
+                        ? context.colors.textOnPrimary
+                        : context.colors.textPrimary,
                     height: 1.5,
                     fontSize: 14,
                   ),
@@ -207,7 +255,9 @@ class ChatBubble extends StatelessWidget {
         insetPadding: const EdgeInsets.all(16),
         child: GestureDetector(
           onTap: () => Navigator.pop(ctx),
-          child: InteractiveViewer(child: Image.file(File(mediaFilePath!), fit: BoxFit.contain)),
+          child: InteractiveViewer(
+            child: Image.file(File(mediaFilePath!), fit: BoxFit.contain),
+          ),
         ),
       ),
     );
@@ -217,7 +267,10 @@ class ChatBubble extends StatelessWidget {
     return Container(
       width: 32,
       height: 32,
-      decoration: BoxDecoration(color: context.colors.primarySurface, borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+        color: context.colors.primarySurface,
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: const Center(child: Text('🤖', style: TextStyle(fontSize: 16))),
     );
   }
@@ -226,8 +279,17 @@ class ChatBubble extends StatelessWidget {
     return Container(
       width: 32,
       height: 32,
-      decoration: BoxDecoration(color: context.colors.surfaceSecondary, borderRadius: BorderRadius.circular(16)),
-      child: Center(child: Icon(Icons.person, size: 18, color: context.colors.textSecondary)),
+      decoration: BoxDecoration(
+        color: context.colors.surfaceSecondary,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Center(
+        child: Icon(
+          Icons.person,
+          size: 18,
+          color: context.colors.textSecondary,
+        ),
+      ),
     );
   }
 }

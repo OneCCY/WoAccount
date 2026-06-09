@@ -27,9 +27,7 @@ class _PatternLockPageState extends State<PatternLockPage> {
     final title = isSetup
         ? (_isConfirming ? '请再次绘制图案确认' : '绘制解锁图案')
         : '请绘制图案解锁';
-    final subtitle = isSetup
-        ? (_isConfirming ? '请绘制与刚才相同的图案' : '连接至少4个点')
-        : '';
+    final subtitle = isSetup ? (_isConfirming ? '请绘制与刚才相同的图案' : '连接至少4个点') : '';
 
     return Scaffold(
       backgroundColor: context.colors.background,
@@ -45,13 +43,19 @@ class _PatternLockPageState extends State<PatternLockPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (!isSetup) SizedBox(height: MediaQuery.of(context).padding.top),
+              if (!isSetup)
+                SizedBox(height: MediaQuery.of(context).padding.top),
 
               // 标题
               Text(title, style: context.textStyles.h3.copyWith(fontSize: 18)),
               if (subtitle.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                Text(subtitle, style: context.textStyles.caption.copyWith(color: context.colors.textTertiary)),
+                Text(
+                  subtitle,
+                  style: context.textStyles.caption.copyWith(
+                    color: context.colors.textTertiary,
+                  ),
+                ),
               ],
               const SizedBox(height: 40),
 
@@ -66,7 +70,9 @@ class _PatternLockPageState extends State<PatternLockPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 40),
                   child: Text(
                     _error,
-                    style: context.textStyles.caption.copyWith(color: context.colors.error),
+                    style: context.textStyles.caption.copyWith(
+                      color: context.colors.error,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -83,7 +89,12 @@ class _PatternLockPageState extends State<PatternLockPage> {
                       _error = '';
                     });
                   },
-                  child: Text('重新绘制', style: context.textStyles.body.copyWith(color: context.colors.primary)),
+                  child: Text(
+                    '重新绘制',
+                    style: context.textStyles.body.copyWith(
+                      color: context.colors.primary,
+                    ),
+                  ),
                 ),
             ],
           ),
@@ -156,7 +167,10 @@ class _PatternLockPageState extends State<PatternLockPage> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('图案设置成功'), duration: Duration(milliseconds: 500)),
+        const SnackBar(
+          content: Text('图案设置成功'),
+          duration: Duration(milliseconds: 500),
+        ),
       );
       Navigator.of(context).pop(true);
     }
@@ -187,7 +201,10 @@ class _PatternGridWidget extends StatefulWidget {
   final Function(List<int>) onPatternComplete;
   final AppColors colors;
 
-  _PatternGridWidget({required this.onPatternComplete, required this.colors});
+  const _PatternGridWidget({
+    required this.onPatternComplete,
+    required this.colors,
+  });
 
   @override
   State<_PatternGridWidget> createState() => _PatternGridWidgetState();
@@ -308,7 +325,9 @@ class _PatternPainter extends CustomPainter {
       final isSelected = selectedDots.contains(i);
 
       final outerPaint = Paint()
-        ..color = isSelected ? colors.primary : colors.textTertiary.withValues(alpha: 0.3)
+        ..color = isSelected
+            ? colors.primary
+            : colors.textTertiary.withValues(alpha: 0.3)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2;
       canvas.drawCircle(center, _PatternGridWidgetState._dotRadius, outerPaint);

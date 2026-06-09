@@ -7,7 +7,6 @@ import '../../../../config/di/providers.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/theme/theme_provider.dart';
 import '../../../../main.dart';
 
 /// 我的页面
@@ -48,7 +47,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       final today = DateTime(now.year, now.month, now.day);
       final todayRecord = checkIns.where((r) {
         final d = r.checkInDate;
-        return d.year == today.year && d.month == today.month && d.day == today.day;
+        return d.year == today.year &&
+            d.month == today.month &&
+            d.day == today.day;
       }).toList();
       final checkedToday = todayRecord.isNotEmpty;
 
@@ -59,7 +60,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           final day = today.subtract(Duration(days: i));
           final found = checkIns.any((r) {
             final d = r.checkInDate;
-            return d.year == day.year && d.month == day.month && d.day == day.day;
+            return d.year == day.year &&
+                d.month == day.month &&
+                d.day == day.day;
           });
           if (found) {
             consecutive++;
@@ -92,7 +95,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     if (_todayCheckedIn) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('今天已经打过卡了'), behavior: SnackBarBehavior.floating, duration: Duration(milliseconds: 800)),
+          const SnackBar(
+            content: Text('今天已经打过卡了'),
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(milliseconds: 800),
+          ),
         );
       }
       return;
@@ -103,21 +110,29 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
 
-      await db.into(db.checkInRecords).insert(
-        CheckInRecordsCompanion.insert(checkInDate: today),
-      );
+      await db
+          .into(db.checkInRecords)
+          .insert(CheckInRecordsCompanion.insert(checkInDate: today));
 
       await _loadData();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('打卡成功！'), behavior: SnackBarBehavior.floating, duration: Duration(milliseconds: 800)),
+          const SnackBar(
+            content: Text('打卡成功！'),
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(milliseconds: 800),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('打卡失败: $e'), behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 2)),
+          SnackBar(
+            content: Text('打卡失败: $e'),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+          ),
         );
       }
     }
@@ -160,9 +175,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   // 设置
                   _buildMenuGroup(
                     context: context,
-                    items: [
-                      _MenuItem(Icons.settings_outlined, '设置'),
-                    ],
+                    items: [_MenuItem(Icons.settings_outlined, '设置')],
                   ),
                   const SizedBox(height: 20),
                 ],
@@ -184,7 +197,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final hasValidAvatar = avatarPath != null && File(avatarPath).existsSync();
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(AppDimensions.md, 20, AppDimensions.md, 20),
+      padding: const EdgeInsets.fromLTRB(
+        AppDimensions.md,
+        20,
+        AppDimensions.md,
+        20,
+      ),
       color: context.colors.surface,
       child: Row(
         children: [
@@ -198,12 +216,20 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   child: CircleAvatar(
                     radius: 28,
                     backgroundColor: context.colors.primarySurface,
-                    backgroundImage: hasValidAvatar ? FileImage(File(avatarPath)) : null,
-                    onBackgroundImageError: hasValidAvatar ? (exception, stackTrace) {
-                      debugPrint('头像加载失败: $exception');
-                    } : null,
+                    backgroundImage: hasValidAvatar
+                        ? FileImage(File(avatarPath))
+                        : null,
+                    onBackgroundImageError: hasValidAvatar
+                        ? (exception, stackTrace) {
+                            debugPrint('头像加载失败: $exception');
+                          }
+                        : null,
                     child: !hasValidAvatar
-                        ? Icon(Icons.person_outline, size: 28, color: context.colors.primaryDark)
+                        ? Icon(
+                            Icons.person_outline,
+                            size: 28,
+                            color: context.colors.primaryDark,
+                          )
                         : null,
                   ),
                 ),
@@ -213,7 +239,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   children: [
                     Text(nickname, style: context.textStyles.h3),
                     const SizedBox(height: 2),
-                    Text('ID: $uid', style: context.textStyles.caption.copyWith(color: context.colors.textTertiary)),
+                    Text(
+                      'ID: $uid',
+                      style: context.textStyles.caption.copyWith(
+                        color: context.colors.textTertiary,
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -232,22 +263,30 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: _todayCheckedIn ? context.colors.surfaceSecondary : context.colors.primary,
+                color: _todayCheckedIn
+                    ? context.colors.surfaceSecondary
+                    : context.colors.primary,
                 borderRadius: BorderRadius.circular(AppDimensions.radiusRound),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    _todayCheckedIn ? Icons.check_circle_outline : Icons.radio_button_unchecked,
+                    _todayCheckedIn
+                        ? Icons.check_circle_outline
+                        : Icons.radio_button_unchecked,
                     size: 18,
-                    color: _todayCheckedIn ? context.colors.textTertiary : Colors.white,
+                    color: _todayCheckedIn
+                        ? context.colors.textTertiary
+                        : Colors.white,
                   ),
                   const SizedBox(width: 4),
                   Text(
                     _todayCheckedIn ? '已打卡' : '打卡',
                     style: context.textStyles.footnote.copyWith(
-                      color: _todayCheckedIn ? context.colors.textTertiary : Colors.white,
+                      color: _todayCheckedIn
+                          ? context.colors.textTertiary
+                          : Colors.white,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -286,9 +325,19 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(value, style: context.textStyles.h2.copyWith(color: context.colors.primary), textAlign: TextAlign.center),
+          Text(
+            value,
+            style: context.textStyles.h2.copyWith(
+              color: context.colors.primary,
+            ),
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 4),
-          Text(label, style: context.textStyles.caption, textAlign: TextAlign.center),
+          Text(
+            label,
+            style: context.textStyles.caption,
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );
@@ -330,7 +379,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           crossAxisSpacing: 4,
         ),
         itemCount: items.length,
-        itemBuilder: (context, index) => _buildFuncButton(items[index], context),
+        itemBuilder: (context, index) =>
+            _buildFuncButton(items[index], context),
       ),
     );
   }
@@ -344,7 +394,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         children: [
           Icon(item.icon, size: 24, color: context.colors.textPrimary),
           const SizedBox(height: 4),
-          Text(item.label, style: context.textStyles.caption, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
+          Text(
+            item.label,
+            style: context.textStyles.caption,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ],
       ),
     );
@@ -370,7 +426,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             if (title != null)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                child: Text(title, style: context.textStyles.caption.copyWith(color: context.colors.textTertiary)),
+                child: Text(
+                  title,
+                  style: context.textStyles.caption.copyWith(
+                    color: context.colors.textTertiary,
+                  ),
+                ),
               ),
             ...items.map((item) => _buildMenuItem(item, context)),
           ],
@@ -379,7 +440,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     );
   }
 
-  Widget _buildMenuItem(_MenuItem item, BuildContext context, {Color? iconColor}) {
+  Widget _buildMenuItem(
+    _MenuItem item,
+    BuildContext context, {
+    Color? iconColor,
+  }) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -387,14 +452,27 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            border: Border(bottom: BorderSide(color: context.colors.separatorOpaque, width: 0.5)),
+            border: Border(
+              bottom: BorderSide(
+                color: context.colors.separatorOpaque,
+                width: 0.5,
+              ),
+            ),
           ),
           child: Row(
             children: [
-              Icon(item.icon, size: 20, color: iconColor ?? context.colors.textPrimary),
+              Icon(
+                item.icon,
+                size: 20,
+                color: iconColor ?? context.colors.textPrimary,
+              ),
               const SizedBox(width: 12),
               Expanded(child: Text(item.label, style: context.textStyles.body)),
-              Icon(Icons.chevron_right, size: 16, color: context.colors.textTertiary),
+              Icon(
+                Icons.chevron_right,
+                size: 16,
+                color: context.colors.textTertiary,
+              ),
             ],
           ),
         ),
@@ -427,7 +505,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       case '账单导出':
       case '用户反馈':
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$label功能即将推出'), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 500)),
+          SnackBar(
+            content: Text('$label功能即将推出'),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(milliseconds: 500),
+          ),
         );
         break;
     }
@@ -449,7 +531,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       case '账单导出':
       case '用户反馈':
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$label功能即将推出'), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 500)),
+          SnackBar(
+            content: Text('$label功能即将推出'),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(milliseconds: 500),
+          ),
         );
         break;
       case '设置':
@@ -484,20 +570,35 @@ void _showThemePicker(BuildContext context, WidgetRef ref) {
           ListTile(
             leading: const Icon(Icons.light_mode),
             title: const Text('浅色模式'),
-            trailing: current == ThemeMode.light ? Icon(Icons.check, color: context.colors.primary) : null,
-            onTap: () { themeProvider.setThemeMode(ThemeMode.light); Navigator.pop(ctx); },
+            trailing: current == ThemeMode.light
+                ? Icon(Icons.check, color: context.colors.primary)
+                : null,
+            onTap: () {
+              themeProvider.setThemeMode(ThemeMode.light);
+              Navigator.pop(ctx);
+            },
           ),
           ListTile(
             leading: const Icon(Icons.dark_mode),
             title: const Text('深色模式'),
-            trailing: current == ThemeMode.dark ? Icon(Icons.check, color: context.colors.primary) : null,
-            onTap: () { themeProvider.setThemeMode(ThemeMode.dark); Navigator.pop(ctx); },
+            trailing: current == ThemeMode.dark
+                ? Icon(Icons.check, color: context.colors.primary)
+                : null,
+            onTap: () {
+              themeProvider.setThemeMode(ThemeMode.dark);
+              Navigator.pop(ctx);
+            },
           ),
           ListTile(
             leading: const Icon(Icons.settings_brightness),
             title: const Text('跟随系统'),
-            trailing: current == ThemeMode.system ? Icon(Icons.check, color: context.colors.primary) : null,
-            onTap: () { themeProvider.setThemeMode(ThemeMode.system); Navigator.pop(ctx); },
+            trailing: current == ThemeMode.system
+                ? Icon(Icons.check, color: context.colors.primary)
+                : null,
+            onTap: () {
+              themeProvider.setThemeMode(ThemeMode.system);
+              Navigator.pop(ctx);
+            },
           ),
         ],
       ),
