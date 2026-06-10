@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:drift/drift.dart' hide Column;
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
@@ -149,17 +150,25 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with RouteAware {
       final db = ref.read(appDatabaseProvider);
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
+      final l10n = AppLocalizations.of(context)!;
 
       await db
           .into(db.checkInRecords)
           .insert(CheckInRecordsCompanion.insert(checkInDate: today));
+
+      // 发放每日打卡 AC 币
+      await _addAcCoins(db, 10, 'daily_checkin', l10n.checkinRewardDaily, today.millisecondsSinceEpoch);
+
+      // 检查连续打卡奖励
+      final newConsecutive = _consecutiveDays + 1;
+      await _checkStreakRewards(db, newConsecutive, today);
 
       await _loadData();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.profileCheckInSuccess),
+            content: Text(l10n.profileCheckInSuccess),
             behavior: SnackBarBehavior.floating,
             duration: const Duration(milliseconds: 800),
           ),
@@ -175,6 +184,50 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with RouteAware {
           ),
         );
       }
+    }
+  }
+
+  Future<void> _checkStreakRewards(AppDatabase db, int consecutive, DateTime today) async {
+    final l10n = AppLocalizations.of(context)!;
+    final allTxns = await db.select(db.acCoinTransactions).get();
+    final claimedTypes = allTxns.where((t) => t.type.startsWith('streak_')).map((t) => t.type).toSet();
+
+    if (consecutive >= 365 && !claimedTypes.contains('streak_365d')) {
+      await _addAcCoins(db, 2000, 'streak_365d', l10n.checkinReward365, today.millisecondsSinceEpoch);
+      _showRewardSnackBar(l10n.checkinStreak365);
+    } else if (consecutive >= 180 && !claimedTypes.contains('streak_180d')) {
+      await _addAcCoins(db, 1000, 'streak_180d', l10n.checkinReward180, today.millisecondsSinceEpoch);
+      _showRewardSnackBar(l10n.checkinStreak180);
+    } else if (consecutive >= 30 && !claimedTypes.contains('streak_30d')) {
+      await _addAcCoins(db, 300, 'streak_30d', l10n.checkinReward30, today.millisecondsSinceEpoch);
+      _showRewardSnackBar(l10n.checkinStreak30);
+    } else if (consecutive >= 7 && !claimedTypes.contains('streak_7d')) {
+      await _addAcCoins(db, 70, 'streak_7d', l10n.checkinReward7, today.millisecondsSinceEpoch);
+      _showRewardSnackBar(l10n.checkinStreak7);
+    }
+  }
+
+  Future<void> _addAcCoins(AppDatabase db, int amount, String type, String desc, int? relatedDate) async {
+    await db.into(db.acCoinTransactions).insert(AcCoinTransactionsCompanion.insert(
+      userId: const Value(1),
+      amount: amount,
+      type: type,
+      description: Value(desc),
+      relatedDate: Value(relatedDate),
+    ));
+
+    final balances = await db.select(db.acCoinBalances).get();
+    if (balances.isNotEmpty) {
+      await (db.update(db.acCoinBalances)..where((t) => t.id.equals(balances.first.id)))
+          .write(AcCoinBalancesCompanion(balance: Value(balances.first.balance + amount)));
+    }
+  }
+
+  void _showRewardSnackBar(String msg) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 2)),
+      );
     }
   }
 
