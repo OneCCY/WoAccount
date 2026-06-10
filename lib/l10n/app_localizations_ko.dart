@@ -42,7 +42,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get commonDelete => '삭제';
 
   @override
-  String get commonEdit => '编辑';
+  String get commonEdit => '편집';
 
   @override
   String get chatPageTitle => 'AI 가계부';
@@ -1416,204 +1416,207 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get llmSettingsTitle => 'AI 服务配置';
+  String get llmSettingsTitle => 'AI 서비스 설정';
 
   @override
-  String get llmExportConfig => '导出配置';
+  String get llmExportConfig => '설정 내보내기';
 
   @override
-  String get llmImportConfig => '导入配置';
+  String get llmImportConfig => '설정 가져오기';
 
   @override
-  String get llmProviderManagement => '服务商管理';
+  String get llmProviderManagement => '프로바이더 관리';
 
   @override
-  String get llmAddProvider => '添加服务商';
+  String get llmAddProvider => '프로바이더 추가';
 
   @override
-  String get llmEditProvider => '编辑服务商';
+  String get llmEditProvider => '프로바이더 편집';
 
   @override
-  String get llmDeleteProvider => '删除服务商';
+  String get llmDeleteProvider => '프로바이더 삭제';
 
   @override
   String llmDeleteProviderConfirm(String name) {
-    return '确定删除「$name」？';
+    return '「$name」을(를) 삭제하시겠습니까?';
   }
 
   @override
-  String get llmNotConfigured => '未配置';
+  String get llmNotConfigured => '미설정';
 
   @override
-  String get llmConfigured => '已配置';
+  String get llmConfigured => '설정 완료';
 
   @override
-  String get llmNoProviders => '尚未添加任何服务商';
+  String get llmNoProviders => '아직 프로바이더가 추가되지 않았습니다';
 
   @override
-  String get llmUnnamedProvider => '未命名服务商';
+  String get llmUnnamedProvider => '이름 없는 프로바이더';
 
   @override
-  String get llmInUse => '使用中';
+  String get llmInUse => '사용 중';
 
   @override
-  String get llmIncomplete => '未完成';
+  String get llmIncomplete => '미완성';
 
   @override
-  String get llmTest => '测试';
+  String get llmTest => '테스트';
 
   @override
-  String get llmConfigIncomplete => '请先完善配置（需要 API Key、地址和至少一个模型）';
+  String get llmConfigIncomplete =>
+      '먼저 설정을 완료해 주세요 (API Key, URL, 최소 1개 모델 필요)';
 
   @override
-  String get llmConnectSuccess => '✅ 连接成功';
+  String get llmConnectSuccess => '✅ 연결 성공';
 
   @override
-  String get llmConnectFail => '❌ 连接失败，请检查地址、Key 和模型名称';
+  String get llmConnectFail => '❌ 연결 실패. URL, Key, 모델명을 확인해 주세요';
 
   @override
-  String get llmConfigCopied => '配置已复制到剪贴板';
+  String get llmConfigCopied => '설정이 클립보드에 복사되었습니다';
 
   @override
-  String get llmClipboardEmpty => '剪贴板为空';
+  String get llmClipboardEmpty => '클립보드가 비어 있습니다';
 
   @override
   String llmImported(String count) {
-    return '已导入 $count 个服务商配置';
+    return '$count개의 프로바이더 설정을 가져왔습니다';
   }
 
   @override
-  String get llmImportFailed => '导入失败，请检查 JSON 格式';
+  String get llmImportFailed => '가져오기에 실패했습니다. JSON 형식을 확인해 주세요';
 
   @override
-  String get llmProviderNotConfigured => '该服务商未配置 API Key 或请求地址，请先编辑';
+  String get llmProviderNotConfigured =>
+      '이 프로바이더에 API Key 또는 URL이 설정되지 않았습니다. 먼저 편집해 주세요';
 
   @override
   String llmModelsFetched(String count, String label) {
-    return '获取到 $count 个$label';
+    return '$count개의 $label을(를) 가져왔습니다';
   }
 
   @override
   String llmModelsFetchedAll(String count) {
-    return '获取到 $count 个模型（未筛选到专用模型，显示全部）';
+    return '$count개의 모델을 가져왔습니다 (전용 모델을 찾지 못해 전체 표시)';
   }
 
   @override
-  String get llmFetchFailed => '获取失败，已加载预设模型列表';
+  String get llmFetchFailed => '가져오기에 실패했습니다. 프리셋 모델 목록을 불러왔습니다';
 
   @override
   String llmFetchError(String error) {
-    return '获取模型失败: $error';
+    return '모델 가져오기 실패: $error';
   }
 
   @override
   String llmModelSet(String capability, String provider, String model) {
-    return '已设置 $capability：$provider · $model';
+    return '$capability 설정 완료: $provider · $model';
   }
 
   @override
   String llmInputModelName(String capability) {
-    return '输入$capability名称';
+    return '$capability 이름 입력';
   }
 
   @override
-  String get llmConnectFailed => '连接失败';
+  String get llmConnectFailed => '연결 실패';
 
   @override
-  String get llmAutoDetectInterval => '自动检测间隔';
+  String get llmAutoDetectInterval => '자동 감지 간격';
 
   @override
-  String get llmIntervalOff => '关闭';
+  String get llmIntervalOff => '끔';
 
   @override
-  String get llmInterval10s => '10秒';
+  String get llmInterval10s => '10초';
 
   @override
-  String get llmInterval30s => '30秒';
+  String get llmInterval30s => '30초';
 
   @override
-  String get llmInterval1m => '1分钟';
+  String get llmInterval1m => '1분';
 
   @override
-  String get llmInterval2m => '2分钟';
+  String get llmInterval2m => '2분';
 
   @override
-  String get llmInterval5m => '5分钟';
+  String get llmInterval5m => '5분';
 
   @override
-  String get llmInterval10m => '10分钟';
+  String get llmInterval10m => '10분';
 
   @override
-  String get llmInterval30m => '30分钟';
+  String get llmInterval30m => '30분';
 
   @override
-  String get llmInterval1h => '1小时';
+  String get llmInterval1h => '1시간';
 
   @override
   String llmConfigureCap(String label) {
-    return '配置$label';
+    return '$label 설정';
   }
 
   @override
-  String get llmCurrentUse => '当前使用';
+  String get llmCurrentUse => '현재 사용 중';
 
   @override
-  String get llmFetch => '获取';
+  String get llmFetch => '가져오기';
 
   @override
-  String get llmTesting => '检测中...';
+  String get llmTesting => '테스트 중...';
 
   @override
-  String get llmTestConnection => '检测连接';
+  String get llmTestConnection => '연결 테스트';
 
   @override
-  String get llmFailed => '失败';
+  String get llmFailed => '실패';
 
   @override
   String llmSelectCap(String label) {
-    return '选择$label';
+    return '$label 선택';
   }
 
   @override
-  String get llmManualInput => '✏️ 手动输入...';
+  String get llmManualInput => '✏️ 직접 입력...';
 
   @override
-  String get llmFillApiKey => '请填写 API Key 和请求地址';
+  String get llmFillApiKey => 'API Key와 요청 URL을 입력해 주세요';
 
   @override
-  String get llmCustom => '自定义';
+  String get llmCustom => '사용자 정의';
 
   @override
-  String get llmProviderName => '服务商名称';
+  String get llmProviderName => '프로바이더 이름';
 
   @override
-  String get llmApiUrl => '请求地址';
+  String get llmApiUrl => '요청 URL';
 
   @override
   String get llmApiUrlHintAnthropic =>
-      'Anthropic API 地址，如 https://api.anthropic.com';
+      'Anthropic API URL (예: https://api.anthropic.com)';
 
   @override
-  String get llmApiUrlHelper => '填入 API 的 base_url，不需要手动拼接 /chat/completions';
+  String get llmApiUrlHelper =>
+      'API의 base_url을 입력하세요. /chat/completions는 자동으로 추가됩니다';
 
   @override
-  String get llmSaveHint => '保存后，请返回上一页通过能力卡片配置模型';
+  String get llmSaveHint => '저장 후 이전 페이지로 돌아가 능력 카드에서 모델을 설정해 주세요';
 
   @override
-  String get llmInputApiKey => '输入 API Key';
+  String get llmInputApiKey => 'API Key 입력';
 
   @override
-  String get llmApiUrlExample => '如：https://api.example.com';
+  String get llmApiUrlExample => '예: https://api.example.com';
 
   @override
-  String get llmAdvancedSettings => '高级设置';
+  String get llmAdvancedSettings => '고급 설정';
 
   @override
-  String get llmTemperature => '温度参数';
+  String get llmTemperature => '온도 파라미터';
 
   @override
-  String get llmMaxToken => '最大 Token';
+  String get llmMaxToken => '최대 토큰 수';
 
   @override
-  String get llmTimeout => '超时（秒）';
+  String get llmTimeout => '타임아웃 (초)';
 }

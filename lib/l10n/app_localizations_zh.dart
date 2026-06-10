@@ -1651,6 +1651,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get commonDelete => '刪除';
 
   @override
+  String get commonEdit => '編輯';
+
+  @override
   String get chatPageTitle => 'AI 記帳';
 
   @override
@@ -3015,4 +3018,206 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String reportTrendDay(String period) {
     return '$period日';
   }
+
+  @override
+  String get llmSettingsTitle => 'AI 服務配置';
+
+  @override
+  String get llmExportConfig => '匯出配置';
+
+  @override
+  String get llmImportConfig => '匯入配置';
+
+  @override
+  String get llmProviderManagement => '服務商管理';
+
+  @override
+  String get llmAddProvider => '新增服務商';
+
+  @override
+  String get llmEditProvider => '編輯服務商';
+
+  @override
+  String get llmDeleteProvider => '刪除服務商';
+
+  @override
+  String llmDeleteProviderConfirm(String name) {
+    return '確定刪除「$name」？';
+  }
+
+  @override
+  String get llmNotConfigured => '未配置';
+
+  @override
+  String get llmConfigured => '已配置';
+
+  @override
+  String get llmNoProviders => '尚未新增任何服務商';
+
+  @override
+  String get llmUnnamedProvider => '未命名服務商';
+
+  @override
+  String get llmInUse => '使用中';
+
+  @override
+  String get llmIncomplete => '未完成';
+
+  @override
+  String get llmTest => '測試';
+
+  @override
+  String get llmConfigIncomplete => '請先完善配置（需要 API Key、地址和至少一個模型）';
+
+  @override
+  String get llmConnectSuccess => '✅ 連線成功';
+
+  @override
+  String get llmConnectFail => '❌ 連線失敗，請檢查地址、Key 和模型名稱';
+
+  @override
+  String get llmConfigCopied => '配置已複製到剪貼簿';
+
+  @override
+  String get llmClipboardEmpty => '剪貼簿為空';
+
+  @override
+  String llmImported(String count) {
+    return '已匯入 $count 個服務商配置';
+  }
+
+  @override
+  String get llmImportFailed => '匯入失敗，請檢查 JSON 格式';
+
+  @override
+  String get llmProviderNotConfigured => '該服務商未配置 API Key 或請求地址，請先編輯';
+
+  @override
+  String llmModelsFetched(String count, String label) {
+    return '擷取到 $count 個$label';
+  }
+
+  @override
+  String llmModelsFetchedAll(String count) {
+    return '擷取到 $count 個模型（未篩選到專用模型，顯示全部）';
+  }
+
+  @override
+  String get llmFetchFailed => '擷取失敗，已載入預設模型列表';
+
+  @override
+  String llmFetchError(String error) {
+    return '擷取模型失敗: $error';
+  }
+
+  @override
+  String llmModelSet(String capability, String provider, String model) {
+    return '已設定 $capability：$provider · $model';
+  }
+
+  @override
+  String llmInputModelName(String capability) {
+    return '輸入$capability名稱';
+  }
+
+  @override
+  String get llmConnectFailed => '連線失敗';
+
+  @override
+  String get llmAutoDetectInterval => '自動偵測間隔';
+
+  @override
+  String get llmIntervalOff => '關閉';
+
+  @override
+  String get llmInterval10s => '10秒';
+
+  @override
+  String get llmInterval30s => '30秒';
+
+  @override
+  String get llmInterval1m => '1分鐘';
+
+  @override
+  String get llmInterval2m => '2分鐘';
+
+  @override
+  String get llmInterval5m => '5分鐘';
+
+  @override
+  String get llmInterval10m => '10分鐘';
+
+  @override
+  String get llmInterval30m => '30分鐘';
+
+  @override
+  String get llmInterval1h => '1小時';
+
+  @override
+  String llmConfigureCap(String label) {
+    return '配置$label';
+  }
+
+  @override
+  String get llmCurrentUse => '目前使用';
+
+  @override
+  String get llmFetch => '擷取';
+
+  @override
+  String get llmTesting => '偵測中...';
+
+  @override
+  String get llmTestConnection => '偵測連線';
+
+  @override
+  String get llmFailed => '失敗';
+
+  @override
+  String llmSelectCap(String label) {
+    return '選擇$label';
+  }
+
+  @override
+  String get llmManualInput => '✏️ 手動輸入...';
+
+  @override
+  String get llmFillApiKey => '請填寫 API Key 和請求地址';
+
+  @override
+  String get llmCustom => '自訂';
+
+  @override
+  String get llmProviderName => '服務商名稱';
+
+  @override
+  String get llmApiUrl => '請求地址';
+
+  @override
+  String get llmApiUrlHintAnthropic =>
+      'Anthropic API 地址，如 https://api.anthropic.com';
+
+  @override
+  String get llmApiUrlHelper => '填入 API 的 base_url，不需要手動拼接 /chat/completions';
+
+  @override
+  String get llmSaveHint => '儲存後，請返回上一頁透過能力卡片配置模型';
+
+  @override
+  String get llmInputApiKey => '輸入 API Key';
+
+  @override
+  String get llmApiUrlExample => '如：https://api.example.com';
+
+  @override
+  String get llmAdvancedSettings => '進階設定';
+
+  @override
+  String get llmTemperature => '溫度參數';
+
+  @override
+  String get llmMaxToken => '最大 Token';
+
+  @override
+  String get llmTimeout => '逾時（秒）';
 }
