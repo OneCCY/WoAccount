@@ -40,7 +40,7 @@
   "@chatInputImageFailed": { "placeholders": { "error": { "type": "String" } } },
   "chatInputCamera": "Take Photo",
   "chatInputGallery": "Choose from Gallery",
-  "chatInputVoiceHint": "Release to send, swipe left to cancel ↖",
+  "chatInputVoiceHint": "Release to send, swipe left to cancel ↖, swipe right to transcribe ↗",
   "chatInputTextHint": "Say something...",
   "chatConfirmTitle": "AI Parse Result",
   "chatConfirmCategory": "Category",

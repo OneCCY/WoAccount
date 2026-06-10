@@ -126,7 +126,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatInputGallery => 'Choose from Gallery';
 
   @override
-  String get chatInputVoiceHint => 'Release to send, swipe left to cancel ↖';
+  String get chatInputVoiceHint =>
+      'Release to send, swipe left to cancel ↖, swipe right to transcribe ↗';
 
   @override
   String get chatInputTextHint => 'Say something...';

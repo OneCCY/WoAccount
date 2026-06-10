@@ -40,7 +40,7 @@
   "@chatInputImageFailed": { "placeholders": { "error": { "type": "String" } } },
   "chatInputCamera": "写真を撮る",
   "chatInputGallery": "アルバムから選択",
-  "chatInputVoiceHint": "話すのをやめて送信、左にスライドでキャンセル ↖",
+  "chatInputVoiceHint": "話すのをやめて送信、左にスライドでキャンセル ↖、右にスライドで文字変換 ↗",
   "chatInputTextHint": "メッセージを入力...",
   "chatConfirmTitle": "AI解析結果",
   "chatConfirmCategory": "カテゴリ",

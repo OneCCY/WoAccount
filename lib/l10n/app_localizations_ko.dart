@@ -123,7 +123,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get chatInputGallery => '앨범에서 선택';
 
   @override
-  String get chatInputVoiceHint => '손을 떼면 전송, 왼쪽으로 밀면 취소 ↖';
+  String get chatInputVoiceHint => '손을 떼면 전송, 왼쪽으로 밀면 취소 ↖, 오른쪽으로 밀면 텍스트 변환 ↗';
 
   @override
   String get chatInputTextHint => '메시지를 입력하세요...';

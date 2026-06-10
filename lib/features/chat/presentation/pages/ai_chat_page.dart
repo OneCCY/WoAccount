@@ -3,22 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:dio/dio.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../config/di/ai_providers.dart';
 import '../../../../core/ai/transaction_pipeline.dart';
 import '../../../../core/locale/locale_provider.dart';
-import '../../../../core/media/media_storage_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../ai/data/models/llm_config.dart';
 import '../../../category/domain/repositories/category_repository.dart';
-import '../../../text_ai/data/services/voice_recognition_service.dart';
 import '../../../transaction/domain/repositories/transaction_repository.dart';
-import '../../../vision_ai/data/services/image_recognition_service.dart';
 import '../../domain/repositories/chat_repository.dart';
 import '../widgets/chat_bubble.dart';
 import '../widgets/chat_input_bar.dart';
@@ -58,14 +54,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
     _bookId = ref.read(currentBookProvider);
 
     // 初始化统一记账管线
-    final dio = Dio();
-    final llmRepo = ref.read(llmRepositoryProvider);
-    _pipeline = TransactionPipeline(
-      llmRepo: llmRepo,
-      voiceService: VoiceRecognitionService(dio),
-      imageService: ImageRecognitionService(dio),
-      mediaStorage: MediaStorageService(),
-    );
+    _pipeline = ref.read(transactionPipelineProvider);
 
     _scrollController.addListener(_onScroll);
     _loadInitialMessages();

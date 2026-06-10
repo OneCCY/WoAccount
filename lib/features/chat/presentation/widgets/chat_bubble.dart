@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
@@ -9,7 +10,7 @@ import '../../../../core/theme/app_text_styles.dart';
 enum MessageMediaType { text, voice, image }
 
 /// 聊天气泡组件
-class ChatBubble extends StatelessWidget {
+class ChatBubble extends StatefulWidget {
   final bool isUser;
   final String content;
   final DateTime time;
@@ -26,27 +27,71 @@ class ChatBubble extends StatelessWidget {
   });
 
   @override
+  State<ChatBubble> createState() => _ChatBubbleState();
+}
+
+class _ChatBubbleState extends State<ChatBubble> {
+  AudioPlayer? _audioPlayer;
+  bool _isPlaying = false;
+  bool _hasAudioFile = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.mediaType == MessageMediaType.voice &&
+        widget.mediaFilePath != null &&
+        File(widget.mediaFilePath!).existsSync()) {
+      _hasAudioFile = true;
+      _audioPlayer = AudioPlayer();
+      _audioPlayer!.onPlayerComplete.listen((_) {
+        if (mounted) setState(() => _isPlaying = false);
+      });
+      _audioPlayer!.onPlayerStateChanged.listen((state) {
+        if (mounted) {
+          setState(() => _isPlaying = state == PlayerState.playing);
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _togglePlayback() async {
+    if (_audioPlayer == null || widget.mediaFilePath == null) return;
+
+    if (_isPlaying) {
+      await _audioPlayer!.pause();
+    } else {
+      await _audioPlayer!.play(DeviceFileSource(widget.mediaFilePath!));
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
-        mainAxisAlignment: isUser
+        mainAxisAlignment: widget.isUser
             ? MainAxisAlignment.end
             : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (!isUser) _buildAvatar(context),
-          if (!isUser) const SizedBox(width: 8),
+          if (!widget.isUser) _buildAvatar(context),
+          if (!widget.isUser) const SizedBox(width: 8),
           Flexible(
             child: Column(
-              crossAxisAlignment: isUser
+              crossAxisAlignment: widget.isUser
                   ? CrossAxisAlignment.end
                   : CrossAxisAlignment.start,
               children: [
                 _buildBubbleContent(context),
                 const SizedBox(height: 4),
                 Text(
-                  DateFormat('HH:mm').format(time),
+                  DateFormat('HH:mm').format(widget.time),
                   style: context.textStyles.caption.copyWith(
                     color: context.colors.textTertiary,
                     fontSize: 10,
@@ -55,15 +100,15 @@ class ChatBubble extends StatelessWidget {
               ],
             ),
           ),
-          if (isUser) const SizedBox(width: 8),
-          if (isUser) _buildUserAvatar(context),
+          if (widget.isUser) const SizedBox(width: 8),
+          if (widget.isUser) _buildUserAvatar(context),
         ],
       ),
     );
   }
 
   Widget _buildBubbleContent(BuildContext context) {
-    switch (mediaType) {
+    switch (widget.mediaType) {
       case MessageMediaType.voice:
         return _buildVoiceBubble(context);
       case MessageMediaType.image:
@@ -77,12 +122,12 @@ class ChatBubble extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: isUser ? context.colors.primary : context.colors.surface,
+        color: widget.isUser ? context.colors.primary : context.colors.surface,
         borderRadius: BorderRadius.only(
           topLeft: const Radius.circular(16),
           topRight: const Radius.circular(16),
-          bottomLeft: Radius.circular(isUser ? 16 : 4),
-          bottomRight: Radius.circular(isUser ? 4 : 16),
+          bottomLeft: Radius.circular(widget.isUser ? 16 : 4),
+          bottomRight: Radius.circular(widget.isUser ? 4 : 16),
         ),
         boxShadow: [
           BoxShadow(
@@ -93,9 +138,9 @@ class ChatBubble extends StatelessWidget {
         ],
       ),
       child: Text(
-        content,
+        widget.content,
         style: context.textStyles.body.copyWith(
-          color: isUser
+          color: widget.isUser
               ? context.colors.textOnPrimary
               : context.colors.textPrimary,
           height: 1.5,
@@ -107,14 +152,14 @@ class ChatBubble extends StatelessWidget {
   Widget _buildVoiceBubble(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      constraints: const BoxConstraints(minWidth: 120),
+      constraints: const BoxConstraints(minWidth: 140),
       decoration: BoxDecoration(
-        color: isUser ? context.colors.primary : context.colors.surface,
+        color: widget.isUser ? context.colors.primary : context.colors.surface,
         borderRadius: BorderRadius.only(
           topLeft: const Radius.circular(16),
           topRight: const Radius.circular(16),
-          bottomLeft: Radius.circular(isUser ? 16 : 4),
-          bottomRight: Radius.circular(isUser ? 4 : 16),
+          bottomLeft: Radius.circular(widget.isUser ? 16 : 4),
+          bottomRight: Radius.circular(widget.isUser ? 4 : 16),
         ),
         boxShadow: [
           BoxShadow(
@@ -130,16 +175,40 @@ class ChatBubble extends StatelessWidget {
           Icon(
             Icons.mic,
             size: 18,
-            color: isUser
+            color: widget.isUser
                 ? context.colors.textOnPrimary
                 : context.colors.primary,
           ),
+          if (_hasAudioFile) ...[
+            const SizedBox(width: 6),
+            GestureDetector(
+              onTap: _togglePlayback,
+              child: Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: (widget.isUser
+                          ? context.colors.textOnPrimary
+                          : context.colors.primary)
+                      .withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  _isPlaying ? Icons.pause : Icons.play_arrow,
+                  size: 16,
+                  color: widget.isUser
+                      ? context.colors.textOnPrimary
+                      : context.colors.primary,
+                ),
+              ),
+            ),
+          ],
           const SizedBox(width: 8),
           Flexible(
             child: Text(
-              content,
+              widget.content,
               style: context.textStyles.body.copyWith(
-                color: isUser
+                color: widget.isUser
                     ? context.colors.textOnPrimary
                     : context.colors.textPrimary,
                 height: 1.5,
@@ -156,11 +225,11 @@ class ChatBubble extends StatelessWidget {
 
   Widget _buildImageBubble(BuildContext context) {
     return Column(
-      crossAxisAlignment: isUser
+      crossAxisAlignment: widget.isUser
           ? CrossAxisAlignment.end
           : CrossAxisAlignment.start,
       children: [
-        if (mediaFilePath != null && File(mediaFilePath!).existsSync())
+        if (widget.mediaFilePath != null && File(widget.mediaFilePath!).existsSync())
           GestureDetector(
             onTap: () => _showFullImage(context),
             child: Container(
@@ -177,7 +246,7 @@ class ChatBubble extends StatelessWidget {
               ),
               clipBehavior: Clip.antiAlias,
               child: Image.file(
-                File(mediaFilePath!),
+                File(widget.mediaFilePath!),
                 fit: BoxFit.cover,
                 errorBuilder: (_, _, _) => Container(
                   width: 120,
@@ -207,14 +276,14 @@ class ChatBubble extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            color: isUser
+            color: widget.isUser
                 ? context.colors.primary.withValues(alpha: 0.85)
                 : context.colors.surface,
             borderRadius: BorderRadius.only(
               topLeft: const Radius.circular(16),
               topRight: const Radius.circular(16),
-              bottomLeft: Radius.circular(isUser ? 16 : 4),
-              bottomRight: Radius.circular(isUser ? 4 : 16),
+              bottomLeft: Radius.circular(widget.isUser ? 16 : 4),
+              bottomRight: Radius.circular(widget.isUser ? 4 : 16),
             ),
           ),
           child: Row(
@@ -223,16 +292,16 @@ class ChatBubble extends StatelessWidget {
               Icon(
                 Icons.camera_alt,
                 size: 14,
-                color: isUser
+                color: widget.isUser
                     ? context.colors.textOnPrimary.withValues(alpha: 0.8)
                     : context.colors.textTertiary,
               ),
               const SizedBox(width: 6),
               Flexible(
                 child: Text(
-                  content,
+                  widget.content,
                   style: context.textStyles.body.copyWith(
-                    color: isUser
+                    color: widget.isUser
                         ? context.colors.textOnPrimary
                         : context.colors.textPrimary,
                     height: 1.5,
@@ -248,7 +317,7 @@ class ChatBubble extends StatelessWidget {
   }
 
   void _showFullImage(BuildContext context) {
-    if (mediaFilePath == null || !File(mediaFilePath!).existsSync()) return;
+    if (widget.mediaFilePath == null || !File(widget.mediaFilePath!).existsSync()) return;
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
@@ -257,7 +326,7 @@ class ChatBubble extends StatelessWidget {
         child: GestureDetector(
           onTap: () => Navigator.pop(ctx),
           child: InteractiveViewer(
-            child: Image.file(File(mediaFilePath!), fit: BoxFit.contain),
+            child: Image.file(File(widget.mediaFilePath!), fit: BoxFit.contain),
           ),
         ),
       ),

@@ -40,7 +40,7 @@
   "@chatInputImageFailed": { "placeholders": { "error": { "type": "String" } } },
   "chatInputCamera": "拍照",
   "chatInputGallery": "从相册选择",
-  "chatInputVoiceHint": "松手发送，左滑取消 ↖",
+  "chatInputVoiceHint": "松手发送，左滑取消 ↖，右滑转文字 ↗",
   "chatInputTextHint": "说点什么...",
   "chatConfirmTitle": "AI 解析结果",
   "chatConfirmCategory": "分类",

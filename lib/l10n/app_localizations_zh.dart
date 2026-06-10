@@ -122,7 +122,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatInputGallery => '从相册选择';
 
   @override
-  String get chatInputVoiceHint => '松手发送，左滑取消 ↖';
+  String get chatInputVoiceHint => '松手发送，左滑取消 ↖，右滑转文字 ↗';
 
   @override
   String get chatInputTextHint => '说点什么...';
@@ -1162,7 +1162,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get chatInputGallery => '從相簿選擇';
 
   @override
-  String get chatInputVoiceHint => '鬆手傳送，左滑取消 ↖';
+  String get chatInputVoiceHint => '鬆手傳送，左滑取消 ↖，右滑轉文字 ↗';
 
   @override
   String get chatInputTextHint => '說點什麼...';

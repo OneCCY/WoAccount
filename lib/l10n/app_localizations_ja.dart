@@ -122,7 +122,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get chatInputGallery => 'アルバムから選択';
 
   @override
-  String get chatInputVoiceHint => '話すのをやめて送信、左にスライドでキャンセル ↖';
+  String get chatInputVoiceHint => '話すのをやめて送信、左にスライドでキャンセル ↖、右にスライドで文字変換 ↗';
 
   @override
   String get chatInputTextHint => 'メッセージを入力...';

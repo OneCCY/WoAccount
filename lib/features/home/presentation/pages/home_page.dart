@@ -6,6 +6,7 @@ import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../config/di/ai_providers.dart';
+import '../../../../core/ai/transaction_pipeline.dart';
 import '../../../../core/locale/locale_provider.dart';
 import '../../../transaction/domain/repositories/transaction_repository.dart';
 import '../../../category/domain/repositories/category_repository.dart';
@@ -25,6 +26,7 @@ class HomePage extends ConsumerStatefulWidget {
 
 class _HomePageState extends ConsumerState<HomePage> {
   bool _isLoading = false;
+  final _inputController = TextEditingController();
 
   late final TransactionRepository _transactionRepo;
   late final CategoryRepository _categoryRepo;
@@ -43,6 +45,12 @@ class _HomePageState extends ConsumerState<HomePage> {
     });
   }
 
+  @override
+  void dispose() {
+    _inputController.dispose();
+    super.dispose();
+  }
+
   /// 检查 AI 服务是否已配置
   Future<void> _checkAiConfig() async {
     final llmRepo = ref.read(llmRepositoryProvider);
@@ -59,6 +67,110 @@ class _HomePageState extends ConsumerState<HomePage> {
           duration: const Duration(seconds: 4),
         ),
       );
+    }
+  }
+
+  /// 语音录制完成回调
+  Future<void> _handleVoiceRecorded(VoiceEndAction action, String filePath) async {
+    final llmRepo = ref.read(llmRepositoryProvider);
+    final provider = await llmRepo.getActiveProvider();
+    if (!mounted) return;
+    if (provider == null || !provider.isComplete) {
+      _showSnackBar(AppLocalizations.of(context)!.homePageAiNotConfigured);
+      return;
+    }
+
+    final pipeline = ref.read(transactionPipelineProvider);
+
+    if (action == VoiceEndAction.transcribeOnly) {
+      // 仅转文字，填入输入框
+      try {
+        setState(() => _isLoading = true);
+        final text = await pipeline.transcribeOnly(
+          audioTempPath: filePath,
+          provider: provider,
+        );
+        if (!mounted) return;
+        _inputController.text = text;
+        _inputController.selection = TextSelection.fromPosition(
+          TextPosition(offset: text.length),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        _showSnackBar(AppLocalizations.of(context)!.homePageRecordFailed(e.toString()));
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
+    } else {
+      // 完整管线：语音→转文字→AI解析→确认卡片
+      try {
+        setState(() => _isLoading = true);
+        final result = await pipeline.processVoice(
+          audioTempPath: filePath,
+          provider: provider,
+        );
+        if (!mounted) return;
+
+        if (result.transactions.isEmpty) {
+          _showSnackBar(AppLocalizations.of(context)!.homePageNoContent);
+          return;
+        }
+
+        final txn = result.transactions.first;
+
+        // 匹配分类
+        final categories = await _categoryRepo.getAll();
+        final matchedCategory = categories.firstWhere(
+          (c) => c.name == txn.category,
+          orElse: () => categories.firstWhere(
+            (c) => c.isExpense == (txn.type == 'expense'),
+            orElse: () => categories.first,
+          ),
+        );
+
+        // 解析日期
+        DateTime txnDate = DateTime.now();
+        if (txn.date != null && txn.date!.isNotEmpty) {
+          try {
+            txnDate = DateTime.parse(txn.date!);
+          } catch (_) {}
+        }
+
+        // 显示确认卡片
+        if (!mounted) return;
+        await AiConfirmSheet.show(
+          context,
+          originalInput: result.normalizedText,
+          amount: txn.amount,
+          category: matchedCategory.name,
+          description: txn.description.isNotEmpty
+              ? txn.description
+              : result.normalizedText.replaceAll(RegExp(r'\d+\.?\d*'), '').trim(),
+          date: txnDate,
+          confidence: txn.confidence,
+          parseTimeMs: 0,
+          onCancel: () => Navigator.of(context).pop(),
+          onConfirm: () async {
+            Navigator.of(context).pop();
+            await _saveTransaction(
+              input: result.normalizedText,
+              amount: txn.amount,
+              categoryId: matchedCategory.id,
+              description: txn.description.isNotEmpty
+                  ? txn.description
+                  : result.normalizedText.replaceAll(RegExp(r'\d+\.?\d*'), '').trim(),
+              date: txnDate,
+              aiSource: txn.confidence > 0.85 ? 'llm' : 'rule',
+              confidence: txn.confidence,
+            );
+          },
+        );
+      } catch (e) {
+        if (!mounted) return;
+        _showSnackBar(AppLocalizations.of(context)!.homePageRecordFailed(e.toString()));
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -207,6 +319,8 @@ class _HomePageState extends ConsumerState<HomePage> {
       bottomNavigationBar: AiInputBar(
         onSubmit: _handleAiInput,
         isLoading: _isLoading,
+        controller: _inputController,
+        onVoiceRecorded: _handleVoiceRecorded,
         onManualEntry: () {
           context.push('/manual-entry');
         },

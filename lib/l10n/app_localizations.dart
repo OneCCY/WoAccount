@@ -303,7 +303,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatInputVoiceHint.
   ///
   /// In zh, this message translates to:
-  /// **'松手发送，左滑取消 ↖'**
+  /// **'松手发送，左滑取消 ↖，右滑转文字 ↗'**
   String get chatInputVoiceHint;
 
   /// No description provided for @chatInputTextHint.

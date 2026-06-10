@@ -40,7 +40,7 @@
   "@chatInputImageFailed": { "placeholders": { "error": { "type": "String" } } },
   "chatInputCamera": "사진 촬영",
   "chatInputGallery": "앨범에서 선택",
-  "chatInputVoiceHint": "손을 떼면 전송, 왼쪽으로 밀면 취소 ↖",
+  "chatInputVoiceHint": "손을 떼면 전송, 왼쪽으로 밀면 취소 ↖, 오른쪽으로 밀면 텍스트 변환 ↗",
   "chatInputTextHint": "메시지를 입력하세요...",
   "chatConfirmTitle": "AI 분석 결과",
   "chatConfirmCategory": "카테고리",

@@ -68,6 +68,26 @@ class TransactionPipeline {
     );
   }
 
+  /// 仅语音转文字（不走 LLM 解析）
+  ///
+  /// 用于首页右滑转文字场景：用户录音后仅转写文本，填入输入框由用户编辑后发送。
+  Future<String> transcribeOnly({
+    required String audioTempPath,
+    required LlmProvider provider,
+  }) async {
+    // 保存音频到永久存储
+    final savedPath = await _mediaStorage.saveAudio(audioTempPath);
+
+    // 语音转文字
+    final text = await _voiceService.transcribe(provider, savedPath);
+
+    if (text.trim().isEmpty) {
+      throw const LlmException('语音识别结果为空，请重新录制');
+    }
+
+    return text;
+  }
+
   /// 处理语音输入
   ///
   /// [audioTempPath] 录音临时文件路径
