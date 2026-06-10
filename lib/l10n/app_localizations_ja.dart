@@ -1044,4 +1044,262 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get acCoinEmpty => 'ACコインの履歴がありません';
+
+  @override
+  String get catExpenseFood => '飲食';
+
+  @override
+  String get catExpenseTransport => '交通';
+
+  @override
+  String get catExpenseHousing => '住居';
+
+  @override
+  String get catExpenseClothing => '美容・衣類';
+
+  @override
+  String get catExpenseDaily => '日用品';
+
+  @override
+  String get catExpenseTech => 'デジタル機器';
+
+  @override
+  String get catExpenseMedical => '医療・健康';
+
+  @override
+  String get catExpenseEducation => '教育';
+
+  @override
+  String get catExpenseEntertainment => 'レジャー';
+
+  @override
+  String get catExpenseSocial => '交際費';
+
+  @override
+  String get catExpenseChildren => '子育て';
+
+  @override
+  String get catExpenseElderly => '親の介護';
+
+  @override
+  String get catExpensePet => 'ペット';
+
+  @override
+  String get catExpenseWork => '仕事・オフィス';
+
+  @override
+  String get catExpenseFinance => '金融・保険';
+
+  @override
+  String get catExpenseOther => 'その他支出';
+
+  @override
+  String get catIncomeSalary => '給与';
+
+  @override
+  String get catIncomeInvestment => '投資';
+
+  @override
+  String get catIncomeSideJob => '副業';
+
+  @override
+  String get catIncomeGift => 'お祝い金';
+
+  @override
+  String get catIncomeRefund => '払い戻し';
+
+  @override
+  String get catIncomeAsset => '賃貸・資産';
+
+  @override
+  String get catIncomeTransferIn => '振込受入';
+
+  @override
+  String get catIncomeOther => 'その他収入';
+
+  @override
+  String get catOtherTransfer => '振替';
+
+  @override
+  String get catOtherRepayment => '返済';
+
+  @override
+  String get catOtherSocial => '冠婚葬祭';
+
+  @override
+  String get weekMon => '月';
+
+  @override
+  String get weekTue => '火';
+
+  @override
+  String get weekWed => '水';
+
+  @override
+  String get weekThu => '木';
+
+  @override
+  String get weekFri => '金';
+
+  @override
+  String get weekSat => '土';
+
+  @override
+  String get weekSun => '日';
+
+  @override
+  String get weekMonFull => '月曜';
+
+  @override
+  String get weekTueFull => '火曜';
+
+  @override
+  String get weekWedFull => '水曜';
+
+  @override
+  String get weekThuFull => '木曜';
+
+  @override
+  String get weekFriFull => '金曜';
+
+  @override
+  String get weekSatFull => '土曜';
+
+  @override
+  String get weekSunFull => '日曜';
+
+  @override
+  String get commonSelectDateTime => '日時を選択';
+
+  @override
+  String get commonBack => '戻る';
+
+  @override
+  String get commonDone => '完了';
+
+  @override
+  String get commonAdd => '追加';
+
+  @override
+  String commonEnterHint(String field) {
+    return '$fieldを入力';
+  }
+
+  @override
+  String get txnCategorySearch => 'カテゴリを検索...';
+
+  @override
+  String get txnCategoryEmpty => 'カテゴリなし';
+
+  @override
+  String get settingsSelectLanguage => '言語を選択';
+
+  @override
+  String get settingsSelectCurrency => '通貨を選択';
+
+  @override
+  String get profileDefaultNickname => 'ユーザー';
+
+  @override
+  String get catManageTitle => 'カテゴリ管理';
+
+  @override
+  String catManageSubTitle(String name) {
+    return '$name - サブカテゴリ';
+  }
+
+  @override
+  String get catManageAddSub => 'サブカテゴリ追加';
+
+  @override
+  String get catManageNameExists => 'カテゴリ名は既に存在します';
+
+  @override
+  String get catManageSubNameExists => 'サブカテゴリ名は既に存在します';
+
+  @override
+  String get catManageDeleteTitle => '削除確認';
+
+  @override
+  String catManageDeleteWithChildren(String name) {
+    return 'カテゴリ「$name」とそのサブカテゴリをすべて削除しますか？';
+  }
+
+  @override
+  String catManageDeleteConfirm(String name) {
+    return 'カテゴリ「$name」を削除しますか？';
+  }
+
+  @override
+  String get catManageDeleteBlocked => 'このカテゴリには関連データがあるため削除できません';
+
+  @override
+  String get catManageCustomBadge => '自';
+
+  @override
+  String get catManageCustom => 'カスタム';
+
+  @override
+  String catManageAddTitle(String type) {
+    return '$typeカテゴリ追加';
+  }
+
+  @override
+  String get catManageNameLabel => 'カテゴリ名';
+
+  @override
+  String get catManageNameHint => 'カテゴリ名を入力';
+
+  @override
+  String get catManageSelectIcon => 'アイコン選択';
+
+  @override
+  String get catManageSelectColor => '色選択';
+
+  @override
+  String catManageAddSubTitle(String name) {
+    return 'サブカテゴリ追加 - $name';
+  }
+
+  @override
+  String get catManageSubNameLabel => 'サブカテゴリ名';
+
+  @override
+  String get catManageSubNameHint => 'サブカテゴリ名を入力';
+
+  @override
+  String get catManageEditTitle => 'カテゴリ編集';
+
+  @override
+  String get bookNameLabel => '帳簿名';
+
+  @override
+  String get bookNameHint => '例：日常支出';
+
+  @override
+  String get bookTypeLabel => '帳簿タイプ';
+
+  @override
+  String get bookDescLabel => 'メモ（任意）';
+
+  @override
+  String get bookDescHint => '帳簿の用途を簡単に説明';
+
+  @override
+  String get bookCreateButton => '作成';
+
+  @override
+  String get bookDescPersonal => '日常の個人支出';
+
+  @override
+  String get bookDescFamily => '家庭の共通支出';
+
+  @override
+  String get bookDescTravel => '旅行費用の記録';
+
+  @override
+  String get bookDescBusiness => '副業の収支';
+
+  @override
+  String get bookDescOther => 'カスタム用途';
 }

@@ -188,13 +188,14 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
   }
 
   List<Category> _filterCategories(List<Category> categories) {
+    const otherKeys = {'catOtherTransfer', 'catOtherRepayment', 'catOtherSocial'};
     switch (_entryType) {
       case EntryType.expense:
         return categories.where((c) => c.isExpense).toList();
       case EntryType.income:
-        return categories.where((c) => !c.isExpense && c.name != '转账' && c.name != '还款' && c.name != '人情').toList();
+        return categories.where((c) => !c.isExpense && (c.l10nKey == null || !otherKeys.contains(c.l10nKey))).toList();
       case EntryType.other:
-        return categories.where((c) => ['转账', '还款', '人情'].contains(c.name)).toList();
+        return categories.where((c) => c.l10nKey != null && otherKeys.contains(c.l10nKey)).toList();
     }
   }
 
@@ -581,7 +582,7 @@ class _CategoryItem extends StatelessWidget {
           Text(
             category.name,
             style: context.textStyles.caption,
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
           ),
@@ -654,6 +655,7 @@ class _SimpleCalendar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
     final firstDay = DateTime(selectedDate.year, selectedDate.month, 1);
     final lastDay = DateTime(selectedDate.year, selectedDate.month + 1, 0);
@@ -665,7 +667,7 @@ class _SimpleCalendar extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(AppDimensions.md),
           child: Text(
-            '${selectedDate.year}年${selectedDate.month}月',
+            l10n.reportMonthLabel(selectedDate.year.toString(), selectedDate.month.toString()),
             style: context.textStyles.h3,
           ),
         ),
@@ -673,7 +675,7 @@ class _SimpleCalendar extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
           child: Row(
-            children: ['日', '一', '二', '三', '四', '五', '六']
+            children: [l10n.weekSun, l10n.weekMon, l10n.weekTue, l10n.weekWed, l10n.weekThu, l10n.weekFri, l10n.weekSat]
                 .map((d) => Expanded(
                       child: Center(
                         child: Text(d, style: context.textStyles.caption),

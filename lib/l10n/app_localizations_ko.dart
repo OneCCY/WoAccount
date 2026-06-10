@@ -1046,4 +1046,262 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get acCoinEmpty => 'AC코인 내역이 없습니다';
+
+  @override
+  String get catExpenseFood => '식사';
+
+  @override
+  String get catExpenseTransport => '교통';
+
+  @override
+  String get catExpenseHousing => '주거';
+
+  @override
+  String get catExpenseClothing => '의류·미용';
+
+  @override
+  String get catExpenseDaily => '생활용품';
+
+  @override
+  String get catExpenseTech => '디지털기기';
+
+  @override
+  String get catExpenseMedical => '의료·건강';
+
+  @override
+  String get catExpenseEducation => '교육';
+
+  @override
+  String get catExpenseEntertainment => '여가';
+
+  @override
+  String get catExpenseSocial => '경조사';
+
+  @override
+  String get catExpenseChildren => '자녀양육';
+
+  @override
+  String get catExpenseElderly => '부모부양';
+
+  @override
+  String get catExpensePet => '반려동물';
+
+  @override
+  String get catExpenseWork => '업무·사무';
+
+  @override
+  String get catExpenseFinance => '금융·보험';
+
+  @override
+  String get catExpenseOther => '기타지출';
+
+  @override
+  String get catIncomeSalary => '급여';
+
+  @override
+  String get catIncomeInvestment => '투자';
+
+  @override
+  String get catIncomeSideJob => '부업';
+
+  @override
+  String get catIncomeGift => '축의금';
+
+  @override
+  String get catIncomeRefund => '환급';
+
+  @override
+  String get catIncomeAsset => '임대·자산';
+
+  @override
+  String get catIncomeTransferIn => '이체입금';
+
+  @override
+  String get catIncomeOther => '기타수입';
+
+  @override
+  String get catOtherTransfer => '이체';
+
+  @override
+  String get catOtherRepayment => '상환';
+
+  @override
+  String get catOtherSocial => '경조사';
+
+  @override
+  String get weekMon => '월';
+
+  @override
+  String get weekTue => '화';
+
+  @override
+  String get weekWed => '수';
+
+  @override
+  String get weekThu => '목';
+
+  @override
+  String get weekFri => '금';
+
+  @override
+  String get weekSat => '토';
+
+  @override
+  String get weekSun => '일';
+
+  @override
+  String get weekMonFull => '월요일';
+
+  @override
+  String get weekTueFull => '화요일';
+
+  @override
+  String get weekWedFull => '수요일';
+
+  @override
+  String get weekThuFull => '목요일';
+
+  @override
+  String get weekFriFull => '금요일';
+
+  @override
+  String get weekSatFull => '토요일';
+
+  @override
+  String get weekSunFull => '일요일';
+
+  @override
+  String get commonSelectDateTime => '날짜 및 시간 선택';
+
+  @override
+  String get commonBack => '뒤로';
+
+  @override
+  String get commonDone => '완료';
+
+  @override
+  String get commonAdd => '추가';
+
+  @override
+  String commonEnterHint(String field) {
+    return '$field 입력';
+  }
+
+  @override
+  String get txnCategorySearch => '카테고리 검색...';
+
+  @override
+  String get txnCategoryEmpty => '카테고리 없음';
+
+  @override
+  String get settingsSelectLanguage => '언어 선택';
+
+  @override
+  String get settingsSelectCurrency => '통화 선택';
+
+  @override
+  String get profileDefaultNickname => '사용자';
+
+  @override
+  String get catManageTitle => '카테고리 관리';
+
+  @override
+  String catManageSubTitle(String name) {
+    return '$name - 하위 카테고리';
+  }
+
+  @override
+  String get catManageAddSub => '하위 카테고리 추가';
+
+  @override
+  String get catManageNameExists => '카테고리 이름이 이미 존재합니다';
+
+  @override
+  String get catManageSubNameExists => '하위 카테고리 이름이 이미 존재합니다';
+
+  @override
+  String get catManageDeleteTitle => '삭제 확인';
+
+  @override
+  String catManageDeleteWithChildren(String name) {
+    return '카테고리 \"$name\"과(와) 모든 하위 카테고리를 삭제하시겠습니까?';
+  }
+
+  @override
+  String catManageDeleteConfirm(String name) {
+    return '카테고리 \"$name\"을(를) 삭제하시겠습니까?';
+  }
+
+  @override
+  String get catManageDeleteBlocked => '이 카테고리에 연결된 데이터가 있어 삭제할 수 없습니다';
+
+  @override
+  String get catManageCustomBadge => '커';
+
+  @override
+  String get catManageCustom => '사용자 정의';
+
+  @override
+  String catManageAddTitle(String type) {
+    return '$type 카테고리 추가';
+  }
+
+  @override
+  String get catManageNameLabel => '카테고리 이름';
+
+  @override
+  String get catManageNameHint => '카테고리 이름 입력';
+
+  @override
+  String get catManageSelectIcon => '아이콘 선택';
+
+  @override
+  String get catManageSelectColor => '색상 선택';
+
+  @override
+  String catManageAddSubTitle(String name) {
+    return '하위 카테고리 추가 - $name';
+  }
+
+  @override
+  String get catManageSubNameLabel => '하위 카테고리 이름';
+
+  @override
+  String get catManageSubNameHint => '하위 카테고리 이름 입력';
+
+  @override
+  String get catManageEditTitle => '카테고리 편집';
+
+  @override
+  String get bookNameLabel => '가계부 이름';
+
+  @override
+  String get bookNameHint => '예: 일상 지출';
+
+  @override
+  String get bookTypeLabel => '가계부 유형';
+
+  @override
+  String get bookDescLabel => '메모 (선택)';
+
+  @override
+  String get bookDescHint => '가계부 용도를 간단히 설명';
+
+  @override
+  String get bookCreateButton => '생성';
+
+  @override
+  String get bookDescPersonal => '일상 개인 지출';
+
+  @override
+  String get bookDescFamily => '가족 공통 지출';
+
+  @override
+  String get bookDescTravel => '여행 경비 기록';
+
+  @override
+  String get bookDescBusiness => '부업 수입과 지출';
+
+  @override
+  String get bookDescOther => '사용자 정의 용도';
 }

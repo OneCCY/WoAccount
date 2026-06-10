@@ -568,6 +568,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
   }
 
   Widget _buildWeekDayCards(DateTime weekStart, DateTime selectedDay, Map<int, ({double expense, double income})> dailyTotals, DateTime weekStartDay) {
+    final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
@@ -583,7 +584,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
           final isSelected = date.year == selectedDay.year &&
               date.month == selectedDay.month &&
               date.day == selectedDay.day;
-          final weekday = ['一', '二', '三', '四', '五', '六', '日'][i];
+          final weekday = [l10n.weekMon, l10n.weekTue, l10n.weekWed, l10n.weekThu, l10n.weekFri, l10n.weekSat, l10n.weekSun][i];
           final totals = dailyTotals[date.day];
           final hasExpense = totals != null && totals.expense > 0;
           final hasIncome = totals != null && totals.income > 0;
@@ -762,6 +763,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
   }
 
   Widget _buildCalendar(Map<int, ({double expense, double income})> dailyTotals) {
+    final l10n = AppLocalizations.of(context)!;
     final year = _currentDate.year;
     final month = _currentDate.month;
     final firstDay = DateTime(year, month, 1);
@@ -783,8 +785,8 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
               horizontal: Responsive.s(context, AppDimensions.sm),
             ),
             child: Row(
-              children: ['日', '一', '二', '三', '四', '五', '六']
-                  .map((d) => Expanded(
+              children: [l10n.weekSun, l10n.weekMon, l10n.weekTue, l10n.weekWed, l10n.weekThu, l10n.weekFri, l10n.weekSat]
+                  .map<Widget>((d) => Expanded(
                         child: Center(
                           child: Text(d,
                               style: context.textStyles.caption.copyWith(

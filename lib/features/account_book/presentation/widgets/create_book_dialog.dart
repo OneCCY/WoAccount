@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -21,13 +22,12 @@ class _CreateBookDialogState extends State<CreateBookDialog> {
   // 可选图标列表
   static const _icons = ['📒', '📕', '📗', '📘', '📙', '💰', '🏦', '💳', '🏠', '✈️', '💼', '🎯', '🎮', '🐾', '🎓', '❤️'];
 
-  // 账本类型
-  static const _types = [
-    _BookType('personal', '🧑', '个人', '日常个人记账'),
-    _BookType('family', '👨‍👩‍👧‍👦', '家庭', '家庭共同开支'),
-    _BookType('travel', '✈️', '旅行', '旅行花费记录'),
-    _BookType('business', '💼', '生意', '副业/小生意收支'),
-    _BookType('other', '📁', '其他', '自定义用途'),
+  List<_BookType> _getTypes(AppLocalizations l10n) => [
+    _BookType('personal', '🧑', l10n.bookTypePersonal, l10n.bookDescPersonal),
+    _BookType('family', '👨‍👩‍👧‍👦', l10n.bookTypeFamily, l10n.bookDescFamily),
+    _BookType('travel', '✈️', l10n.bookTypeTravel, l10n.bookDescTravel),
+    _BookType('business', '💼', l10n.bookTypeBusiness, l10n.bookDescBusiness),
+    _BookType('other', '📁', l10n.bookTypeOther, l10n.bookDescOther),
   ];
 
   @override
@@ -40,15 +40,17 @@ class _CreateBookDialogState extends State<CreateBookDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final types = _getTypes(l10n);
     return AlertDialog(
-      title: const Text('新建账本'),
+      title: Text(l10n.bookCreate),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 图标选择
-            Text('选择图标', style: context.textStyles.footnote.copyWith(color: context.colors.textSecondary)),
+            Text(l10n.catManageSelectIcon, style: context.textStyles.footnote.copyWith(color: context.colors.textSecondary)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -78,9 +80,9 @@ class _CreateBookDialogState extends State<CreateBookDialog> {
               controller: _nameController,
               focusNode: _nameFocusNode,
               maxLength: 12,
-              decoration: const InputDecoration(
-                labelText: '账本名称',
-                hintText: '例如：日常记账',
+              decoration: InputDecoration(
+                labelText: l10n.bookNameLabel,
+                hintText: l10n.bookNameHint,
                 counterText: '',
               ),
             ),
@@ -88,9 +90,9 @@ class _CreateBookDialogState extends State<CreateBookDialog> {
             const SizedBox(height: 16),
 
             // 类型选择
-            Text('账本类型', style: context.textStyles.footnote.copyWith(color: context.colors.textSecondary)),
+            Text(l10n.bookTypeLabel, style: context.textStyles.footnote.copyWith(color: context.colors.textSecondary)),
             const SizedBox(height: 8),
-            ..._types.map((type) {
+            ...types.map((type) {
               final isSelected = _selectedType == type.value;
               return GestureDetector(
                 onTap: () => setState(() => _selectedType = type.value),
@@ -129,9 +131,9 @@ class _CreateBookDialogState extends State<CreateBookDialog> {
             TextField(
               controller: _descController,
               maxLines: 2,
-              decoration: const InputDecoration(
-                labelText: '备注（可选）',
-                hintText: '简单描述账本用途',
+              decoration: InputDecoration(
+                labelText: l10n.bookDescLabel,
+                hintText: l10n.bookDescHint,
               ),
             ),
           ],
@@ -140,11 +142,11 @@ class _CreateBookDialogState extends State<CreateBookDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('取消'),
+          child: Text(l10n.commonCancel),
         ),
         ElevatedButton(
           onPressed: _onCreate,
-          child: const Text('创建'),
+          child: Text(l10n.bookCreateButton),
         ),
       ],
     );

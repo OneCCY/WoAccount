@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/repositories/report_repository.dart';
 
@@ -23,6 +24,7 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (widget.data.isEmpty) {
       return SizedBox(
         height: 200,
@@ -32,7 +34,7 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
             children: [
               Icon(Icons.pie_chart_outline, size: 48, color: context.colors.textTertiary),
               const SizedBox(height: 8),
-              Text('暂无数据', style: TextStyle(color: context.colors.textTertiary)),
+              Text(l10n.reportNoData, style: TextStyle(color: context.colors.textTertiary)),
             ],
           ),
         ),
@@ -85,6 +87,7 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
   List<CategoryStat> _getDisplayData() {
     if (widget.data.length <= 5) return widget.data;
 
+    final l10n = AppLocalizations.of(context)!;
     final top5 = widget.data.take(5).toList();
     final othersAmount = widget.data.skip(5).fold<double>(0, (s, c) => s + c.amount);
     final othersCount = widget.data.skip(5).fold<int>(0, (s, c) => s + c.count);
@@ -94,7 +97,7 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
       ...top5,
       CategoryStat(
         categoryId: -1,
-        categoryName: '其他',
+        categoryName: l10n.txnGroupUncategorized,
         categoryIcon: '📦',
         amount: othersAmount,
         count: othersCount,

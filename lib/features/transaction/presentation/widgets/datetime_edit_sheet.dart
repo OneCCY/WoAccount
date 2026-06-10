@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
@@ -34,6 +35,7 @@ class _DatetimeEditSheetState extends State<DatetimeEditSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       height: MediaQuery.of(context).size.height * 0.45,
       decoration: BoxDecoration(
@@ -60,12 +62,12 @@ class _DatetimeEditSheetState extends State<DatetimeEditSheet> {
               children: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: Text('取消', style: context.textStyles.body.copyWith(color: context.colors.textSecondary)),
+                  child: Text(l10n.commonCancel, style: context.textStyles.body.copyWith(color: context.colors.textSecondary)),
                 ),
-                Text('选择日期时间', style: context.textStyles.footnote.copyWith(fontWeight: FontWeight.w600)),
+                Text(l10n.commonSelectDateTime, style: context.textStyles.footnote.copyWith(fontWeight: FontWeight.w600)),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(_selectedDateTime),
-                  child: Text('确认', style: context.textStyles.body.copyWith(color: context.colors.primary, fontWeight: FontWeight.w600)),
+                  child: Text(l10n.commonConfirm, style: context.textStyles.body.copyWith(color: context.colors.primary, fontWeight: FontWeight.w600)),
                 ),
               ],
             ),

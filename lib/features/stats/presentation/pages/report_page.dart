@@ -120,6 +120,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
   }
 
   String _getPeriodLabel() {
+    final l10n = AppLocalizations.of(context)!;
     switch (_period) {
       case ReportPeriod.week:
         final weekday = _currentDate.weekday;
@@ -127,9 +128,9 @@ class _ReportPageState extends ConsumerState<ReportPage> {
         final sunday = monday.add(const Duration(days: 6));
         return '${monday.month}/${monday.day} - ${sunday.month}/${sunday.day}';
       case ReportPeriod.month:
-        return '${_currentDate.year}年${_currentDate.month}月';
+        return l10n.reportMonthLabel(_currentDate.year.toString(), _currentDate.month.toString());
       case ReportPeriod.year:
-        return '${_currentDate.year}年';
+        return l10n.reportYearLabel(_currentDate.year.toString());
     }
   }
 

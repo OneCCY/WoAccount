@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -78,6 +79,7 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final catRepo = ref.read(categoryRepositoryProvider);
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
@@ -111,9 +113,9 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Row(
                   children: [
-                    Text('选择分类', style: context.textStyles.h3),
+                    Text(l10n.commonEditCategory, style: context.textStyles.h3),
                     const Spacer(),
-                    _buildTypeToggle(),
+                    _buildTypeToggle(l10n),
                   ],
                 ),
               ),
@@ -131,7 +133,7 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
                     onChanged: (v) => setState(() => _searchQuery = v),
                     style: context.textStyles.footnote,
                     decoration: InputDecoration(
-                      hintText: '搜索分类...',
+                      hintText: l10n.txnCategorySearch,
                       hintStyle: context.textStyles.footnote.copyWith(color: context.colors.textHint),
                       prefixIcon: Icon(Icons.search, size: 18, color: context.colors.textTertiary),
                       prefixIconConstraints: const BoxConstraints(minWidth: 36, minHeight: 36),
@@ -154,7 +156,7 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
                           children: [
                             Icon(Icons.arrow_back, size: 18, color: context.colors.primary),
                             const SizedBox(width: 4),
-                            Text('返回', style: context.textStyles.footnote.copyWith(color: context.colors.primary)),
+                            Text(l10n.commonBack, style: context.textStyles.footnote.copyWith(color: context.colors.primary)),
                           ],
                         ),
                       ),
@@ -170,8 +172,8 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
               // 分类网格
               Expanded(
                 child: _expandedParentId != null
-                    ? _buildChildGrid(allCategories, _expandedParentId!)
-                    : _buildTopGrid(allCategories),
+                    ? _buildChildGrid(allCategories, _expandedParentId!, l10n)
+                    : _buildTopGrid(allCategories, l10n),
               ),
             ],
           ),
@@ -180,7 +182,7 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
     );
   }
 
-  Widget _buildTypeToggle() {
+  Widget _buildTypeToggle(AppLocalizations l10n) {
     return Container(
       decoration: BoxDecoration(
         color: context.colors.surfaceSecondary,
@@ -189,11 +191,11 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _toggleBtn('支出', _isExpense, () => setState(() {
+          _toggleBtn(l10n.entryExpense, _isExpense, () => setState(() {
             _isExpense = true;
             _expandedParentId = null;
           })),
-          _toggleBtn('收入', !_isExpense, () => setState(() {
+          _toggleBtn(l10n.entryIncome, !_isExpense, () => setState(() {
             _isExpense = false;
             _expandedParentId = null;
           })),
@@ -222,10 +224,10 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
     );
   }
 
-  Widget _buildTopGrid(List<Category> allCategories) {
+  Widget _buildTopGrid(List<Category> allCategories, AppLocalizations l10n) {
     final cats = _filterTopLevel(allCategories);
     if (cats.isEmpty) {
-      return Center(child: Text('暂无分类', style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)));
+      return Center(child: Text(l10n.txnCategoryEmpty, style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)));
     }
     return GridView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -259,10 +261,10 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
     );
   }
 
-  Widget _buildChildGrid(List<Category> allCategories, int parentId) {
+  Widget _buildChildGrid(List<Category> allCategories, int parentId, AppLocalizations l10n) {
     final children = _childrenOf(allCategories, parentId);
     if (children.isEmpty) {
-      return Center(child: Text('暂无子分类', style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)));
+      return Center(child: Text(l10n.chatPageNoSubcategory, style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)));
     }
     return GridView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -347,7 +349,7 @@ class _CategoryTile extends StatelessWidget {
           Text(
             name,
             style: context.textStyles.caption,
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
           ),

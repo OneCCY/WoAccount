@@ -1042,6 +1042,264 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get acCoinEmpty => '暂无AC币记录';
+
+  @override
+  String get catExpenseFood => '餐饮美食';
+
+  @override
+  String get catExpenseTransport => '交通出行';
+
+  @override
+  String get catExpenseHousing => '居住';
+
+  @override
+  String get catExpenseClothing => '服饰美容';
+
+  @override
+  String get catExpenseDaily => '日用百货';
+
+  @override
+  String get catExpenseTech => '数码科技';
+
+  @override
+  String get catExpenseMedical => '医疗健康';
+
+  @override
+  String get catExpenseEducation => '教育学习';
+
+  @override
+  String get catExpenseEntertainment => '休闲娱乐';
+
+  @override
+  String get catExpenseSocial => '社交人情';
+
+  @override
+  String get catExpenseChildren => '子女养育';
+
+  @override
+  String get catExpenseElderly => '赡养长辈';
+
+  @override
+  String get catExpensePet => '宠物';
+
+  @override
+  String get catExpenseWork => '工作办公';
+
+  @override
+  String get catExpenseFinance => '金融保险';
+
+  @override
+  String get catExpenseOther => '其他支出';
+
+  @override
+  String get catIncomeSalary => '工资薪酬';
+
+  @override
+  String get catIncomeInvestment => '投资理财';
+
+  @override
+  String get catIncomeSideJob => '副业兼职';
+
+  @override
+  String get catIncomeGift => '红包馈赠';
+
+  @override
+  String get catIncomeRefund => '报销退款';
+
+  @override
+  String get catIncomeAsset => '租金资产';
+
+  @override
+  String get catIncomeTransferIn => '转账收入';
+
+  @override
+  String get catIncomeOther => '其他收入';
+
+  @override
+  String get catOtherTransfer => '转账';
+
+  @override
+  String get catOtherRepayment => '还款';
+
+  @override
+  String get catOtherSocial => '人情往来';
+
+  @override
+  String get weekMon => '一';
+
+  @override
+  String get weekTue => '二';
+
+  @override
+  String get weekWed => '三';
+
+  @override
+  String get weekThu => '四';
+
+  @override
+  String get weekFri => '五';
+
+  @override
+  String get weekSat => '六';
+
+  @override
+  String get weekSun => '日';
+
+  @override
+  String get weekMonFull => '周一';
+
+  @override
+  String get weekTueFull => '周二';
+
+  @override
+  String get weekWedFull => '周三';
+
+  @override
+  String get weekThuFull => '周四';
+
+  @override
+  String get weekFriFull => '周五';
+
+  @override
+  String get weekSatFull => '周六';
+
+  @override
+  String get weekSunFull => '周日';
+
+  @override
+  String get commonSelectDateTime => '选择日期时间';
+
+  @override
+  String get commonBack => '返回';
+
+  @override
+  String get commonDone => '完成';
+
+  @override
+  String get commonAdd => '添加';
+
+  @override
+  String commonEnterHint(String field) {
+    return '请输入$field';
+  }
+
+  @override
+  String get txnCategorySearch => '搜索分类...';
+
+  @override
+  String get txnCategoryEmpty => '暂无分类';
+
+  @override
+  String get settingsSelectLanguage => '选择语言';
+
+  @override
+  String get settingsSelectCurrency => '选择货币';
+
+  @override
+  String get profileDefaultNickname => '用户';
+
+  @override
+  String get catManageTitle => '分类管理';
+
+  @override
+  String catManageSubTitle(String name) {
+    return '$name - 子分类';
+  }
+
+  @override
+  String get catManageAddSub => '添加子分类';
+
+  @override
+  String get catManageNameExists => '该分类名已存在';
+
+  @override
+  String get catManageSubNameExists => '该子分类名已存在';
+
+  @override
+  String get catManageDeleteTitle => '确认删除';
+
+  @override
+  String catManageDeleteWithChildren(String name) {
+    return '确定要删除分类\"$name\"及其所有子分类吗？';
+  }
+
+  @override
+  String catManageDeleteConfirm(String name) {
+    return '确定要删除分类\"$name\"吗？';
+  }
+
+  @override
+  String get catManageDeleteBlocked => '该分类有关联数据，无法删除';
+
+  @override
+  String get catManageCustomBadge => '自';
+
+  @override
+  String get catManageCustom => '自定义';
+
+  @override
+  String catManageAddTitle(String type) {
+    return '添加$type分类';
+  }
+
+  @override
+  String get catManageNameLabel => '分类名称';
+
+  @override
+  String get catManageNameHint => '请输入分类名称';
+
+  @override
+  String get catManageSelectIcon => '选择图标';
+
+  @override
+  String get catManageSelectColor => '选择颜色';
+
+  @override
+  String catManageAddSubTitle(String name) {
+    return '添加子分类 - $name';
+  }
+
+  @override
+  String get catManageSubNameLabel => '子分类名称';
+
+  @override
+  String get catManageSubNameHint => '请输入子分类名称';
+
+  @override
+  String get catManageEditTitle => '编辑分类';
+
+  @override
+  String get bookNameLabel => '账本名称';
+
+  @override
+  String get bookNameHint => '例如：日常记账';
+
+  @override
+  String get bookTypeLabel => '账本类型';
+
+  @override
+  String get bookDescLabel => '备注（可选）';
+
+  @override
+  String get bookDescHint => '简单描述账本用途';
+
+  @override
+  String get bookCreateButton => '创建';
+
+  @override
+  String get bookDescPersonal => '日常个人记账';
+
+  @override
+  String get bookDescFamily => '家庭共同开支';
+
+  @override
+  String get bookDescTravel => '旅行花费记录';
+
+  @override
+  String get bookDescBusiness => '副业/小生意收支';
+
+  @override
+  String get bookDescOther => '自定义用途';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -2082,4 +2340,262 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get acCoinEmpty => '暫無AC幣記錄';
+
+  @override
+  String get catExpenseFood => '餐飲美食';
+
+  @override
+  String get catExpenseTransport => '交通出行';
+
+  @override
+  String get catExpenseHousing => '居住';
+
+  @override
+  String get catExpenseClothing => '服飾美容';
+
+  @override
+  String get catExpenseDaily => '日用百貨';
+
+  @override
+  String get catExpenseTech => '數碼科技';
+
+  @override
+  String get catExpenseMedical => '醫療健康';
+
+  @override
+  String get catExpenseEducation => '教育學習';
+
+  @override
+  String get catExpenseEntertainment => '休閒娛樂';
+
+  @override
+  String get catExpenseSocial => '社交人情';
+
+  @override
+  String get catExpenseChildren => '子女養育';
+
+  @override
+  String get catExpenseElderly => '贍養長輩';
+
+  @override
+  String get catExpensePet => '寵物';
+
+  @override
+  String get catExpenseWork => '工作辦公';
+
+  @override
+  String get catExpenseFinance => '金融保險';
+
+  @override
+  String get catExpenseOther => '其他支出';
+
+  @override
+  String get catIncomeSalary => '工資薪酬';
+
+  @override
+  String get catIncomeInvestment => '投資理財';
+
+  @override
+  String get catIncomeSideJob => '副業兼職';
+
+  @override
+  String get catIncomeGift => '紅包饋贈';
+
+  @override
+  String get catIncomeRefund => '報銷退款';
+
+  @override
+  String get catIncomeAsset => '租金資產';
+
+  @override
+  String get catIncomeTransferIn => '轉賬收入';
+
+  @override
+  String get catIncomeOther => '其他收入';
+
+  @override
+  String get catOtherTransfer => '轉賬';
+
+  @override
+  String get catOtherRepayment => '還款';
+
+  @override
+  String get catOtherSocial => '人情往來';
+
+  @override
+  String get weekMon => '一';
+
+  @override
+  String get weekTue => '二';
+
+  @override
+  String get weekWed => '三';
+
+  @override
+  String get weekThu => '四';
+
+  @override
+  String get weekFri => '五';
+
+  @override
+  String get weekSat => '六';
+
+  @override
+  String get weekSun => '日';
+
+  @override
+  String get weekMonFull => '週一';
+
+  @override
+  String get weekTueFull => '週二';
+
+  @override
+  String get weekWedFull => '週三';
+
+  @override
+  String get weekThuFull => '週四';
+
+  @override
+  String get weekFriFull => '週五';
+
+  @override
+  String get weekSatFull => '週六';
+
+  @override
+  String get weekSunFull => '週日';
+
+  @override
+  String get commonSelectDateTime => '選擇日期時間';
+
+  @override
+  String get commonBack => '返回';
+
+  @override
+  String get commonDone => '完成';
+
+  @override
+  String get commonAdd => '添加';
+
+  @override
+  String commonEnterHint(String field) {
+    return '請輸入$field';
+  }
+
+  @override
+  String get txnCategorySearch => '搜尋分類...';
+
+  @override
+  String get txnCategoryEmpty => '暫無分類';
+
+  @override
+  String get settingsSelectLanguage => '選擇語言';
+
+  @override
+  String get settingsSelectCurrency => '選擇貨幣';
+
+  @override
+  String get profileDefaultNickname => '用戶';
+
+  @override
+  String get catManageTitle => '分類管理';
+
+  @override
+  String catManageSubTitle(String name) {
+    return '$name - 子分類';
+  }
+
+  @override
+  String get catManageAddSub => '添加子分類';
+
+  @override
+  String get catManageNameExists => '該分類名已存在';
+
+  @override
+  String get catManageSubNameExists => '該子分類名已存在';
+
+  @override
+  String get catManageDeleteTitle => '確認刪除';
+
+  @override
+  String catManageDeleteWithChildren(String name) {
+    return '確定要刪除分類\"$name\"及其所有子分類嗎？';
+  }
+
+  @override
+  String catManageDeleteConfirm(String name) {
+    return '確定要刪除分類\"$name\"嗎？';
+  }
+
+  @override
+  String get catManageDeleteBlocked => '該分類有關聯資料，無法刪除';
+
+  @override
+  String get catManageCustomBadge => '自';
+
+  @override
+  String get catManageCustom => '自訂';
+
+  @override
+  String catManageAddTitle(String type) {
+    return '添加$type分類';
+  }
+
+  @override
+  String get catManageNameLabel => '分類名稱';
+
+  @override
+  String get catManageNameHint => '請輸入分類名稱';
+
+  @override
+  String get catManageSelectIcon => '選擇圖示';
+
+  @override
+  String get catManageSelectColor => '選擇顏色';
+
+  @override
+  String catManageAddSubTitle(String name) {
+    return '添加子分類 - $name';
+  }
+
+  @override
+  String get catManageSubNameLabel => '子分類名稱';
+
+  @override
+  String get catManageSubNameHint => '請輸入子分類名稱';
+
+  @override
+  String get catManageEditTitle => '編輯分類';
+
+  @override
+  String get bookNameLabel => '帳本名稱';
+
+  @override
+  String get bookNameHint => '例如：日常記帳';
+
+  @override
+  String get bookTypeLabel => '帳本類型';
+
+  @override
+  String get bookDescLabel => '備註（可選）';
+
+  @override
+  String get bookDescHint => '簡單描述帳本用途';
+
+  @override
+  String get bookCreateButton => '建立';
+
+  @override
+  String get bookDescPersonal => '日常個人記帳';
+
+  @override
+  String get bookDescFamily => '家庭共同開支';
+
+  @override
+  String get bookDescTravel => '旅行花費記錄';
+
+  @override
+  String get bookDescBusiness => '副業/小生意收支';
+
+  @override
+  String get bookDescOther => '自訂用途';
 }

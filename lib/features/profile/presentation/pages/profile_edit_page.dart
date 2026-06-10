@@ -64,6 +64,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
   }
 
   void _editField(String title, String? currentValue, ValueChanged<String> onSave, {TextInputType? keyboardType, int maxLines = 1}) {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: currentValue ?? '');
     showDialog(
       context: context,
@@ -75,18 +76,18 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
           keyboardType: keyboardType,
           maxLines: maxLines,
           decoration: InputDecoration(
-            hintText: '请输入$title',
+            hintText: l10n.commonEnterHint(title),
             border: const OutlineInputBorder(),
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.commonCancel)),
           TextButton(
             onPressed: () {
               onSave(controller.text.trim());
               Navigator.pop(ctx);
             },
-            child: const Text('保存'),
+            child: Text(l10n.commonSave),
           ),
         ],
       ),

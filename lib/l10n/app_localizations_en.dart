@@ -1066,4 +1066,263 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get acCoinEmpty => 'No AC Coin records';
+
+  @override
+  String get catExpenseFood => 'Food & Dining';
+
+  @override
+  String get catExpenseTransport => 'Transportation';
+
+  @override
+  String get catExpenseHousing => 'Housing';
+
+  @override
+  String get catExpenseClothing => 'Clothing & Beauty';
+
+  @override
+  String get catExpenseDaily => 'Daily Necessities';
+
+  @override
+  String get catExpenseTech => 'Tech & Electronics';
+
+  @override
+  String get catExpenseMedical => 'Medical & Health';
+
+  @override
+  String get catExpenseEducation => 'Education';
+
+  @override
+  String get catExpenseEntertainment => 'Entertainment';
+
+  @override
+  String get catExpenseSocial => 'Social & Gifts';
+
+  @override
+  String get catExpenseChildren => 'Children';
+
+  @override
+  String get catExpenseElderly => 'Elderly Care';
+
+  @override
+  String get catExpensePet => 'Pets';
+
+  @override
+  String get catExpenseWork => 'Work & Office';
+
+  @override
+  String get catExpenseFinance => 'Finance & Insurance';
+
+  @override
+  String get catExpenseOther => 'Other Expenses';
+
+  @override
+  String get catIncomeSalary => 'Salary';
+
+  @override
+  String get catIncomeInvestment => 'Investment';
+
+  @override
+  String get catIncomeSideJob => 'Side Jobs';
+
+  @override
+  String get catIncomeGift => 'Gifts & Red Packets';
+
+  @override
+  String get catIncomeRefund => 'Refunds';
+
+  @override
+  String get catIncomeAsset => 'Rent & Assets';
+
+  @override
+  String get catIncomeTransferIn => 'Transfer In';
+
+  @override
+  String get catIncomeOther => 'Other Income';
+
+  @override
+  String get catOtherTransfer => 'Transfer';
+
+  @override
+  String get catOtherRepayment => 'Repayment';
+
+  @override
+  String get catOtherSocial => 'Social Occasions';
+
+  @override
+  String get weekMon => 'M';
+
+  @override
+  String get weekTue => 'T';
+
+  @override
+  String get weekWed => 'W';
+
+  @override
+  String get weekThu => 'T';
+
+  @override
+  String get weekFri => 'F';
+
+  @override
+  String get weekSat => 'S';
+
+  @override
+  String get weekSun => 'S';
+
+  @override
+  String get weekMonFull => 'Mon';
+
+  @override
+  String get weekTueFull => 'Tue';
+
+  @override
+  String get weekWedFull => 'Wed';
+
+  @override
+  String get weekThuFull => 'Thu';
+
+  @override
+  String get weekFriFull => 'Fri';
+
+  @override
+  String get weekSatFull => 'Sat';
+
+  @override
+  String get weekSunFull => 'Sun';
+
+  @override
+  String get commonSelectDateTime => 'Select Date & Time';
+
+  @override
+  String get commonBack => 'Back';
+
+  @override
+  String get commonDone => 'Done';
+
+  @override
+  String get commonAdd => 'Add';
+
+  @override
+  String commonEnterHint(String field) {
+    return 'Enter $field';
+  }
+
+  @override
+  String get txnCategorySearch => 'Search categories...';
+
+  @override
+  String get txnCategoryEmpty => 'No categories';
+
+  @override
+  String get settingsSelectLanguage => 'Select Language';
+
+  @override
+  String get settingsSelectCurrency => 'Select Currency';
+
+  @override
+  String get profileDefaultNickname => 'User';
+
+  @override
+  String get catManageTitle => 'Category Management';
+
+  @override
+  String catManageSubTitle(String name) {
+    return '$name - Subcategories';
+  }
+
+  @override
+  String get catManageAddSub => 'Add Subcategory';
+
+  @override
+  String get catManageNameExists => 'Category name already exists';
+
+  @override
+  String get catManageSubNameExists => 'Subcategory name already exists';
+
+  @override
+  String get catManageDeleteTitle => 'Confirm Delete';
+
+  @override
+  String catManageDeleteWithChildren(String name) {
+    return 'Delete category \"$name\" and all its subcategories?';
+  }
+
+  @override
+  String catManageDeleteConfirm(String name) {
+    return 'Delete category \"$name\"?';
+  }
+
+  @override
+  String get catManageDeleteBlocked =>
+      'This category has linked data and cannot be deleted';
+
+  @override
+  String get catManageCustomBadge => 'C';
+
+  @override
+  String get catManageCustom => 'Custom';
+
+  @override
+  String catManageAddTitle(String type) {
+    return 'Add $type Category';
+  }
+
+  @override
+  String get catManageNameLabel => 'Category Name';
+
+  @override
+  String get catManageNameHint => 'Enter category name';
+
+  @override
+  String get catManageSelectIcon => 'Select Icon';
+
+  @override
+  String get catManageSelectColor => 'Select Color';
+
+  @override
+  String catManageAddSubTitle(String name) {
+    return 'Add Subcategory - $name';
+  }
+
+  @override
+  String get catManageSubNameLabel => 'Subcategory Name';
+
+  @override
+  String get catManageSubNameHint => 'Enter subcategory name';
+
+  @override
+  String get catManageEditTitle => 'Edit Category';
+
+  @override
+  String get bookNameLabel => 'Book Name';
+
+  @override
+  String get bookNameHint => 'e.g. Daily Expenses';
+
+  @override
+  String get bookTypeLabel => 'Book Type';
+
+  @override
+  String get bookDescLabel => 'Note (optional)';
+
+  @override
+  String get bookDescHint => 'Briefly describe the purpose';
+
+  @override
+  String get bookCreateButton => 'Create';
+
+  @override
+  String get bookDescPersonal => 'Daily personal expenses';
+
+  @override
+  String get bookDescFamily => 'Shared family expenses';
+
+  @override
+  String get bookDescTravel => 'Travel expense tracking';
+
+  @override
+  String get bookDescBusiness => 'Side business income & expenses';
+
+  @override
+  String get bookDescOther => 'Custom purpose';
 }

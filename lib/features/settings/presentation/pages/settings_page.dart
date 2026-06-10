@@ -212,6 +212,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   /// 语言选择底部弹窗
   void _showLanguagePicker() {
+    final l10n = AppLocalizations.of(context)!;
     final localeProvider = ref.read(localeProviderOverrideProvider);
     final current = localeProvider.locale;
 
@@ -229,9 +230,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('选择语言', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(l10n.settingsSelectLanguage, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
             ),
             ...options.map((opt) => ListTile(
               leading: Text(opt.flag, style: const TextStyle(fontSize: 24)),
@@ -253,6 +254,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   /// 货币选择底部弹窗
   void _showCurrencyPicker() {
+    final l10n = AppLocalizations.of(context)!;
     final localeProvider = ref.read(localeProviderOverrideProvider);
     final current = localeProvider.currency;
 
@@ -262,9 +264,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('选择货币', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(l10n.settingsSelectCurrency, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
             ),
             ...AppCurrency.values.map((currency) => ListTile(
               leading: Text(currency.symbol, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),

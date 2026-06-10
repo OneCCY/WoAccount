@@ -286,7 +286,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with RouteAware {
   /// 用户卡片 + 打卡按钮
   Widget _buildUserCard(AppLocalizations l10n) {
     final avatarPath = _profile?.avatarPath;
-    final nickname = _profile?.nickname ?? '用户';
+    final nickname = _profile?.nickname ?? l10n.profileDefaultNickname;
     final uid = _profile?.uid ?? '';
 
     // 检查头像文件是否存在
@@ -470,7 +470,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with RouteAware {
         padding: const EdgeInsets.symmetric(horizontal: 8),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 5,
-          childAspectRatio: 0.9,
+          childAspectRatio: 0.75,
           mainAxisSpacing: 8,
           crossAxisSpacing: 4,
         ),
@@ -494,7 +494,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with RouteAware {
             item.label,
             style: context.textStyles.caption,
             textAlign: TextAlign.center,
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
         ],

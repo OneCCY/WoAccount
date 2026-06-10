@@ -54,7 +54,7 @@ class TransactionGroup extends StatelessWidget {
             children: [
               // 日期 + 星期
               Text(
-                '${DateFormat('M月d日').format(date)} ${_getWeekday(date)}',
+                '${DateFormat(l10n.txnDayFormat).format(date)} ${_getWeekday(date, l10n)}',
                 style: context.textStyles.footnote.copyWith(
                   fontWeight: FontWeight.w600,
                   color: context.colors.textPrimary,
@@ -109,8 +109,11 @@ class TransactionGroup extends StatelessWidget {
     );
   }
 
-  String _getWeekday(DateTime date) {
-    const weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+  String _getWeekday(DateTime date, AppLocalizations l10n) {
+    final weekdays = [
+      l10n.weekMonFull, l10n.weekTueFull, l10n.weekWedFull,
+      l10n.weekThuFull, l10n.weekFriFull, l10n.weekSatFull, l10n.weekSunFull,
+    ];
     return weekdays[date.weekday - 1];
   }
 }
@@ -320,21 +323,21 @@ class _TransactionItemState extends State<_TransactionItem>
 
   (IconData, Color) _getCategoryStyle(String? categoryName) {
     switch (categoryName) {
-      case '餐饮':
+      case '餐饮美食':
         return (Icons.restaurant, context.colors.categoryFoodBg);
-      case '交通':
+      case '交通出行':
         return (Icons.directions_car, context.colors.categoryTransportBg);
-      case '购物':
+      case '日用百货':
         return (Icons.shopping_bag, context.colors.categoryShoppingBg);
-      case '住房':
+      case '居住':
         return (Icons.home, context.colors.categoryHousingBg);
-      case '娱乐':
+      case '休闲娱乐':
         return (Icons.sports_esports, context.colors.categoryEntertainmentBg);
-      case '教育':
+      case '教育学习':
         return (Icons.school, context.colors.categoryEducationBg);
-      case '医疗':
+      case '医疗健康':
         return (Icons.local_hospital, context.colors.categoryMedicalBg);
-      case '社交':
+      case '社交人情':
         return (Icons.people, context.colors.categorySocialBg);
       default:
         return (Icons.more_horiz, context.colors.categoryOtherBg);

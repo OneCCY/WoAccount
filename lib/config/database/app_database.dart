@@ -42,6 +42,7 @@ class Categories extends Table {
   BoolColumn get isSystem => boolean().withDefault(const Constant(false))();
   BoolColumn get isExpense => boolean().withDefault(const Constant(true))();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  TextColumn get l10nKey => text().withLength(max: 50).nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
@@ -176,7 +177,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -246,6 +247,32 @@ class AppDatabase extends _$AppDatabase {
         await m.addColumn(conversationMessages, conversationMessages.mediaType);
         await m.addColumn(conversationMessages, conversationMessages.mediaFilePath);
       }
+      if (from < 7) {
+        // 给分类表添加 l10nKey 列（用于国际化显示）
+        await m.addColumn(categories, categories.l10nKey);
+        // 回填系统分类的 l10nKey
+        final l10nMap = {
+          '餐饮美食': 'catExpenseFood', '交通出行': 'catExpenseTransport',
+          '居住': 'catExpenseHousing', '服饰美容': 'catExpenseClothing',
+          '日用百货': 'catExpenseDaily', '数码科技': 'catExpenseTech',
+          '医疗健康': 'catExpenseMedical', '教育学习': 'catExpenseEducation',
+          '休闲娱乐': 'catExpenseEntertainment', '社交人情': 'catExpenseSocial',
+          '子女养育': 'catExpenseChildren', '赡养长辈': 'catExpenseElderly',
+          '宠物': 'catExpensePet', '工作办公': 'catExpenseWork',
+          '金融保险': 'catExpenseFinance', '其他支出': 'catExpenseOther',
+          '工资薪酬': 'catIncomeSalary', '投资理财': 'catIncomeInvestment',
+          '副业兼职': 'catIncomeSideJob', '红包馈赠': 'catIncomeGift',
+          '报销退款': 'catIncomeRefund', '租金资产': 'catIncomeAsset',
+          '转账收入': 'catIncomeTransferIn', '其他收入': 'catIncomeOther',
+          '转账': 'catOtherTransfer', '还款': 'catOtherRepayment',
+          '人情往来': 'catOtherSocial',
+        };
+        for (final entry in l10nMap.entries) {
+          await customStatement(
+            "UPDATE categories SET l10n_key = '${entry.value}' WHERE name = '${entry.key}' AND is_system = 1",
+          );
+        }
+      }
     },
   );
 
@@ -280,6 +307,7 @@ class AppDatabase extends _$AppDatabase {
         isSystem: const Value(true),
         isExpense: Value(parent.isExpense),
         sortOrder: Value(parent.sortOrder),
+        l10nKey: Value(parent.l10nKey),
       ));
 
       for (final child in parent.children) {

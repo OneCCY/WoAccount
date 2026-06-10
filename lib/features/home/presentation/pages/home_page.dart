@@ -6,7 +6,6 @@ import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../config/di/ai_providers.dart';
-import '../../../../core/ai/transaction_pipeline.dart';
 import '../../../../core/locale/locale_provider.dart';
 import '../../../transaction/domain/repositories/transaction_repository.dart';
 import '../../../category/domain/repositories/category_repository.dart';

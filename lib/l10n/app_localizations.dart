@@ -2015,6 +2015,498 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'暂无AC币记录'**
   String get acCoinEmpty;
+
+  /// No description provided for @catExpenseFood.
+  ///
+  /// In zh, this message translates to:
+  /// **'餐饮美食'**
+  String get catExpenseFood;
+
+  /// No description provided for @catExpenseTransport.
+  ///
+  /// In zh, this message translates to:
+  /// **'交通出行'**
+  String get catExpenseTransport;
+
+  /// No description provided for @catExpenseHousing.
+  ///
+  /// In zh, this message translates to:
+  /// **'居住'**
+  String get catExpenseHousing;
+
+  /// No description provided for @catExpenseClothing.
+  ///
+  /// In zh, this message translates to:
+  /// **'服饰美容'**
+  String get catExpenseClothing;
+
+  /// No description provided for @catExpenseDaily.
+  ///
+  /// In zh, this message translates to:
+  /// **'日用百货'**
+  String get catExpenseDaily;
+
+  /// No description provided for @catExpenseTech.
+  ///
+  /// In zh, this message translates to:
+  /// **'数码科技'**
+  String get catExpenseTech;
+
+  /// No description provided for @catExpenseMedical.
+  ///
+  /// In zh, this message translates to:
+  /// **'医疗健康'**
+  String get catExpenseMedical;
+
+  /// No description provided for @catExpenseEducation.
+  ///
+  /// In zh, this message translates to:
+  /// **'教育学习'**
+  String get catExpenseEducation;
+
+  /// No description provided for @catExpenseEntertainment.
+  ///
+  /// In zh, this message translates to:
+  /// **'休闲娱乐'**
+  String get catExpenseEntertainment;
+
+  /// No description provided for @catExpenseSocial.
+  ///
+  /// In zh, this message translates to:
+  /// **'社交人情'**
+  String get catExpenseSocial;
+
+  /// No description provided for @catExpenseChildren.
+  ///
+  /// In zh, this message translates to:
+  /// **'子女养育'**
+  String get catExpenseChildren;
+
+  /// No description provided for @catExpenseElderly.
+  ///
+  /// In zh, this message translates to:
+  /// **'赡养长辈'**
+  String get catExpenseElderly;
+
+  /// No description provided for @catExpensePet.
+  ///
+  /// In zh, this message translates to:
+  /// **'宠物'**
+  String get catExpensePet;
+
+  /// No description provided for @catExpenseWork.
+  ///
+  /// In zh, this message translates to:
+  /// **'工作办公'**
+  String get catExpenseWork;
+
+  /// No description provided for @catExpenseFinance.
+  ///
+  /// In zh, this message translates to:
+  /// **'金融保险'**
+  String get catExpenseFinance;
+
+  /// No description provided for @catExpenseOther.
+  ///
+  /// In zh, this message translates to:
+  /// **'其他支出'**
+  String get catExpenseOther;
+
+  /// No description provided for @catIncomeSalary.
+  ///
+  /// In zh, this message translates to:
+  /// **'工资薪酬'**
+  String get catIncomeSalary;
+
+  /// No description provided for @catIncomeInvestment.
+  ///
+  /// In zh, this message translates to:
+  /// **'投资理财'**
+  String get catIncomeInvestment;
+
+  /// No description provided for @catIncomeSideJob.
+  ///
+  /// In zh, this message translates to:
+  /// **'副业兼职'**
+  String get catIncomeSideJob;
+
+  /// No description provided for @catIncomeGift.
+  ///
+  /// In zh, this message translates to:
+  /// **'红包馈赠'**
+  String get catIncomeGift;
+
+  /// No description provided for @catIncomeRefund.
+  ///
+  /// In zh, this message translates to:
+  /// **'报销退款'**
+  String get catIncomeRefund;
+
+  /// No description provided for @catIncomeAsset.
+  ///
+  /// In zh, this message translates to:
+  /// **'租金资产'**
+  String get catIncomeAsset;
+
+  /// No description provided for @catIncomeTransferIn.
+  ///
+  /// In zh, this message translates to:
+  /// **'转账收入'**
+  String get catIncomeTransferIn;
+
+  /// No description provided for @catIncomeOther.
+  ///
+  /// In zh, this message translates to:
+  /// **'其他收入'**
+  String get catIncomeOther;
+
+  /// No description provided for @catOtherTransfer.
+  ///
+  /// In zh, this message translates to:
+  /// **'转账'**
+  String get catOtherTransfer;
+
+  /// No description provided for @catOtherRepayment.
+  ///
+  /// In zh, this message translates to:
+  /// **'还款'**
+  String get catOtherRepayment;
+
+  /// No description provided for @catOtherSocial.
+  ///
+  /// In zh, this message translates to:
+  /// **'人情往来'**
+  String get catOtherSocial;
+
+  /// No description provided for @weekMon.
+  ///
+  /// In zh, this message translates to:
+  /// **'一'**
+  String get weekMon;
+
+  /// No description provided for @weekTue.
+  ///
+  /// In zh, this message translates to:
+  /// **'二'**
+  String get weekTue;
+
+  /// No description provided for @weekWed.
+  ///
+  /// In zh, this message translates to:
+  /// **'三'**
+  String get weekWed;
+
+  /// No description provided for @weekThu.
+  ///
+  /// In zh, this message translates to:
+  /// **'四'**
+  String get weekThu;
+
+  /// No description provided for @weekFri.
+  ///
+  /// In zh, this message translates to:
+  /// **'五'**
+  String get weekFri;
+
+  /// No description provided for @weekSat.
+  ///
+  /// In zh, this message translates to:
+  /// **'六'**
+  String get weekSat;
+
+  /// No description provided for @weekSun.
+  ///
+  /// In zh, this message translates to:
+  /// **'日'**
+  String get weekSun;
+
+  /// No description provided for @weekMonFull.
+  ///
+  /// In zh, this message translates to:
+  /// **'周一'**
+  String get weekMonFull;
+
+  /// No description provided for @weekTueFull.
+  ///
+  /// In zh, this message translates to:
+  /// **'周二'**
+  String get weekTueFull;
+
+  /// No description provided for @weekWedFull.
+  ///
+  /// In zh, this message translates to:
+  /// **'周三'**
+  String get weekWedFull;
+
+  /// No description provided for @weekThuFull.
+  ///
+  /// In zh, this message translates to:
+  /// **'周四'**
+  String get weekThuFull;
+
+  /// No description provided for @weekFriFull.
+  ///
+  /// In zh, this message translates to:
+  /// **'周五'**
+  String get weekFriFull;
+
+  /// No description provided for @weekSatFull.
+  ///
+  /// In zh, this message translates to:
+  /// **'周六'**
+  String get weekSatFull;
+
+  /// No description provided for @weekSunFull.
+  ///
+  /// In zh, this message translates to:
+  /// **'周日'**
+  String get weekSunFull;
+
+  /// No description provided for @commonSelectDateTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择日期时间'**
+  String get commonSelectDateTime;
+
+  /// No description provided for @commonBack.
+  ///
+  /// In zh, this message translates to:
+  /// **'返回'**
+  String get commonBack;
+
+  /// No description provided for @commonDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'完成'**
+  String get commonDone;
+
+  /// No description provided for @commonAdd.
+  ///
+  /// In zh, this message translates to:
+  /// **'添加'**
+  String get commonAdd;
+
+  /// No description provided for @commonEnterHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入{field}'**
+  String commonEnterHint(String field);
+
+  /// No description provided for @txnCategorySearch.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索分类...'**
+  String get txnCategorySearch;
+
+  /// No description provided for @txnCategoryEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无分类'**
+  String get txnCategoryEmpty;
+
+  /// No description provided for @settingsSelectLanguage.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择语言'**
+  String get settingsSelectLanguage;
+
+  /// No description provided for @settingsSelectCurrency.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择货币'**
+  String get settingsSelectCurrency;
+
+  /// No description provided for @profileDefaultNickname.
+  ///
+  /// In zh, this message translates to:
+  /// **'用户'**
+  String get profileDefaultNickname;
+
+  /// No description provided for @catManageTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'分类管理'**
+  String get catManageTitle;
+
+  /// No description provided for @catManageSubTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'{name} - 子分类'**
+  String catManageSubTitle(String name);
+
+  /// No description provided for @catManageAddSub.
+  ///
+  /// In zh, this message translates to:
+  /// **'添加子分类'**
+  String get catManageAddSub;
+
+  /// No description provided for @catManageNameExists.
+  ///
+  /// In zh, this message translates to:
+  /// **'该分类名已存在'**
+  String get catManageNameExists;
+
+  /// No description provided for @catManageSubNameExists.
+  ///
+  /// In zh, this message translates to:
+  /// **'该子分类名已存在'**
+  String get catManageSubNameExists;
+
+  /// No description provided for @catManageDeleteTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认删除'**
+  String get catManageDeleteTitle;
+
+  /// No description provided for @catManageDeleteWithChildren.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要删除分类\"{name}\"及其所有子分类吗？'**
+  String catManageDeleteWithChildren(String name);
+
+  /// No description provided for @catManageDeleteConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要删除分类\"{name}\"吗？'**
+  String catManageDeleteConfirm(String name);
+
+  /// No description provided for @catManageDeleteBlocked.
+  ///
+  /// In zh, this message translates to:
+  /// **'该分类有关联数据，无法删除'**
+  String get catManageDeleteBlocked;
+
+  /// No description provided for @catManageCustomBadge.
+  ///
+  /// In zh, this message translates to:
+  /// **'自'**
+  String get catManageCustomBadge;
+
+  /// No description provided for @catManageCustom.
+  ///
+  /// In zh, this message translates to:
+  /// **'自定义'**
+  String get catManageCustom;
+
+  /// No description provided for @catManageAddTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'添加{type}分类'**
+  String catManageAddTitle(String type);
+
+  /// No description provided for @catManageNameLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'分类名称'**
+  String get catManageNameLabel;
+
+  /// No description provided for @catManageNameHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入分类名称'**
+  String get catManageNameHint;
+
+  /// No description provided for @catManageSelectIcon.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择图标'**
+  String get catManageSelectIcon;
+
+  /// No description provided for @catManageSelectColor.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择颜色'**
+  String get catManageSelectColor;
+
+  /// No description provided for @catManageAddSubTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'添加子分类 - {name}'**
+  String catManageAddSubTitle(String name);
+
+  /// No description provided for @catManageSubNameLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'子分类名称'**
+  String get catManageSubNameLabel;
+
+  /// No description provided for @catManageSubNameHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入子分类名称'**
+  String get catManageSubNameHint;
+
+  /// No description provided for @catManageEditTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑分类'**
+  String get catManageEditTitle;
+
+  /// No description provided for @bookNameLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'账本名称'**
+  String get bookNameLabel;
+
+  /// No description provided for @bookNameHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'例如：日常记账'**
+  String get bookNameHint;
+
+  /// No description provided for @bookTypeLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'账本类型'**
+  String get bookTypeLabel;
+
+  /// No description provided for @bookDescLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'备注（可选）'**
+  String get bookDescLabel;
+
+  /// No description provided for @bookDescHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'简单描述账本用途'**
+  String get bookDescHint;
+
+  /// No description provided for @bookCreateButton.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建'**
+  String get bookCreateButton;
+
+  /// No description provided for @bookDescPersonal.
+  ///
+  /// In zh, this message translates to:
+  /// **'日常个人记账'**
+  String get bookDescPersonal;
+
+  /// No description provided for @bookDescFamily.
+  ///
+  /// In zh, this message translates to:
+  /// **'家庭共同开支'**
+  String get bookDescFamily;
+
+  /// No description provided for @bookDescTravel.
+  ///
+  /// In zh, this message translates to:
+  /// **'旅行花费记录'**
+  String get bookDescTravel;
+
+  /// No description provided for @bookDescBusiness.
+  ///
+  /// In zh, this message translates to:
+  /// **'副业/小生意收支'**
+  String get bookDescBusiness;
+
+  /// No description provided for @bookDescOther.
+  ///
+  /// In zh, this message translates to:
+  /// **'自定义用途'**
+  String get bookDescOther;
 }
 
 class _AppLocalizationsDelegate

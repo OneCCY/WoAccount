@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -42,6 +43,7 @@ class _NoteEditSheetState extends State<NoteEditSheet> {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       decoration: BoxDecoration(
@@ -66,7 +68,7 @@ class _NoteEditSheetState extends State<NoteEditSheet> {
             ),
           ),
           // 标题
-          Text('备注', style: context.textStyles.h3),
+          Text(l10n.txnDetailNote, style: context.textStyles.h3),
           const SizedBox(height: 16),
           // 输入框
           TextField(
@@ -77,7 +79,7 @@ class _NoteEditSheetState extends State<NoteEditSheet> {
             maxLength: _maxLength,
             style: context.textStyles.body,
             decoration: InputDecoration(
-              hintText: '添加备注...',
+              hintText: l10n.entryNoteHint,
               hintStyle: context.textStyles.body.copyWith(color: context.colors.textHint),
               filled: true,
               fillColor: context.colors.surfaceSecondary,
@@ -103,7 +105,7 @@ class _NoteEditSheetState extends State<NoteEditSheet> {
                       borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
                     ),
                   ),
-                  child: Text('取消', style: AppTextStyles.buttonText),
+                  child: Text(l10n.commonCancel, style: AppTextStyles.buttonText),
                 ),
               ),
               const SizedBox(width: 12),
@@ -117,7 +119,7 @@ class _NoteEditSheetState extends State<NoteEditSheet> {
                       borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
                     ),
                   ),
-                  child: Text('保存', style: AppTextStyles.buttonText.copyWith(color: Colors.white)),
+                  child: Text(l10n.commonSave, style: AppTextStyles.buttonText.copyWith(color: Colors.white)),
                 ),
               ),
             ],

@@ -224,7 +224,7 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l10n.checkinMakeupConfirmTitle),
-        content: Text(l10n.checkinMakeupConfirmContent(DateFormat('M月d日').format(selectedDate), '$_acBalance')),
+        content: Text(l10n.checkinMakeupConfirmContent(DateFormat(l10n.txnDayFormat).format(selectedDate), '$_acBalance')),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.commonCancel)),
           TextButton(
@@ -252,7 +252,7 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
       userId: const Value(1),
       amount: -100,
       type: 'makeup_cost',
-      description: Value(l10n.checkinMakeupCost(DateFormat('M月d日').format(selectedDate))),
+      description: Value(l10n.checkinMakeupCost(DateFormat(l10n.txnDayFormat).format(selectedDate))),
       relatedDate: Value(selectedDate.millisecondsSinceEpoch),
     ));
 
@@ -288,7 +288,7 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
           _buildStatsCard(l10n),
           const SizedBox(height: 12),
           // 日历
-          Expanded(child: _buildCalendar(today)),
+          Expanded(child: _buildCalendar(today, l10n)),
           // 底部操作
           _buildBottomBar(today, l10n),
         ],
@@ -330,7 +330,7 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
 
   Widget _statDivider() => Container(height: 30, width: 1, color: context.colors.separatorOpaque);
 
-  Widget _buildCalendar(DateTime today) {
+  Widget _buildCalendar(DateTime today, AppLocalizations l10n) {
     final year = _currentMonth.year;
     final month = _currentMonth.month;
     final firstDay = DateTime(year, month, 1);
@@ -358,7 +358,7 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
                   _loadData();
                 }),
               ),
-              Text(DateFormat('yyyy年M月').format(_currentMonth), style: context.textStyles.h3),
+              Text(l10n.reportMonthLabel(_currentMonth.year.toString(), _currentMonth.month.toString()), style: context.textStyles.h3),
               IconButton(
                 icon: const Icon(Icons.chevron_right),
                 onPressed: () => setState(() {
@@ -372,8 +372,8 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
           const SizedBox(height: 8),
           // 星期头
           Row(
-            children: ['一', '二', '三', '四', '五', '六', '日']
-                .map((d) => Expanded(
+            children: [l10n.weekMon, l10n.weekTue, l10n.weekWed, l10n.weekThu, l10n.weekFri, l10n.weekSat, l10n.weekSun]
+                .map<Widget>((d) => Expanded(
                       child: Center(child: Text(d, style: context.textStyles.caption.copyWith(fontWeight: FontWeight.w500))),
                     ))
                 .toList(),

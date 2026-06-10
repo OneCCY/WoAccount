@@ -677,6 +677,18 @@ class $CategoriesTable extends Categories
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _l10nKeyMeta = const VerificationMeta(
+    'l10nKey',
+  );
+  @override
+  late final GeneratedColumn<String> l10nKey = GeneratedColumn<String>(
+    'l10n_key',
+    aliasedName,
+    true,
+    additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 50),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -700,6 +712,7 @@ class $CategoriesTable extends Categories
     isSystem,
     isExpense,
     sortOrder,
+    l10nKey,
     createdAt,
   ];
   @override
@@ -767,6 +780,12 @@ class $CategoriesTable extends Categories
         sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta),
       );
     }
+    if (data.containsKey('l10n_key')) {
+      context.handle(
+        _l10nKeyMeta,
+        l10nKey.isAcceptableOrUnknown(data['l10n_key']!, _l10nKeyMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -818,6 +837,10 @@ class $CategoriesTable extends Categories
         DriftSqlType.int,
         data['${effectivePrefix}sort_order'],
       )!,
+      l10nKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}l10n_key'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -841,6 +864,7 @@ class Category extends DataClass implements Insertable<Category> {
   final bool isSystem;
   final bool isExpense;
   final int sortOrder;
+  final String? l10nKey;
   final DateTime createdAt;
   const Category({
     required this.id,
@@ -852,6 +876,7 @@ class Category extends DataClass implements Insertable<Category> {
     required this.isSystem,
     required this.isExpense,
     required this.sortOrder,
+    this.l10nKey,
     required this.createdAt,
   });
   @override
@@ -870,6 +895,9 @@ class Category extends DataClass implements Insertable<Category> {
     map['is_system'] = Variable<bool>(isSystem);
     map['is_expense'] = Variable<bool>(isExpense);
     map['sort_order'] = Variable<int>(sortOrder);
+    if (!nullToAbsent || l10nKey != null) {
+      map['l10n_key'] = Variable<String>(l10nKey);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -887,6 +915,9 @@ class Category extends DataClass implements Insertable<Category> {
       isSystem: Value(isSystem),
       isExpense: Value(isExpense),
       sortOrder: Value(sortOrder),
+      l10nKey: l10nKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(l10nKey),
       createdAt: Value(createdAt),
     );
   }
@@ -906,6 +937,7 @@ class Category extends DataClass implements Insertable<Category> {
       isSystem: serializer.fromJson<bool>(json['isSystem']),
       isExpense: serializer.fromJson<bool>(json['isExpense']),
       sortOrder: serializer.fromJson<int>(json['sortOrder']),
+      l10nKey: serializer.fromJson<String?>(json['l10nKey']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -922,6 +954,7 @@ class Category extends DataClass implements Insertable<Category> {
       'isSystem': serializer.toJson<bool>(isSystem),
       'isExpense': serializer.toJson<bool>(isExpense),
       'sortOrder': serializer.toJson<int>(sortOrder),
+      'l10nKey': serializer.toJson<String?>(l10nKey),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -936,6 +969,7 @@ class Category extends DataClass implements Insertable<Category> {
     bool? isSystem,
     bool? isExpense,
     int? sortOrder,
+    Value<String?> l10nKey = const Value.absent(),
     DateTime? createdAt,
   }) => Category(
     id: id ?? this.id,
@@ -947,6 +981,7 @@ class Category extends DataClass implements Insertable<Category> {
     isSystem: isSystem ?? this.isSystem,
     isExpense: isExpense ?? this.isExpense,
     sortOrder: sortOrder ?? this.sortOrder,
+    l10nKey: l10nKey.present ? l10nKey.value : this.l10nKey,
     createdAt: createdAt ?? this.createdAt,
   );
   Category copyWithCompanion(CategoriesCompanion data) {
@@ -960,6 +995,7 @@ class Category extends DataClass implements Insertable<Category> {
       isSystem: data.isSystem.present ? data.isSystem.value : this.isSystem,
       isExpense: data.isExpense.present ? data.isExpense.value : this.isExpense,
       sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+      l10nKey: data.l10nKey.present ? data.l10nKey.value : this.l10nKey,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -976,6 +1012,7 @@ class Category extends DataClass implements Insertable<Category> {
           ..write('isSystem: $isSystem, ')
           ..write('isExpense: $isExpense, ')
           ..write('sortOrder: $sortOrder, ')
+          ..write('l10nKey: $l10nKey, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -992,6 +1029,7 @@ class Category extends DataClass implements Insertable<Category> {
     isSystem,
     isExpense,
     sortOrder,
+    l10nKey,
     createdAt,
   );
   @override
@@ -1007,6 +1045,7 @@ class Category extends DataClass implements Insertable<Category> {
           other.isSystem == this.isSystem &&
           other.isExpense == this.isExpense &&
           other.sortOrder == this.sortOrder &&
+          other.l10nKey == this.l10nKey &&
           other.createdAt == this.createdAt);
 }
 
@@ -1020,6 +1059,7 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
   final Value<bool> isSystem;
   final Value<bool> isExpense;
   final Value<int> sortOrder;
+  final Value<String?> l10nKey;
   final Value<DateTime> createdAt;
   const CategoriesCompanion({
     this.id = const Value.absent(),
@@ -1031,6 +1071,7 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
     this.isSystem = const Value.absent(),
     this.isExpense = const Value.absent(),
     this.sortOrder = const Value.absent(),
+    this.l10nKey = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
   CategoriesCompanion.insert({
@@ -1043,6 +1084,7 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
     this.isSystem = const Value.absent(),
     this.isExpense = const Value.absent(),
     this.sortOrder = const Value.absent(),
+    this.l10nKey = const Value.absent(),
     this.createdAt = const Value.absent(),
   }) : name = Value(name);
   static Insertable<Category> custom({
@@ -1055,6 +1097,7 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
     Expression<bool>? isSystem,
     Expression<bool>? isExpense,
     Expression<int>? sortOrder,
+    Expression<String>? l10nKey,
     Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
@@ -1067,6 +1110,7 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
       if (isSystem != null) 'is_system': isSystem,
       if (isExpense != null) 'is_expense': isExpense,
       if (sortOrder != null) 'sort_order': sortOrder,
+      if (l10nKey != null) 'l10n_key': l10nKey,
       if (createdAt != null) 'created_at': createdAt,
     });
   }
@@ -1081,6 +1125,7 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
     Value<bool>? isSystem,
     Value<bool>? isExpense,
     Value<int>? sortOrder,
+    Value<String?>? l10nKey,
     Value<DateTime>? createdAt,
   }) {
     return CategoriesCompanion(
@@ -1093,6 +1138,7 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
       isSystem: isSystem ?? this.isSystem,
       isExpense: isExpense ?? this.isExpense,
       sortOrder: sortOrder ?? this.sortOrder,
+      l10nKey: l10nKey ?? this.l10nKey,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -1127,6 +1173,9 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
     if (sortOrder.present) {
       map['sort_order'] = Variable<int>(sortOrder.value);
     }
+    if (l10nKey.present) {
+      map['l10n_key'] = Variable<String>(l10nKey.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -1145,6 +1194,7 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
           ..write('isSystem: $isSystem, ')
           ..write('isExpense: $isExpense, ')
           ..write('sortOrder: $sortOrder, ')
+          ..write('l10nKey: $l10nKey, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -6180,6 +6230,7 @@ typedef $$CategoriesTableCreateCompanionBuilder =
       Value<bool> isSystem,
       Value<bool> isExpense,
       Value<int> sortOrder,
+      Value<String?> l10nKey,
       Value<DateTime> createdAt,
     });
 typedef $$CategoriesTableUpdateCompanionBuilder =
@@ -6193,6 +6244,7 @@ typedef $$CategoriesTableUpdateCompanionBuilder =
       Value<bool> isSystem,
       Value<bool> isExpense,
       Value<int> sortOrder,
+      Value<String?> l10nKey,
       Value<DateTime> createdAt,
     });
 
@@ -6285,6 +6337,11 @@ class $$CategoriesTableFilterComposer
 
   ColumnFilters<int> get sortOrder => $composableBuilder(
     column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get l10nKey => $composableBuilder(
+    column: $table.l10nKey,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6391,6 +6448,11 @@ class $$CategoriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get l10nKey => $composableBuilder(
+    column: $table.l10nKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -6452,6 +6514,9 @@ class $$CategoriesTableAnnotationComposer
 
   GeneratedColumn<int> get sortOrder =>
       $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+
+  GeneratedColumn<String> get l10nKey =>
+      $composableBuilder(column: $table.l10nKey, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -6542,6 +6607,7 @@ class $$CategoriesTableTableManager
                 Value<bool> isSystem = const Value.absent(),
                 Value<bool> isExpense = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
+                Value<String?> l10nKey = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => CategoriesCompanion(
                 id: id,
@@ -6553,6 +6619,7 @@ class $$CategoriesTableTableManager
                 isSystem: isSystem,
                 isExpense: isExpense,
                 sortOrder: sortOrder,
+                l10nKey: l10nKey,
                 createdAt: createdAt,
               ),
           createCompanionCallback:
@@ -6566,6 +6633,7 @@ class $$CategoriesTableTableManager
                 Value<bool> isSystem = const Value.absent(),
                 Value<bool> isExpense = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
+                Value<String?> l10nKey = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => CategoriesCompanion.insert(
                 id: id,
@@ -6577,6 +6645,7 @@ class $$CategoriesTableTableManager
                 isSystem: isSystem,
                 isExpense: isExpense,
                 sortOrder: sortOrder,
+                l10nKey: l10nKey,
                 createdAt: createdAt,
               ),
           withReferenceMapper: (p0) => p0
