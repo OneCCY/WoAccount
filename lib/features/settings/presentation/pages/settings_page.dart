@@ -270,7 +270,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             ),
             ...AppCurrency.values.map((currency) => ListTile(
               leading: Text(currency.symbol, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-              title: Text('${currency.code} — ${currency.label}'),
+              title: Text('${currency.code} — ${currency.getLocalizedName(l10n)}'),
               trailing: current == currency
                   ? Icon(Icons.check, color: context.colors.primary)
                   : null,

@@ -3876,7 +3876,7 @@ class $UserProfilesTable extends UserProfiles
     ),
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    defaultValue: const Constant('用户'),
+    defaultValue: const Constant(''),
   );
   static const VerificationMeta _avatarPathMeta = const VerificationMeta(
     'avatarPath',
