@@ -1611,6 +1611,85 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get llmTimeout => '超时（秒）';
+
+  @override
+  String get llmErrorNoModelForCapability => '未配置对应能力的模型';
+
+  @override
+  String get llmErrorNoProviderConfigured => '请先在设置中添加并配置 AI 服务商';
+
+  @override
+  String get llmErrorNoProviderOrInput => '请先在设置中添加 AI 服务商，或输入更明确的描述';
+
+  @override
+  String get llmErrorCannotParseResponse => '无法解析 AI 响应';
+
+  @override
+  String get llmErrorInvalidResponseFormat => 'AI 响应格式不正确';
+
+  @override
+  String llmErrorParseFailed(String error) {
+    return '解析 AI 响应失败: $error';
+  }
+
+  @override
+  String get llmErrorTimeout => '请求超时，请检查网络连接';
+
+  @override
+  String get llmErrorInvalidApiKey => 'API Key 无效，请检查设置';
+
+  @override
+  String get llmErrorRateLimit => '请求过于频繁，请稍后再试';
+
+  @override
+  String get llmErrorForbidden => '访问被拒绝，请检查 API Key 权限';
+
+  @override
+  String llmErrorRequestFailed(String code) {
+    return '请求失败 ($code)';
+  }
+
+  @override
+  String get llmErrorNetworkFailed => '网络连接失败，请检查网络';
+
+  @override
+  String llmErrorRequestFailedWithMessage(String message) {
+    return '请求失败: $message';
+  }
+
+  @override
+  String get visionErrorNoModelConfigured => '未配置视觉识别模型，请在 AI 设置中配置';
+
+  @override
+  String get visionErrorImageNotFound => '图片文件不存在';
+
+  @override
+  String visionErrorRecognitionFailed(String message) {
+    return '图片识别失败: $message';
+  }
+
+  @override
+  String get voiceErrorNoModelConfigured => '未配置语音识别模型，请在 AI 设置中配置';
+
+  @override
+  String get voiceErrorAudioNotFound => '音频文件不存在';
+
+  @override
+  String get voiceErrorInvalidResponseFormat => '语音识别返回格式异常';
+
+  @override
+  String voiceErrorTranscriptionFailed(String message) {
+    return '语音识别失败: $message';
+  }
+
+  @override
+  String get pipelineErrorEmptyVoiceResult => '语音识别结果为空，请重新录制';
+
+  @override
+  String get pipelineErrorEmptyImageResult => '图片识别结果为空，请选择更清晰的图片';
+
+  @override
+  String get acCoinInitialGiftDesc => '新用户注册赠送';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -3220,4 +3299,83 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get llmTimeout => '逾時（秒）';
+
+  @override
+  String get llmErrorNoModelForCapability => '未配置對應能力的模型';
+
+  @override
+  String get llmErrorNoProviderConfigured => '請先在設定中新增並配置 AI 服務商';
+
+  @override
+  String get llmErrorNoProviderOrInput => '請先在設定中新增 AI 服務商，或輸入更明確的描述';
+
+  @override
+  String get llmErrorCannotParseResponse => '無法解析 AI 回應';
+
+  @override
+  String get llmErrorInvalidResponseFormat => 'AI 回應格式不正確';
+
+  @override
+  String llmErrorParseFailed(String error) {
+    return '解析 AI 回應失敗: $error';
+  }
+
+  @override
+  String get llmErrorTimeout => '請求逾時，請檢查網路連線';
+
+  @override
+  String get llmErrorInvalidApiKey => 'API Key 無效，請檢查設定';
+
+  @override
+  String get llmErrorRateLimit => '請求過於頻繁，請稍後再試';
+
+  @override
+  String get llmErrorForbidden => '存取被拒絕，請檢查 API Key 權限';
+
+  @override
+  String llmErrorRequestFailed(String code) {
+    return '請求失敗 ($code)';
+  }
+
+  @override
+  String get llmErrorNetworkFailed => '網路連線失敗，請檢查網路';
+
+  @override
+  String llmErrorRequestFailedWithMessage(String message) {
+    return '請求失敗: $message';
+  }
+
+  @override
+  String get visionErrorNoModelConfigured => '未配置視覺識別模型，請在 AI 設定中配置';
+
+  @override
+  String get visionErrorImageNotFound => '圖片檔案不存在';
+
+  @override
+  String visionErrorRecognitionFailed(String message) {
+    return '圖片識別失敗: $message';
+  }
+
+  @override
+  String get voiceErrorNoModelConfigured => '未配置語音識別模型，請在 AI 設定中配置';
+
+  @override
+  String get voiceErrorAudioNotFound => '音訊檔案不存在';
+
+  @override
+  String get voiceErrorInvalidResponseFormat => '語音識別回傳格式異常';
+
+  @override
+  String voiceErrorTranscriptionFailed(String message) {
+    return '語音識別失敗: $message';
+  }
+
+  @override
+  String get pipelineErrorEmptyVoiceResult => '語音識別結果為空，請重新錄製';
+
+  @override
+  String get pipelineErrorEmptyImageResult => '圖片識別結果為空，請選擇更清晰的圖片';
+
+  @override
+  String get acCoinInitialGiftDesc => '新會員註冊贈送';
 }

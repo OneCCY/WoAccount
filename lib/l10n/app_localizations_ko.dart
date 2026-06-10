@@ -1619,4 +1619,87 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get llmTimeout => '타임아웃 (초)';
+
+  @override
+  String get llmErrorNoModelForCapability => '이 기능에 해당하는 모델이 설정되지 않았습니다';
+
+  @override
+  String get llmErrorNoProviderConfigured => '설정에서 AI 프로바이더를 추가하고 구성해 주세요';
+
+  @override
+  String get llmErrorNoProviderOrInput =>
+      '설정에서 AI 프로바이더를 추가하거나, 더 구체적으로 입력해 주세요';
+
+  @override
+  String get llmErrorCannotParseResponse => 'AI 응답을 분석할 수 없습니다';
+
+  @override
+  String get llmErrorInvalidResponseFormat => 'AI 응답 형식이 올바르지 않습니다';
+
+  @override
+  String llmErrorParseFailed(String error) {
+    return 'AI 응답 분석에 실패했습니다: $error';
+  }
+
+  @override
+  String get llmErrorTimeout => '요청 시간이 초과되었습니다. 네트워크 연결을 확인해 주세요';
+
+  @override
+  String get llmErrorInvalidApiKey => 'API Key가 유효하지 않습니다. 설정을 확인해 주세요';
+
+  @override
+  String get llmErrorRateLimit => '요청이 너무 많습니다. 잠시 후 다시 시도해 주세요';
+
+  @override
+  String get llmErrorForbidden => '접근이 거부되었습니다. API Key 권한을 확인해 주세요';
+
+  @override
+  String llmErrorRequestFailed(String code) {
+    return '요청에 실패했습니다 ($code)';
+  }
+
+  @override
+  String get llmErrorNetworkFailed => '네트워크 연결에 실패했습니다. 네트워크를 확인해 주세요';
+
+  @override
+  String llmErrorRequestFailedWithMessage(String message) {
+    return '요청에 실패했습니다: $message';
+  }
+
+  @override
+  String get visionErrorNoModelConfigured =>
+      '비전 모델이 설정되지 않았습니다. AI 설정에서 구성해 주세요';
+
+  @override
+  String get visionErrorImageNotFound => '이미지 파일을 찾을 수 없습니다';
+
+  @override
+  String visionErrorRecognitionFailed(String message) {
+    return '이미지 인식에 실패했습니다: $message';
+  }
+
+  @override
+  String get voiceErrorNoModelConfigured =>
+      '음성 모델이 설정되지 않았습니다. AI 설정에서 구성해 주세요';
+
+  @override
+  String get voiceErrorAudioNotFound => '오디오 파일을 찾을 수 없습니다';
+
+  @override
+  String get voiceErrorInvalidResponseFormat => '음성 인식 결과 형식이 올바르지 않습니다';
+
+  @override
+  String voiceErrorTranscriptionFailed(String message) {
+    return '음성 인식에 실패했습니다: $message';
+  }
+
+  @override
+  String get pipelineErrorEmptyVoiceResult => '음성 인식 결과가 비어 있습니다. 다시 녹음해 주세요';
+
+  @override
+  String get pipelineErrorEmptyImageResult =>
+      '이미지 인식 결과가 비어 있습니다. 더 선명한 이미지를 선택해 주세요';
+
+  @override
+  String get acCoinInitialGiftDesc => '신규 회원 가입 선물';
 }

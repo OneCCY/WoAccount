@@ -1615,4 +1615,83 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get llmTimeout => 'タイムアウト（秒）';
+
+  @override
+  String get llmErrorNoModelForCapability => 'この機能に対応するモデルが設定されていません';
+
+  @override
+  String get llmErrorNoProviderConfigured => '設定でAIプロバイダーを追加・設定してください';
+
+  @override
+  String get llmErrorNoProviderOrInput => '設定でAIプロバイダーを追加するか、より具体的に入力してください';
+
+  @override
+  String get llmErrorCannotParseResponse => 'AIレスポンスを解析できません';
+
+  @override
+  String get llmErrorInvalidResponseFormat => 'AIレスポンスの形式が正しくありません';
+
+  @override
+  String llmErrorParseFailed(String error) {
+    return 'AIレスポンスの解析に失敗しました: $error';
+  }
+
+  @override
+  String get llmErrorTimeout => 'リクエストがタイムアウトしました。ネットワーク接続を確認してください';
+
+  @override
+  String get llmErrorInvalidApiKey => 'API Keyが無効です。設定を確認してください';
+
+  @override
+  String get llmErrorRateLimit => 'リクエストが多すぎます。しばらくしてから再試行してください';
+
+  @override
+  String get llmErrorForbidden => 'アクセスが拒否されました。API Keyの権限を確認してください';
+
+  @override
+  String llmErrorRequestFailed(String code) {
+    return 'リクエストに失敗しました ($code)';
+  }
+
+  @override
+  String get llmErrorNetworkFailed => 'ネットワーク接続に失敗しました。ネットワークを確認してください';
+
+  @override
+  String llmErrorRequestFailedWithMessage(String message) {
+    return 'リクエストに失敗しました: $message';
+  }
+
+  @override
+  String get visionErrorNoModelConfigured => 'ビジョンモデルが設定されていません。AI設定で設定してください';
+
+  @override
+  String get visionErrorImageNotFound => '画像ファイルが見つかりません';
+
+  @override
+  String visionErrorRecognitionFailed(String message) {
+    return '画像認識に失敗しました: $message';
+  }
+
+  @override
+  String get voiceErrorNoModelConfigured => '音声モデルが設定されていません。AI設定で設定してください';
+
+  @override
+  String get voiceErrorAudioNotFound => '音声ファイルが見つかりません';
+
+  @override
+  String get voiceErrorInvalidResponseFormat => '音声認識の返答形式が異常です';
+
+  @override
+  String voiceErrorTranscriptionFailed(String message) {
+    return '音声認識に失敗しました: $message';
+  }
+
+  @override
+  String get pipelineErrorEmptyVoiceResult => '音声認識結果が空です。再度録音してください';
+
+  @override
+  String get pipelineErrorEmptyImageResult => '画像認識結果が空です。より鮮明な画像を選択してください';
+
+  @override
+  String get acCoinInitialGiftDesc => '新規ユーザー登録特典';
 }

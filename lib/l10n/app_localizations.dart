@@ -3083,6 +3083,144 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'超时（秒）'**
   String get llmTimeout;
+
+  /// No description provided for @llmErrorNoModelForCapability.
+  ///
+  /// In zh, this message translates to:
+  /// **'未配置对应能力的模型'**
+  String get llmErrorNoModelForCapability;
+
+  /// No description provided for @llmErrorNoProviderConfigured.
+  ///
+  /// In zh, this message translates to:
+  /// **'请先在设置中添加并配置 AI 服务商'**
+  String get llmErrorNoProviderConfigured;
+
+  /// No description provided for @llmErrorNoProviderOrInput.
+  ///
+  /// In zh, this message translates to:
+  /// **'请先在设置中添加 AI 服务商，或输入更明确的描述'**
+  String get llmErrorNoProviderOrInput;
+
+  /// No description provided for @llmErrorCannotParseResponse.
+  ///
+  /// In zh, this message translates to:
+  /// **'无法解析 AI 响应'**
+  String get llmErrorCannotParseResponse;
+
+  /// No description provided for @llmErrorInvalidResponseFormat.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 响应格式不正确'**
+  String get llmErrorInvalidResponseFormat;
+
+  /// No description provided for @llmErrorParseFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'解析 AI 响应失败: {error}'**
+  String llmErrorParseFailed(String error);
+
+  /// No description provided for @llmErrorTimeout.
+  ///
+  /// In zh, this message translates to:
+  /// **'请求超时，请检查网络连接'**
+  String get llmErrorTimeout;
+
+  /// No description provided for @llmErrorInvalidApiKey.
+  ///
+  /// In zh, this message translates to:
+  /// **'API Key 无效，请检查设置'**
+  String get llmErrorInvalidApiKey;
+
+  /// No description provided for @llmErrorRateLimit.
+  ///
+  /// In zh, this message translates to:
+  /// **'请求过于频繁，请稍后再试'**
+  String get llmErrorRateLimit;
+
+  /// No description provided for @llmErrorForbidden.
+  ///
+  /// In zh, this message translates to:
+  /// **'访问被拒绝，请检查 API Key 权限'**
+  String get llmErrorForbidden;
+
+  /// No description provided for @llmErrorRequestFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'请求失败 ({code})'**
+  String llmErrorRequestFailed(String code);
+
+  /// No description provided for @llmErrorNetworkFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'网络连接失败，请检查网络'**
+  String get llmErrorNetworkFailed;
+
+  /// No description provided for @llmErrorRequestFailedWithMessage.
+  ///
+  /// In zh, this message translates to:
+  /// **'请求失败: {message}'**
+  String llmErrorRequestFailedWithMessage(String message);
+
+  /// No description provided for @visionErrorNoModelConfigured.
+  ///
+  /// In zh, this message translates to:
+  /// **'未配置视觉识别模型，请在 AI 设置中配置'**
+  String get visionErrorNoModelConfigured;
+
+  /// No description provided for @visionErrorImageNotFound.
+  ///
+  /// In zh, this message translates to:
+  /// **'图片文件不存在'**
+  String get visionErrorImageNotFound;
+
+  /// No description provided for @visionErrorRecognitionFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'图片识别失败: {message}'**
+  String visionErrorRecognitionFailed(String message);
+
+  /// No description provided for @voiceErrorNoModelConfigured.
+  ///
+  /// In zh, this message translates to:
+  /// **'未配置语音识别模型，请在 AI 设置中配置'**
+  String get voiceErrorNoModelConfigured;
+
+  /// No description provided for @voiceErrorAudioNotFound.
+  ///
+  /// In zh, this message translates to:
+  /// **'音频文件不存在'**
+  String get voiceErrorAudioNotFound;
+
+  /// No description provided for @voiceErrorInvalidResponseFormat.
+  ///
+  /// In zh, this message translates to:
+  /// **'语音识别返回格式异常'**
+  String get voiceErrorInvalidResponseFormat;
+
+  /// No description provided for @voiceErrorTranscriptionFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'语音识别失败: {message}'**
+  String voiceErrorTranscriptionFailed(String message);
+
+  /// No description provided for @pipelineErrorEmptyVoiceResult.
+  ///
+  /// In zh, this message translates to:
+  /// **'语音识别结果为空，请重新录制'**
+  String get pipelineErrorEmptyVoiceResult;
+
+  /// No description provided for @pipelineErrorEmptyImageResult.
+  ///
+  /// In zh, this message translates to:
+  /// **'图片识别结果为空，请选择更清晰的图片'**
+  String get pipelineErrorEmptyImageResult;
+
+  /// No description provided for @acCoinInitialGiftDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'新用户注册赠送'**
+  String get acCoinInitialGiftDesc;
 }
 
 class _AppLocalizationsDelegate

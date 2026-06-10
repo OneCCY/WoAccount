@@ -1645,4 +1645,94 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get llmTimeout => 'Timeout (seconds)';
+
+  @override
+  String get llmErrorNoModelForCapability =>
+      'No model configured for this capability';
+
+  @override
+  String get llmErrorNoProviderConfigured =>
+      'Please add and configure an AI provider in Settings first';
+
+  @override
+  String get llmErrorNoProviderOrInput =>
+      'Please add an AI provider in Settings, or provide a more specific description';
+
+  @override
+  String get llmErrorCannotParseResponse => 'Unable to parse AI response';
+
+  @override
+  String get llmErrorInvalidResponseFormat => 'Invalid AI response format';
+
+  @override
+  String llmErrorParseFailed(String error) {
+    return 'Failed to parse AI response: $error';
+  }
+
+  @override
+  String get llmErrorTimeout =>
+      'Request timed out, please check your network connection';
+
+  @override
+  String get llmErrorInvalidApiKey => 'Invalid API Key, please check Settings';
+
+  @override
+  String get llmErrorRateLimit => 'Too many requests, please try again later';
+
+  @override
+  String get llmErrorForbidden =>
+      'Access denied, please check API Key permissions';
+
+  @override
+  String llmErrorRequestFailed(String code) {
+    return 'Request failed ($code)';
+  }
+
+  @override
+  String get llmErrorNetworkFailed =>
+      'Network connection failed, please check your network';
+
+  @override
+  String llmErrorRequestFailedWithMessage(String message) {
+    return 'Request failed: $message';
+  }
+
+  @override
+  String get visionErrorNoModelConfigured =>
+      'Vision model not configured. Please configure it in AI Settings';
+
+  @override
+  String get visionErrorImageNotFound => 'Image file not found';
+
+  @override
+  String visionErrorRecognitionFailed(String message) {
+    return 'Image recognition failed: $message';
+  }
+
+  @override
+  String get voiceErrorNoModelConfigured =>
+      'Voice model not configured. Please configure it in AI Settings';
+
+  @override
+  String get voiceErrorAudioNotFound => 'Audio file not found';
+
+  @override
+  String get voiceErrorInvalidResponseFormat =>
+      'Voice recognition returned invalid format';
+
+  @override
+  String voiceErrorTranscriptionFailed(String message) {
+    return 'Voice recognition failed: $message';
+  }
+
+  @override
+  String get pipelineErrorEmptyVoiceResult =>
+      'Voice recognition returned empty, please record again';
+
+  @override
+  String get pipelineErrorEmptyImageResult =>
+      'Image recognition returned empty, please choose a clearer image';
+
+  @override
+  String get acCoinInitialGiftDesc => 'New user registration gift';
 }
