@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' hide Column;
+import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -34,10 +35,11 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: AppBar(
-        title: Text(_selectedParent != null ? '${_selectedParent!.name} - 子分类' : '分类管理'),
+        title: Text(_selectedParent != null ? l10n.catManageSubTitle(_selectedParent!.name) : l10n.catManageTitle),
         leading: _selectedParent != null
             ? IconButton(
                 icon: const Icon(Icons.arrow_back),
@@ -64,7 +66,7 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
               child: SafeArea(
                 child: ElevatedButton(
                   onPressed: () => setState(() => _isEditMode = false),
-                  child: const Text('完成'),
+                  child: Text(l10n.commonDone),
                 ),
               ),
             )
@@ -85,6 +87,7 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
   }
 
   Widget _buildTypeTabs() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       color: context.colors.surface,
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
@@ -92,9 +95,9 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
         children: CategoryManageType.values.map((type) {
           final isActive = _type == type;
           final label = switch (type) {
-            CategoryManageType.expense => '支出',
-            CategoryManageType.income => '收入',
-            CategoryManageType.other => '其他',
+            CategoryManageType.expense => l10n.entryExpense,
+            CategoryManageType.income => l10n.entryIncome,
+            CategoryManageType.other => l10n.entryOther,
           };
           return GestureDetector(
             onTap: () => setState(() => _type = type),
@@ -184,7 +187,7 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
             ),
           ),
           const SizedBox(height: 4),
-          Text('添加', style: context.textStyles.caption),
+          Text(AppLocalizations.of(context)!.commonAdd, style: context.textStyles.caption),
         ],
       ),
     );
@@ -218,7 +221,7 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
               child: OutlinedButton.icon(
                 onPressed: _onAddSubCategory,
                 icon: const Icon(Icons.add, size: 18),
-                label: const Text('添加子分类'),
+                label: Text(AppLocalizations.of(context)!.catManageAddSub),
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 48),
                   side: BorderSide(color: context.colors.primary),
@@ -247,9 +250,11 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
   }
 
   /// 判断是否为"其他"分类（转账、还款、人情往来）
-  /// 基于种子数据中的分类名匹配
+  /// 基于种子数据中的 l10nKey 匹配
   bool _isOtherCategory(Category cat) {
-    return !cat.isExpense && const {'转账', '还款', '人情往来'}.contains(cat.name);
+    const otherKeys = {'catOtherTransfer', 'catOtherRepayment', 'catOtherSocial'};
+    final isOther = cat.l10nKey != null && otherKeys.contains(cat.l10nKey);
+    return !cat.isExpense && isOther;
   }
 
   void _onAddCategory() {
@@ -266,7 +271,7 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
           if (existing != null) {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('该分类名已存在'), duration: Duration(milliseconds: 800)),
+                SnackBar(content: Text(AppLocalizations.of(context)!.catManageNameExists), duration: const Duration(milliseconds: 800)),
               );
             }
             return;
@@ -299,7 +304,7 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
           if (existing != null) {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('该子分类名已存在'), duration: Duration(milliseconds: 800)),
+                SnackBar(content: Text(AppLocalizations.of(context)!.catManageSubNameExists), duration: const Duration(milliseconds: 800)),
               );
             }
             return;
@@ -334,7 +339,7 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
           if (existing != null && existing.id != cat.id) {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('该分类名已存在'), duration: Duration(milliseconds: 800)),
+                SnackBar(content: Text(AppLocalizations.of(context)!.catManageNameExists), duration: const Duration(milliseconds: 800)),
               );
             }
             return;
@@ -351,17 +356,18 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
   }
 
   void _onDeleteCategory(Category cat) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('确认删除'),
+        title: Text(l10n.catManageDeleteTitle),
         content: Text(cat.level == 1
-            ? '确定要删除分类"${cat.name}"及其所有子分类吗？'
-            : '确定要删除分类"${cat.name}"吗？'),
+            ? l10n.catManageDeleteWithChildren(cat.name)
+            : l10n.catManageDeleteConfirm(cat.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('取消'),
+            child: Text(l10n.commonCancel),
           ),
           TextButton(
             onPressed: () async {
@@ -376,11 +382,11 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
               }
               if (!success && mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('该分类有关联数据，无法删除'), duration: Duration(milliseconds: 800)),
+                  SnackBar(content: Text(l10n.catManageDeleteBlocked), duration: const Duration(milliseconds: 800)),
                 );
               }
             },
-            child: Text('删除', style: TextStyle(color: context.colors.error)),
+            child: Text(l10n.commonDelete, style: TextStyle(color: context.colors.error)),
           ),
         ],
       ),
@@ -439,7 +445,7 @@ class _CategoryGridItem extends StatelessWidget {
                       color: context.colors.primary,
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: Text('自', style: context.textStyles.caption.copyWith(
+                    child: Text(AppLocalizations.of(context)!.catManageCustomBadge, style: context.textStyles.caption.copyWith(
                       color: context.colors.textOnPrimary,
                       fontSize: 8,
                     )),
@@ -471,7 +477,7 @@ class _CategoryGridItem extends StatelessWidget {
           Text(
             category.name,
             style: context.textStyles.caption,
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
           ),
@@ -521,7 +527,7 @@ class _SubCategoryListItem extends StatelessWidget {
                 color: context.colors.primarySurface,
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: Text('自定义', style: context.textStyles.caption.copyWith(color: context.colors.primaryDark)),
+              child: Text(AppLocalizations.of(context)!.catManageCustom, style: context.textStyles.caption.copyWith(color: context.colors.primaryDark)),
             ),
           if (isEditMode && onDelete != null) ...[
             const SizedBox(width: 8),
@@ -579,10 +585,11 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final typeLabel = widget.isOther ? '其他' : (widget.isExpense ? '支出' : '收入');
+    final l10n = AppLocalizations.of(context)!;
+    final typeLabel = widget.isOther ? l10n.entryOther : (widget.isExpense ? l10n.entryExpense : l10n.entryIncome);
 
     return AlertDialog(
-      title: Text('添加$typeLabel分类'),
+      title: Text(l10n.catManageAddTitle(typeLabel)),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -591,15 +598,15 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
             // 名称输入
             TextField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: '分类名称',
-                hintText: '请输入分类名称',
+              decoration: InputDecoration(
+                labelText: l10n.catManageNameLabel,
+                hintText: l10n.catManageNameHint,
               ),
               maxLength: 20,
             ),
             const SizedBox(height: 16),
             // 图标选择
-            Text('选择图标', style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)),
+            Text(l10n.catManageSelectIcon, style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -623,7 +630,7 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
             ),
             const SizedBox(height: 16),
             // 颜色选择
-            Text('选择颜色', style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)),
+            Text(l10n.catManageSelectColor, style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -656,21 +663,21 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('取消'),
+          child: Text(l10n.commonCancel),
         ),
         ElevatedButton(
           onPressed: () {
             final name = _nameController.text.trim();
             if (name.isEmpty) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('请输入分类名称'), duration: Duration(milliseconds: 500)),
+                SnackBar(content: Text(l10n.catManageNameHint), duration: const Duration(milliseconds: 500)),
               );
               return;
             }
             Navigator.of(context).pop();
             widget.onConfirm(name, _selectedIcon, _selectedColor);
           },
-          child: const Text('确定'),
+          child: Text(l10n.commonConfirm),
         ),
       ],
     );
@@ -704,8 +711,9 @@ class _AddSubCategoryDialogState extends State<_AddSubCategoryDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: Text('添加子分类 - ${widget.parentName}'),
+      title: Text(l10n.catManageAddSubTitle(widget.parentName)),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -713,14 +721,14 @@ class _AddSubCategoryDialogState extends State<_AddSubCategoryDialog> {
           children: [
             TextField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: '子分类名称',
-                hintText: '请输入子分类名称',
+              decoration: InputDecoration(
+                labelText: l10n.catManageSubNameLabel,
+                hintText: l10n.catManageSubNameHint,
               ),
               maxLength: 20,
             ),
             const SizedBox(height: 16),
-            Text('选择图标', style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)),
+            Text(l10n.catManageSelectIcon, style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -748,21 +756,21 @@ class _AddSubCategoryDialogState extends State<_AddSubCategoryDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('取消'),
+          child: Text(l10n.commonCancel),
         ),
         ElevatedButton(
           onPressed: () {
             final name = _nameController.text.trim();
             if (name.isEmpty) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('请输入子分类名称'), duration: Duration(milliseconds: 500)),
+                SnackBar(content: Text(l10n.catManageSubNameHint), duration: const Duration(milliseconds: 500)),
               );
               return;
             }
             Navigator.of(context).pop();
             widget.onConfirm(name, _selectedIcon);
           },
-          child: const Text('确定'),
+          child: Text(l10n.commonConfirm),
         ),
       ],
     );
@@ -805,8 +813,9 @@ class _EditCategoryDialogState extends State<_EditCategoryDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: const Text('编辑分类'),
+      title: Text(l10n.catManageEditTitle),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -814,14 +823,14 @@ class _EditCategoryDialogState extends State<_EditCategoryDialog> {
           children: [
             TextField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: '分类名称',
-                hintText: '请输入分类名称',
+              decoration: InputDecoration(
+                labelText: l10n.catManageNameLabel,
+                hintText: l10n.catManageNameHint,
               ),
               maxLength: 20,
             ),
             const SizedBox(height: 16),
-            Text('选择图标', style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)),
+            Text(l10n.catManageSelectIcon, style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -844,7 +853,7 @@ class _EditCategoryDialogState extends State<_EditCategoryDialog> {
               }).toList(),
             ),
             const SizedBox(height: 16),
-            Text('选择颜色', style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)),
+            Text(l10n.catManageSelectColor, style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -877,21 +886,21 @@ class _EditCategoryDialogState extends State<_EditCategoryDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('取消'),
+          child: Text(l10n.commonCancel),
         ),
         ElevatedButton(
           onPressed: () {
             final name = _nameController.text.trim();
             if (name.isEmpty) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('请输入分类名称'), duration: Duration(milliseconds: 500)),
+                SnackBar(content: Text(l10n.catManageNameHint), duration: const Duration(milliseconds: 500)),
               );
               return;
             }
             Navigator.of(context).pop();
             widget.onConfirm(name, _selectedIcon, _selectedColor);
           },
-          child: const Text('保存'),
+          child: Text(l10n.commonSave),
         ),
       ],
     );
