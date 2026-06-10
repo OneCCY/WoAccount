@@ -460,5 +460,21 @@
   "bookDescFamily": "家庭共同開支",
   "bookDescTravel": "旅行花費記錄",
   "bookDescBusiness": "副業/小生意收支",
-  "bookDescOther": "自訂用途"
+  "bookDescOther": "自訂用途",
+
+  "aiPresetDeepseekNote": "高性價比國產大模型",
+  "aiPresetOpenaiNote": "需海外網路存取",
+  "aiPresetQwenName": "通義千問 (阿里)",
+  "aiPresetQwenNote": "使用相容模式地址",
+  "aiPresetDoubaoName": "豆包 (位元組)",
+  "aiPresetDoubaoNote": "需在火山方舟建立推理接入點，模型名使用接入點 ID",
+  "aiPresetZhipuName": "智譜AI",
+  "aiPresetZhipuNote": "glm-4-flash 有免費額度",
+  "aiPresetKimiName": "月之暗面 (Kimi)",
+  "aiPresetKimiNote": "擅長長文本理解",
+  "aiPresetClaudeNote": "使用 Anthropic Messages API",
+  "aiPresetMimoName": "小米 MiMo",
+  "aiPresetMimoNote": "支援 OpenAI/Anthropic 相容協定，中國/新加坡/歐洲多叢集",
+  "aiPresetOllamaName": "Ollama (本地)",
+  "aiPresetOllamaNote": "需本地執行 Ollama 服務，模型名取決於本地安裝"
 }

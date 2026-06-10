@@ -465,5 +465,46 @@
   "bookDescFamily": "Shared family expenses",
   "bookDescTravel": "Travel expense tracking",
   "bookDescBusiness": "Side business income & expenses",
-  "bookDescOther": "Custom purpose"
+  "bookDescOther": "Custom purpose",
+
+  "aiPresetDeepseekNote": "Cost-effective Chinese LLM",
+  "aiPresetOpenaiNote": "Requires overseas network access",
+  "aiPresetQwenName": "Tongyi Qianwen (Alibaba)",
+  "aiPresetQwenNote": "Uses compatible mode URL",
+  "aiPresetDoubaoName": "Doubao (ByteDance)",
+  "aiPresetDoubaoNote": "Create an inference endpoint on Volcano Ark, use endpoint ID as model name",
+  "aiPresetZhipuName": "Zhipu AI",
+  "aiPresetZhipuNote": "glm-4-flash has free quota",
+  "aiPresetKimiName": "Moonshot (Kimi)",
+  "aiPresetKimiNote": "Excels at long text understanding",
+  "aiPresetClaudeNote": "Uses Anthropic Messages API",
+  "aiPresetMimoName": "Xiaomi MiMo",
+  "aiPresetMimoNote": "Supports OpenAI/Anthropic compatible protocols, multi-region clusters",
+  "aiPresetOllamaName": "Ollama (Local)",
+  "aiPresetOllamaNote": "Requires local Ollama service, model names depend on local installation",
+
+  "llmCapTextLabel": "Text Model",
+  "llmCapTextDesc": "For bookkeeping parsing and AI conversations",
+  "llmCapVisionLabel": "Vision Model",
+  "llmCapVisionDesc": "For photo recognition of receipts and invoices",
+  "llmCapAudioLabel": "Voice Model",
+  "llmCapAudioDesc": "For voice-to-text transcription",
+
+  "currencyCny": "Chinese Yuan (CNY)",
+  "currencyUsd": "US Dollar (USD)",
+  "currencyKrw": "Korean Won (KRW)",
+  "currencyJpy": "Japanese Yen (JPY)",
+  "currencyEur": "Euro (EUR)",
+  "currencyGbp": "British Pound (GBP)",
+  "currencyUnitYi": "00M",
+  "currencyUnitWan": "0K",
+
+  "inputSourceText": "Text",
+  "inputSourceVoice": "Voice",
+  "inputSourceImage": "Image",
+
+  "reportTrendMonth": "{period}",
+  "@reportTrendMonth": { "placeholders": { "period": { "type": "String" } } },
+  "reportTrendDay": "{period}",
+  "@reportTrendDay": { "placeholders": { "period": { "type": "String" } } }
 }

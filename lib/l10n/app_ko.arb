@@ -460,5 +460,21 @@
   "bookDescFamily": "가족 공통 지출",
   "bookDescTravel": "여행 경비 기록",
   "bookDescBusiness": "부업 수입과 지출",
-  "bookDescOther": "사용자 정의 용도"
+  "bookDescOther": "사용자 정의 용도",
+
+  "aiPresetDeepseekNote": "비용 대비 성능이 우수한 중국 LLM",
+  "aiPresetOpenaiNote": "해외 네트워크 접속 필요",
+  "aiPresetQwenName": "통의천문 (알리바바)",
+  "aiPresetQwenNote": "호환 모드 URL 사용",
+  "aiPresetDoubaoName": "더우바오 (바이트댄스)",
+  "aiPresetDoubaoNote": "화산방주에서 추론 엔드포인트 생성 필요, 엔드포인트 ID를 모델명으로 사용",
+  "aiPresetZhipuName": "지푸AI",
+  "aiPresetZhipuNote": "glm-4-flash 무료 할당량 있음",
+  "aiPresetKimiName": "월지암면 (Kimi)",
+  "aiPresetKimiNote": "긴 텍스트 이해에 뛰어남",
+  "aiPresetClaudeNote": "Anthropic Messages API 사용",
+  "aiPresetMimoName": "샤오미 MiMo",
+  "aiPresetMimoNote": "OpenAI/Anthropic 호환 프로토콜 지원, 중국/싱가포르/유럽 멀티 클러스터",
+  "aiPresetOllamaName": "Ollama (로컬)",
+  "aiPresetOllamaNote": "로컬 Ollama 서비스 실행 필요, 모델명은 로컬 설치에 따라 다름"
 }

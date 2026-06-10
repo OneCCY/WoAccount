@@ -460,5 +460,21 @@
   "bookDescFamily": "家庭の共通支出",
   "bookDescTravel": "旅行費用の記録",
   "bookDescBusiness": "副業の収支",
-  "bookDescOther": "カスタム用途"
+  "bookDescOther": "カスタム用途",
+
+  "aiPresetDeepseekNote": "コストパフォーマンスの高い中国産LLM",
+  "aiPresetOpenaiNote": "海外ネットワークアクセスが必要",
+  "aiPresetQwenName": "通義千問 (アリババ)",
+  "aiPresetQwenNote": "互換モードURLを使用",
+  "aiPresetDoubaoName": "豆包 (バイトダンス)",
+  "aiPresetDoubaoNote": "火山方舟で推論エンドポイントを作成し、エンドポイントIDをモデル名として使用",
+  "aiPresetZhipuName": "智譜AI",
+  "aiPresetZhipuNote": "glm-4-flashに無料枠あり",
+  "aiPresetKimiName": "月之暗面 (Kimi)",
+  "aiPresetKimiNote": "長文理解に優れる",
+  "aiPresetClaudeNote": "Anthropic Messages APIを使用",
+  "aiPresetMimoName": "Xiaomi MiMo",
+  "aiPresetMimoNote": "OpenAI/Anthropic互換プロトコル対応、中国/シンガポール/欧州マルチクラスター",
+  "aiPresetOllamaName": "Ollama (ローカル)",
+  "aiPresetOllamaNote": "ローカルでOllamaサービスの実行が必要、モデル名はローカルインストールに依存"
 }
