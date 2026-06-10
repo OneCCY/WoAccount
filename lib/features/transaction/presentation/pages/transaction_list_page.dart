@@ -476,6 +476,10 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator(color: context.colors.primary));
           }
+          if (snapshot.hasError) {
+            debugPrint('[TransactionList] stream error: ${snapshot.error}');
+            return Center(child: Text('加载失败，请下拉刷新', style: context.textStyles.body.copyWith(color: context.colors.textTertiary)));
+          }
           final allTxns = snapshot.data ?? [];
           final dayTxns = allTxns.where((t) =>
               !t.transactionDate.isBefore(start) && t.transactionDate.isBefore(end)).toList();
@@ -951,6 +955,10 @@ class _DayDetailPage extends ConsumerWidget {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator(color: context.colors.primary));
+          }
+          if (snapshot.hasError) {
+            debugPrint('[TransactionList] stream error: ${snapshot.error}');
+            return Center(child: Text('加载失败，请下拉刷新', style: context.textStyles.body.copyWith(color: context.colors.textTertiary)));
           }
           final allTxns = snapshot.data ?? [];
           final dayTxns = allTxns.where((t) =>

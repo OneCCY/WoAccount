@@ -339,6 +339,8 @@ LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
     final file = File(p.join(dbFolder.path, 'wo_account.sqlite'));
+    // ignore: avoid_print
+    assert(() { print('[DB] Opening database at: ${file.path} (exists: ${file.existsSync()})'); return true; }());
     return NativeDatabase.createInBackground(file);
   });
 }

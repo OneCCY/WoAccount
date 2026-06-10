@@ -34,26 +34,41 @@ class _AuthWrapperState extends State<AuthWrapper> {
   }
 
   Future<void> _checkAuth() async {
-    final prefs = await SharedPreferences.getInstance();
-    final lockEnabled = prefs.getBool('lock_enabled') ?? false;
-    final types = prefs.getStringList('lock_types') ?? [];
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final lockEnabled = prefs.getBool('lock_enabled') ?? false;
+      final types = prefs.getStringList('lock_types') ?? [];
 
-    if (!lockEnabled || types.isEmpty) {
-      setState(() {
-        _isAuthenticated = true;
-        _isLoading = false;
-      });
-      return;
-    }
+      if (!lockEnabled || types.isEmpty) {
+        if (mounted) {
+          setState(() {
+            _isAuthenticated = true;
+            _isLoading = false;
+          });
+        }
+        return;
+      }
 
-    setState(() {
-      _enabledTypes = types;
-      _currentType = types.first;
-      _isLoading = false;
-    });
+      if (mounted) {
+        setState(() {
+          _enabledTypes = types;
+          _currentType = types.first;
+          _isLoading = false;
+        });
+      }
 
-    if (_currentType == 'biometric') {
-      _tryBiometricAuth();
+      if (_currentType == 'biometric') {
+        _tryBiometricAuth();
+      }
+    } catch (e) {
+      debugPrint('[AuthWrapper] _checkAuth error: $e');
+      // 出错时直接放行，避免卡死
+      if (mounted) {
+        setState(() {
+          _isAuthenticated = true;
+          _isLoading = false;
+        });
+      }
     }
   }
 

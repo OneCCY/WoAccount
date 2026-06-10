@@ -68,17 +68,28 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
 
   Future<void> _loadInitialMessages() async {
     setState(() => _isLoading = true);
-    final messages = await _chatRepo.getMessages(
-      bookId: _bookId,
-      conversationId: _conversationId,
-      limit: _pageSize,
-    );
-    setState(() {
-      _items = messages.map((m) => _ChatItem.fromMessage(m)).toList();
-      _isLoading = false;
-      _hasMore = messages.length >= _pageSize;
-    });
-    _scrollToBottom();
+    try {
+      final messages = await _chatRepo.getMessages(
+        bookId: _bookId,
+        conversationId: _conversationId,
+        limit: _pageSize,
+      );
+      if (!mounted) return;
+      setState(() {
+        _items = messages.map((m) => _ChatItem.fromMessage(m)).toList();
+        _isLoading = false;
+        _hasMore = messages.length >= _pageSize;
+      });
+      _scrollToBottom();
+    } catch (e) {
+      debugPrint('[AiChatPage] _loadInitialMessages error: $e');
+      if (!mounted) return;
+      setState(() {
+        _items = [];
+        _isLoading = false;
+        _hasMore = false;
+      });
+    }
   }
 
   void _onScroll() {
