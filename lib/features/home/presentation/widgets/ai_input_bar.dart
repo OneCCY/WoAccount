@@ -262,13 +262,16 @@ class _AiInputBarState extends State<AiInputBar> {
   }
 
   Widget _buildRecordButton() {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: widget.onManualEntry,
-      onLongPressStart: _onVoiceStart,
-      onLongPressMoveUpdate: _onVoiceUpdate,
-      onLongPressEnd: _onVoiceEnd,
-      child: AnimatedContainer(
+    return SizedBox(
+      width: _isRecording ? 52 : AppDimensions.sideButtonSize,
+      height: _isRecording ? 52 : AppDimensions.sideButtonSize,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onManualEntry,
+        onLongPressStart: _onVoiceStart,
+        onLongPressMoveUpdate: _onVoiceUpdate,
+        onLongPressEnd: _onVoiceEnd,
+        child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         width: _isRecording ? 52 : AppDimensions.sideButtonSize,
         height: _isRecording ? 52 : AppDimensions.sideButtonSize,
@@ -324,6 +327,7 @@ class _AiInputBarState extends State<AiInputBar> {
                   ],
                 ),
         ),
+      ),
       ),
     );
   }
