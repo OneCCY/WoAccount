@@ -1152,6 +1152,504 @@ class AppLocalizationsEn extends AppLocalizations {
   String get catOtherSocial => 'Social Occasions';
 
   @override
+  String get catSubFoodBreakfast => 'Breakfast';
+
+  @override
+  String get catSubFoodLunch => 'Lunch';
+
+  @override
+  String get catSubFoodDinner => 'Dinner';
+
+  @override
+  String get catSubFoodLateSnack => 'Late Night Snack';
+
+  @override
+  String get catSubFoodDelivery => 'Takeout Delivery';
+
+  @override
+  String get catSubFoodMilkTea => 'Milk Tea';
+
+  @override
+  String get catSubFoodCoffee => 'Coffee';
+
+  @override
+  String get catSubFoodDrinks => 'Beverages';
+
+  @override
+  String get catSubFoodDessert => 'Desserts';
+
+  @override
+  String get catSubFoodSnacks => 'Snacks';
+
+  @override
+  String get catSubFoodFruit => 'Fruit';
+
+  @override
+  String get catSubFoodGroceries => 'Groceries';
+
+  @override
+  String get catSubFoodDiningOut => 'Dining Out';
+
+  @override
+  String get catSubTransportMetro => 'Subway';
+
+  @override
+  String get catSubTransportBus => 'Bus';
+
+  @override
+  String get catSubTransportTaxi => 'Taxi';
+
+  @override
+  String get catSubTransportRideshare => 'Rideshare';
+
+  @override
+  String get catSubTransportBikeShare => 'Bike Share';
+
+  @override
+  String get catSubTransportHighSpeedRail => 'High-Speed Rail';
+
+  @override
+  String get catSubTransportTrain => 'Train';
+
+  @override
+  String get catSubTransportFlight => 'Flight';
+
+  @override
+  String get catSubTransportFuel => 'Fuel';
+
+  @override
+  String get catSubTransportCharging => 'EV Charging';
+
+  @override
+  String get catSubTransportParking => 'Parking';
+
+  @override
+  String get catSubTransportToll => 'Toll';
+
+  @override
+  String get catSubTransportMaintenance => 'Car Maintenance';
+
+  @override
+  String get catSubTransportRepair => 'Car Repair';
+
+  @override
+  String get catSubTransportInsurance => 'Car Insurance';
+
+  @override
+  String get catSubHousingRent => 'Rent';
+
+  @override
+  String get catSubHousingMortgage => 'Mortgage';
+
+  @override
+  String get catSubHousingWater => 'Water Bill';
+
+  @override
+  String get catSubHousingElectricity => 'Electricity';
+
+  @override
+  String get catSubHousingGas => 'Gas';
+
+  @override
+  String get catSubHousingPropertyFee => 'HOA Fee';
+
+  @override
+  String get catSubHousingInternet => 'Internet';
+
+  @override
+  String get catSubHousingPhone => 'Phone Bill';
+
+  @override
+  String get catSubHousingCleaning => 'Cleaning Service';
+
+  @override
+  String get catSubHousingRepair => 'Home Repair';
+
+  @override
+  String get catSubClothingApparel => 'Clothing';
+
+  @override
+  String get catSubClothingShoes => 'Shoes';
+
+  @override
+  String get catSubClothingHats => 'Hats';
+
+  @override
+  String get catSubClothingBags => 'Bags';
+
+  @override
+  String get catSubClothingCosmetics => 'Cosmetics';
+
+  @override
+  String get catSubClothingSkincare => 'Skincare';
+
+  @override
+  String get catSubClothingHaircut => 'Haircut';
+
+  @override
+  String get catSubClothingManicure => 'Manicure';
+
+  @override
+  String get catSubClothingJewelry => 'Jewelry';
+
+  @override
+  String get catSubClothingAccessories => 'Accessories';
+
+  @override
+  String get catSubDailyNecessities => 'Daily Necessities';
+
+  @override
+  String get catSubDailyCleaning => 'Cleaning Supplies';
+
+  @override
+  String get catSubDailyKitchen => 'Kitchen Supplies';
+
+  @override
+  String get catSubDailyDecor => 'Home Decor';
+
+  @override
+  String get catSubDailyStorage => 'Storage';
+
+  @override
+  String get catSubDailyBedding => 'Bedding';
+
+  @override
+  String get catSubDailyTissue => 'Paper Products';
+
+  @override
+  String get catSubTechPhone => 'Phone';
+
+  @override
+  String get catSubTechComputer => 'Computer';
+
+  @override
+  String get catSubTechAccessories => 'Accessories';
+
+  @override
+  String get catSubTechConsumables => 'Consumables';
+
+  @override
+  String get catSubTechStorage => 'Storage Devices';
+
+  @override
+  String get catSubMedicalRegistration => 'Clinic Registration';
+
+  @override
+  String get catSubMedicalMedicine => 'Medicine';
+
+  @override
+  String get catSubMedicalHospitalization => 'Hospitalization';
+
+  @override
+  String get catSubMedicalCheckup => 'Health Checkup';
+
+  @override
+  String get catSubMedicalDental => 'Dental';
+
+  @override
+  String get catSubMedicalEyeCare => 'Eye Care';
+
+  @override
+  String get catSubMedicalVaccine => 'Vaccine';
+
+  @override
+  String get catSubMedicalWellness => 'Wellness';
+
+  @override
+  String get catSubMedicalFitness => 'Fitness';
+
+  @override
+  String get catSubEducationBooks => 'Books';
+
+  @override
+  String get catSubEducationTuition => 'Tuition';
+
+  @override
+  String get catSubEducationTraining => 'Training';
+
+  @override
+  String get catSubEducationExam => 'Exam Fees';
+
+  @override
+  String get catSubEducationOnlineCourse => 'Online Courses';
+
+  @override
+  String get catSubEducationStationery => 'Stationery';
+
+  @override
+  String get catSubEntertainmentMovies => 'Movies';
+
+  @override
+  String get catSubEntertainmentKtv => 'Karaoke';
+
+  @override
+  String get catSubEntertainmentGaming => 'Gaming Top-up';
+
+  @override
+  String get catSubEntertainmentSubscription => 'Subscriptions';
+
+  @override
+  String get catSubEntertainmentTickets => 'Attraction Tickets';
+
+  @override
+  String get catSubEntertainmentHotel => 'Hotel';
+
+  @override
+  String get catSubEntertainmentTravel => 'Travel';
+
+  @override
+  String get catSubEntertainmentShow => 'Shows & Concerts';
+
+  @override
+  String get catSubEntertainmentStreaming => 'Streaming Services';
+
+  @override
+  String get catSubSocialGift => 'Gifts';
+
+  @override
+  String get catSubSocialRedPacket => 'Red Packets';
+
+  @override
+  String get catSubSocialWeddingGift => 'Wedding Gifts';
+
+  @override
+  String get catSubSocialTreat => 'Treating Others';
+
+  @override
+  String get catSubSocialBirthday => 'Birthday Parties';
+
+  @override
+  String get catSubSocialVisit => 'Visiting the Sick';
+
+  @override
+  String get catSubSocialRespect => 'Elderly Respect';
+
+  @override
+  String get catSubSocialCharity => 'Charitable Donations';
+
+  @override
+  String get catSubChildrenFormula => 'Baby Formula';
+
+  @override
+  String get catSubChildrenDiapers => 'Diapers & Supplies';
+
+  @override
+  String get catSubChildrenTuition => 'Tuition';
+
+  @override
+  String get catSubChildrenHobby => 'Hobby Classes';
+
+  @override
+  String get catSubChildrenTutoring => 'Tutoring';
+
+  @override
+  String get catSubChildrenDaycare => 'Daycare';
+
+  @override
+  String get catSubChildrenToys => 'Toys';
+
+  @override
+  String get catSubElderlySupport => 'Support Allowance';
+
+  @override
+  String get catSubElderlyNutrition => 'Nutrition Supplements';
+
+  @override
+  String get catSubElderlyMedical => 'Medical Expenses';
+
+  @override
+  String get catSubElderlyAllowance => 'Gift Money';
+
+  @override
+  String get catSubPetFood => 'Pet Food';
+
+  @override
+  String get catSubPetMedical => 'Pet Medical';
+
+  @override
+  String get catSubPetSupplies => 'Pet Supplies';
+
+  @override
+  String get catSubPetGrooming => 'Pet Grooming';
+
+  @override
+  String get catSubWorkOffice => 'Office Supplies';
+
+  @override
+  String get catSubWorkPrinting => 'Printing & Copying';
+
+  @override
+  String get catSubWorkShipping => 'Shipping & Delivery';
+
+  @override
+  String get catSubWorkTravel => 'Business Travel';
+
+  @override
+  String get catSubFinanceInsurance => 'Insurance Premium';
+
+  @override
+  String get catSubFinanceLoss => 'Investment Loss';
+
+  @override
+  String get catSubFinanceFee => 'Service Fee';
+
+  @override
+  String get catSubFinanceLoanInterest => 'Loan Interest';
+
+  @override
+  String get catSubFinanceTax => 'Tax';
+
+  @override
+  String get catSubFinanceFine => 'Fine & Penalty';
+
+  @override
+  String get catSubOtherExpenseGeneral => 'Other Expenses';
+
+  @override
+  String get catSubOtherExpenseUnexpected => 'Unexpected Expenses';
+
+  @override
+  String get catSubSalaryBase => 'Base Salary';
+
+  @override
+  String get catSubSalaryBonus => 'Performance Bonus';
+
+  @override
+  String get catSubSalaryOvertime => 'Overtime Pay';
+
+  @override
+  String get catSubSalaryYearEnd => 'Year-End Bonus';
+
+  @override
+  String get catSubSalaryBackPay => 'Retroactive Pay';
+
+  @override
+  String get catSubSalaryAllowance => 'Allowances';
+
+  @override
+  String get catSubInvestmentFund => 'Fund Returns';
+
+  @override
+  String get catSubInvestmentStock => 'Stock Returns';
+
+  @override
+  String get catSubInvestmentInterest => 'Interest Income';
+
+  @override
+  String get catSubInvestmentWealthMgmt => 'Wealth Management';
+
+  @override
+  String get catSubInvestmentCrypto => 'Cryptocurrency';
+
+  @override
+  String get catSubInvestmentDividend => 'Dividends';
+
+  @override
+  String get catSubSideJobPartTime => 'Part-Time Income';
+
+  @override
+  String get catSubSideJobFreelance => 'Freelance';
+
+  @override
+  String get catSubSideJobRoyalty => 'Royalties';
+
+  @override
+  String get catSubSideJobCommission => 'Commission';
+
+  @override
+  String get catSubSideJobSales => 'Sales Income';
+
+  @override
+  String get catSubGiftRedPacket => 'Red Packet Income';
+
+  @override
+  String get catSubGiftPresent => 'Gift Money';
+
+  @override
+  String get catSubGiftFestival => 'Festival Red Packets';
+
+  @override
+  String get catSubRefundReimbursement => 'Reimbursement';
+
+  @override
+  String get catSubRefundReturn => 'Refund';
+
+  @override
+  String get catSubRefundMedical => 'Medical Insurance Reimbursement';
+
+  @override
+  String get catSubRefundInsurance => 'Insurance Claim';
+
+  @override
+  String get catSubAssetRent => 'Rental Income';
+
+  @override
+  String get catSubAssetIdleSale => 'Selling Idle Items';
+
+  @override
+  String get catSubAssetSecondhand => 'Secondhand Sales';
+
+  @override
+  String get catSubAssetProfit => 'Asset Returns';
+
+  @override
+  String get catSubTransferInBank => 'Bank Transfer In';
+
+  @override
+  String get catSubTransferInWallet => 'Wallet Transfer In';
+
+  @override
+  String get catSubTransferInDebt => 'Debt Recovery';
+
+  @override
+  String get catSubIncomeOtherWindfall => 'Windfall';
+
+  @override
+  String get catSubIncomeOtherSubsidy => 'Government Subsidy';
+
+  @override
+  String get catSubIncomeOtherUncategorized => 'Uncategorized';
+
+  @override
+  String get catSubTransferBankIn => 'Bank Transfer In';
+
+  @override
+  String get catSubTransferBankOut => 'Bank Transfer Out';
+
+  @override
+  String get catSubTransferWallet => 'Wallet Transfer';
+
+  @override
+  String get catSubTransferCrossIn => 'Cross-Platform In';
+
+  @override
+  String get catSubTransferCrossOut => 'Cross-Platform Out';
+
+  @override
+  String get catSubRepaymentCreditCard => 'Credit Card Payment';
+
+  @override
+  String get catSubRepaymentLoan => 'Loan Payment';
+
+  @override
+  String get catSubRepaymentBorrowed => 'Repaying a Loan';
+
+  @override
+  String get catSubRepaymentLent => 'Lending Money';
+
+  @override
+  String get catSubOtherSocialGift => 'Wedding Gift Money';
+
+  @override
+  String get catSubOtherSocialWedding => 'Weddings & Funerals';
+
+  @override
+  String get catSubOtherSocialBirthday => 'Birthday Parties';
+
+  @override
+  String get catSubOtherSocialFestival => 'Festival Red Packets';
+
+  @override
   String get weekMon => 'M';
 
   @override

@@ -1128,6 +1128,504 @@ class AppLocalizationsZh extends AppLocalizations {
   String get catOtherSocial => '人情往来';
 
   @override
+  String get catSubFoodBreakfast => '早餐';
+
+  @override
+  String get catSubFoodLunch => '午餐';
+
+  @override
+  String get catSubFoodDinner => '晚餐';
+
+  @override
+  String get catSubFoodLateSnack => '夜宵';
+
+  @override
+  String get catSubFoodDelivery => '外卖';
+
+  @override
+  String get catSubFoodMilkTea => '奶茶';
+
+  @override
+  String get catSubFoodCoffee => '咖啡';
+
+  @override
+  String get catSubFoodDrinks => '饮料';
+
+  @override
+  String get catSubFoodDessert => '甜点';
+
+  @override
+  String get catSubFoodSnacks => '零食小吃';
+
+  @override
+  String get catSubFoodFruit => '水果';
+
+  @override
+  String get catSubFoodGroceries => '买菜';
+
+  @override
+  String get catSubFoodDiningOut => '聚餐请客';
+
+  @override
+  String get catSubTransportMetro => '地铁';
+
+  @override
+  String get catSubTransportBus => '公交';
+
+  @override
+  String get catSubTransportTaxi => '打车';
+
+  @override
+  String get catSubTransportRideshare => '网约车';
+
+  @override
+  String get catSubTransportBikeShare => '共享单车';
+
+  @override
+  String get catSubTransportHighSpeedRail => '高铁';
+
+  @override
+  String get catSubTransportTrain => '火车';
+
+  @override
+  String get catSubTransportFlight => '飞机';
+
+  @override
+  String get catSubTransportFuel => '加油';
+
+  @override
+  String get catSubTransportCharging => '充电';
+
+  @override
+  String get catSubTransportParking => '停车费';
+
+  @override
+  String get catSubTransportToll => '过路费';
+
+  @override
+  String get catSubTransportMaintenance => '车辆保养';
+
+  @override
+  String get catSubTransportRepair => '车辆维修';
+
+  @override
+  String get catSubTransportInsurance => '车险';
+
+  @override
+  String get catSubHousingRent => '房租';
+
+  @override
+  String get catSubHousingMortgage => '房贷';
+
+  @override
+  String get catSubHousingWater => '水费';
+
+  @override
+  String get catSubHousingElectricity => '电费';
+
+  @override
+  String get catSubHousingGas => '燃气费';
+
+  @override
+  String get catSubHousingPropertyFee => '物业费';
+
+  @override
+  String get catSubHousingInternet => '宽带网费';
+
+  @override
+  String get catSubHousingPhone => '手机话费';
+
+  @override
+  String get catSubHousingCleaning => '家政保洁';
+
+  @override
+  String get catSubHousingRepair => '房屋维修';
+
+  @override
+  String get catSubClothingApparel => '衣物';
+
+  @override
+  String get catSubClothingShoes => '鞋子';
+
+  @override
+  String get catSubClothingHats => '帽子';
+
+  @override
+  String get catSubClothingBags => '包包';
+
+  @override
+  String get catSubClothingCosmetics => '化妆品';
+
+  @override
+  String get catSubClothingSkincare => '护肤品';
+
+  @override
+  String get catSubClothingHaircut => '理发';
+
+  @override
+  String get catSubClothingManicure => '美甲';
+
+  @override
+  String get catSubClothingJewelry => '饰品';
+
+  @override
+  String get catSubClothingAccessories => '配件';
+
+  @override
+  String get catSubDailyNecessities => '日用品';
+
+  @override
+  String get catSubDailyCleaning => '清洁用品';
+
+  @override
+  String get catSubDailyKitchen => '厨房用品';
+
+  @override
+  String get catSubDailyDecor => '家居装饰';
+
+  @override
+  String get catSubDailyStorage => '收纳用品';
+
+  @override
+  String get catSubDailyBedding => '床上用品';
+
+  @override
+  String get catSubDailyTissue => '纸品';
+
+  @override
+  String get catSubTechPhone => '手机';
+
+  @override
+  String get catSubTechComputer => '电脑';
+
+  @override
+  String get catSubTechAccessories => '配件';
+
+  @override
+  String get catSubTechConsumables => '耗材';
+
+  @override
+  String get catSubTechStorage => '存储设备';
+
+  @override
+  String get catSubMedicalRegistration => '门诊挂号';
+
+  @override
+  String get catSubMedicalMedicine => '药品';
+
+  @override
+  String get catSubMedicalHospitalization => '住院';
+
+  @override
+  String get catSubMedicalCheckup => '体检';
+
+  @override
+  String get catSubMedicalDental => '口腔';
+
+  @override
+  String get catSubMedicalEyeCare => '眼科';
+
+  @override
+  String get catSubMedicalVaccine => '疫苗';
+
+  @override
+  String get catSubMedicalWellness => '保健养生';
+
+  @override
+  String get catSubMedicalFitness => '健身运动';
+
+  @override
+  String get catSubEducationBooks => '书籍';
+
+  @override
+  String get catSubEducationTuition => '学费';
+
+  @override
+  String get catSubEducationTraining => '培训费';
+
+  @override
+  String get catSubEducationExam => '考试费';
+
+  @override
+  String get catSubEducationOnlineCourse => '在线课程';
+
+  @override
+  String get catSubEducationStationery => '文具用品';
+
+  @override
+  String get catSubEntertainmentMovies => '电影';
+
+  @override
+  String get catSubEntertainmentKtv => 'KTV';
+
+  @override
+  String get catSubEntertainmentGaming => '游戏充值';
+
+  @override
+  String get catSubEntertainmentSubscription => '会员订阅';
+
+  @override
+  String get catSubEntertainmentTickets => '景点门票';
+
+  @override
+  String get catSubEntertainmentHotel => '酒店住宿';
+
+  @override
+  String get catSubEntertainmentTravel => '旅游';
+
+  @override
+  String get catSubEntertainmentShow => '演出';
+
+  @override
+  String get catSubEntertainmentStreaming => '流媒体';
+
+  @override
+  String get catSubSocialGift => '礼物';
+
+  @override
+  String get catSubSocialRedPacket => '红包';
+
+  @override
+  String get catSubSocialWeddingGift => '份子钱';
+
+  @override
+  String get catSubSocialTreat => '请客';
+
+  @override
+  String get catSubSocialBirthday => '生日聚会';
+
+  @override
+  String get catSubSocialVisit => '探望慰问';
+
+  @override
+  String get catSubSocialRespect => '孝敬长辈';
+
+  @override
+  String get catSubSocialCharity => '慈善捐助';
+
+  @override
+  String get catSubChildrenFormula => '奶粉辅食';
+
+  @override
+  String get catSubChildrenDiapers => '尿布用品';
+
+  @override
+  String get catSubChildrenTuition => '学费';
+
+  @override
+  String get catSubChildrenHobby => '兴趣班';
+
+  @override
+  String get catSubChildrenTutoring => '辅导班';
+
+  @override
+  String get catSubChildrenDaycare => '午托晚托';
+
+  @override
+  String get catSubChildrenToys => '玩具';
+
+  @override
+  String get catSubElderlySupport => '赡养费';
+
+  @override
+  String get catSubElderlyNutrition => '营养品';
+
+  @override
+  String get catSubElderlyMedical => '医疗费';
+
+  @override
+  String get catSubElderlyAllowance => '孝敬金';
+
+  @override
+  String get catSubPetFood => '宠物食品';
+
+  @override
+  String get catSubPetMedical => '宠物医疗';
+
+  @override
+  String get catSubPetSupplies => '宠物用品';
+
+  @override
+  String get catSubPetGrooming => '宠物美容';
+
+  @override
+  String get catSubWorkOffice => '办公用品';
+
+  @override
+  String get catSubWorkPrinting => '打印复印';
+
+  @override
+  String get catSubWorkShipping => '快递物流';
+
+  @override
+  String get catSubWorkTravel => '差旅费';
+
+  @override
+  String get catSubFinanceInsurance => '保险费用';
+
+  @override
+  String get catSubFinanceLoss => '理财亏损';
+
+  @override
+  String get catSubFinanceFee => '手续费';
+
+  @override
+  String get catSubFinanceLoanInterest => '贷款利息';
+
+  @override
+  String get catSubFinanceTax => '税费';
+
+  @override
+  String get catSubFinanceFine => '罚款';
+
+  @override
+  String get catSubOtherExpenseGeneral => '其他消费';
+
+  @override
+  String get catSubOtherExpenseUnexpected => '意外支出';
+
+  @override
+  String get catSubSalaryBase => '基本工资';
+
+  @override
+  String get catSubSalaryBonus => '绩效奖金';
+
+  @override
+  String get catSubSalaryOvertime => '加班费';
+
+  @override
+  String get catSubSalaryYearEnd => '年终奖';
+
+  @override
+  String get catSubSalaryBackPay => '调薪补发';
+
+  @override
+  String get catSubSalaryAllowance => '津贴补贴';
+
+  @override
+  String get catSubInvestmentFund => '基金收益';
+
+  @override
+  String get catSubInvestmentStock => '股票收益';
+
+  @override
+  String get catSubInvestmentInterest => '利息收入';
+
+  @override
+  String get catSubInvestmentWealthMgmt => '理财产品';
+
+  @override
+  String get catSubInvestmentCrypto => '数字货币';
+
+  @override
+  String get catSubInvestmentDividend => '分红';
+
+  @override
+  String get catSubSideJobPartTime => '兼职收入';
+
+  @override
+  String get catSubSideJobFreelance => '自由职业';
+
+  @override
+  String get catSubSideJobRoyalty => '稿费版权';
+
+  @override
+  String get catSubSideJobCommission => '佣金提成';
+
+  @override
+  String get catSubSideJobSales => '销售收入';
+
+  @override
+  String get catSubGiftRedPacket => '红包收入';
+
+  @override
+  String get catSubGiftPresent => '礼金馈赠';
+
+  @override
+  String get catSubGiftFestival => '节日红包';
+
+  @override
+  String get catSubRefundReimbursement => '报销到账';
+
+  @override
+  String get catSubRefundReturn => '退款收入';
+
+  @override
+  String get catSubRefundMedical => '医保报销';
+
+  @override
+  String get catSubRefundInsurance => '保险理赔';
+
+  @override
+  String get catSubAssetRent => '房租收入';
+
+  @override
+  String get catSubAssetIdleSale => '闲置出售';
+
+  @override
+  String get catSubAssetSecondhand => '二手交易';
+
+  @override
+  String get catSubAssetProfit => '资产收益';
+
+  @override
+  String get catSubTransferInBank => '银行转入';
+
+  @override
+  String get catSubTransferInWallet => '钱包转入';
+
+  @override
+  String get catSubTransferInDebt => '债务回收';
+
+  @override
+  String get catSubIncomeOtherWindfall => '意外所得';
+
+  @override
+  String get catSubIncomeOtherSubsidy => '政府补贴';
+
+  @override
+  String get catSubIncomeOtherUncategorized => '未分类';
+
+  @override
+  String get catSubTransferBankIn => '银行卡转入';
+
+  @override
+  String get catSubTransferBankOut => '银行卡转出';
+
+  @override
+  String get catSubTransferWallet => '钱包互转';
+
+  @override
+  String get catSubTransferCrossIn => '跨平台转入';
+
+  @override
+  String get catSubTransferCrossOut => '跨平台转出';
+
+  @override
+  String get catSubRepaymentCreditCard => '信用卡还款';
+
+  @override
+  String get catSubRepaymentLoan => '贷款还款';
+
+  @override
+  String get catSubRepaymentBorrowed => '借款归还';
+
+  @override
+  String get catSubRepaymentLent => '借款借出';
+
+  @override
+  String get catSubOtherSocialGift => '随礼份子钱';
+
+  @override
+  String get catSubOtherSocialWedding => '婚丧嫁娶';
+
+  @override
+  String get catSubOtherSocialBirthday => '生日聚会';
+
+  @override
+  String get catSubOtherSocialFestival => '节日红包往来';
+
+  @override
   String get weekMon => '一';
 
   @override
@@ -2814,6 +3312,504 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get catOtherSocial => '人情往來';
+
+  @override
+  String get catSubFoodBreakfast => '早餐';
+
+  @override
+  String get catSubFoodLunch => '午餐';
+
+  @override
+  String get catSubFoodDinner => '晚餐';
+
+  @override
+  String get catSubFoodLateSnack => '夜宵';
+
+  @override
+  String get catSubFoodDelivery => '外賣';
+
+  @override
+  String get catSubFoodMilkTea => '奶茶';
+
+  @override
+  String get catSubFoodCoffee => '咖啡';
+
+  @override
+  String get catSubFoodDrinks => '飲料';
+
+  @override
+  String get catSubFoodDessert => '甜點';
+
+  @override
+  String get catSubFoodSnacks => '零食小吃';
+
+  @override
+  String get catSubFoodFruit => '水果';
+
+  @override
+  String get catSubFoodGroceries => '買菜';
+
+  @override
+  String get catSubFoodDiningOut => '聚餐請客';
+
+  @override
+  String get catSubTransportMetro => '地鐵';
+
+  @override
+  String get catSubTransportBus => '公車';
+
+  @override
+  String get catSubTransportTaxi => '計程車';
+
+  @override
+  String get catSubTransportRideshare => '網約車';
+
+  @override
+  String get catSubTransportBikeShare => '共享單車';
+
+  @override
+  String get catSubTransportHighSpeedRail => '高鐵';
+
+  @override
+  String get catSubTransportTrain => '火車';
+
+  @override
+  String get catSubTransportFlight => '飛機';
+
+  @override
+  String get catSubTransportFuel => '加油';
+
+  @override
+  String get catSubTransportCharging => '充電';
+
+  @override
+  String get catSubTransportParking => '停車費';
+
+  @override
+  String get catSubTransportToll => '過路費';
+
+  @override
+  String get catSubTransportMaintenance => '車輛保養';
+
+  @override
+  String get catSubTransportRepair => '車輛維修';
+
+  @override
+  String get catSubTransportInsurance => '車險';
+
+  @override
+  String get catSubHousingRent => '房租';
+
+  @override
+  String get catSubHousingMortgage => '房貸';
+
+  @override
+  String get catSubHousingWater => '水費';
+
+  @override
+  String get catSubHousingElectricity => '電費';
+
+  @override
+  String get catSubHousingGas => '燃氣費';
+
+  @override
+  String get catSubHousingPropertyFee => '物業費';
+
+  @override
+  String get catSubHousingInternet => '寬頻網路費';
+
+  @override
+  String get catSubHousingPhone => '手機話費';
+
+  @override
+  String get catSubHousingCleaning => '家政保潔';
+
+  @override
+  String get catSubHousingRepair => '房屋維修';
+
+  @override
+  String get catSubClothingApparel => '衣物';
+
+  @override
+  String get catSubClothingShoes => '鞋子';
+
+  @override
+  String get catSubClothingHats => '帽子';
+
+  @override
+  String get catSubClothingBags => '包包';
+
+  @override
+  String get catSubClothingCosmetics => '化妝品';
+
+  @override
+  String get catSubClothingSkincare => '護膚品';
+
+  @override
+  String get catSubClothingHaircut => '理髮';
+
+  @override
+  String get catSubClothingManicure => '美甲';
+
+  @override
+  String get catSubClothingJewelry => '飾品';
+
+  @override
+  String get catSubClothingAccessories => '配件';
+
+  @override
+  String get catSubDailyNecessities => '日用品';
+
+  @override
+  String get catSubDailyCleaning => '清潔用品';
+
+  @override
+  String get catSubDailyKitchen => '廚房用品';
+
+  @override
+  String get catSubDailyDecor => '家居裝飾';
+
+  @override
+  String get catSubDailyStorage => '收納用品';
+
+  @override
+  String get catSubDailyBedding => '床上用品';
+
+  @override
+  String get catSubDailyTissue => '紙品';
+
+  @override
+  String get catSubTechPhone => '手機';
+
+  @override
+  String get catSubTechComputer => '電腦';
+
+  @override
+  String get catSubTechAccessories => '配件';
+
+  @override
+  String get catSubTechConsumables => '耗材';
+
+  @override
+  String get catSubTechStorage => '儲存裝置';
+
+  @override
+  String get catSubMedicalRegistration => '門診掛號';
+
+  @override
+  String get catSubMedicalMedicine => '藥品';
+
+  @override
+  String get catSubMedicalHospitalization => '住院';
+
+  @override
+  String get catSubMedicalCheckup => '體檢';
+
+  @override
+  String get catSubMedicalDental => '口腔';
+
+  @override
+  String get catSubMedicalEyeCare => '眼科';
+
+  @override
+  String get catSubMedicalVaccine => '疫苗';
+
+  @override
+  String get catSubMedicalWellness => '保健養生';
+
+  @override
+  String get catSubMedicalFitness => '健身運動';
+
+  @override
+  String get catSubEducationBooks => '書籍';
+
+  @override
+  String get catSubEducationTuition => '學費';
+
+  @override
+  String get catSubEducationTraining => '培訓費';
+
+  @override
+  String get catSubEducationExam => '考試費';
+
+  @override
+  String get catSubEducationOnlineCourse => '線上課程';
+
+  @override
+  String get catSubEducationStationery => '文具用品';
+
+  @override
+  String get catSubEntertainmentMovies => '電影';
+
+  @override
+  String get catSubEntertainmentKtv => 'KTV';
+
+  @override
+  String get catSubEntertainmentGaming => '遊戲充值';
+
+  @override
+  String get catSubEntertainmentSubscription => '會員訂閱';
+
+  @override
+  String get catSubEntertainmentTickets => '景點門票';
+
+  @override
+  String get catSubEntertainmentHotel => '酒店住宿';
+
+  @override
+  String get catSubEntertainmentTravel => '旅遊';
+
+  @override
+  String get catSubEntertainmentShow => '演出';
+
+  @override
+  String get catSubEntertainmentStreaming => '串流媒體';
+
+  @override
+  String get catSubSocialGift => '禮物';
+
+  @override
+  String get catSubSocialRedPacket => '紅包';
+
+  @override
+  String get catSubSocialWeddingGift => '份子錢';
+
+  @override
+  String get catSubSocialTreat => '請客';
+
+  @override
+  String get catSubSocialBirthday => '生日聚會';
+
+  @override
+  String get catSubSocialVisit => '探望慰問';
+
+  @override
+  String get catSubSocialRespect => '孝敬長輩';
+
+  @override
+  String get catSubSocialCharity => '慈善捐助';
+
+  @override
+  String get catSubChildrenFormula => '奶粉輔食';
+
+  @override
+  String get catSubChildrenDiapers => '尿布用品';
+
+  @override
+  String get catSubChildrenTuition => '學費';
+
+  @override
+  String get catSubChildrenHobby => '興趣班';
+
+  @override
+  String get catSubChildrenTutoring => '輔導班';
+
+  @override
+  String get catSubChildrenDaycare => '午托晚托';
+
+  @override
+  String get catSubChildrenToys => '玩具';
+
+  @override
+  String get catSubElderlySupport => '贍養費';
+
+  @override
+  String get catSubElderlyNutrition => '營養品';
+
+  @override
+  String get catSubElderlyMedical => '醫療費';
+
+  @override
+  String get catSubElderlyAllowance => '孝敬金';
+
+  @override
+  String get catSubPetFood => '寵物食品';
+
+  @override
+  String get catSubPetMedical => '寵物醫療';
+
+  @override
+  String get catSubPetSupplies => '寵物用品';
+
+  @override
+  String get catSubPetGrooming => '寵物美容';
+
+  @override
+  String get catSubWorkOffice => '辦公用品';
+
+  @override
+  String get catSubWorkPrinting => '列印複印';
+
+  @override
+  String get catSubWorkShipping => '快遞物流';
+
+  @override
+  String get catSubWorkTravel => '差旅費';
+
+  @override
+  String get catSubFinanceInsurance => '保險費用';
+
+  @override
+  String get catSubFinanceLoss => '理財虧損';
+
+  @override
+  String get catSubFinanceFee => '手續費';
+
+  @override
+  String get catSubFinanceLoanInterest => '貸款利息';
+
+  @override
+  String get catSubFinanceTax => '稅費';
+
+  @override
+  String get catSubFinanceFine => '罰款';
+
+  @override
+  String get catSubOtherExpenseGeneral => '其他消費';
+
+  @override
+  String get catSubOtherExpenseUnexpected => '意外支出';
+
+  @override
+  String get catSubSalaryBase => '基本工資';
+
+  @override
+  String get catSubSalaryBonus => '績效獎金';
+
+  @override
+  String get catSubSalaryOvertime => '加班費';
+
+  @override
+  String get catSubSalaryYearEnd => '年終獎';
+
+  @override
+  String get catSubSalaryBackPay => '調薪補發';
+
+  @override
+  String get catSubSalaryAllowance => '津貼補貼';
+
+  @override
+  String get catSubInvestmentFund => '基金收益';
+
+  @override
+  String get catSubInvestmentStock => '股票收益';
+
+  @override
+  String get catSubInvestmentInterest => '利息收入';
+
+  @override
+  String get catSubInvestmentWealthMgmt => '理財產品';
+
+  @override
+  String get catSubInvestmentCrypto => '數位貨幣';
+
+  @override
+  String get catSubInvestmentDividend => '分紅';
+
+  @override
+  String get catSubSideJobPartTime => '兼職收入';
+
+  @override
+  String get catSubSideJobFreelance => '自由職業';
+
+  @override
+  String get catSubSideJobRoyalty => '稿費版權';
+
+  @override
+  String get catSubSideJobCommission => '佣金提成';
+
+  @override
+  String get catSubSideJobSales => '銷售收入';
+
+  @override
+  String get catSubGiftRedPacket => '紅包收入';
+
+  @override
+  String get catSubGiftPresent => '禮金饋贈';
+
+  @override
+  String get catSubGiftFestival => '節日紅包';
+
+  @override
+  String get catSubRefundReimbursement => '報銷到帳';
+
+  @override
+  String get catSubRefundReturn => '退款收入';
+
+  @override
+  String get catSubRefundMedical => '醫保報銷';
+
+  @override
+  String get catSubRefundInsurance => '保險理賠';
+
+  @override
+  String get catSubAssetRent => '房租收入';
+
+  @override
+  String get catSubAssetIdleSale => '閒置出售';
+
+  @override
+  String get catSubAssetSecondhand => '二手交易';
+
+  @override
+  String get catSubAssetProfit => '資產收益';
+
+  @override
+  String get catSubTransferInBank => '銀行轉入';
+
+  @override
+  String get catSubTransferInWallet => '錢包轉入';
+
+  @override
+  String get catSubTransferInDebt => '債務回收';
+
+  @override
+  String get catSubIncomeOtherWindfall => '意外所得';
+
+  @override
+  String get catSubIncomeOtherSubsidy => '政府補貼';
+
+  @override
+  String get catSubIncomeOtherUncategorized => '未分類';
+
+  @override
+  String get catSubTransferBankIn => '銀行卡轉入';
+
+  @override
+  String get catSubTransferBankOut => '銀行卡轉出';
+
+  @override
+  String get catSubTransferWallet => '錢包互轉';
+
+  @override
+  String get catSubTransferCrossIn => '跨平台轉入';
+
+  @override
+  String get catSubTransferCrossOut => '跨平台轉出';
+
+  @override
+  String get catSubRepaymentCreditCard => '信用卡還款';
+
+  @override
+  String get catSubRepaymentLoan => '貸款還款';
+
+  @override
+  String get catSubRepaymentBorrowed => '借款歸還';
+
+  @override
+  String get catSubRepaymentLent => '借款借出';
+
+  @override
+  String get catSubOtherSocialGift => '隨禮份子錢';
+
+  @override
+  String get catSubOtherSocialWedding => '婚喪嫁娶';
+
+  @override
+  String get catSubOtherSocialBirthday => '生日聚會';
+
+  @override
+  String get catSubOtherSocialFestival => '節日紅包往來';
 
   @override
   String get weekMon => '一';

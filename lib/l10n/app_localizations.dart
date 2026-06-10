@@ -2184,6 +2184,1002 @@ abstract class AppLocalizations {
   /// **'人情往来'**
   String get catOtherSocial;
 
+  /// No description provided for @catSubFoodBreakfast.
+  ///
+  /// In zh, this message translates to:
+  /// **'早餐'**
+  String get catSubFoodBreakfast;
+
+  /// No description provided for @catSubFoodLunch.
+  ///
+  /// In zh, this message translates to:
+  /// **'午餐'**
+  String get catSubFoodLunch;
+
+  /// No description provided for @catSubFoodDinner.
+  ///
+  /// In zh, this message translates to:
+  /// **'晚餐'**
+  String get catSubFoodDinner;
+
+  /// No description provided for @catSubFoodLateSnack.
+  ///
+  /// In zh, this message translates to:
+  /// **'夜宵'**
+  String get catSubFoodLateSnack;
+
+  /// No description provided for @catSubFoodDelivery.
+  ///
+  /// In zh, this message translates to:
+  /// **'外卖'**
+  String get catSubFoodDelivery;
+
+  /// No description provided for @catSubFoodMilkTea.
+  ///
+  /// In zh, this message translates to:
+  /// **'奶茶'**
+  String get catSubFoodMilkTea;
+
+  /// No description provided for @catSubFoodCoffee.
+  ///
+  /// In zh, this message translates to:
+  /// **'咖啡'**
+  String get catSubFoodCoffee;
+
+  /// No description provided for @catSubFoodDrinks.
+  ///
+  /// In zh, this message translates to:
+  /// **'饮料'**
+  String get catSubFoodDrinks;
+
+  /// No description provided for @catSubFoodDessert.
+  ///
+  /// In zh, this message translates to:
+  /// **'甜点'**
+  String get catSubFoodDessert;
+
+  /// No description provided for @catSubFoodSnacks.
+  ///
+  /// In zh, this message translates to:
+  /// **'零食小吃'**
+  String get catSubFoodSnacks;
+
+  /// No description provided for @catSubFoodFruit.
+  ///
+  /// In zh, this message translates to:
+  /// **'水果'**
+  String get catSubFoodFruit;
+
+  /// No description provided for @catSubFoodGroceries.
+  ///
+  /// In zh, this message translates to:
+  /// **'买菜'**
+  String get catSubFoodGroceries;
+
+  /// No description provided for @catSubFoodDiningOut.
+  ///
+  /// In zh, this message translates to:
+  /// **'聚餐请客'**
+  String get catSubFoodDiningOut;
+
+  /// No description provided for @catSubTransportMetro.
+  ///
+  /// In zh, this message translates to:
+  /// **'地铁'**
+  String get catSubTransportMetro;
+
+  /// No description provided for @catSubTransportBus.
+  ///
+  /// In zh, this message translates to:
+  /// **'公交'**
+  String get catSubTransportBus;
+
+  /// No description provided for @catSubTransportTaxi.
+  ///
+  /// In zh, this message translates to:
+  /// **'打车'**
+  String get catSubTransportTaxi;
+
+  /// No description provided for @catSubTransportRideshare.
+  ///
+  /// In zh, this message translates to:
+  /// **'网约车'**
+  String get catSubTransportRideshare;
+
+  /// No description provided for @catSubTransportBikeShare.
+  ///
+  /// In zh, this message translates to:
+  /// **'共享单车'**
+  String get catSubTransportBikeShare;
+
+  /// No description provided for @catSubTransportHighSpeedRail.
+  ///
+  /// In zh, this message translates to:
+  /// **'高铁'**
+  String get catSubTransportHighSpeedRail;
+
+  /// No description provided for @catSubTransportTrain.
+  ///
+  /// In zh, this message translates to:
+  /// **'火车'**
+  String get catSubTransportTrain;
+
+  /// No description provided for @catSubTransportFlight.
+  ///
+  /// In zh, this message translates to:
+  /// **'飞机'**
+  String get catSubTransportFlight;
+
+  /// No description provided for @catSubTransportFuel.
+  ///
+  /// In zh, this message translates to:
+  /// **'加油'**
+  String get catSubTransportFuel;
+
+  /// No description provided for @catSubTransportCharging.
+  ///
+  /// In zh, this message translates to:
+  /// **'充电'**
+  String get catSubTransportCharging;
+
+  /// No description provided for @catSubTransportParking.
+  ///
+  /// In zh, this message translates to:
+  /// **'停车费'**
+  String get catSubTransportParking;
+
+  /// No description provided for @catSubTransportToll.
+  ///
+  /// In zh, this message translates to:
+  /// **'过路费'**
+  String get catSubTransportToll;
+
+  /// No description provided for @catSubTransportMaintenance.
+  ///
+  /// In zh, this message translates to:
+  /// **'车辆保养'**
+  String get catSubTransportMaintenance;
+
+  /// No description provided for @catSubTransportRepair.
+  ///
+  /// In zh, this message translates to:
+  /// **'车辆维修'**
+  String get catSubTransportRepair;
+
+  /// No description provided for @catSubTransportInsurance.
+  ///
+  /// In zh, this message translates to:
+  /// **'车险'**
+  String get catSubTransportInsurance;
+
+  /// No description provided for @catSubHousingRent.
+  ///
+  /// In zh, this message translates to:
+  /// **'房租'**
+  String get catSubHousingRent;
+
+  /// No description provided for @catSubHousingMortgage.
+  ///
+  /// In zh, this message translates to:
+  /// **'房贷'**
+  String get catSubHousingMortgage;
+
+  /// No description provided for @catSubHousingWater.
+  ///
+  /// In zh, this message translates to:
+  /// **'水费'**
+  String get catSubHousingWater;
+
+  /// No description provided for @catSubHousingElectricity.
+  ///
+  /// In zh, this message translates to:
+  /// **'电费'**
+  String get catSubHousingElectricity;
+
+  /// No description provided for @catSubHousingGas.
+  ///
+  /// In zh, this message translates to:
+  /// **'燃气费'**
+  String get catSubHousingGas;
+
+  /// No description provided for @catSubHousingPropertyFee.
+  ///
+  /// In zh, this message translates to:
+  /// **'物业费'**
+  String get catSubHousingPropertyFee;
+
+  /// No description provided for @catSubHousingInternet.
+  ///
+  /// In zh, this message translates to:
+  /// **'宽带网费'**
+  String get catSubHousingInternet;
+
+  /// No description provided for @catSubHousingPhone.
+  ///
+  /// In zh, this message translates to:
+  /// **'手机话费'**
+  String get catSubHousingPhone;
+
+  /// No description provided for @catSubHousingCleaning.
+  ///
+  /// In zh, this message translates to:
+  /// **'家政保洁'**
+  String get catSubHousingCleaning;
+
+  /// No description provided for @catSubHousingRepair.
+  ///
+  /// In zh, this message translates to:
+  /// **'房屋维修'**
+  String get catSubHousingRepair;
+
+  /// No description provided for @catSubClothingApparel.
+  ///
+  /// In zh, this message translates to:
+  /// **'衣物'**
+  String get catSubClothingApparel;
+
+  /// No description provided for @catSubClothingShoes.
+  ///
+  /// In zh, this message translates to:
+  /// **'鞋子'**
+  String get catSubClothingShoes;
+
+  /// No description provided for @catSubClothingHats.
+  ///
+  /// In zh, this message translates to:
+  /// **'帽子'**
+  String get catSubClothingHats;
+
+  /// No description provided for @catSubClothingBags.
+  ///
+  /// In zh, this message translates to:
+  /// **'包包'**
+  String get catSubClothingBags;
+
+  /// No description provided for @catSubClothingCosmetics.
+  ///
+  /// In zh, this message translates to:
+  /// **'化妆品'**
+  String get catSubClothingCosmetics;
+
+  /// No description provided for @catSubClothingSkincare.
+  ///
+  /// In zh, this message translates to:
+  /// **'护肤品'**
+  String get catSubClothingSkincare;
+
+  /// No description provided for @catSubClothingHaircut.
+  ///
+  /// In zh, this message translates to:
+  /// **'理发'**
+  String get catSubClothingHaircut;
+
+  /// No description provided for @catSubClothingManicure.
+  ///
+  /// In zh, this message translates to:
+  /// **'美甲'**
+  String get catSubClothingManicure;
+
+  /// No description provided for @catSubClothingJewelry.
+  ///
+  /// In zh, this message translates to:
+  /// **'饰品'**
+  String get catSubClothingJewelry;
+
+  /// No description provided for @catSubClothingAccessories.
+  ///
+  /// In zh, this message translates to:
+  /// **'配件'**
+  String get catSubClothingAccessories;
+
+  /// No description provided for @catSubDailyNecessities.
+  ///
+  /// In zh, this message translates to:
+  /// **'日用品'**
+  String get catSubDailyNecessities;
+
+  /// No description provided for @catSubDailyCleaning.
+  ///
+  /// In zh, this message translates to:
+  /// **'清洁用品'**
+  String get catSubDailyCleaning;
+
+  /// No description provided for @catSubDailyKitchen.
+  ///
+  /// In zh, this message translates to:
+  /// **'厨房用品'**
+  String get catSubDailyKitchen;
+
+  /// No description provided for @catSubDailyDecor.
+  ///
+  /// In zh, this message translates to:
+  /// **'家居装饰'**
+  String get catSubDailyDecor;
+
+  /// No description provided for @catSubDailyStorage.
+  ///
+  /// In zh, this message translates to:
+  /// **'收纳用品'**
+  String get catSubDailyStorage;
+
+  /// No description provided for @catSubDailyBedding.
+  ///
+  /// In zh, this message translates to:
+  /// **'床上用品'**
+  String get catSubDailyBedding;
+
+  /// No description provided for @catSubDailyTissue.
+  ///
+  /// In zh, this message translates to:
+  /// **'纸品'**
+  String get catSubDailyTissue;
+
+  /// No description provided for @catSubTechPhone.
+  ///
+  /// In zh, this message translates to:
+  /// **'手机'**
+  String get catSubTechPhone;
+
+  /// No description provided for @catSubTechComputer.
+  ///
+  /// In zh, this message translates to:
+  /// **'电脑'**
+  String get catSubTechComputer;
+
+  /// No description provided for @catSubTechAccessories.
+  ///
+  /// In zh, this message translates to:
+  /// **'配件'**
+  String get catSubTechAccessories;
+
+  /// No description provided for @catSubTechConsumables.
+  ///
+  /// In zh, this message translates to:
+  /// **'耗材'**
+  String get catSubTechConsumables;
+
+  /// No description provided for @catSubTechStorage.
+  ///
+  /// In zh, this message translates to:
+  /// **'存储设备'**
+  String get catSubTechStorage;
+
+  /// No description provided for @catSubMedicalRegistration.
+  ///
+  /// In zh, this message translates to:
+  /// **'门诊挂号'**
+  String get catSubMedicalRegistration;
+
+  /// No description provided for @catSubMedicalMedicine.
+  ///
+  /// In zh, this message translates to:
+  /// **'药品'**
+  String get catSubMedicalMedicine;
+
+  /// No description provided for @catSubMedicalHospitalization.
+  ///
+  /// In zh, this message translates to:
+  /// **'住院'**
+  String get catSubMedicalHospitalization;
+
+  /// No description provided for @catSubMedicalCheckup.
+  ///
+  /// In zh, this message translates to:
+  /// **'体检'**
+  String get catSubMedicalCheckup;
+
+  /// No description provided for @catSubMedicalDental.
+  ///
+  /// In zh, this message translates to:
+  /// **'口腔'**
+  String get catSubMedicalDental;
+
+  /// No description provided for @catSubMedicalEyeCare.
+  ///
+  /// In zh, this message translates to:
+  /// **'眼科'**
+  String get catSubMedicalEyeCare;
+
+  /// No description provided for @catSubMedicalVaccine.
+  ///
+  /// In zh, this message translates to:
+  /// **'疫苗'**
+  String get catSubMedicalVaccine;
+
+  /// No description provided for @catSubMedicalWellness.
+  ///
+  /// In zh, this message translates to:
+  /// **'保健养生'**
+  String get catSubMedicalWellness;
+
+  /// No description provided for @catSubMedicalFitness.
+  ///
+  /// In zh, this message translates to:
+  /// **'健身运动'**
+  String get catSubMedicalFitness;
+
+  /// No description provided for @catSubEducationBooks.
+  ///
+  /// In zh, this message translates to:
+  /// **'书籍'**
+  String get catSubEducationBooks;
+
+  /// No description provided for @catSubEducationTuition.
+  ///
+  /// In zh, this message translates to:
+  /// **'学费'**
+  String get catSubEducationTuition;
+
+  /// No description provided for @catSubEducationTraining.
+  ///
+  /// In zh, this message translates to:
+  /// **'培训费'**
+  String get catSubEducationTraining;
+
+  /// No description provided for @catSubEducationExam.
+  ///
+  /// In zh, this message translates to:
+  /// **'考试费'**
+  String get catSubEducationExam;
+
+  /// No description provided for @catSubEducationOnlineCourse.
+  ///
+  /// In zh, this message translates to:
+  /// **'在线课程'**
+  String get catSubEducationOnlineCourse;
+
+  /// No description provided for @catSubEducationStationery.
+  ///
+  /// In zh, this message translates to:
+  /// **'文具用品'**
+  String get catSubEducationStationery;
+
+  /// No description provided for @catSubEntertainmentMovies.
+  ///
+  /// In zh, this message translates to:
+  /// **'电影'**
+  String get catSubEntertainmentMovies;
+
+  /// No description provided for @catSubEntertainmentKtv.
+  ///
+  /// In zh, this message translates to:
+  /// **'KTV'**
+  String get catSubEntertainmentKtv;
+
+  /// No description provided for @catSubEntertainmentGaming.
+  ///
+  /// In zh, this message translates to:
+  /// **'游戏充值'**
+  String get catSubEntertainmentGaming;
+
+  /// No description provided for @catSubEntertainmentSubscription.
+  ///
+  /// In zh, this message translates to:
+  /// **'会员订阅'**
+  String get catSubEntertainmentSubscription;
+
+  /// No description provided for @catSubEntertainmentTickets.
+  ///
+  /// In zh, this message translates to:
+  /// **'景点门票'**
+  String get catSubEntertainmentTickets;
+
+  /// No description provided for @catSubEntertainmentHotel.
+  ///
+  /// In zh, this message translates to:
+  /// **'酒店住宿'**
+  String get catSubEntertainmentHotel;
+
+  /// No description provided for @catSubEntertainmentTravel.
+  ///
+  /// In zh, this message translates to:
+  /// **'旅游'**
+  String get catSubEntertainmentTravel;
+
+  /// No description provided for @catSubEntertainmentShow.
+  ///
+  /// In zh, this message translates to:
+  /// **'演出'**
+  String get catSubEntertainmentShow;
+
+  /// No description provided for @catSubEntertainmentStreaming.
+  ///
+  /// In zh, this message translates to:
+  /// **'流媒体'**
+  String get catSubEntertainmentStreaming;
+
+  /// No description provided for @catSubSocialGift.
+  ///
+  /// In zh, this message translates to:
+  /// **'礼物'**
+  String get catSubSocialGift;
+
+  /// No description provided for @catSubSocialRedPacket.
+  ///
+  /// In zh, this message translates to:
+  /// **'红包'**
+  String get catSubSocialRedPacket;
+
+  /// No description provided for @catSubSocialWeddingGift.
+  ///
+  /// In zh, this message translates to:
+  /// **'份子钱'**
+  String get catSubSocialWeddingGift;
+
+  /// No description provided for @catSubSocialTreat.
+  ///
+  /// In zh, this message translates to:
+  /// **'请客'**
+  String get catSubSocialTreat;
+
+  /// No description provided for @catSubSocialBirthday.
+  ///
+  /// In zh, this message translates to:
+  /// **'生日聚会'**
+  String get catSubSocialBirthday;
+
+  /// No description provided for @catSubSocialVisit.
+  ///
+  /// In zh, this message translates to:
+  /// **'探望慰问'**
+  String get catSubSocialVisit;
+
+  /// No description provided for @catSubSocialRespect.
+  ///
+  /// In zh, this message translates to:
+  /// **'孝敬长辈'**
+  String get catSubSocialRespect;
+
+  /// No description provided for @catSubSocialCharity.
+  ///
+  /// In zh, this message translates to:
+  /// **'慈善捐助'**
+  String get catSubSocialCharity;
+
+  /// No description provided for @catSubChildrenFormula.
+  ///
+  /// In zh, this message translates to:
+  /// **'奶粉辅食'**
+  String get catSubChildrenFormula;
+
+  /// No description provided for @catSubChildrenDiapers.
+  ///
+  /// In zh, this message translates to:
+  /// **'尿布用品'**
+  String get catSubChildrenDiapers;
+
+  /// No description provided for @catSubChildrenTuition.
+  ///
+  /// In zh, this message translates to:
+  /// **'学费'**
+  String get catSubChildrenTuition;
+
+  /// No description provided for @catSubChildrenHobby.
+  ///
+  /// In zh, this message translates to:
+  /// **'兴趣班'**
+  String get catSubChildrenHobby;
+
+  /// No description provided for @catSubChildrenTutoring.
+  ///
+  /// In zh, this message translates to:
+  /// **'辅导班'**
+  String get catSubChildrenTutoring;
+
+  /// No description provided for @catSubChildrenDaycare.
+  ///
+  /// In zh, this message translates to:
+  /// **'午托晚托'**
+  String get catSubChildrenDaycare;
+
+  /// No description provided for @catSubChildrenToys.
+  ///
+  /// In zh, this message translates to:
+  /// **'玩具'**
+  String get catSubChildrenToys;
+
+  /// No description provided for @catSubElderlySupport.
+  ///
+  /// In zh, this message translates to:
+  /// **'赡养费'**
+  String get catSubElderlySupport;
+
+  /// No description provided for @catSubElderlyNutrition.
+  ///
+  /// In zh, this message translates to:
+  /// **'营养品'**
+  String get catSubElderlyNutrition;
+
+  /// No description provided for @catSubElderlyMedical.
+  ///
+  /// In zh, this message translates to:
+  /// **'医疗费'**
+  String get catSubElderlyMedical;
+
+  /// No description provided for @catSubElderlyAllowance.
+  ///
+  /// In zh, this message translates to:
+  /// **'孝敬金'**
+  String get catSubElderlyAllowance;
+
+  /// No description provided for @catSubPetFood.
+  ///
+  /// In zh, this message translates to:
+  /// **'宠物食品'**
+  String get catSubPetFood;
+
+  /// No description provided for @catSubPetMedical.
+  ///
+  /// In zh, this message translates to:
+  /// **'宠物医疗'**
+  String get catSubPetMedical;
+
+  /// No description provided for @catSubPetSupplies.
+  ///
+  /// In zh, this message translates to:
+  /// **'宠物用品'**
+  String get catSubPetSupplies;
+
+  /// No description provided for @catSubPetGrooming.
+  ///
+  /// In zh, this message translates to:
+  /// **'宠物美容'**
+  String get catSubPetGrooming;
+
+  /// No description provided for @catSubWorkOffice.
+  ///
+  /// In zh, this message translates to:
+  /// **'办公用品'**
+  String get catSubWorkOffice;
+
+  /// No description provided for @catSubWorkPrinting.
+  ///
+  /// In zh, this message translates to:
+  /// **'打印复印'**
+  String get catSubWorkPrinting;
+
+  /// No description provided for @catSubWorkShipping.
+  ///
+  /// In zh, this message translates to:
+  /// **'快递物流'**
+  String get catSubWorkShipping;
+
+  /// No description provided for @catSubWorkTravel.
+  ///
+  /// In zh, this message translates to:
+  /// **'差旅费'**
+  String get catSubWorkTravel;
+
+  /// No description provided for @catSubFinanceInsurance.
+  ///
+  /// In zh, this message translates to:
+  /// **'保险费用'**
+  String get catSubFinanceInsurance;
+
+  /// No description provided for @catSubFinanceLoss.
+  ///
+  /// In zh, this message translates to:
+  /// **'理财亏损'**
+  String get catSubFinanceLoss;
+
+  /// No description provided for @catSubFinanceFee.
+  ///
+  /// In zh, this message translates to:
+  /// **'手续费'**
+  String get catSubFinanceFee;
+
+  /// No description provided for @catSubFinanceLoanInterest.
+  ///
+  /// In zh, this message translates to:
+  /// **'贷款利息'**
+  String get catSubFinanceLoanInterest;
+
+  /// No description provided for @catSubFinanceTax.
+  ///
+  /// In zh, this message translates to:
+  /// **'税费'**
+  String get catSubFinanceTax;
+
+  /// No description provided for @catSubFinanceFine.
+  ///
+  /// In zh, this message translates to:
+  /// **'罚款'**
+  String get catSubFinanceFine;
+
+  /// No description provided for @catSubOtherExpenseGeneral.
+  ///
+  /// In zh, this message translates to:
+  /// **'其他消费'**
+  String get catSubOtherExpenseGeneral;
+
+  /// No description provided for @catSubOtherExpenseUnexpected.
+  ///
+  /// In zh, this message translates to:
+  /// **'意外支出'**
+  String get catSubOtherExpenseUnexpected;
+
+  /// No description provided for @catSubSalaryBase.
+  ///
+  /// In zh, this message translates to:
+  /// **'基本工资'**
+  String get catSubSalaryBase;
+
+  /// No description provided for @catSubSalaryBonus.
+  ///
+  /// In zh, this message translates to:
+  /// **'绩效奖金'**
+  String get catSubSalaryBonus;
+
+  /// No description provided for @catSubSalaryOvertime.
+  ///
+  /// In zh, this message translates to:
+  /// **'加班费'**
+  String get catSubSalaryOvertime;
+
+  /// No description provided for @catSubSalaryYearEnd.
+  ///
+  /// In zh, this message translates to:
+  /// **'年终奖'**
+  String get catSubSalaryYearEnd;
+
+  /// No description provided for @catSubSalaryBackPay.
+  ///
+  /// In zh, this message translates to:
+  /// **'调薪补发'**
+  String get catSubSalaryBackPay;
+
+  /// No description provided for @catSubSalaryAllowance.
+  ///
+  /// In zh, this message translates to:
+  /// **'津贴补贴'**
+  String get catSubSalaryAllowance;
+
+  /// No description provided for @catSubInvestmentFund.
+  ///
+  /// In zh, this message translates to:
+  /// **'基金收益'**
+  String get catSubInvestmentFund;
+
+  /// No description provided for @catSubInvestmentStock.
+  ///
+  /// In zh, this message translates to:
+  /// **'股票收益'**
+  String get catSubInvestmentStock;
+
+  /// No description provided for @catSubInvestmentInterest.
+  ///
+  /// In zh, this message translates to:
+  /// **'利息收入'**
+  String get catSubInvestmentInterest;
+
+  /// No description provided for @catSubInvestmentWealthMgmt.
+  ///
+  /// In zh, this message translates to:
+  /// **'理财产品'**
+  String get catSubInvestmentWealthMgmt;
+
+  /// No description provided for @catSubInvestmentCrypto.
+  ///
+  /// In zh, this message translates to:
+  /// **'数字货币'**
+  String get catSubInvestmentCrypto;
+
+  /// No description provided for @catSubInvestmentDividend.
+  ///
+  /// In zh, this message translates to:
+  /// **'分红'**
+  String get catSubInvestmentDividend;
+
+  /// No description provided for @catSubSideJobPartTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'兼职收入'**
+  String get catSubSideJobPartTime;
+
+  /// No description provided for @catSubSideJobFreelance.
+  ///
+  /// In zh, this message translates to:
+  /// **'自由职业'**
+  String get catSubSideJobFreelance;
+
+  /// No description provided for @catSubSideJobRoyalty.
+  ///
+  /// In zh, this message translates to:
+  /// **'稿费版权'**
+  String get catSubSideJobRoyalty;
+
+  /// No description provided for @catSubSideJobCommission.
+  ///
+  /// In zh, this message translates to:
+  /// **'佣金提成'**
+  String get catSubSideJobCommission;
+
+  /// No description provided for @catSubSideJobSales.
+  ///
+  /// In zh, this message translates to:
+  /// **'销售收入'**
+  String get catSubSideJobSales;
+
+  /// No description provided for @catSubGiftRedPacket.
+  ///
+  /// In zh, this message translates to:
+  /// **'红包收入'**
+  String get catSubGiftRedPacket;
+
+  /// No description provided for @catSubGiftPresent.
+  ///
+  /// In zh, this message translates to:
+  /// **'礼金馈赠'**
+  String get catSubGiftPresent;
+
+  /// No description provided for @catSubGiftFestival.
+  ///
+  /// In zh, this message translates to:
+  /// **'节日红包'**
+  String get catSubGiftFestival;
+
+  /// No description provided for @catSubRefundReimbursement.
+  ///
+  /// In zh, this message translates to:
+  /// **'报销到账'**
+  String get catSubRefundReimbursement;
+
+  /// No description provided for @catSubRefundReturn.
+  ///
+  /// In zh, this message translates to:
+  /// **'退款收入'**
+  String get catSubRefundReturn;
+
+  /// No description provided for @catSubRefundMedical.
+  ///
+  /// In zh, this message translates to:
+  /// **'医保报销'**
+  String get catSubRefundMedical;
+
+  /// No description provided for @catSubRefundInsurance.
+  ///
+  /// In zh, this message translates to:
+  /// **'保险理赔'**
+  String get catSubRefundInsurance;
+
+  /// No description provided for @catSubAssetRent.
+  ///
+  /// In zh, this message translates to:
+  /// **'房租收入'**
+  String get catSubAssetRent;
+
+  /// No description provided for @catSubAssetIdleSale.
+  ///
+  /// In zh, this message translates to:
+  /// **'闲置出售'**
+  String get catSubAssetIdleSale;
+
+  /// No description provided for @catSubAssetSecondhand.
+  ///
+  /// In zh, this message translates to:
+  /// **'二手交易'**
+  String get catSubAssetSecondhand;
+
+  /// No description provided for @catSubAssetProfit.
+  ///
+  /// In zh, this message translates to:
+  /// **'资产收益'**
+  String get catSubAssetProfit;
+
+  /// No description provided for @catSubTransferInBank.
+  ///
+  /// In zh, this message translates to:
+  /// **'银行转入'**
+  String get catSubTransferInBank;
+
+  /// No description provided for @catSubTransferInWallet.
+  ///
+  /// In zh, this message translates to:
+  /// **'钱包转入'**
+  String get catSubTransferInWallet;
+
+  /// No description provided for @catSubTransferInDebt.
+  ///
+  /// In zh, this message translates to:
+  /// **'债务回收'**
+  String get catSubTransferInDebt;
+
+  /// No description provided for @catSubIncomeOtherWindfall.
+  ///
+  /// In zh, this message translates to:
+  /// **'意外所得'**
+  String get catSubIncomeOtherWindfall;
+
+  /// No description provided for @catSubIncomeOtherSubsidy.
+  ///
+  /// In zh, this message translates to:
+  /// **'政府补贴'**
+  String get catSubIncomeOtherSubsidy;
+
+  /// No description provided for @catSubIncomeOtherUncategorized.
+  ///
+  /// In zh, this message translates to:
+  /// **'未分类'**
+  String get catSubIncomeOtherUncategorized;
+
+  /// No description provided for @catSubTransferBankIn.
+  ///
+  /// In zh, this message translates to:
+  /// **'银行卡转入'**
+  String get catSubTransferBankIn;
+
+  /// No description provided for @catSubTransferBankOut.
+  ///
+  /// In zh, this message translates to:
+  /// **'银行卡转出'**
+  String get catSubTransferBankOut;
+
+  /// No description provided for @catSubTransferWallet.
+  ///
+  /// In zh, this message translates to:
+  /// **'钱包互转'**
+  String get catSubTransferWallet;
+
+  /// No description provided for @catSubTransferCrossIn.
+  ///
+  /// In zh, this message translates to:
+  /// **'跨平台转入'**
+  String get catSubTransferCrossIn;
+
+  /// No description provided for @catSubTransferCrossOut.
+  ///
+  /// In zh, this message translates to:
+  /// **'跨平台转出'**
+  String get catSubTransferCrossOut;
+
+  /// No description provided for @catSubRepaymentCreditCard.
+  ///
+  /// In zh, this message translates to:
+  /// **'信用卡还款'**
+  String get catSubRepaymentCreditCard;
+
+  /// No description provided for @catSubRepaymentLoan.
+  ///
+  /// In zh, this message translates to:
+  /// **'贷款还款'**
+  String get catSubRepaymentLoan;
+
+  /// No description provided for @catSubRepaymentBorrowed.
+  ///
+  /// In zh, this message translates to:
+  /// **'借款归还'**
+  String get catSubRepaymentBorrowed;
+
+  /// No description provided for @catSubRepaymentLent.
+  ///
+  /// In zh, this message translates to:
+  /// **'借款借出'**
+  String get catSubRepaymentLent;
+
+  /// No description provided for @catSubOtherSocialGift.
+  ///
+  /// In zh, this message translates to:
+  /// **'随礼份子钱'**
+  String get catSubOtherSocialGift;
+
+  /// No description provided for @catSubOtherSocialWedding.
+  ///
+  /// In zh, this message translates to:
+  /// **'婚丧嫁娶'**
+  String get catSubOtherSocialWedding;
+
+  /// No description provided for @catSubOtherSocialBirthday.
+  ///
+  /// In zh, this message translates to:
+  /// **'生日聚会'**
+  String get catSubOtherSocialBirthday;
+
+  /// No description provided for @catSubOtherSocialFestival.
+  ///
+  /// In zh, this message translates to:
+  /// **'节日红包往来'**
+  String get catSubOtherSocialFestival;
+
   /// No description provided for @weekMon.
   ///
   /// In zh, this message translates to:
