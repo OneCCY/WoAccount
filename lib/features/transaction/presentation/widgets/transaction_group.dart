@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
+import '../../../../core/locale/category_l10n.dart';
 import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
@@ -212,7 +213,7 @@ class _TransactionItemState extends State<_TransactionItem>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final categoryName = widget.category?.name;
+    final categoryName = widget.category != null ? getCategoryDisplayName(widget.category!, l10n) : null;
     final categoryKey = widget.category?.l10nKey;
     final (icon, bgColor) = _getCategoryStyle(categoryKey);
     final isExpense = widget.category?.isExpense ?? true;
@@ -220,7 +221,7 @@ class _TransactionItemState extends State<_TransactionItem>
     final screenWidth = MediaQuery.of(context).size.width;
 
     // 二级分类
-    final subName = widget.subcategory?.name ?? l10n.txnGroupNoSubcategory;
+    final subName = widget.subcategory != null ? getCategoryDisplayName(widget.subcategory!, l10n) : l10n.txnGroupNoSubcategory;
 
     return GestureDetector(
       onHorizontalDragStart: _handleDragStart,

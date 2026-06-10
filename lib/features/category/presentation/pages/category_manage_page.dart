@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' hide Column;
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
+import '../../../../core/locale/category_l10n.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -39,7 +40,7 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: AppBar(
-        title: Text(_selectedParent != null ? l10n.catManageSubTitle(_selectedParent!.name) : l10n.catManageTitle),
+        title: Text(_selectedParent != null ? l10n.catManageSubTitle(getCategoryDisplayName(_selectedParent!, l10n)) : l10n.catManageTitle),
         leading: _selectedParent != null
             ? IconButton(
                 icon: const Icon(Icons.arrow_back),
@@ -362,8 +363,8 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
       builder: (ctx) => AlertDialog(
         title: Text(l10n.catManageDeleteTitle),
         content: Text(cat.level == 1
-            ? l10n.catManageDeleteWithChildren(cat.name)
-            : l10n.catManageDeleteConfirm(cat.name)),
+            ? l10n.catManageDeleteWithChildren(getCategoryDisplayName(cat, l10n))
+            : l10n.catManageDeleteConfirm(getCategoryDisplayName(cat, l10n))),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
@@ -475,7 +476,7 @@ class _CategoryGridItem extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            category.name,
+            getCategoryDisplayName(category, AppLocalizations.of(context)!),
             style: context.textStyles.caption,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -518,7 +519,7 @@ class _SubCategoryListItem extends StatelessWidget {
           Text(category.icon ?? '📦', style: const TextStyle(fontSize: 20)),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(category.name, style: context.textStyles.body),
+            child: Text(getCategoryDisplayName(category, AppLocalizations.of(context)!), style: context.textStyles.body),
           ),
           if (!category.isSystem)
             Container(

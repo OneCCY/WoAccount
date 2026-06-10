@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' hide Column;
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
+import '../../../../core/locale/category_l10n.dart';
 import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
@@ -294,7 +295,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
       child: Row(
         children: [
           Text(
-            '$parentName${category.name}',
+            '$parentName${getCategoryDisplayName(category, AppLocalizations.of(context)!)}',
             style: context.textStyles.footnote.copyWith(color: context.colors.primaryDark),
           ),
           const Spacer(),
@@ -580,7 +581,7 @@ class _CategoryItem extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            category.name,
+            getCategoryDisplayName(category, AppLocalizations.of(context)!),
             style: context.textStyles.caption,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,

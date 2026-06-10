@@ -328,6 +328,7 @@ class AppDatabase extends _$AppDatabase {
           isSystem: const Value(true),
           isExpense: Value(child.isExpense),
           sortOrder: Value(child.sortOrder),
+          l10nKey: Value(child.l10nKey),
         ));
       }
     }

@@ -94,6 +94,7 @@ class ReportRepositoryImpl implements ReportRepository {
       results.add(CategoryStat(
         categoryId: catId,
         categoryName: cat?.name ?? (uncategorizedLabel ?? '未分类'),
+        categoryL10nKey: cat?.l10nKey,
         categoryIcon: cat?.icon,
         categoryColor: cat?.color,
         amount: amount,

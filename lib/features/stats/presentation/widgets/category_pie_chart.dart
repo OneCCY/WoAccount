@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
+import '../../../../core/locale/category_l10n.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/repositories/report_repository.dart';
 
@@ -152,7 +153,7 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  '${stat.categoryIcon ?? ''} ${stat.categoryName}',
+                  '${stat.categoryIcon ?? ''} ${getCategoryName(stat.categoryL10nKey, stat.categoryName, AppLocalizations.of(context)!)}',
                   style: const TextStyle(fontSize: 12),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

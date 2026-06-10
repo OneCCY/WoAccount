@@ -35,6 +35,7 @@ class ReportSummary {
 class CategoryStat {
   final int categoryId;
   final String categoryName;
+  final String? categoryL10nKey;
   final String? categoryIcon;
   final String? categoryColor;
   final double amount;
@@ -44,6 +45,7 @@ class CategoryStat {
   const CategoryStat({
     required this.categoryId,
     required this.categoryName,
+    this.categoryL10nKey,
     this.categoryIcon,
     this.categoryColor,
     required this.amount,

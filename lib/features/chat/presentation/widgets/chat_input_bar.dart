@@ -61,9 +61,25 @@ class _ChatInputBarState extends State<ChatInputBar> {
   Future<void> _onVoiceStart(LongPressStartDetails details) async {
     HapticFeedback.heavyImpact();
 
-    // 检查录音权限
-    if (!await _audioRecorder.hasPermission()) {
+    // 先设置录音状态（给用户视觉反馈）
+    setState(() {
+      _isRecording = true;
+      _isCancelled = false;
+      _dragOffset = Offset.zero;
+    });
+
+    // 检查录音权限（带超时，防止 hasPermission 挂起）
+    bool hasPermission = false;
+    try {
+      hasPermission = await _audioRecorder.hasPermission()
+          .timeout(const Duration(seconds: 3), onTimeout: () => false);
+    } catch (_) {
+      hasPermission = false;
+    }
+
+    if (!hasPermission) {
       if (mounted) {
+        setState(() => _isRecording = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(AppLocalizations.of(context)!.chatInputMicPermission), behavior: SnackBarBehavior.floating),
         );
@@ -71,23 +87,26 @@ class _ChatInputBarState extends State<ChatInputBar> {
       return;
     }
 
-    setState(() {
-      _isRecording = true;
-      _isCancelled = false;
-      _dragOffset = Offset.zero;
-    });
-
     _recordStartTime = DateTime.now();
 
     // 开始录音
-    await _audioRecorder.start(
-      const RecordConfig(
-        encoder: AudioEncoder.aacLc,
-        bitRate: 128000,
-        sampleRate: 44100,
-      ),
-      path: '', // 空路径让 record 自动选择临时路径
-    );
+    try {
+      await _audioRecorder.start(
+        const RecordConfig(
+          encoder: AudioEncoder.aacLc,
+          bitRate: 128000,
+          sampleRate: 44100,
+        ),
+        path: '', // 空路径让 record 自动选择临时路径
+      );
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isRecording = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.chatInputMicPermission), behavior: SnackBarBehavior.floating),
+        );
+      }
+    }
   }
 
   void _onVoiceUpdate(LongPressMoveUpdateDetails details) {
@@ -249,6 +268,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
 
   Widget _buildRecordButton() {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: widget.onManualEntry,
       onLongPressStart: _onVoiceStart,
       onLongPressMoveUpdate: _onVoiceUpdate,

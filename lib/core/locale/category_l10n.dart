@@ -12,6 +12,15 @@ String getCategoryDisplayName(Category category, AppLocalizations l10n) {
   return _l10nMap[key]?.call(l10n) ?? category.name;
 }
 
+/// Returns the localized display name from an [l10nKey] and [fallbackName].
+///
+/// Use this variant when you don't have a full [Category] object
+/// (e.g. from [CategoryStat]).
+String getCategoryName(String? l10nKey, String fallbackName, AppLocalizations l10n) {
+  if (l10nKey == null) return fallbackName;
+  return _l10nMap[l10nKey]?.call(l10n) ?? fallbackName;
+}
+
 final Map<String, String Function(AppLocalizations)> _l10nMap = {
   // Expense
   'catExpenseFood': (l) => l.catExpenseFood,

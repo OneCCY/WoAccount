@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
+import '../../../../core/locale/category_l10n.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -162,7 +163,7 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        allCategories.firstWhere((c) => c.id == _expandedParentId, orElse: () => _filterTopLevel(allCategories).first).name,
+                        getCategoryDisplayName(allCategories.firstWhere((c) => c.id == _expandedParentId, orElse: () => _filterTopLevel(allCategories).first), AppLocalizations.of(context)!),
                         style: context.textStyles.footnote.copyWith(fontWeight: FontWeight.w600),
                       ),
                     ],
@@ -245,7 +246,7 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
         final hasChildren = children.isNotEmpty;
         return _CategoryTile(
           icon: cat.icon ?? '📦',
-          name: cat.name,
+          name: getCategoryDisplayName(cat, AppLocalizations.of(context)!),
           color: _parseColor(cat.color),
           isSelected: isSelected,
           hasChildren: hasChildren,
@@ -280,7 +281,7 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
         final isSelected = _selectedId == cat.id;
         return _CategoryTile(
           icon: cat.icon ?? '📦',
-          name: cat.name,
+          name: getCategoryDisplayName(cat, AppLocalizations.of(context)!),
           color: _parseColor(cat.color),
           isSelected: isSelected,
           onTap: () => Navigator.of(context).pop(cat),

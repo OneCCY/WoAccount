@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
+import '../../../../core/locale/category_l10n.dart';
 import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -85,7 +86,7 @@ class CategoryRankingList extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(stat.categoryName, style: AppTextStyles.body),
+                    Text(getCategoryName(stat.categoryL10nKey, stat.categoryName, AppLocalizations.of(context)!), style: AppTextStyles.body),
                     Text(
                       context.localeProvider.currency.formatAbbreviated(stat.amount),
                       style: AppTextStyles.amountSmall.copyWith(
