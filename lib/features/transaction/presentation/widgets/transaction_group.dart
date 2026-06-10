@@ -213,7 +213,8 @@ class _TransactionItemState extends State<_TransactionItem>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final categoryName = widget.category?.name;
-    final (icon, bgColor) = _getCategoryStyle(categoryName);
+    final categoryKey = widget.category?.l10nKey;
+    final (icon, bgColor) = _getCategoryStyle(categoryKey);
     final isExpense = widget.category?.isExpense ?? true;
     final amountColor = isExpense ? context.colors.expense : context.colors.income;
     final screenWidth = MediaQuery.of(context).size.width;
@@ -321,23 +322,23 @@ class _TransactionItemState extends State<_TransactionItem>
     );
   }
 
-  (IconData, Color) _getCategoryStyle(String? categoryName) {
-    switch (categoryName) {
-      case '餐饮美食':
+  (IconData, Color) _getCategoryStyle(String? l10nKey) {
+    switch (l10nKey) {
+      case 'catExpenseFood':
         return (Icons.restaurant, context.colors.categoryFoodBg);
-      case '交通出行':
+      case 'catExpenseTransport':
         return (Icons.directions_car, context.colors.categoryTransportBg);
-      case '日用百货':
+      case 'catExpenseDaily':
         return (Icons.shopping_bag, context.colors.categoryShoppingBg);
-      case '居住':
+      case 'catExpenseHousing':
         return (Icons.home, context.colors.categoryHousingBg);
-      case '休闲娱乐':
+      case 'catExpenseEntertainment':
         return (Icons.sports_esports, context.colors.categoryEntertainmentBg);
-      case '教育学习':
+      case 'catExpenseEducation':
         return (Icons.school, context.colors.categoryEducationBg);
-      case '医疗健康':
+      case 'catExpenseMedical':
         return (Icons.local_hospital, context.colors.categoryMedicalBg);
-      case '社交人情':
+      case 'catExpenseSocial':
         return (Icons.people, context.colors.categorySocialBg);
       default:
         return (Icons.more_horiz, context.colors.categoryOtherBg);

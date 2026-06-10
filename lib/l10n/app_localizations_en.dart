@@ -42,6 +42,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonDelete => 'Delete';
 
   @override
+  String get commonEdit => 'Edit';
+
+  @override
   String get chatPageTitle => 'AI Bookkeeping';
 
   @override
@@ -1435,4 +1438,211 @@ class AppLocalizationsEn extends AppLocalizations {
   String reportTrendDay(String period) {
     return '$period';
   }
+
+  @override
+  String get llmSettingsTitle => 'AI Service Config';
+
+  @override
+  String get llmExportConfig => 'Export Config';
+
+  @override
+  String get llmImportConfig => 'Import Config';
+
+  @override
+  String get llmProviderManagement => 'Provider Management';
+
+  @override
+  String get llmAddProvider => 'Add Provider';
+
+  @override
+  String get llmEditProvider => 'Edit Provider';
+
+  @override
+  String get llmDeleteProvider => 'Delete Provider';
+
+  @override
+  String llmDeleteProviderConfirm(String name) {
+    return 'Delete \"$name\"?';
+  }
+
+  @override
+  String get llmNotConfigured => 'Not configured';
+
+  @override
+  String get llmConfigured => 'Configured';
+
+  @override
+  String get llmNoProviders => 'No providers added yet';
+
+  @override
+  String get llmUnnamedProvider => 'Unnamed provider';
+
+  @override
+  String get llmInUse => 'In use';
+
+  @override
+  String get llmIncomplete => 'Incomplete';
+
+  @override
+  String get llmTest => 'Test';
+
+  @override
+  String get llmConfigIncomplete =>
+      'Please complete the configuration first (API Key, URL, and at least one model required)';
+
+  @override
+  String get llmConnectSuccess => '✅ Connection successful';
+
+  @override
+  String get llmConnectFail =>
+      '❌ Connection failed, please check URL, Key and model name';
+
+  @override
+  String get llmConfigCopied => 'Config copied to clipboard';
+
+  @override
+  String get llmClipboardEmpty => 'Clipboard is empty';
+
+  @override
+  String llmImported(String count) {
+    return 'Imported $count provider(s)';
+  }
+
+  @override
+  String get llmImportFailed => 'Import failed, please check JSON format';
+
+  @override
+  String get llmProviderNotConfigured =>
+      'This provider has no API Key or URL configured, please edit first';
+
+  @override
+  String llmModelsFetched(String count, String label) {
+    return 'Fetched $count $label';
+  }
+
+  @override
+  String llmModelsFetchedAll(String count) {
+    return 'Fetched $count models (no specialized models found, showing all)';
+  }
+
+  @override
+  String get llmFetchFailed => 'Fetch failed, loaded preset model list';
+
+  @override
+  String llmFetchError(String error) {
+    return 'Failed to fetch models: $error';
+  }
+
+  @override
+  String llmModelSet(String capability, String provider, String model) {
+    return 'Set $capability: $provider · $model';
+  }
+
+  @override
+  String llmInputModelName(String capability) {
+    return 'Enter $capability name';
+  }
+
+  @override
+  String get llmConnectFailed => 'Connection failed';
+
+  @override
+  String get llmAutoDetectInterval => 'Auto detect interval';
+
+  @override
+  String get llmIntervalOff => 'Off';
+
+  @override
+  String get llmInterval10s => '10s';
+
+  @override
+  String get llmInterval30s => '30s';
+
+  @override
+  String get llmInterval1m => '1min';
+
+  @override
+  String get llmInterval2m => '2min';
+
+  @override
+  String get llmInterval5m => '5min';
+
+  @override
+  String get llmInterval10m => '10min';
+
+  @override
+  String get llmInterval30m => '30min';
+
+  @override
+  String get llmInterval1h => '1hr';
+
+  @override
+  String llmConfigureCap(String label) {
+    return 'Configure $label';
+  }
+
+  @override
+  String get llmCurrentUse => 'Currently in use';
+
+  @override
+  String get llmFetch => 'Fetch';
+
+  @override
+  String get llmTesting => 'Testing...';
+
+  @override
+  String get llmTestConnection => 'Test connection';
+
+  @override
+  String get llmFailed => 'Failed';
+
+  @override
+  String llmSelectCap(String label) {
+    return 'Select $label';
+  }
+
+  @override
+  String get llmManualInput => '✏️ Manual input...';
+
+  @override
+  String get llmFillApiKey => 'Please enter API Key and request URL';
+
+  @override
+  String get llmCustom => 'Custom';
+
+  @override
+  String get llmProviderName => 'Provider Name';
+
+  @override
+  String get llmApiUrl => 'API URL';
+
+  @override
+  String get llmApiUrlHintAnthropic =>
+      'Anthropic API URL, e.g. https://api.anthropic.com';
+
+  @override
+  String get llmApiUrlHelper =>
+      'Enter the API base_url, no need to append /chat/completions';
+
+  @override
+  String get llmSaveHint =>
+      'After saving, go back to configure models via capability cards';
+
+  @override
+  String get llmInputApiKey => 'Enter API Key';
+
+  @override
+  String get llmApiUrlExample => 'e.g. https://api.example.com';
+
+  @override
+  String get llmAdvancedSettings => 'Advanced Settings';
+
+  @override
+  String get llmTemperature => 'Temperature';
+
+  @override
+  String get llmMaxToken => 'Max Token';
+
+  @override
+  String get llmTimeout => 'Timeout (seconds)';
 }

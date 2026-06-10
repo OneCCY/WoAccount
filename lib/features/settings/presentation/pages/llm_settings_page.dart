@@ -8,6 +8,7 @@ import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../ai/data/models/llm_config.dart';
 import '../../../ai/data/repositories/llm_repository_impl.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 
 // ============================================================
 // 模型 URL 智能构建 & 获取工具方法（供多个页面共用）
@@ -191,16 +192,17 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
   }
 
   Future<void> _deleteProvider(LlmProvider provider) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('删除服务商'),
-        content: Text('确定删除「${provider.name}」？'),
+        title: Text(l10n.llmDeleteProvider),
+        content: Text(l10n.llmDeleteProviderConfirm(provider.name)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.commonCancel)),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text('删除', style: TextStyle(color: context.colors.error)),
+            child: Text(l10n.commonDelete, style: TextStyle(color: context.colors.error)),
           ),
         ],
       ),
@@ -214,7 +216,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
   Future<void> _testProvider(LlmProvider provider) async {
     if (!provider.isComplete) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请先完善配置（需要 API Key、地址和至少一个模型）'), behavior: SnackBarBehavior.floating),
+        SnackBar(content: Text(AppLocalizations.of(context)!.llmConfigIncomplete), behavior: SnackBarBehavior.floating),
       );
       return;
     }
@@ -228,7 +230,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(success ? '✅ 连接成功' : '❌ 连接失败，请检查地址、Key 和模型名称'),
+          content: Text(success ? AppLocalizations.of(context)!.llmConnectSuccess : AppLocalizations.of(context)!.llmConnectFail),
           behavior: SnackBarBehavior.floating,
           backgroundColor: success ? context.colors.success : context.colors.error,
         ),
@@ -241,7 +243,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
     await Clipboard.setData(ClipboardData(text: json));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('配置已复制到剪贴板'), behavior: SnackBarBehavior.floating),
+        SnackBar(content: Text(AppLocalizations.of(context)!.llmConfigCopied), behavior: SnackBarBehavior.floating),
       );
     }
   }
@@ -252,7 +254,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
     if (text == null || text.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('剪贴板为空'), behavior: SnackBarBehavior.floating),
+          SnackBar(content: Text(AppLocalizations.of(context)!.llmClipboardEmpty), behavior: SnackBarBehavior.floating),
         );
       }
       return;
@@ -262,12 +264,12 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
     if (mounted) {
       if (count > 0) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('已导入 $count 个服务商配置'), behavior: SnackBarBehavior.floating),
+          SnackBar(content: Text(AppLocalizations.of(context)!.llmImported(count.toString())), behavior: SnackBarBehavior.floating),
         );
         await _load();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('导入失败，请检查 JSON 格式'), behavior: SnackBarBehavior.floating),
+          SnackBar(content: Text(AppLocalizations.of(context)!.llmImportFailed), behavior: SnackBarBehavior.floating),
         );
       }
     }
@@ -275,10 +277,11 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: AppBar(
-        title: const Text('AI 服务配置'),
+        title: Text(l10n.llmSettingsTitle),
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
@@ -287,8 +290,8 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
               if (v == 'import') _importConfig();
             },
             itemBuilder: (_) => [
-              const PopupMenuItem(value: 'export', child: Text('导出配置')),
-              const PopupMenuItem(value: 'import', child: Text('导入配置')),
+              PopupMenuItem(value: 'export', child: Text(l10n.llmExportConfig)),
+              PopupMenuItem(value: 'import', child: Text(l10n.llmImportConfig)),
             ],
           ),
         ],
@@ -305,7 +308,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
                   const SizedBox(height: 24),
 
                   // 2. 服务商管理
-                  _sectionLabel('服务商管理'),
+                  _sectionLabel(l10n.llmProviderManagement),
                   const SizedBox(height: 8),
                   _providers.isEmpty ? _buildEmptyProviderHint() : _buildProviderList(),
                   const SizedBox(height: 16),
@@ -313,7 +316,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
                     child: OutlinedButton.icon(
                       onPressed: _addProvider,
                       icon: const Icon(Icons.add, size: 18),
-                      label: const Text('添加服务商'),
+                      label: Text(l10n.llmAddProvider),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: context.colors.primary,
                         side: BorderSide(color: context.colors.primary),
@@ -378,7 +381,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
                       )
                     else
                       Text(
-                        '未配置',
+                        AppLocalizations.of(context)!.llmNotConfigured,
                         style: AppTextStyles.caption.copyWith(color: context.colors.textTertiary),
                       ),
                   ],
@@ -393,7 +396,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  (modelName != null && modelName.isNotEmpty) ? '已配置' : '未配置',
+                  (modelName != null && modelName.isNotEmpty) ? AppLocalizations.of(context)!.llmConfigured : AppLocalizations.of(context)!.llmNotConfigured,
                   style: AppTextStyles.caption.copyWith(
                     color: (modelName != null && modelName.isNotEmpty) ? context.colors.success : context.colors.warning,
                     fontSize: 11,
@@ -425,7 +428,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
           children: [
             Icon(Icons.cloud_off_outlined, size: 40, color: context.colors.textTertiary),
             const SizedBox(height: 8),
-            Text('尚未添加任何服务商', style: AppTextStyles.body.copyWith(color: context.colors.textSecondary)),
+            Text(AppLocalizations.of(context)!.llmNoProviders, style: AppTextStyles.body.copyWith(color: context.colors.textSecondary)),
           ],
         ),
       ),
@@ -455,7 +458,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        p.name.isEmpty ? '未命名服务商' : p.name,
+                        p.name.isEmpty ? AppLocalizations.of(context)!.llmUnnamedProvider : p.name,
                         style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
                       ),
                     ),
@@ -466,7 +469,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
                           color: context.colors.primarySurface,
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: Text('使用中', style: AppTextStyles.caption.copyWith(color: context.colors.primary, fontSize: 11)),
+                        child: Text(AppLocalizations.of(context)!.llmInUse, style: AppTextStyles.caption.copyWith(color: context.colors.primary, fontSize: 11)),
                       ),
                     if (!p.isComplete)
                       Padding(
@@ -477,7 +480,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
                             color: context.colors.warning.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: Text('未完成', style: AppTextStyles.caption.copyWith(color: context.colors.warning, fontSize: 11)),
+                          child: Text(AppLocalizations.of(context)!.llmIncomplete, style: AppTextStyles.caption.copyWith(color: context.colors.warning, fontSize: 11)),
                         ),
                       ),
                   ],
@@ -488,17 +491,17 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
                   children: [
                     _providerActionButton(
                       icon: Icons.wifi_tethering,
-                      label: '测试',
+                      label: AppLocalizations.of(context)!.llmTest,
                       onTap: () => _testProvider(p),
                     ),
                     _providerActionButton(
                       icon: Icons.edit_outlined,
-                      label: '编辑',
+                      label: AppLocalizations.of(context)!.commonEdit,
                       onTap: () => _editProvider(p),
                     ),
                     _providerActionButton(
                       icon: Icons.delete_outline,
-                      label: '删除',
+                      label: AppLocalizations.of(context)!.commonDelete,
                       color: context.colors.error,
                       onTap: () => _deleteProvider(p),
                     ),
@@ -559,16 +562,16 @@ class _CheckIntervalOption {
   const _CheckIntervalOption(this.label, this.duration);
 }
 
-const _checkIntervalOptions = [
-  _CheckIntervalOption('关闭', null),
-  _CheckIntervalOption('10秒', Duration(seconds: 10)),
-  _CheckIntervalOption('30秒', Duration(seconds: 30)),
-  _CheckIntervalOption('1分钟', Duration(minutes: 1)),
-  _CheckIntervalOption('2分钟', Duration(minutes: 2)),
-  _CheckIntervalOption('5分钟', Duration(minutes: 5)),
-  _CheckIntervalOption('10分钟', Duration(minutes: 10)),
-  _CheckIntervalOption('30分钟', Duration(minutes: 30)),
-  _CheckIntervalOption('1小时', Duration(hours: 1)),
+List<_CheckIntervalOption> _buildCheckIntervalOptions(AppLocalizations l10n) => [
+  _CheckIntervalOption(l10n.llmIntervalOff, null),
+  _CheckIntervalOption(l10n.llmInterval10s, const Duration(seconds: 10)),
+  _CheckIntervalOption(l10n.llmInterval30s, const Duration(seconds: 30)),
+  _CheckIntervalOption(l10n.llmInterval1m, const Duration(minutes: 1)),
+  _CheckIntervalOption(l10n.llmInterval2m, const Duration(minutes: 2)),
+  _CheckIntervalOption(l10n.llmInterval5m, const Duration(minutes: 5)),
+  _CheckIntervalOption(l10n.llmInterval10m, const Duration(minutes: 10)),
+  _CheckIntervalOption(l10n.llmInterval30m, const Duration(minutes: 30)),
+  _CheckIntervalOption(l10n.llmInterval1h, const Duration(hours: 1)),
 ];
 
 class _ProviderModelEntry {
@@ -647,7 +650,7 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
 
     if (provider.apiKey.isEmpty || provider.baseUrl.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('该服务商未配置 API Key 或请求地址，请先编辑'), behavior: SnackBarBehavior.floating),
+        SnackBar(content: Text(AppLocalizations.of(context)!.llmProviderNotConfigured), behavior: SnackBarBehavior.floating),
       );
       return;
     }
@@ -664,8 +667,8 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
           entry.isLoading = false;
         });
         final msg = filtered.isNotEmpty
-            ? '获取到 ${filtered.length} 个${widget.capability.label}'
-            : '获取到 ${allModels.length} 个模型（未筛选到专用模型，显示全部）';
+            ? AppLocalizations.of(context)!.llmModelsFetched(filtered.length.toString(), widget.capability.label)
+            : AppLocalizations.of(context)!.llmModelsFetchedAll(allModels.length.toString());
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating),
         );
@@ -681,11 +684,11 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
             entry.fetchedModels = defaults.map((m) => _FetchedModel(id: m)).toList();
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('获取失败，已加载预设模型列表'), behavior: SnackBarBehavior.floating),
+            SnackBar(content: Text(AppLocalizations.of(context)!.llmFetchFailed), behavior: SnackBarBehavior.floating),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('获取模型失败: $e'), behavior: SnackBarBehavior.floating),
+            SnackBar(content: Text(AppLocalizations.of(context)!.llmFetchError(e.toString())), behavior: SnackBarBehavior.floating),
           );
         }
       }
@@ -712,7 +715,7 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
         if (idx != -1) _providers[idx] = updated;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('已设置 ${widget.capability.label}：${provider.name} · $model'), behavior: SnackBarBehavior.floating),
+        SnackBar(content: Text(AppLocalizations.of(context)!.llmModelSet(widget.capability.label, provider.name, model)), behavior: SnackBarBehavior.floating),
       );
     }
   }
@@ -722,16 +725,16 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('输入${widget.capability.label}名称'),
+        title: Text(AppLocalizations.of(context)!.llmInputModelName(widget.capability.label)),
         content: TextField(
           controller: _customModelCtrl,
           autofocus: true,
           decoration: InputDecoration(
-            hintText: '如：${widget.capability == ModelCapability.audio ? "whisper-1" : "模型名称"}',
+            hintText: widget.capability == ModelCapability.audio ? 'whisper-1' : widget.capability.label,
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(AppLocalizations.of(context)!.commonCancel)),
           TextButton(
             onPressed: () {
               final model = _customModelCtrl.text.trim();
@@ -743,7 +746,7 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
               }
               Navigator.pop(ctx);
             },
-            child: Text('确认', style: TextStyle(color: context.colors.primary)),
+            child: Text(AppLocalizations.of(context)!.commonConfirm, style: TextStyle(color: context.colors.primary)),
           ),
         ],
       ),
@@ -769,6 +772,7 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
     final entry = _entries[provider.id];
     if (entry == null) return;
     if (provider.apiKey.isEmpty || provider.baseUrl.isEmpty) return;
+    final l10n = AppLocalizations.of(context)!;
 
     setState(() {
       entry.connectionStatus = ConnectionStatus.testing;
@@ -785,7 +789,7 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
         setState(() {
           entry.connectionStatus = success ? ConnectionStatus.connected : ConnectionStatus.disconnected;
           entry.latencyMs = success ? stopwatch.elapsedMilliseconds : null;
-          entry.lastError = success ? null : '连接失败';
+          entry.lastError = success ? null : l10n.llmConnectFailed;
         });
       }
     } catch (e) {
@@ -809,13 +813,17 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
   }
 
   void _onIntervalTap() {
+    final l10n = AppLocalizations.of(context)!;
+    final options = _buildCheckIntervalOptions(l10n);
     setState(() {
-      _intervalIndex = (_intervalIndex + 1) % _checkIntervalOptions.length;
+      _intervalIndex = (_intervalIndex + 1) % options.length;
     });
     _applyAutoCheckInterval();
   }
 
   void _onIntervalLongPress() {
+    final l10n = AppLocalizations.of(context)!;
+    final options = _buildCheckIntervalOptions(l10n);
     showModalBottomSheet(
       context: context,
       builder: (ctx) => SafeArea(
@@ -824,10 +832,10 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
           children: [
             Padding(
               padding: const EdgeInsets.all(16),
-              child: Text('自动检测间隔', style: AppTextStyles.h3.copyWith(fontSize: 16)),
+              child: Text(l10n.llmAutoDetectInterval, style: AppTextStyles.h3.copyWith(fontSize: 16)),
             ),
-            ...List.generate(_checkIntervalOptions.length, (i) {
-              final opt = _checkIntervalOptions[i];
+            ...List.generate(options.length, (i) {
+              final opt = options[i];
               final isSelected = i == _intervalIndex;
               return ListTile(
                 title: Text(opt.label),
@@ -849,7 +857,9 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
 
   void _applyAutoCheckInterval() {
     _autoCheckTimer?.cancel();
-    final duration = _checkIntervalOptions[_intervalIndex].duration;
+    final l10n = AppLocalizations.of(context)!;
+    final options = _buildCheckIntervalOptions(l10n);
+    final duration = options[_intervalIndex].duration;
     if (duration == null) return;
 
     _autoCheckTimer = Timer.periodic(duration, (_) {
@@ -862,10 +872,11 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
   @override
   Widget build(BuildContext context) {
     final cap = widget.capability;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: context.colors.background,
-      appBar: AppBar(title: Text('配置${cap.label}')),
+      appBar: AppBar(title: Text(l10n.llmConfigureCap(cap.label))),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -875,7 +886,7 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
                 children: [
                   // 当前使用中的服务商
                   if (_activeId != null) ...[
-                    Text('当前使用', style: AppTextStyles.footnote.copyWith(color: context.colors.textSecondary)),
+                    Text(l10n.llmCurrentUse, style: AppTextStyles.footnote.copyWith(color: context.colors.textSecondary)),
                     const SizedBox(height: 8),
                     _buildProviderCard(_providers.firstWhere((p) => p.id == _activeId), isActive: true),
                     const SizedBox(height: 20),
@@ -892,7 +903,7 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
                     child: OutlinedButton.icon(
                       onPressed: _addProvider,
                       icon: const Icon(Icons.add, size: 18),
-                      label: const Text('添加服务商'),
+                      label: Text(l10n.llmAddProvider),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: context.colors.primary,
                         side: BorderSide(color: context.colors.primary),
@@ -934,7 +945,7 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    provider.name.isEmpty ? '未命名服务商' : provider.name,
+                    provider.name.isEmpty ? AppLocalizations.of(context)!.llmUnnamedProvider : provider.name,
                     style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600, fontSize: 15),
                   ),
                 ),
@@ -947,7 +958,7 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
                       color: context.colors.primarySurface,
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: Text('使用中', style: AppTextStyles.caption.copyWith(color: context.colors.primary, fontSize: 11)),
+                    child: Text(AppLocalizations.of(context)!.llmInUse, style: AppTextStyles.caption.copyWith(color: context.colors.primary, fontSize: 11)),
                   ),
                 ],
               ],
@@ -967,7 +978,7 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
                       icon: entry.isLoading
                           ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                           : const Icon(Icons.sync, size: 16),
-                      label: const Text('获取', style: TextStyle(fontSize: 13)),
+                      label: Text(AppLocalizations.of(context)!.llmFetch, style: TextStyle(fontSize: 13)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: context.colors.primary,
                         foregroundColor: Colors.white,
@@ -1015,8 +1026,10 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
   }
 
   Widget _buildConnectionCheckRow(LlmProvider provider, _ProviderModelEntry entry) {
+    final l10n = AppLocalizations.of(context)!;
     final canCheck = provider.apiKey.isNotEmpty && provider.baseUrl.isNotEmpty;
-    final intervalLabel = _checkIntervalOptions[_intervalIndex].label;
+    final options = _buildCheckIntervalOptions(l10n);
+    final intervalLabel = options[_intervalIndex].label;
 
     return Row(
       children: [
@@ -1031,7 +1044,7 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
                 ? const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 1.5))
                 : const Icon(Icons.wifi_tethering, size: 14),
             label: Text(
-              entry.connectionStatus == ConnectionStatus.testing ? '检测中...' : '检测连接',
+              entry.connectionStatus == ConnectionStatus.testing ? l10n.llmTesting : l10n.llmTestConnection,
               style: const TextStyle(fontSize: 12),
             ),
             style: TextButton.styleFrom(
@@ -1046,7 +1059,7 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
         if (entry.connectionStatus == ConnectionStatus.disconnected && entry.lastError != null)
           Expanded(
             child: Text(
-              '失败',
+              l10n.llmFailed,
               style: AppTextStyles.caption.copyWith(color: context.colors.error, fontSize: 11),
               overflow: TextOverflow.ellipsis,
             ),
@@ -1102,7 +1115,7 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
           value: entry.selectedModel,
           isExpanded: true,
           hint: Text(
-            '选择${widget.capability.label}',
+            AppLocalizations.of(context)!.llmSelectCap(widget.capability.label),
             style: AppTextStyles.body.copyWith(color: context.colors.textHint, fontSize: 14),
           ),
           style: AppTextStyles.body.copyWith(fontSize: 14, color: context.colors.textPrimary),
@@ -1113,7 +1126,7 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
             )),
             if (hasModels) ...[
               const DropdownMenuItem(value: '__custom__', child: Divider(height: 1)),
-              DropdownMenuItem(value: '__custom__', child: Text('✏️ 手动输入...', style: TextStyle(fontSize: 14, color: context.colors.textPrimary))),
+              DropdownMenuItem(value: '__custom__', child: Text(AppLocalizations.of(context)!.llmManualInput, style: TextStyle(fontSize: 14, color: context.colors.textPrimary))),
             ],
           ],
           onChanged: (v) {
@@ -1205,21 +1218,22 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
   }
 
   void _save() {
+    final l10n = AppLocalizations.of(context)!;
     final apiKey = _apiKeyCtrl.text.trim();
     final baseUrl = _baseUrlCtrl.text.trim();
 
     if (apiKey.isEmpty || baseUrl.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请填写 API Key 和请求地址'), behavior: SnackBarBehavior.floating),
+        SnackBar(content: Text(l10n.llmFillApiKey), behavior: SnackBarBehavior.floating),
       );
       return;
     }
 
     String name;
     if (_selectedPresetKey == kCustomProviderKey) {
-      name = baseUrl.isNotEmpty ? Uri.tryParse(baseUrl)?.host ?? '自定义' : '自定义';
+      name = baseUrl.isNotEmpty ? Uri.tryParse(baseUrl)?.host ?? l10n.llmCustom : l10n.llmCustom;
     } else {
-      name = getPresetByKey(_selectedPresetKey)?.name ?? '自定义';
+      name = getPresetByKey(_selectedPresetKey)?.name ?? l10n.llmCustom;
     }
 
     final cleanUrl = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
@@ -1244,14 +1258,15 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: AppBar(
-        title: Text(_isEditing ? '编辑服务商' : '添加服务商'),
+        title: Text(_isEditing ? l10n.llmEditProvider : l10n.llmAddProvider),
         actions: [
           TextButton(
             onPressed: _save,
-            child: Text('保存', style: AppTextStyles.body.copyWith(color: context.colors.primary)),
+            child: Text(l10n.commonSave, style: AppTextStyles.body.copyWith(color: context.colors.primary)),
           ),
         ],
       ),
@@ -1261,7 +1276,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 1. 服务商名称
-            _label('服务商名称'),
+            _label(l10n.llmProviderName),
             _buildPresetDropdown(),
             const SizedBox(height: 16),
 
@@ -1271,12 +1286,12 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
             const SizedBox(height: 16),
 
             // 3. 请求地址
-            _label('请求地址'),
+            _label(l10n.llmApiUrl),
             _buildBaseUrlField(),
             const SizedBox(height: 4),
             _hint(_isAnthropicFormat
-                ? 'Anthropic API 地址，如 https://api.anthropic.com'
-                : '填入 API 的 base_url，不需要手动拼接 /chat/completions'),
+                ? l10n.llmApiUrlHintAnthropic
+                : l10n.llmApiUrlHelper),
             const SizedBox(height: 12),
 
             // 提示信息
@@ -1293,7 +1308,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        '保存后，请返回上一页通过能力卡片配置模型',
+                        l10n.llmSaveHint,
                         style: AppTextStyles.caption.copyWith(color: context.colors.primary),
                       ),
                     ),
@@ -1340,7 +1355,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
                 children: [
                   const Text('✏️', style: TextStyle(fontSize: 18)),
                   const SizedBox(width: 8),
-                  Text('自定义', style: TextStyle(color: context.colors.textPrimary)),
+                  Text(AppLocalizations.of(context)!.llmCustom, style: TextStyle(color: context.colors.textPrimary)),
                 ],
               ),
             ),
@@ -1364,7 +1379,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
         obscureText: _obscureApiKey,
         style: AppTextStyles.body,
         decoration: InputDecoration(
-          hintText: '输入 API Key',
+          hintText: AppLocalizations.of(context)!.llmInputApiKey,
           hintStyle: AppTextStyles.body.copyWith(color: context.colors.textHint),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -1391,7 +1406,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
         controller: _baseUrlCtrl,
         style: AppTextStyles.body,
         decoration: InputDecoration(
-          hintText: _isAnthropicFormat ? '如：https://api.anthropic.com' : '如：https://api.deepseek.com',
+          hintText: AppLocalizations.of(context)!.llmApiUrlExample,
           hintStyle: AppTextStyles.body.copyWith(color: context.colors.textHint),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -1401,6 +1416,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
   }
 
   Widget _buildAdvancedSection() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
         color: context.colors.surface,
@@ -1412,11 +1428,11 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
           tilePadding: const EdgeInsets.symmetric(horizontal: 16),
           childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           initiallyExpanded: _showAdvanced,
-          title: Text('高级设置', style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
+          title: Text(l10n.llmAdvancedSettings, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
           children: [
             Row(
               children: [
-                Text('温度参数', style: AppTextStyles.body),
+                Text(l10n.llmTemperature, style: AppTextStyles.body),
                 const Spacer(),
                 Text(_temperature.toStringAsFixed(1), style: AppTextStyles.body.copyWith(color: context.colors.textSecondary)),
               ],
@@ -1432,7 +1448,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
             const SizedBox(height: 8),
             Row(
               children: [
-                Text('最大 Token', style: AppTextStyles.body),
+                Text(l10n.llmMaxToken, style: AppTextStyles.body),
                 const Spacer(),
                 SizedBox(
                   width: 80,
@@ -1450,7 +1466,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
             const Divider(height: 16),
             Row(
               children: [
-                Text('超时（秒）', style: AppTextStyles.body),
+                Text(l10n.llmTimeout, style: AppTextStyles.body),
                 const Spacer(),
                 SizedBox(
                   width: 60,

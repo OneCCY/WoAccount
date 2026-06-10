@@ -169,6 +169,12 @@ abstract class AppLocalizations {
   /// **'删除'**
   String get commonDelete;
 
+  /// No description provided for @commonEdit.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑'**
+  String get commonEdit;
+
   /// No description provided for @chatPageTitle.
   ///
   /// In zh, this message translates to:
@@ -2711,6 +2717,372 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'{period}日'**
   String reportTrendDay(String period);
+
+  /// No description provided for @llmSettingsTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 服务配置'**
+  String get llmSettingsTitle;
+
+  /// No description provided for @llmExportConfig.
+  ///
+  /// In zh, this message translates to:
+  /// **'导出配置'**
+  String get llmExportConfig;
+
+  /// No description provided for @llmImportConfig.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入配置'**
+  String get llmImportConfig;
+
+  /// No description provided for @llmProviderManagement.
+  ///
+  /// In zh, this message translates to:
+  /// **'服务商管理'**
+  String get llmProviderManagement;
+
+  /// No description provided for @llmAddProvider.
+  ///
+  /// In zh, this message translates to:
+  /// **'添加服务商'**
+  String get llmAddProvider;
+
+  /// No description provided for @llmEditProvider.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑服务商'**
+  String get llmEditProvider;
+
+  /// No description provided for @llmDeleteProvider.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除服务商'**
+  String get llmDeleteProvider;
+
+  /// No description provided for @llmDeleteProviderConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定删除「{name}」？'**
+  String llmDeleteProviderConfirm(String name);
+
+  /// No description provided for @llmNotConfigured.
+  ///
+  /// In zh, this message translates to:
+  /// **'未配置'**
+  String get llmNotConfigured;
+
+  /// No description provided for @llmConfigured.
+  ///
+  /// In zh, this message translates to:
+  /// **'已配置'**
+  String get llmConfigured;
+
+  /// No description provided for @llmNoProviders.
+  ///
+  /// In zh, this message translates to:
+  /// **'尚未添加任何服务商'**
+  String get llmNoProviders;
+
+  /// No description provided for @llmUnnamedProvider.
+  ///
+  /// In zh, this message translates to:
+  /// **'未命名服务商'**
+  String get llmUnnamedProvider;
+
+  /// No description provided for @llmInUse.
+  ///
+  /// In zh, this message translates to:
+  /// **'使用中'**
+  String get llmInUse;
+
+  /// No description provided for @llmIncomplete.
+  ///
+  /// In zh, this message translates to:
+  /// **'未完成'**
+  String get llmIncomplete;
+
+  /// No description provided for @llmTest.
+  ///
+  /// In zh, this message translates to:
+  /// **'测试'**
+  String get llmTest;
+
+  /// No description provided for @llmConfigIncomplete.
+  ///
+  /// In zh, this message translates to:
+  /// **'请先完善配置（需要 API Key、地址和至少一个模型）'**
+  String get llmConfigIncomplete;
+
+  /// No description provided for @llmConnectSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'✅ 连接成功'**
+  String get llmConnectSuccess;
+
+  /// No description provided for @llmConnectFail.
+  ///
+  /// In zh, this message translates to:
+  /// **'❌ 连接失败，请检查地址、Key 和模型名称'**
+  String get llmConnectFail;
+
+  /// No description provided for @llmConfigCopied.
+  ///
+  /// In zh, this message translates to:
+  /// **'配置已复制到剪贴板'**
+  String get llmConfigCopied;
+
+  /// No description provided for @llmClipboardEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'剪贴板为空'**
+  String get llmClipboardEmpty;
+
+  /// No description provided for @llmImported.
+  ///
+  /// In zh, this message translates to:
+  /// **'已导入 {count} 个服务商配置'**
+  String llmImported(String count);
+
+  /// No description provided for @llmImportFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入失败，请检查 JSON 格式'**
+  String get llmImportFailed;
+
+  /// No description provided for @llmProviderNotConfigured.
+  ///
+  /// In zh, this message translates to:
+  /// **'该服务商未配置 API Key 或请求地址，请先编辑'**
+  String get llmProviderNotConfigured;
+
+  /// No description provided for @llmModelsFetched.
+  ///
+  /// In zh, this message translates to:
+  /// **'获取到 {count} 个{label}'**
+  String llmModelsFetched(String count, String label);
+
+  /// No description provided for @llmModelsFetchedAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'获取到 {count} 个模型（未筛选到专用模型，显示全部）'**
+  String llmModelsFetchedAll(String count);
+
+  /// No description provided for @llmFetchFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'获取失败，已加载预设模型列表'**
+  String get llmFetchFailed;
+
+  /// No description provided for @llmFetchError.
+  ///
+  /// In zh, this message translates to:
+  /// **'获取模型失败: {error}'**
+  String llmFetchError(String error);
+
+  /// No description provided for @llmModelSet.
+  ///
+  /// In zh, this message translates to:
+  /// **'已设置 {capability}：{provider} · {model}'**
+  String llmModelSet(String capability, String provider, String model);
+
+  /// No description provided for @llmInputModelName.
+  ///
+  /// In zh, this message translates to:
+  /// **'输入{capability}名称'**
+  String llmInputModelName(String capability);
+
+  /// No description provided for @llmConnectFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'连接失败'**
+  String get llmConnectFailed;
+
+  /// No description provided for @llmAutoDetectInterval.
+  ///
+  /// In zh, this message translates to:
+  /// **'自动检测间隔'**
+  String get llmAutoDetectInterval;
+
+  /// No description provided for @llmIntervalOff.
+  ///
+  /// In zh, this message translates to:
+  /// **'关闭'**
+  String get llmIntervalOff;
+
+  /// No description provided for @llmInterval10s.
+  ///
+  /// In zh, this message translates to:
+  /// **'10秒'**
+  String get llmInterval10s;
+
+  /// No description provided for @llmInterval30s.
+  ///
+  /// In zh, this message translates to:
+  /// **'30秒'**
+  String get llmInterval30s;
+
+  /// No description provided for @llmInterval1m.
+  ///
+  /// In zh, this message translates to:
+  /// **'1分钟'**
+  String get llmInterval1m;
+
+  /// No description provided for @llmInterval2m.
+  ///
+  /// In zh, this message translates to:
+  /// **'2分钟'**
+  String get llmInterval2m;
+
+  /// No description provided for @llmInterval5m.
+  ///
+  /// In zh, this message translates to:
+  /// **'5分钟'**
+  String get llmInterval5m;
+
+  /// No description provided for @llmInterval10m.
+  ///
+  /// In zh, this message translates to:
+  /// **'10分钟'**
+  String get llmInterval10m;
+
+  /// No description provided for @llmInterval30m.
+  ///
+  /// In zh, this message translates to:
+  /// **'30分钟'**
+  String get llmInterval30m;
+
+  /// No description provided for @llmInterval1h.
+  ///
+  /// In zh, this message translates to:
+  /// **'1小时'**
+  String get llmInterval1h;
+
+  /// No description provided for @llmConfigureCap.
+  ///
+  /// In zh, this message translates to:
+  /// **'配置{label}'**
+  String llmConfigureCap(String label);
+
+  /// No description provided for @llmCurrentUse.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前使用'**
+  String get llmCurrentUse;
+
+  /// No description provided for @llmFetch.
+  ///
+  /// In zh, this message translates to:
+  /// **'获取'**
+  String get llmFetch;
+
+  /// No description provided for @llmTesting.
+  ///
+  /// In zh, this message translates to:
+  /// **'检测中...'**
+  String get llmTesting;
+
+  /// No description provided for @llmTestConnection.
+  ///
+  /// In zh, this message translates to:
+  /// **'检测连接'**
+  String get llmTestConnection;
+
+  /// No description provided for @llmFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'失败'**
+  String get llmFailed;
+
+  /// No description provided for @llmSelectCap.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择{label}'**
+  String llmSelectCap(String label);
+
+  /// No description provided for @llmManualInput.
+  ///
+  /// In zh, this message translates to:
+  /// **'✏️ 手动输入...'**
+  String get llmManualInput;
+
+  /// No description provided for @llmFillApiKey.
+  ///
+  /// In zh, this message translates to:
+  /// **'请填写 API Key 和请求地址'**
+  String get llmFillApiKey;
+
+  /// No description provided for @llmCustom.
+  ///
+  /// In zh, this message translates to:
+  /// **'自定义'**
+  String get llmCustom;
+
+  /// No description provided for @llmProviderName.
+  ///
+  /// In zh, this message translates to:
+  /// **'服务商名称'**
+  String get llmProviderName;
+
+  /// No description provided for @llmApiUrl.
+  ///
+  /// In zh, this message translates to:
+  /// **'请求地址'**
+  String get llmApiUrl;
+
+  /// No description provided for @llmApiUrlHintAnthropic.
+  ///
+  /// In zh, this message translates to:
+  /// **'Anthropic API 地址，如 https://api.anthropic.com'**
+  String get llmApiUrlHintAnthropic;
+
+  /// No description provided for @llmApiUrlHelper.
+  ///
+  /// In zh, this message translates to:
+  /// **'填入 API 的 base_url，不需要手动拼接 /chat/completions'**
+  String get llmApiUrlHelper;
+
+  /// No description provided for @llmSaveHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'保存后，请返回上一页通过能力卡片配置模型'**
+  String get llmSaveHint;
+
+  /// No description provided for @llmInputApiKey.
+  ///
+  /// In zh, this message translates to:
+  /// **'输入 API Key'**
+  String get llmInputApiKey;
+
+  /// No description provided for @llmApiUrlExample.
+  ///
+  /// In zh, this message translates to:
+  /// **'如：https://api.example.com'**
+  String get llmApiUrlExample;
+
+  /// No description provided for @llmAdvancedSettings.
+  ///
+  /// In zh, this message translates to:
+  /// **'高级设置'**
+  String get llmAdvancedSettings;
+
+  /// No description provided for @llmTemperature.
+  ///
+  /// In zh, this message translates to:
+  /// **'温度参数'**
+  String get llmTemperature;
+
+  /// No description provided for @llmMaxToken.
+  ///
+  /// In zh, this message translates to:
+  /// **'最大 Token'**
+  String get llmMaxToken;
+
+  /// No description provided for @llmTimeout.
+  ///
+  /// In zh, this message translates to:
+  /// **'超时（秒）'**
+  String get llmTimeout;
 }
 
 class _AppLocalizationsDelegate

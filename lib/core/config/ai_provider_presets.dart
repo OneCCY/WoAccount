@@ -4,6 +4,8 @@
 /// 每个服务商预设包含名称、默认请求地址、按能力分组的预设模型列表等信息。
 library;
 
+import 'package:wo_account/l10n/app_localizations.dart';
+
 /// API 格式类型
 enum ApiFormat {
   /// OpenAI 兼容格式（/v1/chat/completions）
@@ -18,7 +20,7 @@ class AiProviderPreset {
   /// 唯一标识，如 'deepseek', 'openai'
   final String key;
 
-  /// 显示名称
+  /// 显示名称（中文默认值，作为 fallback）
   final String name;
 
   /// 默认请求地址（base_url）
@@ -32,7 +34,7 @@ class AiProviderPreset {
   /// value: 该能力下的默认模型列表
   final Map<String, List<String>> defaultModelsByCapability;
 
-  /// 备注说明
+  /// 备注说明（中文默认值，作为 fallback）
   final String note;
 
   /// 图标（Emoji）
@@ -55,6 +57,37 @@ class AiProviderPreset {
     this.apiFormat = ApiFormat.openai,
     this.modelsUrl,
   });
+
+  /// 获取本地化名称
+  String getLocalizedName(AppLocalizations l10n) {
+    return _nameMap[key]?.call(l10n) ?? name;
+  }
+
+  /// 获取本地化备注
+  String getLocalizedNote(AppLocalizations l10n) {
+    return _noteMap[key]?.call(l10n) ?? note;
+  }
+
+  static final Map<String, String Function(AppLocalizations)> _nameMap = {
+    'qwen': (l) => l.aiPresetQwenName,
+    'doubao': (l) => l.aiPresetDoubaoName,
+    'zhipu': (l) => l.aiPresetZhipuName,
+    'kimi': (l) => l.aiPresetKimiName,
+    'mimo': (l) => l.aiPresetMimoName,
+    'ollama': (l) => l.aiPresetOllamaName,
+  };
+
+  static final Map<String, String Function(AppLocalizations)> _noteMap = {
+    'deepseek': (l) => l.aiPresetDeepseekNote,
+    'openai': (l) => l.aiPresetOpenaiNote,
+    'qwen': (l) => l.aiPresetQwenNote,
+    'doubao': (l) => l.aiPresetDoubaoNote,
+    'zhipu': (l) => l.aiPresetZhipuNote,
+    'kimi': (l) => l.aiPresetKimiNote,
+    'claude': (l) => l.aiPresetClaudeNote,
+    'mimo': (l) => l.aiPresetMimoNote,
+    'ollama': (l) => l.aiPresetOllamaNote,
+  };
 }
 
 /// 内置服务商预设列表
