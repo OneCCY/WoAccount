@@ -41,6 +41,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
     final bookId = ref.read(currentBookProvider);
     final repo = ref.read(reportRepositoryProvider);
     final range = _getDateRange();
+    final l10n = AppLocalizations.of(context)!;
 
     final summary = await repo.getReport(
       bookId: bookId,
@@ -48,6 +49,10 @@ class _ReportPageState extends ConsumerState<ReportPage> {
       end: range.$2,
       isExpense: _isExpense,
       groupBy: _period == ReportPeriod.month ? 'day' : 'month',
+      uncategorizedLabel: l10n.txnGroupUncategorized,
+      trendLabelBuilder: (period, type) => type == 'month'
+          ? l10n.reportTrendMonth('$period')
+          : l10n.reportTrendDay('$period'),
     );
 
     setState(() {

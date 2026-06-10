@@ -114,7 +114,7 @@ class ConversationMessages extends Table {
 @DataClassName('UserProfile')
 class UserProfiles extends Table {
   IntColumn get id => integer().autoIncrement()();
-  TextColumn get nickname => text().withLength(min: 1, max: 50).withDefault(const Constant('用户'))();
+  TextColumn get nickname => text().withLength(min: 1, max: 50).withDefault(const Constant(''))();
   TextColumn get avatarPath => text().nullable()();
   TextColumn get gender => text().withLength(max: 10).nullable()();
   TextColumn get email => text().withLength(max: 100).nullable()();
@@ -177,7 +177,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -273,13 +273,21 @@ class AppDatabase extends _$AppDatabase {
           );
         }
       }
+      if (from < 8) {
+        // Migrate hardcoded Chinese gender values to English keys
+        await customStatement("UPDATE user_profiles SET gender = 'male' WHERE gender = '男'");
+        await customStatement("UPDATE user_profiles SET gender = 'female' WHERE gender = '女'");
+        await customStatement("UPDATE user_profiles SET gender = 'secret' WHERE gender = '保密'");
+        // Migrate hardcoded Chinese nickname to empty string (will be resolved at display time)
+        await customStatement("UPDATE user_profiles SET nickname = '' WHERE nickname = '用户'");
+      }
     },
   );
 
   /// 初始化默认用户
   Future<void> _seedDefaultUser() async {
     await into(userProfiles).insert(UserProfilesCompanion.insert(
-      nickname: Value('用户'),
+      nickname: Value(''),
       uid: Value('WO${100000 + DateTime.now().millisecondsSinceEpoch % 900000}'),
     ));
     // 初始化 AC 币余额（新用户赠送 100 AC 币）

@@ -339,6 +339,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
   // ============================================================
 
   Widget _buildCapabilityCard(ModelCapability cap) {
+    final l10n = AppLocalizations.of(context)!;
     final active = _activeProvider;
     final modelName = active?.getModelForCapability(cap);
 
@@ -371,7 +372,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(cap.label, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
+                    Text(cap.getLocalizedLabel(l10n), style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
                     const SizedBox(height: 2),
                     if (modelName != null && modelName.isNotEmpty)
                       Text(
@@ -667,7 +668,7 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
           entry.isLoading = false;
         });
         final msg = filtered.isNotEmpty
-            ? AppLocalizations.of(context)!.llmModelsFetched(filtered.length.toString(), widget.capability.label)
+            ? AppLocalizations.of(context)!.llmModelsFetched(filtered.length.toString(), widget.capability.getLocalizedLabel(AppLocalizations.of(context)!))
             : AppLocalizations.of(context)!.llmModelsFetchedAll(allModels.length.toString());
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating),
@@ -876,7 +877,7 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
 
     return Scaffold(
       backgroundColor: context.colors.background,
-      appBar: AppBar(title: Text(l10n.llmConfigureCap(cap.label))),
+      appBar: AppBar(title: Text(l10n.llmConfigureCap(cap.getLocalizedLabel(l10n)))),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -1233,7 +1234,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
     if (_selectedPresetKey == kCustomProviderKey) {
       name = baseUrl.isNotEmpty ? Uri.tryParse(baseUrl)?.host ?? l10n.llmCustom : l10n.llmCustom;
     } else {
-      name = getPresetByKey(_selectedPresetKey)?.name ?? l10n.llmCustom;
+      name = getPresetByKey(_selectedPresetKey)?.getLocalizedName(l10n) ?? l10n.llmCustom;
     }
 
     final cleanUrl = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
@@ -1345,7 +1346,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
                 children: [
                   Text(p.icon, style: const TextStyle(fontSize: 18)),
                   const SizedBox(width: 8),
-                  Text(p.name, style: TextStyle(color: context.colors.textPrimary)),
+                  Text(p.getLocalizedName(AppLocalizations.of(context)!), style: TextStyle(color: context.colors.textPrimary)),
                 ],
               ),
             )),

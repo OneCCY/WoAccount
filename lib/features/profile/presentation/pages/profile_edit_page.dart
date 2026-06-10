@@ -102,9 +102,9 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(title: Text(l10n.profileEditGenderMale), onTap: () { _updateProfile(const UserProfilesCompanion(gender: Value('男'))); Navigator.pop(ctx); }),
-            ListTile(title: Text(l10n.profileEditGenderFemale), onTap: () { _updateProfile(const UserProfilesCompanion(gender: Value('女'))); Navigator.pop(ctx); }),
-            ListTile(title: Text(l10n.profileEditGenderSecret), onTap: () { _updateProfile(const UserProfilesCompanion(gender: Value('保密'))); Navigator.pop(ctx); }),
+            ListTile(title: Text(l10n.profileEditGenderMale), onTap: () { _updateProfile(const UserProfilesCompanion(gender: Value('male'))); Navigator.pop(ctx); }),
+            ListTile(title: Text(l10n.profileEditGenderFemale), onTap: () { _updateProfile(const UserProfilesCompanion(gender: Value('female'))); Navigator.pop(ctx); }),
+            ListTile(title: Text(l10n.profileEditGenderSecret), onTap: () { _updateProfile(const UserProfilesCompanion(gender: Value('secret'))); Navigator.pop(ctx); }),
           ],
         ),
       ),
@@ -224,6 +224,16 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
     );
   }
 
+  String _genderLabel(String? gender, AppLocalizations l10n) {
+    if (gender == null || gender.isEmpty) return l10n.profileEditNotSet;
+    switch (gender) {
+      case 'male': return l10n.profileEditGenderMale;
+      case 'female': return l10n.profileEditGenderFemale;
+      case 'secret': return l10n.profileEditGenderSecret;
+      default: return gender;
+    }
+  }
+
   Widget _buildInfoCard(UserProfile profile, AppLocalizations l10n) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
@@ -240,7 +250,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
             });
           }),
           _buildRow(l10n.profileEditId, profile.uid, null, readOnly: true),
-          _buildRow(l10n.profileEditGender, profile.gender ?? l10n.profileEditNotSet, _pickGender),
+          _buildRow(l10n.profileEditGender, _genderLabel(profile.gender, l10n), _pickGender),
           _buildRow(l10n.profileEditEmail, profile.email ?? l10n.profileEditNotSet, () {
             _editField(l10n.profileEditEmail, profile.email, (v) {
               _updateProfile(UserProfilesCompanion(email: Value(v.isEmpty ? null : v)));

@@ -286,7 +286,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with RouteAware {
   /// 用户卡片 + 打卡按钮
   Widget _buildUserCard(AppLocalizations l10n) {
     final avatarPath = _profile?.avatarPath;
-    final nickname = _profile?.nickname ?? l10n.profileDefaultNickname;
+    final nickname = (_profile?.nickname ?? '').isNotEmpty ? _profile!.nickname : l10n.profileDefaultNickname;
     final uid = _profile?.uid ?? '';
 
     // 检查头像文件是否存在
