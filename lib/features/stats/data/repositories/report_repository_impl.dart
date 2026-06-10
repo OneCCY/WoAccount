@@ -16,10 +16,12 @@ class ReportRepositoryImpl implements ReportRepository {
     required DateTime end,
     required bool isExpense,
     String groupBy = 'day',
+    String? uncategorizedLabel,
+    String Function(int period, String groupBy)? trendLabelBuilder,
   }) async {
     // 并行执行分类查询和趋势查询
-    final categoryStats = await _getCategoryStats(bookId, start, end, isExpense);
-    final trendPoints = await _getTrendPoints(bookId, start, end, isExpense, groupBy);
+    final categoryStats = await _getCategoryStats(bookId, start, end, isExpense, uncategorizedLabel: uncategorizedLabel);
+    final trendPoints = await _getTrendPoints(bookId, start, end, isExpense, groupBy, labelBuilder: trendLabelBuilder);
 
     // 计算总览
     final totalAmount = categoryStats.fold<double>(0, (sum, c) => sum + c.amount);
@@ -43,8 +45,9 @@ class ReportRepositoryImpl implements ReportRepository {
     int bookId,
     DateTime start,
     DateTime end,
-    bool isExpense,
-  ) async {
+    bool isExpense, {
+    String? uncategorizedLabel,
+  }) async {
     final amountSum = _db.transactions.amount.sum();
     final amountCount = _db.transactions.amount.count();
 
@@ -90,7 +93,7 @@ class ReportRepositoryImpl implements ReportRepository {
 
       results.add(CategoryStat(
         categoryId: catId,
-        categoryName: cat?.name ?? '未分类',
+        categoryName: cat?.name ?? (uncategorizedLabel ?? '未分类'),
         categoryIcon: cat?.icon,
         categoryColor: cat?.color,
         amount: amount,
@@ -108,8 +111,9 @@ class ReportRepositoryImpl implements ReportRepository {
     DateTime start,
     DateTime end,
     bool isExpense,
-    String groupBy,
-  ) async {
+    String groupBy, {
+    String Function(int period, String groupBy)? labelBuilder,
+  }) async {
     final amountSum = _db.transactions.amount.sum();
 
     final query = _db.selectOnly(_db.transactions)
@@ -151,14 +155,18 @@ class ReportRepositoryImpl implements ReportRepository {
       final amount = row.read(amountSum) ?? 0;
 
       String label;
-      switch (groupBy) {
-        case 'month':
-          label = '$period月';
-          break;
-        case 'day':
-        default:
-          label = '$period日';
-          break;
+      if (labelBuilder != null) {
+        label = labelBuilder(period, groupBy);
+      } else {
+        switch (groupBy) {
+          case 'month':
+            label = '$period月';
+            break;
+          case 'day':
+          default:
+            label = '$period日';
+            break;
+        }
       }
 
       return TrendPoint(label: label, amount: amount);

@@ -476,5 +476,30 @@
   "aiPresetMimoName": "샤오미 MiMo",
   "aiPresetMimoNote": "OpenAI/Anthropic 호환 프로토콜 지원, 중국/싱가포르/유럽 멀티 클러스터",
   "aiPresetOllamaName": "Ollama (로컬)",
-  "aiPresetOllamaNote": "로컬 Ollama 서비스 실행 필요, 모델명은 로컬 설치에 따라 다름"
+  "aiPresetOllamaNote": "로컬 Ollama 서비스 실행 필요, 모델명은 로컬 설치에 따라 다름",
+
+  "llmCapTextLabel": "텍스트 모델",
+  "llmCapTextDesc": "가계부 해석 및 AI 대화용",
+  "llmCapVisionLabel": "비전 모델",
+  "llmCapVisionDesc": "영수증/세금계산서 사진 인식용",
+  "llmCapAudioLabel": "음성 모델",
+  "llmCapAudioDesc": "음성-텍스트 변환용",
+
+  "currencyCny": "중국 위안 (CNY)",
+  "currencyUsd": "미국 달러 (USD)",
+  "currencyKrw": "대한민국 원 (KRW)",
+  "currencyJpy": "일본 엔 (JPY)",
+  "currencyEur": "유로 (EUR)",
+  "currencyGbp": "영국 파운드 (GBP)",
+  "currencyUnitYi": "억",
+  "currencyUnitWan": "만",
+
+  "inputSourceText": "텍스트",
+  "inputSourceVoice": "음성",
+  "inputSourceImage": "이미지",
+
+  "reportTrendMonth": "{period}월",
+  "@reportTrendMonth": { "placeholders": { "period": { "type": "String" } } },
+  "reportTrendDay": "{period}일",
+  "@reportTrendDay": { "placeholders": { "period": { "type": "String" } } }
 }

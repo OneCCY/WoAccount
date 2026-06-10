@@ -476,5 +476,30 @@
   "aiPresetMimoName": "Xiaomi MiMo",
   "aiPresetMimoNote": "OpenAI/Anthropic互換プロトコル対応、中国/シンガポール/欧州マルチクラスター",
   "aiPresetOllamaName": "Ollama (ローカル)",
-  "aiPresetOllamaNote": "ローカルでOllamaサービスの実行が必要、モデル名はローカルインストールに依存"
+  "aiPresetOllamaNote": "ローカルでOllamaサービスの実行が必要、モデル名はローカルインストールに依存",
+
+  "llmCapTextLabel": "テキストモデル",
+  "llmCapTextDesc": "記帳解析・AI会話用",
+  "llmCapVisionLabel": "ビジョンモデル",
+  "llmCapVisionDesc": "レシート・請求書の写真認識用",
+  "llmCapAudioLabel": "音声モデル",
+  "llmCapAudioDesc": "音声テキスト変換用",
+
+  "currencyCny": "中国人民元 (CNY)",
+  "currencyUsd": "米ドル (USD)",
+  "currencyKrw": "韓国ウォン (KRW)",
+  "currencyJpy": "日本円 (JPY)",
+  "currencyEur": "ユーロ (EUR)",
+  "currencyGbp": "英ポンド (GBP)",
+  "currencyUnitYi": "億",
+  "currencyUnitWan": "万",
+
+  "inputSourceText": "テキスト",
+  "inputSourceVoice": "音声",
+  "inputSourceImage": "画像",
+
+  "reportTrendMonth": "{period}月",
+  "@reportTrendMonth": { "placeholders": { "period": { "type": "String" } } },
+  "reportTrendDay": "{period}日",
+  "@reportTrendDay": { "placeholders": { "period": { "type": "String" } } }
 }

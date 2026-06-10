@@ -3,6 +3,7 @@ import '../../features/text_ai/data/services/voice_recognition_service.dart';
 import '../../features/vision_ai/data/services/image_recognition_service.dart';
 import '../../features/ai/domain/repositories/llm_repository.dart';
 import '../media/media_storage_service.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 
 /// 输入源类型
 enum InputSource {
@@ -13,6 +14,18 @@ enum InputSource {
   final String label;
   final String emoji;
   const InputSource(this.label, this.emoji);
+
+  /// Returns the localized label for this input source.
+  String getLocalizedLabel(AppLocalizations l10n) {
+    switch (this) {
+      case InputSource.text:
+        return l10n.inputSourceText;
+      case InputSource.voice:
+        return l10n.inputSourceVoice;
+      case InputSource.image:
+        return l10n.inputSourceImage;
+    }
+  }
 }
 
 /// 统一记账管线结果

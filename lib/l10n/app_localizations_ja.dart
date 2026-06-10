@@ -1302,4 +1302,111 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get bookDescOther => 'カスタム用途';
+
+  @override
+  String get aiPresetDeepseekNote => 'コストパフォーマンスの高い中国産LLM';
+
+  @override
+  String get aiPresetOpenaiNote => '海外ネットワークアクセスが必要';
+
+  @override
+  String get aiPresetQwenName => '通義千問 (アリババ)';
+
+  @override
+  String get aiPresetQwenNote => '互換モードURLを使用';
+
+  @override
+  String get aiPresetDoubaoName => '豆包 (バイトダンス)';
+
+  @override
+  String get aiPresetDoubaoNote => '火山方舟で推論エンドポイントを作成し、エンドポイントIDをモデル名として使用';
+
+  @override
+  String get aiPresetZhipuName => '智譜AI';
+
+  @override
+  String get aiPresetZhipuNote => 'glm-4-flashに無料枠あり';
+
+  @override
+  String get aiPresetKimiName => '月之暗面 (Kimi)';
+
+  @override
+  String get aiPresetKimiNote => '長文理解に優れる';
+
+  @override
+  String get aiPresetClaudeNote => 'Anthropic Messages APIを使用';
+
+  @override
+  String get aiPresetMimoName => 'Xiaomi MiMo';
+
+  @override
+  String get aiPresetMimoNote =>
+      'OpenAI/Anthropic互換プロトコル対応、中国/シンガポール/欧州マルチクラスター';
+
+  @override
+  String get aiPresetOllamaName => 'Ollama (ローカル)';
+
+  @override
+  String get aiPresetOllamaNote => 'ローカルでOllamaサービスの実行が必要、モデル名はローカルインストールに依存';
+
+  @override
+  String get llmCapTextLabel => 'テキストモデル';
+
+  @override
+  String get llmCapTextDesc => '記帳解析・AI会話用';
+
+  @override
+  String get llmCapVisionLabel => 'ビジョンモデル';
+
+  @override
+  String get llmCapVisionDesc => 'レシート・請求書の写真認識用';
+
+  @override
+  String get llmCapAudioLabel => '音声モデル';
+
+  @override
+  String get llmCapAudioDesc => '音声テキスト変換用';
+
+  @override
+  String get currencyCny => '中国人民元 (CNY)';
+
+  @override
+  String get currencyUsd => '米ドル (USD)';
+
+  @override
+  String get currencyKrw => '韓国ウォン (KRW)';
+
+  @override
+  String get currencyJpy => '日本円 (JPY)';
+
+  @override
+  String get currencyEur => 'ユーロ (EUR)';
+
+  @override
+  String get currencyGbp => '英ポンド (GBP)';
+
+  @override
+  String get currencyUnitYi => '億';
+
+  @override
+  String get currencyUnitWan => '万';
+
+  @override
+  String get inputSourceText => 'テキスト';
+
+  @override
+  String get inputSourceVoice => '音声';
+
+  @override
+  String get inputSourceImage => '画像';
+
+  @override
+  String reportTrendMonth(String period) {
+    return '$period月';
+  }
+
+  @override
+  String reportTrendDay(String period) {
+    return '$period日';
+  }
 }

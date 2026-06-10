@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 
 // ============================================================
 // 模型能力枚举
@@ -42,6 +43,30 @@ enum ModelCapability {
   final List<String> filterKeywords;
 
   const ModelCapability(this.label, this.description, this.icon, this.emoji, this.filterKeywords);
+
+  /// Returns the localized label for this capability.
+  String getLocalizedLabel(AppLocalizations l10n) {
+    switch (this) {
+      case ModelCapability.text:
+        return l10n.llmCapTextLabel;
+      case ModelCapability.vision:
+        return l10n.llmCapVisionLabel;
+      case ModelCapability.audio:
+        return l10n.llmCapAudioLabel;
+    }
+  }
+
+  /// Returns the localized description for this capability.
+  String getLocalizedDesc(AppLocalizations l10n) {
+    switch (this) {
+      case ModelCapability.text:
+        return l10n.llmCapTextDesc;
+      case ModelCapability.vision:
+        return l10n.llmCapVisionDesc;
+      case ModelCapability.audio:
+        return l10n.llmCapAudioDesc;
+    }
+  }
 }
 
 // ============================================================

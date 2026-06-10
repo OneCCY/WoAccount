@@ -2507,6 +2507,210 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'自定义用途'**
   String get bookDescOther;
+
+  /// No description provided for @aiPresetDeepseekNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'高性价比国产大模型'**
+  String get aiPresetDeepseekNote;
+
+  /// No description provided for @aiPresetOpenaiNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'需海外网络访问'**
+  String get aiPresetOpenaiNote;
+
+  /// No description provided for @aiPresetQwenName.
+  ///
+  /// In zh, this message translates to:
+  /// **'通义千问 (阿里)'**
+  String get aiPresetQwenName;
+
+  /// No description provided for @aiPresetQwenNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'使用兼容模式地址'**
+  String get aiPresetQwenNote;
+
+  /// No description provided for @aiPresetDoubaoName.
+  ///
+  /// In zh, this message translates to:
+  /// **'豆包 (字节)'**
+  String get aiPresetDoubaoName;
+
+  /// No description provided for @aiPresetDoubaoNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'需在火山方舟创建推理接入点，模型名使用接入点 ID'**
+  String get aiPresetDoubaoNote;
+
+  /// No description provided for @aiPresetZhipuName.
+  ///
+  /// In zh, this message translates to:
+  /// **'智谱AI'**
+  String get aiPresetZhipuName;
+
+  /// No description provided for @aiPresetZhipuNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'glm-4-flash 有免费额度'**
+  String get aiPresetZhipuNote;
+
+  /// No description provided for @aiPresetKimiName.
+  ///
+  /// In zh, this message translates to:
+  /// **'月之暗面 (Kimi)'**
+  String get aiPresetKimiName;
+
+  /// No description provided for @aiPresetKimiNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'擅长长文本理解'**
+  String get aiPresetKimiNote;
+
+  /// No description provided for @aiPresetClaudeNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'使用 Anthropic Messages API'**
+  String get aiPresetClaudeNote;
+
+  /// No description provided for @aiPresetMimoName.
+  ///
+  /// In zh, this message translates to:
+  /// **'小米 MiMo'**
+  String get aiPresetMimoName;
+
+  /// No description provided for @aiPresetMimoNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'支持 OpenAI/Anthropic 兼容协议，中国/新加坡/欧洲多集群'**
+  String get aiPresetMimoNote;
+
+  /// No description provided for @aiPresetOllamaName.
+  ///
+  /// In zh, this message translates to:
+  /// **'Ollama (本地)'**
+  String get aiPresetOllamaName;
+
+  /// No description provided for @aiPresetOllamaNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'需本地运行 Ollama 服务，模型名取决于本地安装'**
+  String get aiPresetOllamaNote;
+
+  /// No description provided for @llmCapTextLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'文本模型'**
+  String get llmCapTextLabel;
+
+  /// No description provided for @llmCapTextDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'用于记账解析、AI 对话'**
+  String get llmCapTextDesc;
+
+  /// No description provided for @llmCapVisionLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'视觉模型'**
+  String get llmCapVisionLabel;
+
+  /// No description provided for @llmCapVisionDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'用于拍照识别小票/发票'**
+  String get llmCapVisionDesc;
+
+  /// No description provided for @llmCapAudioLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'语音模型'**
+  String get llmCapAudioLabel;
+
+  /// No description provided for @llmCapAudioDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'用于语音转文字'**
+  String get llmCapAudioDesc;
+
+  /// No description provided for @currencyCny.
+  ///
+  /// In zh, this message translates to:
+  /// **'人民币'**
+  String get currencyCny;
+
+  /// No description provided for @currencyUsd.
+  ///
+  /// In zh, this message translates to:
+  /// **'美元'**
+  String get currencyUsd;
+
+  /// No description provided for @currencyKrw.
+  ///
+  /// In zh, this message translates to:
+  /// **'韩元'**
+  String get currencyKrw;
+
+  /// No description provided for @currencyJpy.
+  ///
+  /// In zh, this message translates to:
+  /// **'日元'**
+  String get currencyJpy;
+
+  /// No description provided for @currencyEur.
+  ///
+  /// In zh, this message translates to:
+  /// **'欧元'**
+  String get currencyEur;
+
+  /// No description provided for @currencyGbp.
+  ///
+  /// In zh, this message translates to:
+  /// **'英镑'**
+  String get currencyGbp;
+
+  /// No description provided for @currencyUnitYi.
+  ///
+  /// In zh, this message translates to:
+  /// **'亿'**
+  String get currencyUnitYi;
+
+  /// No description provided for @currencyUnitWan.
+  ///
+  /// In zh, this message translates to:
+  /// **'万'**
+  String get currencyUnitWan;
+
+  /// No description provided for @inputSourceText.
+  ///
+  /// In zh, this message translates to:
+  /// **'文本'**
+  String get inputSourceText;
+
+  /// No description provided for @inputSourceVoice.
+  ///
+  /// In zh, this message translates to:
+  /// **'语音'**
+  String get inputSourceVoice;
+
+  /// No description provided for @inputSourceImage.
+  ///
+  /// In zh, this message translates to:
+  /// **'图片'**
+  String get inputSourceImage;
+
+  /// No description provided for @reportTrendMonth.
+  ///
+  /// In zh, this message translates to:
+  /// **'{period}月'**
+  String reportTrendMonth(String period);
+
+  /// No description provided for @reportTrendDay.
+  ///
+  /// In zh, this message translates to:
+  /// **'{period}日'**
+  String reportTrendDay(String period);
 }
 
 class _AppLocalizationsDelegate

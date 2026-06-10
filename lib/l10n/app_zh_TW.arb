@@ -476,5 +476,30 @@
   "aiPresetMimoName": "小米 MiMo",
   "aiPresetMimoNote": "支援 OpenAI/Anthropic 相容協定，中國/新加坡/歐洲多叢集",
   "aiPresetOllamaName": "Ollama (本地)",
-  "aiPresetOllamaNote": "需本地執行 Ollama 服務，模型名取決於本地安裝"
+  "aiPresetOllamaNote": "需本地執行 Ollama 服務，模型名取決於本地安裝",
+
+  "llmCapTextLabel": "文字模型",
+  "llmCapTextDesc": "用於記帳解析、AI 對話",
+  "llmCapVisionLabel": "視覺模型",
+  "llmCapVisionDesc": "用於拍照識別收據/發票",
+  "llmCapAudioLabel": "語音模型",
+  "llmCapAudioDesc": "用於語音轉文字",
+
+  "currencyCny": "人民幣",
+  "currencyUsd": "美元",
+  "currencyKrw": "韓元",
+  "currencyJpy": "日圓",
+  "currencyEur": "歐元",
+  "currencyGbp": "英鎊",
+  "currencyUnitYi": "億",
+  "currencyUnitWan": "萬",
+
+  "inputSourceText": "文字",
+  "inputSourceVoice": "語音",
+  "inputSourceImage": "圖片",
+
+  "reportTrendMonth": "{period}月",
+  "@reportTrendMonth": { "placeholders": { "period": { "type": "String" } } },
+  "reportTrendDay": "{period}日",
+  "@reportTrendDay": { "placeholders": { "period": { "type": "String" } } }
 }

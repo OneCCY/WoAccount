@@ -1325,4 +1325,114 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bookDescOther => 'Custom purpose';
+
+  @override
+  String get aiPresetDeepseekNote => 'Cost-effective Chinese LLM';
+
+  @override
+  String get aiPresetOpenaiNote => 'Requires overseas network access';
+
+  @override
+  String get aiPresetQwenName => 'Tongyi Qianwen (Alibaba)';
+
+  @override
+  String get aiPresetQwenNote => 'Uses compatible mode URL';
+
+  @override
+  String get aiPresetDoubaoName => 'Doubao (ByteDance)';
+
+  @override
+  String get aiPresetDoubaoNote =>
+      'Create an inference endpoint on Volcano Ark, use endpoint ID as model name';
+
+  @override
+  String get aiPresetZhipuName => 'Zhipu AI';
+
+  @override
+  String get aiPresetZhipuNote => 'glm-4-flash has free quota';
+
+  @override
+  String get aiPresetKimiName => 'Moonshot (Kimi)';
+
+  @override
+  String get aiPresetKimiNote => 'Excels at long text understanding';
+
+  @override
+  String get aiPresetClaudeNote => 'Uses Anthropic Messages API';
+
+  @override
+  String get aiPresetMimoName => 'Xiaomi MiMo';
+
+  @override
+  String get aiPresetMimoNote =>
+      'Supports OpenAI/Anthropic compatible protocols, multi-region clusters';
+
+  @override
+  String get aiPresetOllamaName => 'Ollama (Local)';
+
+  @override
+  String get aiPresetOllamaNote =>
+      'Requires local Ollama service, model names depend on local installation';
+
+  @override
+  String get llmCapTextLabel => 'Text Model';
+
+  @override
+  String get llmCapTextDesc => 'For bookkeeping parsing and AI conversations';
+
+  @override
+  String get llmCapVisionLabel => 'Vision Model';
+
+  @override
+  String get llmCapVisionDesc =>
+      'For photo recognition of receipts and invoices';
+
+  @override
+  String get llmCapAudioLabel => 'Voice Model';
+
+  @override
+  String get llmCapAudioDesc => 'For voice-to-text transcription';
+
+  @override
+  String get currencyCny => 'Chinese Yuan (CNY)';
+
+  @override
+  String get currencyUsd => 'US Dollar (USD)';
+
+  @override
+  String get currencyKrw => 'Korean Won (KRW)';
+
+  @override
+  String get currencyJpy => 'Japanese Yen (JPY)';
+
+  @override
+  String get currencyEur => 'Euro (EUR)';
+
+  @override
+  String get currencyGbp => 'British Pound (GBP)';
+
+  @override
+  String get currencyUnitYi => '00M';
+
+  @override
+  String get currencyUnitWan => '0K';
+
+  @override
+  String get inputSourceText => 'Text';
+
+  @override
+  String get inputSourceVoice => 'Voice';
+
+  @override
+  String get inputSourceImage => 'Image';
+
+  @override
+  String reportTrendMonth(String period) {
+    return '$period';
+  }
+
+  @override
+  String reportTrendDay(String period) {
+    return '$period';
+  }
 }

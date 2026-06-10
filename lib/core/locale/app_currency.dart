@@ -1,3 +1,5 @@
+import 'package:wo_account/l10n/app_localizations.dart';
+
 /// 支持的货币类型
 enum AppCurrency {
   cny('CNY', '¥', '人民币'),
@@ -12,6 +14,24 @@ enum AppCurrency {
   final String label;
 
   const AppCurrency(this.code, this.symbol, this.label);
+
+  /// Returns the localized name for this currency.
+  String getLocalizedName(AppLocalizations l10n) {
+    switch (this) {
+      case AppCurrency.cny:
+        return l10n.currencyCny;
+      case AppCurrency.usd:
+        return l10n.currencyUsd;
+      case AppCurrency.krw:
+        return l10n.currencyKrw;
+      case AppCurrency.jpy:
+        return l10n.currencyJpy;
+      case AppCurrency.eur:
+        return l10n.currencyEur;
+      case AppCurrency.gbp:
+        return l10n.currencyGbp;
+    }
+  }
 
   static AppCurrency fromCode(String code) {
     return AppCurrency.values.where((c) => c.code == code).firstOrNull ?? cny;

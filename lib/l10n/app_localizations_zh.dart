@@ -1300,6 +1300,112 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get bookDescOther => '自定义用途';
+
+  @override
+  String get aiPresetDeepseekNote => '高性价比国产大模型';
+
+  @override
+  String get aiPresetOpenaiNote => '需海外网络访问';
+
+  @override
+  String get aiPresetQwenName => '通义千问 (阿里)';
+
+  @override
+  String get aiPresetQwenNote => '使用兼容模式地址';
+
+  @override
+  String get aiPresetDoubaoName => '豆包 (字节)';
+
+  @override
+  String get aiPresetDoubaoNote => '需在火山方舟创建推理接入点，模型名使用接入点 ID';
+
+  @override
+  String get aiPresetZhipuName => '智谱AI';
+
+  @override
+  String get aiPresetZhipuNote => 'glm-4-flash 有免费额度';
+
+  @override
+  String get aiPresetKimiName => '月之暗面 (Kimi)';
+
+  @override
+  String get aiPresetKimiNote => '擅长长文本理解';
+
+  @override
+  String get aiPresetClaudeNote => '使用 Anthropic Messages API';
+
+  @override
+  String get aiPresetMimoName => '小米 MiMo';
+
+  @override
+  String get aiPresetMimoNote => '支持 OpenAI/Anthropic 兼容协议，中国/新加坡/欧洲多集群';
+
+  @override
+  String get aiPresetOllamaName => 'Ollama (本地)';
+
+  @override
+  String get aiPresetOllamaNote => '需本地运行 Ollama 服务，模型名取决于本地安装';
+
+  @override
+  String get llmCapTextLabel => '文本模型';
+
+  @override
+  String get llmCapTextDesc => '用于记账解析、AI 对话';
+
+  @override
+  String get llmCapVisionLabel => '视觉模型';
+
+  @override
+  String get llmCapVisionDesc => '用于拍照识别小票/发票';
+
+  @override
+  String get llmCapAudioLabel => '语音模型';
+
+  @override
+  String get llmCapAudioDesc => '用于语音转文字';
+
+  @override
+  String get currencyCny => '人民币';
+
+  @override
+  String get currencyUsd => '美元';
+
+  @override
+  String get currencyKrw => '韩元';
+
+  @override
+  String get currencyJpy => '日元';
+
+  @override
+  String get currencyEur => '欧元';
+
+  @override
+  String get currencyGbp => '英镑';
+
+  @override
+  String get currencyUnitYi => '亿';
+
+  @override
+  String get currencyUnitWan => '万';
+
+  @override
+  String get inputSourceText => '文本';
+
+  @override
+  String get inputSourceVoice => '语音';
+
+  @override
+  String get inputSourceImage => '图片';
+
+  @override
+  String reportTrendMonth(String period) {
+    return '$period月';
+  }
+
+  @override
+  String reportTrendDay(String period) {
+    return '$period日';
+  }
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -2598,4 +2704,110 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get bookDescOther => '自訂用途';
+
+  @override
+  String get aiPresetDeepseekNote => '高性價比國產大模型';
+
+  @override
+  String get aiPresetOpenaiNote => '需海外網路存取';
+
+  @override
+  String get aiPresetQwenName => '通義千問 (阿里)';
+
+  @override
+  String get aiPresetQwenNote => '使用相容模式地址';
+
+  @override
+  String get aiPresetDoubaoName => '豆包 (位元組)';
+
+  @override
+  String get aiPresetDoubaoNote => '需在火山方舟建立推理接入點，模型名使用接入點 ID';
+
+  @override
+  String get aiPresetZhipuName => '智譜AI';
+
+  @override
+  String get aiPresetZhipuNote => 'glm-4-flash 有免費額度';
+
+  @override
+  String get aiPresetKimiName => '月之暗面 (Kimi)';
+
+  @override
+  String get aiPresetKimiNote => '擅長長文本理解';
+
+  @override
+  String get aiPresetClaudeNote => '使用 Anthropic Messages API';
+
+  @override
+  String get aiPresetMimoName => '小米 MiMo';
+
+  @override
+  String get aiPresetMimoNote => '支援 OpenAI/Anthropic 相容協定，中國/新加坡/歐洲多叢集';
+
+  @override
+  String get aiPresetOllamaName => 'Ollama (本地)';
+
+  @override
+  String get aiPresetOllamaNote => '需本地執行 Ollama 服務，模型名取決於本地安裝';
+
+  @override
+  String get llmCapTextLabel => '文字模型';
+
+  @override
+  String get llmCapTextDesc => '用於記帳解析、AI 對話';
+
+  @override
+  String get llmCapVisionLabel => '視覺模型';
+
+  @override
+  String get llmCapVisionDesc => '用於拍照識別收據/發票';
+
+  @override
+  String get llmCapAudioLabel => '語音模型';
+
+  @override
+  String get llmCapAudioDesc => '用於語音轉文字';
+
+  @override
+  String get currencyCny => '人民幣';
+
+  @override
+  String get currencyUsd => '美元';
+
+  @override
+  String get currencyKrw => '韓元';
+
+  @override
+  String get currencyJpy => '日圓';
+
+  @override
+  String get currencyEur => '歐元';
+
+  @override
+  String get currencyGbp => '英鎊';
+
+  @override
+  String get currencyUnitYi => '億';
+
+  @override
+  String get currencyUnitWan => '萬';
+
+  @override
+  String get inputSourceText => '文字';
+
+  @override
+  String get inputSourceVoice => '語音';
+
+  @override
+  String get inputSourceImage => '圖片';
+
+  @override
+  String reportTrendMonth(String period) {
+    return '$period月';
+  }
+
+  @override
+  String reportTrendDay(String period) {
+    return '$period日';
+  }
 }

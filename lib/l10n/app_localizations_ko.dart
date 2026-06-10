@@ -1304,4 +1304,111 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get bookDescOther => '사용자 정의 용도';
+
+  @override
+  String get aiPresetDeepseekNote => '비용 대비 성능이 우수한 중국 LLM';
+
+  @override
+  String get aiPresetOpenaiNote => '해외 네트워크 접속 필요';
+
+  @override
+  String get aiPresetQwenName => '통의천문 (알리바바)';
+
+  @override
+  String get aiPresetQwenNote => '호환 모드 URL 사용';
+
+  @override
+  String get aiPresetDoubaoName => '더우바오 (바이트댄스)';
+
+  @override
+  String get aiPresetDoubaoNote => '화산방주에서 추론 엔드포인트 생성 필요, 엔드포인트 ID를 모델명으로 사용';
+
+  @override
+  String get aiPresetZhipuName => '지푸AI';
+
+  @override
+  String get aiPresetZhipuNote => 'glm-4-flash 무료 할당량 있음';
+
+  @override
+  String get aiPresetKimiName => '월지암면 (Kimi)';
+
+  @override
+  String get aiPresetKimiNote => '긴 텍스트 이해에 뛰어남';
+
+  @override
+  String get aiPresetClaudeNote => 'Anthropic Messages API 사용';
+
+  @override
+  String get aiPresetMimoName => '샤오미 MiMo';
+
+  @override
+  String get aiPresetMimoNote =>
+      'OpenAI/Anthropic 호환 프로토콜 지원, 중국/싱가포르/유럽 멀티 클러스터';
+
+  @override
+  String get aiPresetOllamaName => 'Ollama (로컬)';
+
+  @override
+  String get aiPresetOllamaNote => '로컬 Ollama 서비스 실행 필요, 모델명은 로컬 설치에 따라 다름';
+
+  @override
+  String get llmCapTextLabel => '텍스트 모델';
+
+  @override
+  String get llmCapTextDesc => '가계부 해석 및 AI 대화용';
+
+  @override
+  String get llmCapVisionLabel => '비전 모델';
+
+  @override
+  String get llmCapVisionDesc => '영수증/세금계산서 사진 인식용';
+
+  @override
+  String get llmCapAudioLabel => '음성 모델';
+
+  @override
+  String get llmCapAudioDesc => '음성-텍스트 변환용';
+
+  @override
+  String get currencyCny => '중국 위안 (CNY)';
+
+  @override
+  String get currencyUsd => '미국 달러 (USD)';
+
+  @override
+  String get currencyKrw => '대한민국 원 (KRW)';
+
+  @override
+  String get currencyJpy => '일본 엔 (JPY)';
+
+  @override
+  String get currencyEur => '유로 (EUR)';
+
+  @override
+  String get currencyGbp => '영국 파운드 (GBP)';
+
+  @override
+  String get currencyUnitYi => '억';
+
+  @override
+  String get currencyUnitWan => '만';
+
+  @override
+  String get inputSourceText => '텍스트';
+
+  @override
+  String get inputSourceVoice => '음성';
+
+  @override
+  String get inputSourceImage => '이미지';
+
+  @override
+  String reportTrendMonth(String period) {
+    return '$period월';
+  }
+
+  @override
+  String reportTrendDay(String period) {
+    return '$period일';
+  }
 }

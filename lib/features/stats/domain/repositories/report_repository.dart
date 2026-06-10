@@ -9,6 +9,8 @@ abstract class ReportRepository {
     required DateTime end,
     required bool isExpense,
     String groupBy = 'day',
+    String? uncategorizedLabel,
+    String Function(int period, String groupBy)? trendLabelBuilder,
   });
 }
 
