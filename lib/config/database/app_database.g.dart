@@ -3871,7 +3871,7 @@ class $UserProfilesTable extends UserProfiles
     aliasedName,
     false,
     additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 1,
+      minTextLength: 0,
       maxTextLength: 50,
     ),
     type: DriftSqlType.string,

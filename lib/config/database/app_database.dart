@@ -114,7 +114,7 @@ class ConversationMessages extends Table {
 @DataClassName('UserProfile')
 class UserProfiles extends Table {
   IntColumn get id => integer().autoIncrement()();
-  TextColumn get nickname => text().withLength(min: 1, max: 50).withDefault(const Constant(''))();
+  TextColumn get nickname => text().withLength(min: 0, max: 50).withDefault(const Constant(''))();
   TextColumn get avatarPath => text().nullable()();
   TextColumn get gender => text().withLength(max: 10).nullable()();
   TextColumn get email => text().withLength(max: 100).nullable()();
@@ -328,7 +328,6 @@ class AppDatabase extends _$AppDatabase {
           isSystem: const Value(true),
           isExpense: Value(child.isExpense),
           sortOrder: Value(child.sortOrder),
-          l10nKey: Value(child.l10nKey),
         ));
       }
     }
