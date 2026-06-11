@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -115,13 +116,16 @@ class _AiInputBarState extends State<AiInputBar> {
 
     // 开始录音
     try {
+      // 生成明确的临时文件路径（Android 16 不支持空路径）
+      final tempDir = await getTemporaryDirectory();
+      final tempPath = '${tempDir.path}/recording_${DateTime.now().millisecondsSinceEpoch}.m4a';
       await _audioRecorder.start(
         const RecordConfig(
           encoder: AudioEncoder.aacLc,
           bitRate: 128000,
           sampleRate: 44100,
         ),
-        path: '', // 空路径让 record 自动选择临时路径
+        path: tempPath,
       );
     } catch (e) {
       if (mounted) {
