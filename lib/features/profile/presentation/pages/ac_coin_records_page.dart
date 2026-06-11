@@ -147,17 +147,24 @@ class _AcCoinRecordsPageState extends ConsumerState<AcCoinRecordsPage> {
     );
   }
 
-  /// Resolve transaction description via l10nKey or type-based mapping.
+  /// Resolve transaction description via l10nKey, legacy text, or type-based mapping.
   String _resolveDescription(AcCoinTransaction txn, AppLocalizations l10n) {
-    // Try to resolve known l10nKeys stored in description field
+    // Map known l10nKeys AND legacy Chinese text to localized strings
     final l10nMap = <String, String>{
       'acCoinInitialGiftDesc': l10n.acCoinInitialGiftDesc,
+      '新用户注册赠送': l10n.acCoinInitialGiftDesc, // legacy data
     };
     if (txn.description.isNotEmpty) {
       final resolved = l10nMap[txn.description];
       if (resolved != null) return resolved;
     }
-    // Fallback: use description as-is, or type
+    // Type-based fallback
+    final typeMap = <String, String>{
+      'initial_gift': l10n.acCoinInitialGiftDesc,
+    };
+    final resolved = typeMap[txn.type];
+    if (resolved != null) return resolved;
+    // Final fallback
     return txn.description.isNotEmpty ? txn.description : txn.type;
   }
 }
