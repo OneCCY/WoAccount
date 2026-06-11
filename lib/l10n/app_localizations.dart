@@ -4217,6 +4217,18 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'新用户注册赠送'**
   String get acCoinInitialGiftDesc;
+
+  /// No description provided for @loadFailedPullToRefresh.
+  ///
+  /// In zh, this message translates to:
+  /// **'加载失败，请下拉刷新'**
+  String get loadFailedPullToRefresh;
+
+  /// No description provided for @llmSettingsGetModelListError.
+  ///
+  /// In zh, this message translates to:
+  /// **'无法获取模型列表'**
+  String get llmSettingsGetModelListError;
 }
 
 class _AppLocalizationsDelegate

@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../config/di/ai_providers.dart';
+import '../../../core/ai/llm_error_resolver.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 
@@ -312,7 +313,7 @@ class _FloatingRecordButtonState extends ConsumerState<_FloatingRecordButton> {
       } catch (e) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.homePageRecordFailed(e.toString())), behavior: SnackBarBehavior.floating),
+          SnackBar(content: Text(AppLocalizations.of(context)!.homePageRecordFailed(resolveLlmError(e, AppLocalizations.of(context)!))), behavior: SnackBarBehavior.floating),
         );
       }
     } else {

@@ -774,5 +774,7 @@
   "@voiceErrorTranscriptionFailed": { "placeholders": { "message": { "type": "String" } } },
   "pipelineErrorEmptyVoiceResult": "Voice recognition returned empty, please record again",
   "pipelineErrorEmptyImageResult": "Image recognition returned empty, please choose a clearer image",
-  "acCoinInitialGiftDesc": "New user registration gift"
+  "acCoinInitialGiftDesc": "New user registration gift",
+  "loadFailedPullToRefresh": "Failed to load, pull to refresh",
+  "llmSettingsGetModelListError": "Failed to get model list"
 }

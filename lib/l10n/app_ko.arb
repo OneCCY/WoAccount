@@ -769,5 +769,7 @@
   "@voiceErrorTranscriptionFailed": { "placeholders": { "message": { "type": "String" } } },
   "pipelineErrorEmptyVoiceResult": "음성 인식 결과가 비어 있습니다. 다시 녹음해 주세요",
   "pipelineErrorEmptyImageResult": "이미지 인식 결과가 비어 있습니다. 더 선명한 이미지를 선택해 주세요",
-  "acCoinInitialGiftDesc": "신규 회원 가입 선물"
+  "acCoinInitialGiftDesc": "신규 회원 가입 선물",
+  "loadFailedPullToRefresh": "로드 실패, 아래로 당겨 새로고침",
+  "llmSettingsGetModelListError": "모델 목록을 가져오지 못했습니다"
 }

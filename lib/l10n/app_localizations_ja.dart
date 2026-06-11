@@ -2192,4 +2192,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get acCoinInitialGiftDesc => '新規ユーザー登録特典';
+
+  @override
+  String get loadFailedPullToRefresh => '読み込み失敗、引っ張って更新';
+
+  @override
+  String get llmSettingsGetModelListError => 'モデル一覧の取得に失敗しました';
 }

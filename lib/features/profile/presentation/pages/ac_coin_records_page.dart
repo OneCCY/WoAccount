@@ -112,16 +112,17 @@ class _AcCoinRecordsPageState extends ConsumerState<AcCoinRecordsPage> {
       itemCount: _transactions.length,
       itemBuilder: (context, index) {
         final txn = _transactions[index];
-        return _buildTransactionItem(txn);
+        return _buildTransactionItem(txn, l10n);
       },
     );
   }
 
-  Widget _buildTransactionItem(AcCoinTransaction txn) {
+  Widget _buildTransactionItem(AcCoinTransaction txn, AppLocalizations l10n) {
     final isPositive = txn.amount > 0;
     final amountColor = isPositive ? context.colors.income : context.colors.expense;
     final amountText = isPositive ? '+${txn.amount}' : '${txn.amount}';
     final dateStr = DateFormat('yyyy-MM-dd HH:mm').format(txn.createdAt);
+    final desc = _resolveDescription(txn, l10n);
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -134,8 +135,7 @@ class _AcCoinRecordsPageState extends ConsumerState<AcCoinRecordsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(txn.description.isNotEmpty ? txn.description : txn.type,
-                    style: context.textStyles.body),
+                Text(desc, style: context.textStyles.body),
                 const SizedBox(height: 4),
                 Text(dateStr, style: context.textStyles.caption.copyWith(color: context.colors.textTertiary)),
               ],
@@ -145,5 +145,19 @@ class _AcCoinRecordsPageState extends ConsumerState<AcCoinRecordsPage> {
         ],
       ),
     );
+  }
+
+  /// Resolve transaction description via l10nKey or type-based mapping.
+  String _resolveDescription(AcCoinTransaction txn, AppLocalizations l10n) {
+    // Try to resolve known l10nKeys stored in description field
+    final l10nMap = <String, String>{
+      'acCoinInitialGiftDesc': l10n.acCoinInitialGiftDesc,
+    };
+    if (txn.description.isNotEmpty) {
+      final resolved = l10nMap[txn.description];
+      if (resolved != null) return resolved;
+    }
+    // Fallback: use description as-is, or type
+    return txn.description.isNotEmpty ? txn.description : txn.type;
   }
 }

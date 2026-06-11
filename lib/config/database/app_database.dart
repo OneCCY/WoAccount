@@ -216,7 +216,7 @@ class AppDatabase extends _$AppDatabase {
           userId: const Value(1),
           amount: 100,
           type: 'initial_gift',
-          description: const Value('新用户注册赠送'),
+          description: const Value('acCoinInitialGiftDesc'),
         ));
       }
       if (from < 5) {
@@ -300,7 +300,7 @@ class AppDatabase extends _$AppDatabase {
       userId: const Value(1),
       amount: 100,
       type: 'initial_gift',
-      description: const Value('新用户注册赠送'),
+      description: const Value('acCoinInitialGiftDesc'),
     ));
   }
 

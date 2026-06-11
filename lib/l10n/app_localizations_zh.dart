@@ -2188,6 +2188,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get acCoinInitialGiftDesc => '新用户注册赠送';
+
+  @override
+  String get loadFailedPullToRefresh => '加载失败，请下拉刷新';
+
+  @override
+  String get llmSettingsGetModelListError => '无法获取模型列表';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -4374,4 +4380,10 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get acCoinInitialGiftDesc => '新會員註冊贈送';
+
+  @override
+  String get loadFailedPullToRefresh => '載入失敗，請下拉重新整理';
+
+  @override
+  String get llmSettingsGetModelListError => '無法取得模型列表';
 }

@@ -6,6 +6,7 @@ import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../config/di/ai_providers.dart';
+import '../../../../core/ai/llm_error_resolver.dart';
 import '../../../../core/locale/locale_provider.dart';
 import '../../../transaction/domain/repositories/transaction_repository.dart';
 import '../../../category/domain/repositories/category_repository.dart';
@@ -96,7 +97,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         );
       } catch (e) {
         if (!mounted) return;
-        _showSnackBar(AppLocalizations.of(context)!.homePageRecordFailed(e.toString()));
+        _showSnackBar(AppLocalizations.of(context)!.homePageRecordFailed(resolveLlmError(e, AppLocalizations.of(context)!)));
       } finally {
         if (mounted) setState(() => _isLoading = false);
       }
@@ -166,7 +167,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         );
       } catch (e) {
         if (!mounted) return;
-        _showSnackBar(AppLocalizations.of(context)!.homePageRecordFailed(e.toString()));
+        _showSnackBar(AppLocalizations.of(context)!.homePageRecordFailed(resolveLlmError(e, AppLocalizations.of(context)!)));
       } finally {
         if (mounted) setState(() => _isLoading = false);
       }
@@ -240,7 +241,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       );
     } catch (e) {
       if (!mounted) return;
-      _showSnackBar(AppLocalizations.of(context)!.homePageRecordFailed(e.toString()));
+      _showSnackBar(AppLocalizations.of(context)!.homePageRecordFailed(resolveLlmError(e, AppLocalizations.of(context)!)));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -270,7 +271,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       _showSnackBar(AppLocalizations.of(context)!.homePageRecordSuccess(context.localeProvider.currency.formatAmount(amount)));
     } catch (e) {
       if (!mounted) return;
-      _showSnackBar(AppLocalizations.of(context)!.homePageSaveFailed(e.toString()));
+      _showSnackBar(AppLocalizations.of(context)!.homePageSaveFailed(resolveLlmError(e, AppLocalizations.of(context)!)));
     }
   }
 

@@ -28,7 +28,7 @@ class LlmRepositoryImpl implements LlmRepository {
     final cap = request.capability ?? ModelCapability.text;
     final capModel = provider.getModelForCapability(cap);
     if (capModel != null) return capModel;
-    throw const LlmException('未配置对应能力的模型');
+    throw const LlmException('未配置对应能力的模型', errorCode: 'llmErrorNoModelForCapability');
   }
 
   @override
@@ -36,7 +36,7 @@ class LlmRepositoryImpl implements LlmRepository {
     final provider = await LlmConfigManager.getActiveProvider();
 
     if (provider == null || !provider.isComplete) {
-      throw const LlmException('请先在设置中添加并配置 AI 服务商');
+      throw const LlmException('请先在设置中添加并配置 AI 服务商', errorCode: 'llmErrorNoProviderConfigured');
     }
 
     final model = _resolveModel(provider, request);
@@ -52,7 +52,7 @@ class LlmRepositoryImpl implements LlmRepository {
         return await _chatOpenAI(provider, request, model);
       }
     } on DioException catch (e) {
-      throw LlmException(_parseDioError(e));
+      throw LlmException(_parseDioError(e), errorCode: _parseDioErrorCode(e));
     }
   }
 
@@ -158,7 +158,7 @@ class LlmRepositoryImpl implements LlmRepository {
         // 未配置 LLM，直接用规则引擎
         final ruleResult = RuleEngine.parse(input);
         if (ruleResult != null) return [ruleResult];
-        throw const LlmException('请先在设置中添加 AI 服务商，或输入更明确的描述（如"午饭拉面25"）');
+        throw const LlmException('请先在设置中添加 AI 服务商，或输入更明确的描述（如"午饭拉面25"）', errorCode: 'llmErrorNoProviderOrInput');
       }
 
       // 调用 LLM（使用文本能力）
@@ -249,7 +249,7 @@ class LlmRepositoryImpl implements LlmRepository {
       // 提取 JSON（可能是对象或数组）
       final jsonMatch = RegExp(r'(\[[\s\S]*\]|\{[\s\S]*\})').firstMatch(content);
       if (jsonMatch == null) {
-        throw const LlmException('无法解析 AI 响应');
+        throw const LlmException('无法解析 AI 响应', errorCode: 'llmErrorCannotParseResponse');
       }
 
       final raw = jsonDecode(jsonMatch.group(0)!);
@@ -264,10 +264,10 @@ class LlmRepositoryImpl implements LlmRepository {
         return [_parseSingleTransaction(raw)];
       }
 
-      throw const LlmException('AI 响应格式不正确');
+      throw const LlmException('AI 响应格式不正确', errorCode: 'llmErrorInvalidResponseFormat');
     } catch (e) {
       if (e is LlmException) rethrow;
-      throw LlmException('解析 AI 响应失败: $e');
+      throw LlmException('解析 AI 响应失败: $e', errorCode: 'llmErrorParseFailed');
     }
   }
 
@@ -301,6 +301,26 @@ class LlmRepositoryImpl implements LlmRepository {
         return '网络连接失败，请检查网络';
       default:
         return '请求失败: ${e.message}';
+    }
+  }
+
+  /// 解析 Dio 错误对应的 l10n errorCode
+  String _parseDioErrorCode(DioException e) {
+    switch (e.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
+        return 'llmErrorTimeout';
+      case DioExceptionType.badResponse:
+        final statusCode = e.response?.statusCode;
+        if (statusCode == 401) return 'llmErrorInvalidApiKey';
+        if (statusCode == 429) return 'llmErrorRateLimit';
+        if (statusCode == 403) return 'llmErrorForbidden';
+        return 'llmErrorRequestFailed';
+      case DioExceptionType.connectionError:
+        return 'llmErrorNetworkFailed';
+      default:
+        return 'llmErrorRequestFailedWithMessage';
     }
   }
 }

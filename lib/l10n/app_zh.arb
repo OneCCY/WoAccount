@@ -775,5 +775,7 @@
   "@voiceErrorTranscriptionFailed": { "placeholders": { "message": { "type": "String" } } },
   "pipelineErrorEmptyVoiceResult": "语音识别结果为空，请重新录制",
   "pipelineErrorEmptyImageResult": "图片识别结果为空，请选择更清晰的图片",
-  "acCoinInitialGiftDesc": "新用户注册赠送"
+  "acCoinInitialGiftDesc": "新用户注册赠送",
+  "loadFailedPullToRefresh": "加载失败，请下拉刷新",
+  "llmSettingsGetModelListError": "无法获取模型列表"
 }

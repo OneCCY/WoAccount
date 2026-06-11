@@ -478,7 +478,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
           }
           if (snapshot.hasError) {
             debugPrint('[TransactionList] stream error: ${snapshot.error}');
-            return Center(child: Text('加载失败，请下拉刷新', style: context.textStyles.body.copyWith(color: context.colors.textTertiary)));
+            return Center(child: Text(AppLocalizations.of(context)!.loadFailedPullToRefresh, style: context.textStyles.body.copyWith(color: context.colors.textTertiary)));
           }
           final allTxns = snapshot.data ?? [];
           final dayTxns = allTxns.where((t) =>
@@ -958,7 +958,7 @@ class _DayDetailPage extends ConsumerWidget {
           }
           if (snapshot.hasError) {
             debugPrint('[TransactionList] stream error: ${snapshot.error}');
-            return Center(child: Text('加载失败，请下拉刷新', style: context.textStyles.body.copyWith(color: context.colors.textTertiary)));
+            return Center(child: Text(AppLocalizations.of(context)!.loadFailedPullToRefresh, style: context.textStyles.body.copyWith(color: context.colors.textTertiary)));
           }
           final allTxns = snapshot.data ?? [];
           final dayTxns = allTxns.where((t) =>

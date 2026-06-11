@@ -7,6 +7,7 @@ import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../config/di/ai_providers.dart';
+import '../../../../core/ai/llm_error_resolver.dart';
 import '../../../../core/ai/transaction_pipeline.dart';
 import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -316,7 +317,8 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
       });
     } catch (e) {
       if (!mounted) return;
-      final errorMsg = AppLocalizations.of(context)!.chatPageParseError(e.toString());
+      final l10n = AppLocalizations.of(context)!;
+      final errorMsg = l10n.chatPageParseError(resolveLlmError(e, l10n));
       await _chatRepo.insertMessage(
         ConversationMessagesCompanion.insert(
           conversationId: _conversationId,
@@ -449,7 +451,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.chatPageSaveFailed(e.toString())),
+            content: Text(AppLocalizations.of(context)!.chatPageSaveFailed(resolveLlmError(e, AppLocalizations.of(context)!))),
             behavior: SnackBarBehavior.floating,
             backgroundColor: context.colors.error,
           ),

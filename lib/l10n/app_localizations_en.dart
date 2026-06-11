@@ -2233,4 +2233,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get acCoinInitialGiftDesc => 'New user registration gift';
+
+  @override
+  String get loadFailedPullToRefresh => 'Failed to load, pull to refresh';
+
+  @override
+  String get llmSettingsGetModelListError => 'Failed to get model list';
 }

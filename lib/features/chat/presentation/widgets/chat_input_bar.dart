@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
+import '../../../../core/ai/llm_error_resolver.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
@@ -175,7 +176,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.chatInputImageFailed(e.toString())), behavior: SnackBarBehavior.floating),
+          SnackBar(content: Text(AppLocalizations.of(context)!.chatInputImageFailed(resolveLlmError(e, AppLocalizations.of(context)!))), behavior: SnackBarBehavior.floating),
         );
       }
     }

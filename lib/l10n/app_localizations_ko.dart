@@ -2200,4 +2200,10 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get acCoinInitialGiftDesc => '신규 회원 가입 선물';
+
+  @override
+  String get loadFailedPullToRefresh => '로드 실패, 아래로 당겨 새로고침';
+
+  @override
+  String get llmSettingsGetModelListError => '모델 목록을 가져오지 못했습니다';
 }

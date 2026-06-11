@@ -95,7 +95,7 @@ class TransactionPipeline {
     final text = await _voiceService.transcribe(provider, savedPath);
 
     if (text.trim().isEmpty) {
-      throw const LlmException('语音识别结果为空，请重新录制');
+      throw const LlmException('语音识别结果为空，请重新录制', errorCode: 'pipelineErrorEmptyVoiceResult');
     }
 
     return text;
@@ -116,7 +116,7 @@ class TransactionPipeline {
     final transcribedText = await _voiceService.transcribe(provider, savedPath);
 
     if (transcribedText.trim().isEmpty) {
-      throw const LlmException('语音识别结果为空，请重新录制');
+      throw const LlmException('语音识别结果为空，请重新录制', errorCode: 'pipelineErrorEmptyVoiceResult');
     }
 
     // 3. 用转写文本走 AI 记账解析
@@ -148,7 +148,7 @@ class TransactionPipeline {
     );
 
     if (recognizedText.trim().isEmpty) {
-      throw const LlmException('图片识别结果为空，请选择更清晰的图片');
+      throw const LlmException('图片识别结果为空，请选择更清晰的图片', errorCode: 'pipelineErrorEmptyImageResult');
     }
 
     // 3. 用识别文本走 AI 记账解析

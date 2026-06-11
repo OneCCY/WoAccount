@@ -24,12 +24,12 @@ class VoiceRecognitionService {
   }) async {
     final model = provider.getModelForCapability(ModelCapability.audio);
     if (model == null || model.isEmpty) {
-      throw const LlmException('未配置语音识别模型，请在 AI 设置中配置');
+      throw const LlmException('未配置语音识别模型，请在 AI 设置中配置', errorCode: 'voiceErrorNoModelConfigured');
     }
 
     final file = File(audioFilePath);
     if (!file.existsSync()) {
-      throw const LlmException('音频文件不存在');
+      throw const LlmException('音频文件不存在', errorCode: 'voiceErrorAudioNotFound');
     }
 
     try {
@@ -64,12 +64,12 @@ class VoiceRecognitionService {
       // 兼容直接返回纯文本的情况
       if (data is String) return data;
 
-      throw const LlmException('语音识别返回格式异常');
+      throw const LlmException('语音识别返回格式异常', errorCode: 'voiceErrorInvalidResponseFormat');
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
-        throw const LlmException('API Key 无效');
+        throw const LlmException('API Key 无效', errorCode: 'llmErrorInvalidApiKey');
       }
-      throw LlmException('语音识别失败: ${e.message}');
+      throw LlmException('语音识别失败: ${e.message}', errorCode: 'voiceErrorTranscriptionFailed');
     }
   }
 }

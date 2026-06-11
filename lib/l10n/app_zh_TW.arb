@@ -769,5 +769,7 @@
   "@voiceErrorTranscriptionFailed": { "placeholders": { "message": { "type": "String" } } },
   "pipelineErrorEmptyVoiceResult": "語音識別結果為空，請重新錄製",
   "pipelineErrorEmptyImageResult": "圖片識別結果為空，請選擇更清晰的圖片",
-  "acCoinInitialGiftDesc": "新會員註冊贈送"
+  "acCoinInitialGiftDesc": "新會員註冊贈送",
+  "loadFailedPullToRefresh": "載入失敗，請下拉重新整理",
+  "llmSettingsGetModelListError": "無法取得模型列表"
 }

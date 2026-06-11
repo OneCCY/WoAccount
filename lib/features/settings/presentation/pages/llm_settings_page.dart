@@ -8,6 +8,7 @@ import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../ai/data/models/llm_config.dart';
 import '../../../ai/data/repositories/llm_repository_impl.dart';
+import '../../../../core/ai/llm_error_resolver.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 
 // ============================================================
@@ -107,7 +108,7 @@ Future<List<_FetchedModel>> fetchModelsFromApi(String baseUrl, String apiKey) as
     }
   }
 
-  throw Exception('无法获取模型列表');
+  throw const LlmException('无法获取模型列表', errorCode: 'llmSettingsGetModelListError');
 }
 
 List<_FetchedModel> filterModelsByCapability(List<_FetchedModel> models, ModelCapability cap) {
@@ -689,7 +690,7 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context)!.llmFetchError(e.toString())), behavior: SnackBarBehavior.floating),
+            SnackBar(content: Text(AppLocalizations.of(context)!.llmFetchError(resolveLlmError(e, AppLocalizations.of(context)!))), behavior: SnackBarBehavior.floating),
           );
         }
       }

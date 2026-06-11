@@ -27,12 +27,12 @@ class ImageRecognitionService {
   }) async {
     final model = provider.getModelForCapability(ModelCapability.vision);
     if (model == null || model.isEmpty) {
-      throw const LlmException('未配置视觉识别模型，请在 AI 设置中配置');
+      throw const LlmException('未配置视觉识别模型，请在 AI 设置中配置', errorCode: 'visionErrorNoModelConfigured');
     }
 
     final file = File(imagePath);
     if (!file.existsSync()) {
-      throw const LlmException('图片文件不存在');
+      throw const LlmException('图片文件不存在', errorCode: 'visionErrorImageNotFound');
     }
 
     final imageBytes = await file.readAsBytes();
@@ -55,9 +55,9 @@ class ImageRecognitionService {
       }
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
-        throw const LlmException('API Key 无效');
+        throw const LlmException('API Key 无效', errorCode: 'llmErrorInvalidApiKey');
       }
-      throw LlmException('图片识别失败: ${e.message}');
+      throw LlmException('图片识别失败: ${e.message}', errorCode: 'visionErrorRecognitionFailed');
     }
   }
 

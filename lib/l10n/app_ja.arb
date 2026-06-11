@@ -769,5 +769,7 @@
   "@voiceErrorTranscriptionFailed": { "placeholders": { "message": { "type": "String" } } },
   "pipelineErrorEmptyVoiceResult": "音声認識結果が空です。再度録音してください",
   "pipelineErrorEmptyImageResult": "画像認識結果が空です。より鮮明な画像を選択してください",
-  "acCoinInitialGiftDesc": "新規ユーザー登録特典"
+  "acCoinInitialGiftDesc": "新規ユーザー登録特典",
+  "loadFailedPullToRefresh": "読み込み失敗、引っ張って更新",
+  "llmSettingsGetModelListError": "モデル一覧の取得に失敗しました"
 }
