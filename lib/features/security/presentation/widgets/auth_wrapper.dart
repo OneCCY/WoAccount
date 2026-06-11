@@ -25,6 +25,7 @@ class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
   List<String> _enabledTypes = []; // 多选解锁方式
   String _currentType = ''; // 当前显示的解锁方式
   bool _pendingBiometric = false; // 等待 Activity resumed 后触发指纹
+  bool _isBiometricAuthenticating = false; // 防止重复触发
   final LocalAuthentication _localAuth = LocalAuthentication();
   final _navigatorKey = GlobalKey<NavigatorState>();
 
@@ -43,9 +44,10 @@ class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Trigger biometric auth only when the Activity is fully resumed.
-    // This avoids "Called after onSaveInstanceState()" errors on some devices.
-    if (state == AppLifecycleState.resumed && _pendingBiometric) {
+    if (state == AppLifecycleState.resumed &&
+        _pendingBiometric &&
+        !_isAuthenticated &&
+        !_isBiometricAuthenticating) {
       _pendingBiometric = false;
       _tryBiometricAuth();
     }
@@ -93,6 +95,8 @@ class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
   }
 
   Future<void> _tryBiometricAuth() async {
+    if (_isAuthenticated || _isBiometricAuthenticating) return;
+    _isBiometricAuthenticating = true;
     try {
       // Use the inner MaterialApp's Navigator context to access AppLocalizations.
       // The AuthWrapper's own context is above the MaterialApp and cannot access l10n.
@@ -114,6 +118,8 @@ class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
     } on Exception catch (e) {
       debugPrint('[AuthWrapper] _tryBiometricAuth error: $e');
       // 认证失败或用户取消，不自动重试，等待用户点击重试按钮
+    } finally {
+      _isBiometricAuthenticating = false;
     }
   }
 
