@@ -155,17 +155,8 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
                         Row(
                           children: [
                             Text(book.name, style: context.textStyles.h3.copyWith(color: Colors.white)),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.25),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(l10n.bookDefault, style: context.textStyles.caption.copyWith(color: Colors.white)),
-                            ),
                             if (isCurrent) ...[
-                              const SizedBox(width: 4),
+                              const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
