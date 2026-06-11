@@ -19,18 +19,36 @@ class AuthWrapper extends StatefulWidget {
   State<AuthWrapper> createState() => _AuthWrapperState();
 }
 
-class _AuthWrapperState extends State<AuthWrapper> {
+class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
   bool _isAuthenticated = false;
   bool _isLoading = true;
   List<String> _enabledTypes = []; // 多选解锁方式
   String _currentType = ''; // 当前显示的解锁方式
+  bool _pendingBiometric = false; // 等待 Activity resumed 后触发指纹
   final LocalAuthentication _localAuth = LocalAuthentication();
   final _navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _checkAuth();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Trigger biometric auth only when the Activity is fully resumed.
+    // This avoids "Called after onSaveInstanceState()" errors on some devices.
+    if (state == AppLifecycleState.resumed && _pendingBiometric) {
+      _pendingBiometric = false;
+      _tryBiometricAuth();
+    }
   }
 
   Future<void> _checkAuth() async {
@@ -58,12 +76,9 @@ class _AuthWrapperState extends State<AuthWrapper> {
       }
 
       if (_currentType == 'biometric') {
-        // Wait for the first frame to render before showing system biometric dialog.
-        // Calling _localAuth.authenticate() too early (before the widget tree is built)
-        // can cause the system fingerprint prompt to not appear on some devices.
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) _tryBiometricAuth();
-        });
+        // Mark pending; will fire when Activity is confirmed resumed.
+        // Avoids "Called after onSaveInstanceState()" on some devices.
+        _pendingBiometric = true;
       }
     } catch (e) {
       debugPrint('[AuthWrapper] _checkAuth error: $e');
