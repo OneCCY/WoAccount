@@ -1296,6 +1296,12 @@ abstract class AppLocalizations {
   /// **'默认'**
   String get bookDefault;
 
+  /// No description provided for @bookCurrent.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前'**
+  String get bookCurrent;
+
   /// No description provided for @bookMonthlyExpense.
   ///
   /// In zh, this message translates to:

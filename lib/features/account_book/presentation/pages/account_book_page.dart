@@ -52,6 +52,7 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final currentBookId = ref.watch(currentBookProvider);
     final defaultBook = _books.where((b) => b.isDefault).firstOrNull;
     final otherBooks = _books.where((b) => !b.isDefault).toList();
 
@@ -68,12 +69,12 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
                   const SizedBox(height: 16),
 
                   // 当前默认账本高亮卡片
-                  if (defaultBook != null) _buildDefaultCard(defaultBook),
+                  if (defaultBook != null) _buildDefaultCard(defaultBook, isCurrent: defaultBook.id == currentBookId),
 
                   const SizedBox(height: 16),
 
                   // 其他账本列表
-                  ...otherBooks.map(_buildBookItem),
+                  ...otherBooks.map((b) => _buildBookItem(b, isCurrent: b.id == currentBookId)),
 
                   // 新建账本按钮
                   Padding(
@@ -111,7 +112,7 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
     );
   }
 
-  Widget _buildDefaultCard(AccountBook book) {
+  Widget _buildDefaultCard(AccountBook book, {bool isCurrent = false}) {
     final l10n = AppLocalizations.of(context)!;
     final stats = _statsMap[book.id];
     final typeLabel = _typeToLabel(book.type);
@@ -163,6 +164,17 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
                               ),
                               child: Text(l10n.bookDefault, style: context.textStyles.caption.copyWith(color: Colors.white)),
                             ),
+                            if (isCurrent) ...[
+                              const SizedBox(width: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.25),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(l10n.bookCurrent, style: context.textStyles.caption.copyWith(color: Colors.white)),
+                              ),
+                            ],
                           ],
                         ),
                         const SizedBox(height: 4),
@@ -204,7 +216,7 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
     );
   }
 
-  Widget _buildBookItem(AccountBook book) {
+  Widget _buildBookItem(AccountBook book, {bool isCurrent = false}) {
     final l10n = AppLocalizations.of(context)!;
     final stats = _statsMap[book.id];
     final typeLabel = _typeToLabel(book.type);
@@ -273,6 +285,17 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
                             ),
                             child: Text(typeLabel, style: context.textStyles.caption.copyWith(color: context.colors.primary, fontSize: 10)),
                           ),
+                          if (isCurrent) ...[
+                            const SizedBox(width: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: context.colors.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(l10n.bookCurrent, style: context.textStyles.caption.copyWith(color: context.colors.primary, fontSize: 10)),
+                            ),
+                          ],
                         ],
                       ),
                       if (book.description != null && book.description!.isNotEmpty) ...[

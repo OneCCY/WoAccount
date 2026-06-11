@@ -659,6 +659,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get bookDefault => 'デフォルト';
 
   @override
+  String get bookCurrent => '現在';
+
+  @override
   String get bookMonthlyExpense => '今月の支出';
 
   @override

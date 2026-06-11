@@ -661,6 +661,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get bookDefault => '기본';
 
   @override
+  String get bookCurrent => '현재';
+
+  @override
   String get bookMonthlyExpense => '이번 달 지출';
 
   @override

@@ -20,7 +20,7 @@ class BudgetPage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
     final repo = ref.read(budgetRepositoryProvider);
-    final bookId = ref.read(currentBookProvider);
+    final bookId = ref.watch(currentBookProvider);
 
     return Scaffold(
       backgroundColor: context.colors.background,

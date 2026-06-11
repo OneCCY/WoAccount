@@ -234,6 +234,7 @@
   "bookCreate": "新建帳本",
   "bookDescription": "每個帳本擁有獨立的交易記錄、預算和 AI 對話歷史",
   "bookDefault": "預設",
+  "bookCurrent": "當前",
   "bookMonthlyExpense": "本月支出",
   "bookMonthlyIncome": "本月收入",
   "bookTransactionCount": "筆數",

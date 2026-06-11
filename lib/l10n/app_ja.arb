@@ -234,6 +234,7 @@
   "bookCreate": "新しい家計簿",
   "bookDescription": "各家計簿には独立した取引記録・予算・AI会話履歴があります",
   "bookDefault": "デフォルト",
+  "bookCurrent": "現在",
   "bookMonthlyExpense": "今月の支出",
   "bookMonthlyIncome": "今月の収入",
   "bookTransactionCount": "件数",

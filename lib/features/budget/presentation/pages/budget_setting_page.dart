@@ -20,7 +20,6 @@ class BudgetSettingPage extends ConsumerStatefulWidget {
 
 class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> {
   late final BudgetRepository _budgetRepo;
-  late final int _bookId;
   final now = DateTime.now();
   List<BudgetProgress> _progresses = [];
   bool _isLoading = true;
@@ -29,12 +28,12 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> {
   void initState() {
     super.initState();
     _budgetRepo = ref.read(budgetRepositoryProvider);
-    _bookId = ref.read(currentBookProvider);
     _loadData();
   }
 
   Future<void> _loadData() async {
-    final progresses = await _budgetRepo.getBudgetProgress(_bookId, now.year, now.month);
+    final bookId = ref.watch(currentBookProvider);
+    final progresses = await _budgetRepo.getBudgetProgress(bookId, now.year, now.month);
     setState(() {
       _progresses = progresses;
       _isLoading = false;

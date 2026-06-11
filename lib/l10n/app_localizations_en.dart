@@ -674,6 +674,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookDefault => 'Default';
 
   @override
+  String get bookCurrent => 'Current';
+
+  @override
   String get bookMonthlyExpense => 'Monthly Expense';
 
   @override

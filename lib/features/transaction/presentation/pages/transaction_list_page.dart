@@ -386,7 +386,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
         start = DateTime(now.year, now.month, 1);
         end = DateTime(now.year, now.month + 1, 1);
     }
-    return repo.getStats(ref.read(currentBookProvider), start, end);
+    return repo.getStats(ref.watch(currentBookProvider), start, end);
   }
 
   Widget _buildStatItem(String label, String value, Color valueColor, {bool isActive = false, VoidCallback? onTap}) {
@@ -471,7 +471,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
       onRefresh: () async { _triggerRefresh(); },
       child: StreamBuilder<List<Transaction>>(
         key: ValueKey('day_$_refreshKey'),
-        stream: repo.watchAll(ref.read(currentBookProvider)),
+        stream: repo.watchAll(ref.watch(currentBookProvider)),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator(color: context.colors.primary));
@@ -537,7 +537,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
       onRefresh: () async { _triggerRefresh(); },
       child: StreamBuilder<List<Transaction>>(
         key: ValueKey('week_stats_$_refreshKey'),
-        stream: repo.watchAll(ref.read(currentBookProvider)),
+        stream: repo.watchAll(ref.watch(currentBookProvider)),
         builder: (context, snapshot) {
           final allTxns = snapshot.data ?? [];
           return FutureBuilder<List<Category>>(
@@ -650,7 +650,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
 
     return StreamBuilder<List<Transaction>>(
       key: ValueKey('week_$_refreshKey'),
-      stream: repo.watchAll(ref.read(currentBookProvider)),
+      stream: repo.watchAll(ref.watch(currentBookProvider)),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator(color: context.colors.primary));
@@ -727,7 +727,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
       onRefresh: () async { _triggerRefresh(); },
       child: StreamBuilder<List<Transaction>>(
         key: ValueKey('month_$_refreshKey'),
-        stream: repo.watchAll(ref.read(currentBookProvider)),
+        stream: repo.watchAll(ref.watch(currentBookProvider)),
         builder: (context, snapshot) {
           final allTxns = snapshot.data ?? [];
           final monthTxns = allTxns.where((t) =>
@@ -951,7 +951,7 @@ class _DayDetailPage extends ConsumerWidget {
         backgroundColor: context.colors.surface,
       ),
       body: StreamBuilder<List<Transaction>>(
-        stream: repo.watchAll(ref.read(currentBookProvider)),
+        stream: repo.watchAll(ref.watch(currentBookProvider)),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator(color: context.colors.primary));

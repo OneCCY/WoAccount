@@ -234,6 +234,7 @@
   "bookCreate": "New Account Book",
   "bookDescription": "Each account book has its own transactions, budgets, and AI conversation history",
   "bookDefault": "Default",
+  "bookCurrent": "Current",
   "bookMonthlyExpense": "Monthly Expense",
   "bookMonthlyIncome": "Monthly Income",
   "bookTransactionCount": "Transactions",

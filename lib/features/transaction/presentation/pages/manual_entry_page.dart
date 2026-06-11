@@ -35,14 +35,12 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
   bool _showDatePicker = false;
   late final CategoryRepository _catRepo;
   late final TransactionRepository _txnRepo;
-  late final int _bookId;
 
   @override
   void initState() {
     super.initState();
     _catRepo = ref.read(categoryRepositoryProvider);
     _txnRepo = ref.read(transactionRepositoryProvider);
-    _bookId = ref.read(currentBookProvider);
   }
 
   @override
@@ -471,7 +469,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
         transactionDate: _selectedDate,
         originalInput: Value(_note),
         aiSource: const Value('manual'),
-        accountBookId: _bookId,
+        accountBookId: ref.read(currentBookProvider),
       ));
 
       if (mounted) {

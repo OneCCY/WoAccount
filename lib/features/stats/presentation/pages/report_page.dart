@@ -39,7 +39,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
     setState(() => _isLoading = true);
 
     try {
-      final bookId = ref.read(currentBookProvider);
+      final bookId = ref.watch(currentBookProvider);
       final repo = ref.read(reportRepositoryProvider);
       final range = _getDateRange();
       final l10n = AppLocalizations.of(context)!;

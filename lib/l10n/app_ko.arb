@@ -234,6 +234,7 @@
   "bookCreate": "새 가계부",
   "bookDescription": "각 가계부에는 독립적인 거래 기록, 예산, AI 대화 내역이 있습니다",
   "bookDefault": "기본",
+  "bookCurrent": "현재",
   "bookMonthlyExpense": "이번 달 지출",
   "bookMonthlyIncome": "이번 달 수입",
   "bookTransactionCount": "건수",

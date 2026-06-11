@@ -658,6 +658,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get bookDefault => '默认';
 
   @override
+  String get bookCurrent => '当前';
+
+  @override
   String get bookMonthlyExpense => '本月支出';
 
   @override
@@ -2848,6 +2851,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get bookDefault => '預設';
+
+  @override
+  String get bookCurrent => '當前';
 
   @override
   String get bookMonthlyExpense => '本月支出';

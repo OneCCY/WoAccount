@@ -30,14 +30,12 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   late final TransactionRepository _transactionRepo;
   late final CategoryRepository _categoryRepo;
-  late final int _bookId;
 
   @override
   void initState() {
     super.initState();
     _transactionRepo = ref.read(transactionRepositoryProvider);
     _categoryRepo = ref.read(categoryRepositoryProvider);
-    _bookId = ref.read(currentBookProvider);
 
     // 检查 AI 是否已配置，未配置则提示
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -265,7 +263,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         originalInput: Value(input),
         aiSource: Value(aiSource),
         aiConfidence: Value(confidence),
-        accountBookId: _bookId,
+        accountBookId: ref.read(currentBookProvider),
       ));
       if (!mounted) return;
       _showSnackBar(AppLocalizations.of(context)!.homePageRecordSuccess(context.localeProvider.currency.formatAmount(amount)));
