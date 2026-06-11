@@ -149,22 +149,33 @@ class _AcCoinRecordsPageState extends ConsumerState<AcCoinRecordsPage> {
 
   /// Resolve transaction description via l10nKey, legacy text, or type-based mapping.
   String _resolveDescription(AcCoinTransaction txn, AppLocalizations l10n) {
-    // Map known l10nKeys AND legacy Chinese text to localized strings
+    // 1) Map known l10nKeys AND legacy localized text to current locale
     final l10nMap = <String, String>{
       'acCoinInitialGiftDesc': l10n.acCoinInitialGiftDesc,
-      '新用户注册赠送': l10n.acCoinInitialGiftDesc, // legacy data
+      '新用户注册赠送': l10n.acCoinInitialGiftDesc, // legacy zh data
+      'initial_gift': l10n.acCoinInitialGiftDesc,
+      'daily_checkin': l10n.checkinRewardDaily,
+      'streak_7d': l10n.checkinReward7,
+      'streak_30d': l10n.checkinReward30,
+      'streak_180d': l10n.checkinReward180,
+      'streak_365d': l10n.checkinReward365,
     };
+    // Try description field first (may be l10nKey or legacy text)
     if (txn.description.isNotEmpty) {
       final resolved = l10nMap[txn.description];
       if (resolved != null) return resolved;
     }
-    // Type-based fallback
-    final typeMap = <String, String>{
-      'initial_gift': l10n.acCoinInitialGiftDesc,
-    };
-    final resolved = typeMap[txn.type];
+    // Try type field
+    final resolved = l10nMap[txn.type];
     if (resolved != null) return resolved;
-    // Final fallback
+
+    // 2) makeup_cost: needs date from relatedDate
+    if (txn.type == 'makeup_cost' && txn.relatedDate != null) {
+      final date = DateTime.fromMillisecondsSinceEpoch(txn.relatedDate!);
+      return l10n.checkinMakeupCost(DateFormat(l10n.txnDayFormat).format(date));
+    }
+
+    // 3) Final fallback: use description as-is, or type
     return txn.description.isNotEmpty ? txn.description : txn.type;
   }
 }

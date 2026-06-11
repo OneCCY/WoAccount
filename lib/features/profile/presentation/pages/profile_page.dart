@@ -157,7 +157,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with RouteAware {
           .insert(CheckInRecordsCompanion.insert(checkInDate: today));
 
       // 发放每日打卡 AC 币
-      await _addAcCoins(db, 10, 'daily_checkin', l10n.checkinRewardDaily, today.millisecondsSinceEpoch);
+      await _addAcCoins(db, 10, 'daily_checkin', today.millisecondsSinceEpoch);
 
       // 检查连续打卡奖励
       final newConsecutive = _consecutiveDays + 1;
@@ -193,26 +193,26 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with RouteAware {
     final claimedTypes = allTxns.where((t) => t.type.startsWith('streak_')).map((t) => t.type).toSet();
 
     if (consecutive >= 365 && !claimedTypes.contains('streak_365d')) {
-      await _addAcCoins(db, 2000, 'streak_365d', l10n.checkinReward365, today.millisecondsSinceEpoch);
+      await _addAcCoins(db, 2000, 'streak_365d', today.millisecondsSinceEpoch);
       _showRewardSnackBar(l10n.checkinStreak365);
     } else if (consecutive >= 180 && !claimedTypes.contains('streak_180d')) {
-      await _addAcCoins(db, 1000, 'streak_180d', l10n.checkinReward180, today.millisecondsSinceEpoch);
+      await _addAcCoins(db, 1000, 'streak_180d', today.millisecondsSinceEpoch);
       _showRewardSnackBar(l10n.checkinStreak180);
     } else if (consecutive >= 30 && !claimedTypes.contains('streak_30d')) {
-      await _addAcCoins(db, 300, 'streak_30d', l10n.checkinReward30, today.millisecondsSinceEpoch);
+      await _addAcCoins(db, 300, 'streak_30d', today.millisecondsSinceEpoch);
       _showRewardSnackBar(l10n.checkinStreak30);
     } else if (consecutive >= 7 && !claimedTypes.contains('streak_7d')) {
-      await _addAcCoins(db, 70, 'streak_7d', l10n.checkinReward7, today.millisecondsSinceEpoch);
+      await _addAcCoins(db, 70, 'streak_7d', today.millisecondsSinceEpoch);
       _showRewardSnackBar(l10n.checkinStreak7);
     }
   }
 
-  Future<void> _addAcCoins(AppDatabase db, int amount, String type, String desc, int? relatedDate) async {
+  Future<void> _addAcCoins(AppDatabase db, int amount, String type, int? relatedDate) async {
     await db.into(db.acCoinTransactions).insert(AcCoinTransactionsCompanion.insert(
       userId: const Value(1),
       amount: amount,
       type: type,
-      description: Value(desc),
+      description: Value(type), // store type as l10nKey; resolved at display time
       relatedDate: Value(relatedDate),
     ));
 
