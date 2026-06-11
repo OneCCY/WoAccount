@@ -58,7 +58,12 @@ class _AuthWrapperState extends State<AuthWrapper> {
       }
 
       if (_currentType == 'biometric') {
-        _tryBiometricAuth();
+        // Wait for the first frame to render before showing system biometric dialog.
+        // Calling _localAuth.authenticate() too early (before the widget tree is built)
+        // can cause the system fingerprint prompt to not appear on some devices.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _tryBiometricAuth();
+        });
       }
     } catch (e) {
       debugPrint('[AuthWrapper] _checkAuth error: $e');
@@ -74,8 +79,14 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
   Future<void> _tryBiometricAuth() async {
     try {
+      // Use the inner MaterialApp's Navigator context to access AppLocalizations.
+      // The AuthWrapper's own context is above the MaterialApp and cannot access l10n.
+      final navContext = _navigatorKey.currentContext;
+      final l10n = navContext != null ? AppLocalizations.of(navContext) : null;
+      final reason = l10n?.securityAuthRequired ?? 'Authentication required';
+
       final didAuth = await _localAuth.authenticate(
-        localizedReason: AppLocalizations.of(context)!.securityAuthRequired,
+        localizedReason: reason,
         options: const AuthenticationOptions(
           stickyAuth: true,
           biometricOnly: false, // 允许设备密码作为后备
@@ -85,7 +96,8 @@ class _AuthWrapperState extends State<AuthWrapper> {
       if (didAuth && mounted) {
         setState(() => _isAuthenticated = true);
       }
-    } on Exception {
+    } on Exception catch (e) {
+      debugPrint('[AuthWrapper] _tryBiometricAuth error: $e');
       // 认证失败或用户取消，不自动重试，等待用户点击重试按钮
     }
   }
