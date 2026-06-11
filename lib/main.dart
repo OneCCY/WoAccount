@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 import 'core/locale/locale_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'config/routes/app_router.dart';
+import 'config/di/providers.dart';
 import 'features/security/presentation/widgets/auth_wrapper.dart';
 
 void main() async {
@@ -26,11 +28,16 @@ void main() async {
   final localeProvider = LocaleProvider();
   await localeProvider.load();
 
+  // 加载上次选中的账本
+  final prefs = await SharedPreferences.getInstance();
+  final savedBookId = prefs.getInt('current_book_id') ?? 1;
+
   runApp(
     ProviderScope(
       overrides: [
         themeProviderOverrideProvider.overrideWith((ref) => themeProvider),
         localeProviderOverrideProvider.overrideWith((ref) => localeProvider),
+        currentBookProvider.overrideWith((ref) => savedBookId),
       ],
       child: AuthWrapper(
         locale: localeProvider.locale,

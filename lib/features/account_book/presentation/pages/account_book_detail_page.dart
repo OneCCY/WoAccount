@@ -107,8 +107,6 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
 
             // 功能菜单
             _buildMenuSection(context, l10n.bookDetailNormalSection, [
-              if (!book.isDefault)
-                _MenuItemData(Icons.check_circle_outline, l10n.bookDetailSetDefault, onTap: () => _onSetDefault(book)),
               _MenuItemData(Icons.swap_horiz, l10n.bookDetailSwitchTo, onTap: () => _onSwitchToBook(book)),
             ]),
 
@@ -117,9 +115,9 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
             // 危险区域
             _buildMenuSection(context, l10n.bookDetailDangerSection, [
               _MenuItemData(Icons.delete_sweep_outlined, l10n.bookDetailClearData, onTap: () => _onClearData(book), isDestructive: true),
-              if (!book.isDefault)
+              if (book.id != ref.watch(currentBookProvider))
                 _MenuItemData(Icons.delete_forever_outlined, l10n.bookDeleteTitle, onTap: () => _onDeleteBook(book), isDestructive: true),
-              if (book.isDefault)
+              if (book.id == ref.watch(currentBookProvider))
                 _MenuItemData(Icons.lock_outline, l10n.bookDetailDefaultNotDeletable, isDestructive: true),
             ]),
 
@@ -195,19 +193,8 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
     );
   }
 
-  Future<void> _onSetDefault(AccountBook book) async {
-    await _repo.setDefault(book.id);
-    ref.read(currentBookProvider.notifier).state = book.id;
-    _loadData();
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.bookDetailSetDefaultSuccess), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
-      );
-    }
-  }
-
   Future<void> _onSwitchToBook(AccountBook book) async {
-    ref.read(currentBookProvider.notifier).state = book.id;
+    await switchCurrentBook(ref, book.id);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.bookSwitchedTo(book.name)), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),

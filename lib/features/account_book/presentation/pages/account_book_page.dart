@@ -53,8 +53,8 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final currentBookId = ref.watch(currentBookProvider);
-    final defaultBook = _books.where((b) => b.isDefault).firstOrNull;
-    final otherBooks = _books.where((b) => !b.isDefault).toList();
+    final currentBook = _books.where((b) => b.id == currentBookId).firstOrNull ?? _books.firstOrNull;
+    final otherBooks = _books.where((b) => b.id != currentBookId).toList();
 
     return Scaffold(
       backgroundColor: context.colors.background,
@@ -68,8 +68,8 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
                 children: [
                   const SizedBox(height: 16),
 
-                  // 当前默认账本高亮卡片
-                  if (defaultBook != null) _buildDefaultCard(defaultBook, isCurrent: defaultBook.id == currentBookId),
+                  // 当前账本高亮卡片
+                  if (currentBook != null) _buildDefaultCard(currentBook, isCurrent: true),
 
                   const SizedBox(height: 16),
 
@@ -232,11 +232,11 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
           motion: const DrawerMotion(),
           children: [
             SlidableAction(
-              onPressed: (_) => _onSetDefault(book),
+              onPressed: (_) => _onSwitchTo(book),
               backgroundColor: context.colors.primary,
               foregroundColor: Colors.white,
-              icon: Icons.check_circle_outline,
-              label: l10n.bookSetDefault,
+              icon: Icons.swap_horiz,
+              label: l10n.bookDetailSwitchTo,
             ),
             SlidableAction(
               onPressed: (_) => _onDeleteBook(book),
@@ -335,10 +335,8 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
     context.push('/account-books/detail', extra: book.id).then((_) => _loadData());
   }
 
-  Future<void> _onSetDefault(AccountBook book) async {
-    await _repo.setDefault(book.id);
-    // 同步更新当前账本 Provider
-    ref.read(currentBookProvider.notifier).state = book.id;
+  Future<void> _onSwitchTo(AccountBook book) async {
+    await switchCurrentBook(ref, book.id);
     _loadData();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

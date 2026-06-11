@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../database/app_database.dart';
 import '../../features/transaction/domain/repositories/transaction_repository.dart';
 import '../../features/transaction/data/repositories/transaction_repository_impl.dart';
@@ -65,5 +66,12 @@ ReportRepository reportRepository(Ref ref) {
   return ReportRepositoryImpl(db);
 }
 
-/// 当前选中的账本 ID（默认 1，默认账本）
+/// 当前选中的账本 ID（持久化到 SharedPreferences，默认 1）
 final currentBookProvider = StateProvider<int>((ref) => 1);
+
+/// 切换当前账本并持久化
+Future<void> switchCurrentBook(WidgetRef ref, int bookId) async {
+  ref.read(currentBookProvider.notifier).state = bookId;
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setInt('current_book_id', bookId);
+}
