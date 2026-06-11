@@ -57,7 +57,29 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
     _pipeline = ref.read(transactionPipelineProvider);
 
     _scrollController.addListener(_onScroll);
-    _loadInitialMessages();
+    _loadInitialMessages().then((_) => _handleExternalInput());
+  }
+
+  /// 处理从外部传入的输入（如浮动按钮录音结果）
+  void _handleExternalInput() {
+    final extra = GoRouterState.of(context).extra;
+    if (extra is Map<String, dynamic>) {
+      final transcribedText = extra['transcribedText'] as String?;
+      final voicePath = extra['voicePath'] as String?;
+
+      if (transcribedText != null && transcribedText.isNotEmpty) {
+        // 仅转文字模式：填入输入框
+        // 通过延迟确保 build 完成后再处理
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _processInput(text: transcribedText);
+        });
+      } else if (voicePath != null && voicePath.isNotEmpty) {
+        // 完整管线模式：语音→转文字→AI解析
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _processInput(voicePath: voicePath);
+        });
+      }
+    }
   }
 
   @override
