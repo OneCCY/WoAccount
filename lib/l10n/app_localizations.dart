@@ -1353,8 +1353,44 @@ abstract class AppLocalizations {
   /// No description provided for @bookDeleted.
   ///
   /// In zh, this message translates to:
-  /// **'账本已删除'**
+  /// **'账本已移至回收站'**
   String get bookDeleted;
+
+  /// No description provided for @bookRecycleBin.
+  ///
+  /// In zh, this message translates to:
+  /// **'账本回收站'**
+  String get bookRecycleBin;
+
+  /// No description provided for @bookRecycleBinEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'回收站为空'**
+  String get bookRecycleBinEmpty;
+
+  /// No description provided for @bookRestore.
+  ///
+  /// In zh, this message translates to:
+  /// **'恢复'**
+  String get bookRestore;
+
+  /// No description provided for @bookRestored.
+  ///
+  /// In zh, this message translates to:
+  /// **'账本已恢复'**
+  String get bookRestored;
+
+  /// No description provided for @bookPermanentDelete.
+  ///
+  /// In zh, this message translates to:
+  /// **'永久删除'**
+  String get bookPermanentDelete;
+
+  /// No description provided for @bookPermanentDeleteConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要永久删除「{name}」吗？\n所有数据将被清除，此操作不可撤销。'**
+  String bookPermanentDeleteConfirm(String name);
 
   /// No description provided for @bookCountUnit.
   ///
@@ -1443,7 +1479,7 @@ abstract class AppLocalizations {
   /// No description provided for @bookDetailDefaultNotDeletable.
   ///
   /// In zh, this message translates to:
-  /// **'默认账本不可删除'**
+  /// **'当前账本不可删除'**
   String get bookDetailDefaultNotDeletable;
 
   /// No description provided for @bookDetailSetDefaultSuccess.
@@ -1479,7 +1515,7 @@ abstract class AppLocalizations {
   /// No description provided for @bookDetailDeleteConfirm.
   ///
   /// In zh, this message translates to:
-  /// **'确定要删除「{name}」吗？\n\n该账本下的所有数据将被清除，此操作不可撤销。'**
+  /// **'确定要删除「{name}」吗？\n\n账本将移至回收站，数据不会丢失。'**
   String bookDetailDeleteConfirm(String name);
 
   /// No description provided for @bookDetailTypePersonal.

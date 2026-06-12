@@ -42,9 +42,11 @@ class AccountBookRepositoryImpl implements AccountBookRepository {
 
   @override
   Future<bool> delete(int id) async {
-    // 默认账本不可删除
-    final book = await getById(id);
-    if (book == null || book.isDefault) return false;
+    // 当前账本不可删除（由 UI 层判断）
+    final result = await (_db.select(_db.accountBooks)
+          ..where((b) => b.id.equals(id) & b.isDeleted.equals(false)))
+        .getSingleOrNull();
+    if (result == null) return false;
 
     final count = await (_db.update(_db.accountBooks)
           ..where((b) => b.id.equals(id)))
@@ -53,6 +55,53 @@ class AccountBookRepositoryImpl implements AccountBookRepository {
       updatedAt: Value(DateTime.now()),
     ));
     return count > 0;
+  }
+
+  @override
+  Future<bool> restore(int id) async {
+    final count = await (_db.update(_db.accountBooks)
+          ..where((b) => b.id.equals(id) & b.isDeleted.equals(true)))
+        .write(AccountBooksCompanion(
+      isDeleted: const Value(false),
+      updatedAt: Value(DateTime.now()),
+    ));
+    return count > 0;
+  }
+
+  @override
+  Future<void> clearData(int bookId) async {
+    await _db.transaction(() async {
+      // 软删除该账本下的所有交易
+      await (_db.update(_db.transactions)
+            ..where((t) => t.accountBookId.equals(bookId)))
+          .write(TransactionsCompanion(
+        isDeleted: const Value(true),
+        updatedAt: Value(DateTime.now()),
+      ));
+
+      // 删除该账本下的所有对话记录
+      await (_db.delete(_db.conversationMessages)
+            ..where((m) => m.accountBookId.equals(bookId)))
+          .go();
+
+      // 删除该账本下的 AI 训练数据
+      await (_db.delete(_db.aiTrainingRecords)
+            ..where((r) => r.accountBookId.equals(bookId)))
+          .go();
+
+      // 删除该账本下的预算
+      await (_db.delete(_db.budgets)
+            ..where((b) => b.accountBookId.equals(bookId)))
+          .go();
+    });
+  }
+
+  @override
+  Future<List<AccountBook>> getDeletedAll() async {
+    return (_db.select(_db.accountBooks)
+          ..where((b) => b.isDeleted.equals(true))
+          ..orderBy([(b) => OrderingTerm.desc(b.updatedAt)]))
+        .get();
   }
 
   @override

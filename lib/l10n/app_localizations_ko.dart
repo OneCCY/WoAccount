@@ -692,7 +692,27 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get bookDeleted => '가계부가 삭제되었습니다';
+  String get bookDeleted => '가계부가 휴지통으로 이동되었습니다';
+
+  @override
+  String get bookRecycleBin => '가계부 휴지통';
+
+  @override
+  String get bookRecycleBinEmpty => '휴지통이 비어 있습니다';
+
+  @override
+  String get bookRestore => '복원';
+
+  @override
+  String get bookRestored => '가계부가 복원되었습니다';
+
+  @override
+  String get bookPermanentDelete => '영구 삭제';
+
+  @override
+  String bookPermanentDeleteConfirm(String name) {
+    return '\"$name\"을(를) 영구 삭제하시겠습니까?\n모든 데이터가 삭제됩니다. 이 작업은 되돌릴 수 없습니다.';
+  }
 
   @override
   String bookCountUnit(String count) {
@@ -739,7 +759,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get bookDetailClearData => '가계부 데이터 초기화';
 
   @override
-  String get bookDetailDefaultNotDeletable => '기본 가계부는 삭제할 수 없습니다';
+  String get bookDetailDefaultNotDeletable => '현재 가계부는 삭제할 수 없습니다';
 
   @override
   String get bookDetailSetDefaultSuccess => '기본 가계부로 설정되었습니다';
@@ -760,7 +780,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String bookDetailDeleteConfirm(String name) {
-    return '「$name」을(를) 삭제하시겠습니까?\n\n이 가계부의 모든 데이터가 삭제됩니다. 이 작업은 되돌릴 수 없습니다.';
+    return '「$name」을(를) 삭제하시겠습니까?\n\n휴지통으로 이동됩니다. 데이터는 삭제되지 않습니다.';
   }
 
   @override

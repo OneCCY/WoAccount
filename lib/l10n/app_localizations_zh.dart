@@ -689,7 +689,27 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get bookDeleted => '账本已删除';
+  String get bookDeleted => '账本已移至回收站';
+
+  @override
+  String get bookRecycleBin => '账本回收站';
+
+  @override
+  String get bookRecycleBinEmpty => '回收站为空';
+
+  @override
+  String get bookRestore => '恢复';
+
+  @override
+  String get bookRestored => '账本已恢复';
+
+  @override
+  String get bookPermanentDelete => '永久删除';
+
+  @override
+  String bookPermanentDeleteConfirm(String name) {
+    return '确定要永久删除「$name」吗？\n所有数据将被清除，此操作不可撤销。';
+  }
 
   @override
   String bookCountUnit(String count) {
@@ -736,7 +756,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get bookDetailClearData => '清空账本数据';
 
   @override
-  String get bookDetailDefaultNotDeletable => '默认账本不可删除';
+  String get bookDetailDefaultNotDeletable => '当前账本不可删除';
 
   @override
   String get bookDetailSetDefaultSuccess => '已设为默认账本';
@@ -757,7 +777,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String bookDetailDeleteConfirm(String name) {
-    return '确定要删除「$name」吗？\n\n该账本下的所有数据将被清除，此操作不可撤销。';
+    return '确定要删除「$name」吗？\n\n账本将移至回收站，数据不会丢失。';
   }
 
   @override
@@ -2884,7 +2904,27 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   }
 
   @override
-  String get bookDeleted => '帳本已刪除';
+  String get bookDeleted => '帳本已移至回收站';
+
+  @override
+  String get bookRecycleBin => '帳本回收站';
+
+  @override
+  String get bookRecycleBinEmpty => '回收站為空';
+
+  @override
+  String get bookRestore => '恢復';
+
+  @override
+  String get bookRestored => '帳本已恢復';
+
+  @override
+  String get bookPermanentDelete => '永久刪除';
+
+  @override
+  String bookPermanentDeleteConfirm(String name) {
+    return '確定要永久刪除「$name」嗎？\n所有資料將被清除，此操作不可撤銷。';
+  }
 
   @override
   String bookCountUnit(String count) {
@@ -2931,7 +2971,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get bookDetailClearData => '清空帳本資料';
 
   @override
-  String get bookDetailDefaultNotDeletable => '預設帳本不可刪除';
+  String get bookDetailDefaultNotDeletable => '當前帳本不可刪除';
 
   @override
   String get bookDetailSetDefaultSuccess => '已設為預設帳本';
@@ -2952,7 +2992,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String bookDetailDeleteConfirm(String name) {
-    return '確定要刪除「$name」嗎？\n\n該帳本下的所有資料將被清除，此操作不可撤銷。';
+    return '確定要刪除「$name」嗎？\n\n帳本將移至回收站，資料不會遺失。';
   }
 
   @override

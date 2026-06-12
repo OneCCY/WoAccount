@@ -690,7 +690,27 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get bookDeleted => '家計簿を削除しました';
+  String get bookDeleted => '家計簿をごみ箱に移動しました';
+
+  @override
+  String get bookRecycleBin => '家計簿ごみ箱';
+
+  @override
+  String get bookRecycleBinEmpty => 'ごみ箱は空です';
+
+  @override
+  String get bookRestore => '復元';
+
+  @override
+  String get bookRestored => '家計簿を復元しました';
+
+  @override
+  String get bookPermanentDelete => '完全に削除';
+
+  @override
+  String bookPermanentDeleteConfirm(String name) {
+    return '「$name」を完全に削除しますか？\nすべてのデータが削除されます。この操作は元に戻せません。';
+  }
 
   @override
   String bookCountUnit(String count) {
@@ -737,7 +757,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get bookDetailClearData => '家計簿データを消去';
 
   @override
-  String get bookDetailDefaultNotDeletable => 'デフォルト家計簿は削除できません';
+  String get bookDetailDefaultNotDeletable => '現在の家計簿は削除できません';
 
   @override
   String get bookDetailSetDefaultSuccess => 'デフォルト家計簿に設定しました';
@@ -758,7 +778,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String bookDetailDeleteConfirm(String name) {
-    return '「$name」を削除しますか？\n\nこの家計簿のすべてのデータが削除されます。この操作は元に戻せません。';
+    return '「$name」を削除しますか？\n\nごみ箱に移動されます。データは失われません。';
   }
 
   @override

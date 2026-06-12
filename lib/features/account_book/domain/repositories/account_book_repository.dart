@@ -17,8 +17,17 @@ abstract class AccountBookRepository {
   /// 更新账本
   Future<bool> update(AccountBooksCompanion book);
 
-  /// 软删除账本（默认账本不可删除）
+  /// 软删除账本（当前账本不可删除）
   Future<bool> delete(int id);
+
+  /// 恢复已删除的账本
+  Future<bool> restore(int id);
+
+  /// 清空账本下的所有交易和对话数据
+  Future<void> clearData(int bookId);
+
+  /// 获取所有已删除的账本（回收站）
+  Future<List<AccountBook>> getDeletedAll();
 
   /// 设为默认账本
   Future<bool> setDefault(int id);

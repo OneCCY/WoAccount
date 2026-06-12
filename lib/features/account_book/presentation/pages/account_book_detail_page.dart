@@ -222,7 +222,7 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
     );
 
     if (confirmed == true) {
-      // TODO: 实现清空账本数据的逻辑（删除关联的交易和对话）
+      await _repo.clearData(book.id);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l10n.bookDetailCleared), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),

@@ -11,7 +11,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/repositories/account_book_repository.dart';
-import '../widgets/create_book_dialog.dart';
+import '../widgets/create_book_sheet.dart';
 
 /// 账本列表页
 /// 当前默认账本高亮卡片 + 其他账本列表 + 新建按钮
@@ -60,6 +60,13 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
       backgroundColor: context.colors.background,
       appBar: AppBar(
         title: Text(l10n.bookTitle),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            tooltip: l10n.bookRecycleBin,
+            onPressed: () => context.push('/account-books/recycle-bin').then((_) => _loadData()),
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -368,10 +375,7 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
   }
 
   Future<void> _onCreateBook() async {
-    final result = await showDialog<Map<String, dynamic>>(
-      context: context,
-      builder: (ctx) => const CreateBookDialog(),
-    );
+    final result = await CreateBookSheet.show(context);
 
     if (result != null) {
       final book = AccountBooksCompanion.insert(

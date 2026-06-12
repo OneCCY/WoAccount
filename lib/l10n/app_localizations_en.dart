@@ -705,7 +705,27 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get bookDeleted => 'Account book deleted';
+  String get bookDeleted => 'Account book moved to recycle bin';
+
+  @override
+  String get bookRecycleBin => 'Account Book Recycle Bin';
+
+  @override
+  String get bookRecycleBinEmpty => 'Recycle bin is empty';
+
+  @override
+  String get bookRestore => 'Restore';
+
+  @override
+  String get bookRestored => 'Account book restored';
+
+  @override
+  String get bookPermanentDelete => 'Permanently Delete';
+
+  @override
+  String bookPermanentDeleteConfirm(String name) {
+    return 'Permanently delete \"$name\"?\nAll data will be removed. This cannot be undone.';
+  }
 
   @override
   String bookCountUnit(String count) {
@@ -753,7 +773,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bookDetailDefaultNotDeletable =>
-      'The default account book cannot be deleted';
+      'Current account book cannot be deleted';
 
   @override
   String get bookDetailSetDefaultSuccess => 'Set as default account book';
@@ -774,7 +794,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String bookDetailDeleteConfirm(String name) {
-    return 'Are you sure you want to delete \"$name\"?\n\nAll data in this book will be removed. This action cannot be undone.';
+    return 'Are you sure you want to delete \"$name\"?\n\nThe book will be moved to the recycle bin. Data will not be lost.';
   }
 
   @override
