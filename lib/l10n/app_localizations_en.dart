@@ -745,7 +745,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookTypeBusiness => 'Business';
 
   @override
+  String get bookTypeCouple => 'Couple';
+
+  @override
+  String get bookTypeStudent => 'Student';
+
+  @override
+  String get bookTypeWedding => 'Wedding';
+
+  @override
+  String get bookTypeRental => 'Rent';
+
+  @override
+  String get bookTypeInvestment => 'Invest';
+
+  @override
+  String get bookTypePet => 'Pet';
+
+  @override
+  String get bookTypeHealth => 'Medical';
+
+  @override
+  String get bookTypeEvent => 'Event';
+
+  @override
   String get bookTypeOther => 'Other';
+
+  @override
+  String get bookTypeCustom => 'Custom';
+
+  @override
+  String get bookTypeCustomHint => 'Enter custom type';
 
   @override
   String get bookDetailTitle => 'Account Book Details';

@@ -729,7 +729,37 @@ class AppLocalizationsZh extends AppLocalizations {
   String get bookTypeBusiness => '生意';
 
   @override
+  String get bookTypeCouple => '情侣';
+
+  @override
+  String get bookTypeStudent => '学生';
+
+  @override
+  String get bookTypeWedding => '婚礼';
+
+  @override
+  String get bookTypeRental => '租房';
+
+  @override
+  String get bookTypeInvestment => '投资';
+
+  @override
+  String get bookTypePet => '宠物';
+
+  @override
+  String get bookTypeHealth => '医疗';
+
+  @override
+  String get bookTypeEvent => '活动';
+
+  @override
   String get bookTypeOther => '其他';
+
+  @override
+  String get bookTypeCustom => '自定义';
+
+  @override
+  String get bookTypeCustomHint => '输入自定义类型';
 
   @override
   String get bookDetailTitle => '账本详情';
@@ -2944,7 +2974,37 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get bookTypeBusiness => '生意';
 
   @override
+  String get bookTypeCouple => '情侶';
+
+  @override
+  String get bookTypeStudent => '學生';
+
+  @override
+  String get bookTypeWedding => '婚禮';
+
+  @override
+  String get bookTypeRental => '租房';
+
+  @override
+  String get bookTypeInvestment => '投資';
+
+  @override
+  String get bookTypePet => '寵物';
+
+  @override
+  String get bookTypeHealth => '醫療';
+
+  @override
+  String get bookTypeEvent => '活動';
+
+  @override
   String get bookTypeOther => '其他';
+
+  @override
+  String get bookTypeCustom => '自定義';
+
+  @override
+  String get bookTypeCustomHint => '輸入自定義類型';
 
   @override
   String get bookDetailTitle => '帳本詳情';

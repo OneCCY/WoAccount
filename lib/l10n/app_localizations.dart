@@ -1422,11 +1422,71 @@ abstract class AppLocalizations {
   /// **'生意'**
   String get bookTypeBusiness;
 
+  /// No description provided for @bookTypeCouple.
+  ///
+  /// In zh, this message translates to:
+  /// **'情侣'**
+  String get bookTypeCouple;
+
+  /// No description provided for @bookTypeStudent.
+  ///
+  /// In zh, this message translates to:
+  /// **'学生'**
+  String get bookTypeStudent;
+
+  /// No description provided for @bookTypeWedding.
+  ///
+  /// In zh, this message translates to:
+  /// **'婚礼'**
+  String get bookTypeWedding;
+
+  /// No description provided for @bookTypeRental.
+  ///
+  /// In zh, this message translates to:
+  /// **'租房'**
+  String get bookTypeRental;
+
+  /// No description provided for @bookTypeInvestment.
+  ///
+  /// In zh, this message translates to:
+  /// **'投资'**
+  String get bookTypeInvestment;
+
+  /// No description provided for @bookTypePet.
+  ///
+  /// In zh, this message translates to:
+  /// **'宠物'**
+  String get bookTypePet;
+
+  /// No description provided for @bookTypeHealth.
+  ///
+  /// In zh, this message translates to:
+  /// **'医疗'**
+  String get bookTypeHealth;
+
+  /// No description provided for @bookTypeEvent.
+  ///
+  /// In zh, this message translates to:
+  /// **'活动'**
+  String get bookTypeEvent;
+
   /// No description provided for @bookTypeOther.
   ///
   /// In zh, this message translates to:
   /// **'其他'**
   String get bookTypeOther;
+
+  /// No description provided for @bookTypeCustom.
+  ///
+  /// In zh, this message translates to:
+  /// **'自定义'**
+  String get bookTypeCustom;
+
+  /// No description provided for @bookTypeCustomHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'输入自定义类型'**
+  String get bookTypeCustomHint;
 
   /// No description provided for @bookDetailTitle.
   ///

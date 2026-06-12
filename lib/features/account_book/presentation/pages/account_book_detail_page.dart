@@ -266,10 +266,18 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
     switch (type) {
       case 'personal': return l10n.bookDetailTypePersonal;
       case 'family': return l10n.bookDetailTypeFamily;
+      case 'couple': return l10n.bookTypeCouple;
+      case 'student': return l10n.bookTypeStudent;
       case 'travel': return l10n.bookDetailTypeTravel;
       case 'business': return l10n.bookDetailTypeBusiness;
+      case 'wedding': return l10n.bookTypeWedding;
+      case 'rental': return l10n.bookTypeRental;
+      case 'investment': return l10n.bookTypeInvestment;
+      case 'pet': return l10n.bookTypePet;
+      case 'health': return l10n.bookTypeHealth;
+      case 'event': return l10n.bookTypeEvent;
       case 'other': return l10n.bookDetailTypeOther;
-      default: return type;
+      default: return type; // 自定义类型直接显示原始文本
     }
   }
 }

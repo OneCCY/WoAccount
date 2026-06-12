@@ -730,7 +730,37 @@ class AppLocalizationsJa extends AppLocalizations {
   String get bookTypeBusiness => 'ビジネス';
 
   @override
+  String get bookTypeCouple => 'カップル';
+
+  @override
+  String get bookTypeStudent => '学生';
+
+  @override
+  String get bookTypeWedding => '結婚式';
+
+  @override
+  String get bookTypeRental => '賃貸';
+
+  @override
+  String get bookTypeInvestment => '投資';
+
+  @override
+  String get bookTypePet => 'ペット';
+
+  @override
+  String get bookTypeHealth => '医療';
+
+  @override
+  String get bookTypeEvent => 'イベント';
+
+  @override
   String get bookTypeOther => 'その他';
+
+  @override
+  String get bookTypeCustom => 'カスタム';
+
+  @override
+  String get bookTypeCustomHint => 'カスタムタイプを入力';
 
   @override
   String get bookDetailTitle => '家計簿の詳細';

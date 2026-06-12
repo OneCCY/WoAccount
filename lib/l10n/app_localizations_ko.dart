@@ -732,7 +732,37 @@ class AppLocalizationsKo extends AppLocalizations {
   String get bookTypeBusiness => '사업';
 
   @override
+  String get bookTypeCouple => '커플';
+
+  @override
+  String get bookTypeStudent => '학생';
+
+  @override
+  String get bookTypeWedding => '결혼';
+
+  @override
+  String get bookTypeRental => '임대';
+
+  @override
+  String get bookTypeInvestment => '투자';
+
+  @override
+  String get bookTypePet => '반려동물';
+
+  @override
+  String get bookTypeHealth => '의료';
+
+  @override
+  String get bookTypeEvent => '이벤트';
+
+  @override
   String get bookTypeOther => '기타';
+
+  @override
+  String get bookTypeCustom => '사용자 정의';
+
+  @override
+  String get bookTypeCustomHint => '사용자 정의 유형 입력';
 
   @override
   String get bookDetailTitle => '가계부 상세';

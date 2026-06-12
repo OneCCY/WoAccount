@@ -26,21 +26,34 @@ class CreateBookSheet extends StatefulWidget {
 class _CreateBookSheetState extends State<CreateBookSheet> {
   final _nameController = TextEditingController();
   final _descController = TextEditingController();
+  final _customTypeController = TextEditingController();
   final _nameFocusNode = FocusNode();
   String _selectedType = 'personal';
   String _selectedIcon = '📒';
+  bool _showCustomTypeInput = false;
 
   static const _icons = [
     '📒', '📕', '📗', '📘', '📙', '💰', '🏦', '💳',
     '🏠', '✈️', '💼', '🎯', '🎮', '🐾', '🎓', '❤️',
     '🍎', '🛒', '🎬', '🏋️', '🚗', '🎁', '📱', '☕',
+    '👶', '💍', '🎓', '🏥', '🐕', '🌸', '🎸', '📸',
+    '🏖️', '🎪', '🍕', '🍺', '💄', '👗', '🔧', '💻',
+    '📊', '🎨', '🏋️‍♀️', '🧘', '🎵', '📚', '🌍', '⭐',
   ];
 
   List<_BookType> _getTypes(AppLocalizations l10n) => [
     _BookType('personal', '🧑', l10n.bookTypePersonal),
     _BookType('family', '👨‍👩‍👧‍👦', l10n.bookTypeFamily),
+    _BookType('couple', '💑', l10n.bookTypeCouple),
+    _BookType('student', '🎓', l10n.bookTypeStudent),
     _BookType('travel', '✈️', l10n.bookTypeTravel),
     _BookType('business', '💼', l10n.bookTypeBusiness),
+    _BookType('wedding', '💍', l10n.bookTypeWedding),
+    _BookType('rental', '🏠', l10n.bookTypeRental),
+    _BookType('investment', '📈', l10n.bookTypeInvestment),
+    _BookType('pet', '🐾', l10n.bookTypePet),
+    _BookType('health', '🏥', l10n.bookTypeHealth),
+    _BookType('event', '🎪', l10n.bookTypeEvent),
     _BookType('other', '📁', l10n.bookTypeOther),
   ];
 
@@ -48,6 +61,7 @@ class _CreateBookSheetState extends State<CreateBookSheet> {
   void dispose() {
     _nameController.dispose();
     _descController.dispose();
+    _customTypeController.dispose();
     _nameFocusNode.dispose();
     super.dispose();
   }
@@ -164,13 +178,46 @@ class _CreateBookSheetState extends State<CreateBookSheet> {
                       height: 40,
                       child: ListView.separated(
                         scrollDirection: Axis.horizontal,
-                        itemCount: types.length,
+                        itemCount: types.length + 1, // +1 for custom
                         separatorBuilder: (_, __) => const SizedBox(width: 8),
                         itemBuilder: (context, index) {
+                          // 最后一个是自定义选项
+                          if (index == types.length) {
+                            final isSelected = _selectedType == '__custom__';
+                            return GestureDetector(
+                              onTap: () => setState(() {
+                                _selectedType = '__custom__';
+                                _showCustomTypeInput = true;
+                              }),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 150),
+                                padding: const EdgeInsets.symmetric(horizontal: 14),
+                                decoration: BoxDecoration(
+                                  color: isSelected ? context.colors.primary.withValues(alpha: 0.12) : context.colors.surface,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: isSelected ? Border.all(color: context.colors.primary.withValues(alpha: 0.5)) : null,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Text('✏️', style: TextStyle(fontSize: 16)),
+                                    const SizedBox(width: 6),
+                                    Text(l10n.bookTypeCustom, style: context.textStyles.caption.copyWith(
+                                      color: isSelected ? context.colors.primary : context.colors.textPrimary,
+                                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                    )),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }
                           final type = types[index];
                           final isSelected = _selectedType == type.value;
                           return GestureDetector(
-                            onTap: () => setState(() => _selectedType = type.value),
+                            onTap: () => setState(() {
+                              _selectedType = type.value;
+                              _showCustomTypeInput = false;
+                            }),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 150),
                               padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -195,6 +242,26 @@ class _CreateBookSheetState extends State<CreateBookSheet> {
                         },
                       ),
                     ),
+
+                    // 自定义类型输入框
+                    if (_showCustomTypeInput) ...[
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _customTypeController,
+                        maxLength: 10,
+                        decoration: InputDecoration(
+                          hintText: l10n.bookTypeCustomHint,
+                          counterText: '',
+                          filled: true,
+                          fillColor: context.colors.surface,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        ),
+                      ),
+                    ],
 
                     const SizedBox(height: 20),
 
@@ -251,9 +318,17 @@ class _CreateBookSheetState extends State<CreateBookSheet> {
       return;
     }
 
+    // 处理自定义类型
+    String type = _selectedType;
+    if (type == '__custom__') {
+      final customType = _customTypeController.text.trim();
+      if (customType.isEmpty) return;
+      type = customType;
+    }
+
     Navigator.pop(context, {
       'name': name,
-      'type': _selectedType,
+      'type': type,
       'icon': _selectedIcon,
       'description': _descController.text.trim().isNotEmpty ? _descController.text.trim() : null,
     });
