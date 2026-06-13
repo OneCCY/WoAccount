@@ -51,3 +51,7 @@ android/local.properties
 *.jks
 *.keystore
 android/key.properties
+
+# Flutter auto-generated metadata
+.metadata
+devtools_options.yaml
