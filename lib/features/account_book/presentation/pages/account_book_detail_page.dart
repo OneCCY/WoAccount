@@ -8,6 +8,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/repositories/account_book_repository.dart';
+import '../../../../core/widgets/toast.dart';
 
 /// 账本详情页
 /// 显示账本信息、月度统计，支持设为默认、切换、清空数据、删除
@@ -196,9 +197,7 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
   Future<void> _onSwitchToBook(AccountBook book) async {
     await switchCurrentBook(ref, book.id);
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.bookSwitchedTo(book.name)), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
-      );
+      AppToast.show(context, AppLocalizations.of(context)!.bookSwitchedTo(book.name), duration: const Duration(milliseconds: 800));
       Navigator.pop(context);
     }
   }
@@ -224,9 +223,7 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
     if (confirmed == true) {
       await _repo.clearData(book.id);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.bookDetailCleared), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
-        );
+        AppToast.show(context, l10n.bookDetailCleared, duration: const Duration(milliseconds: 800));
         _loadData();
       }
     }
@@ -254,9 +251,7 @@ class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
       final success = await _repo.delete(book.id);
       if (success && mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.bookDeleted), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
-        );
+        AppToast.show(context, l10n.bookDeleted, duration: const Duration(milliseconds: 800));
       }
     }
   }

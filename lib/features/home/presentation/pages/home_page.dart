@@ -14,6 +14,7 @@ import '../widgets/ai_input_bar.dart';
 import '../widgets/budget_insight_card.dart';
 import '../widgets/ai_assistant_entry.dart';
 import '../widgets/ai_confirm_sheet.dart';
+import '../../../../core/widgets/toast.dart';
 
 /// 首页（记账入口）
 /// 布局：预算提醒 → AI 助手入口 → 留白 → 底部输入栏
@@ -275,16 +276,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   void _showSnackBar(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    AppToast.show(context, message, duration: const Duration(seconds: 2));
   }
 
   @override

@@ -10,6 +10,7 @@ import '../../../../config/routes/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/toast.dart';
 import '../../../../main.dart';
 
 /// 我的页面
@@ -135,13 +136,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with RouteAware {
   Future<void> _checkIn() async {
     if (_todayCheckedIn) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.profileAlreadyCheckedIn),
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(milliseconds: 800),
-          ),
-        );
+        AppToast.show(context, AppLocalizations.of(context)!.profileAlreadyCheckedIn, duration: const Duration(milliseconds: 800));
       }
       return;
     }
@@ -166,23 +161,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with RouteAware {
       await _loadData();
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.profileCheckInSuccess),
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(milliseconds: 800),
-          ),
-        );
+        AppToast.show(context, l10n.profileCheckInSuccess, duration: const Duration(milliseconds: 800));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.profileCheckInFailure(e.toString())),
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 2),
-          ),
-        );
+        AppToast.show(context, AppLocalizations.of(context)!.profileCheckInFailure(e.toString()), duration: const Duration(seconds: 2));
       }
     }
   }
@@ -225,9 +208,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with RouteAware {
 
   void _showRewardSnackBar(String msg) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 2)),
-      );
+      AppToast.show(context, msg, duration: const Duration(seconds: 2));
     }
   }
 
@@ -594,13 +575,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with RouteAware {
         label == l10n.profileMenuImport ||
         label == l10n.profileMenuExport ||
         label == l10n.profileMenuFeedback) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.profileFeatureComingSoon(label)),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(milliseconds: 500),
-        ),
-      );
+      AppToast.show(context, l10n.profileFeatureComingSoon(label), duration: const Duration(milliseconds: 500));
     }
   }
 
@@ -616,13 +591,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with RouteAware {
         label == l10n.profileMenuImport ||
         label == l10n.profileMenuExport ||
         label == l10n.profileMenuFeedback) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.profileFeatureComingSoon(label)),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(milliseconds: 500),
-        ),
-      );
+      AppToast.show(context, l10n.profileFeatureComingSoon(label), duration: const Duration(milliseconds: 500));
     } else if (label == l10n.profileMenuSettings) {
       context.push('/settings');
     }

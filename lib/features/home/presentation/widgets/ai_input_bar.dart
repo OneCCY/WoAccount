@@ -6,6 +6,7 @@ import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/toast.dart';
 
 /// 语音录制结果模式
 enum VoiceEndAction {
@@ -105,9 +106,7 @@ class _AiInputBarState extends State<AiInputBar> {
     if (!hasPermission) {
       if (mounted) {
         setState(() => _isRecording = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.chatInputMicPermission), behavior: SnackBarBehavior.floating),
-        );
+        AppToast.show(context, AppLocalizations.of(context)!.chatInputMicPermission);
       }
       return;
     }
@@ -130,9 +129,7 @@ class _AiInputBarState extends State<AiInputBar> {
     } catch (e) {
       if (mounted) {
         setState(() => _isRecording = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.chatInputMicPermission), behavior: SnackBarBehavior.floating),
-        );
+        AppToast.show(context, AppLocalizations.of(context)!.chatInputMicPermission);
       }
     }
   }
@@ -196,9 +193,7 @@ class _AiInputBarState extends State<AiInputBar> {
         : Duration.zero;
     if (duration.inMilliseconds < 500) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.chatInputRecordShort), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
-        );
+        AppToast.show(context, AppLocalizations.of(context)!.chatInputRecordShort, duration: const Duration(milliseconds: 800));
       }
       return;
     }

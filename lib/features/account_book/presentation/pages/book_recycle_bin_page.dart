@@ -8,6 +8,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/repositories/account_book_repository.dart';
+import '../../../../core/widgets/toast.dart';
 
 /// 账本回收站
 /// 显示已删除的账本，支持恢复和永久删除
@@ -123,9 +124,7 @@ class _BookRecycleBinPageState extends ConsumerState<BookRecycleBinPage> {
     final success = await _repo.restore(book.id);
     if (success && mounted) {
       _loadData();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.bookRestored), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
-      );
+      AppToast.show(context, AppLocalizations.of(context)!.bookRestored, duration: const Duration(milliseconds: 800));
     }
   }
 

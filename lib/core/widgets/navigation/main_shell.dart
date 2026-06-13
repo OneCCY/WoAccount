@@ -6,6 +6,7 @@ import '../../../config/di/ai_providers.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../voice/voice_recording_overlay.dart';
+import '../toast.dart';
 
 /// 底部导航 Shell
 /// 左: 账单 | 中: 浮动记账按钮 | 右: 我的
@@ -40,9 +41,7 @@ class _MainShellState extends ConsumerState<MainShell> {
     if (!context.mounted) return;
 
     if (provider == null || !provider.isComplete) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.homePageAiNotConfigured), behavior: SnackBarBehavior.floating),
-      );
+      AppToast.show(context, AppLocalizations.of(context)!.homePageAiNotConfigured);
       return;
     }
 
@@ -58,9 +57,7 @@ class _MainShellState extends ConsumerState<MainShell> {
         context.go('/', extra: {'transcribedText': text});
       } catch (e) {
         if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.homePageRecordFailed(e.toString())), behavior: SnackBarBehavior.floating),
-        );
+        AppToast.show(context, AppLocalizations.of(context)!.homePageRecordFailed(e.toString()));
       }
     } else if (result.action == VoiceResultAction.send && result.filePath != null) {
       context.go('/', extra: {'voicePath': result.filePath});

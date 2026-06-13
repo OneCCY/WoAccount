@@ -11,6 +11,7 @@ import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../category/domain/repositories/category_repository.dart';
 import '../../domain/repositories/transaction_repository.dart';
+import '../../../../core/widgets/toast.dart';
 
 /// 记账类型
 enum EntryType { expense, income, other }
@@ -473,22 +474,12 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
       ));
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.entrySuccess(context.localeProvider.currency.formatAmount(amount))),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        AppToast.show(context, AppLocalizations.of(context)!.entrySuccess(context.localeProvider.currency.formatAmount(amount)));
         Navigator.of(context).pop();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.entryFailure(e.toString())),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        AppToast.show(context, AppLocalizations.of(context)!.entryFailure(e.toString()));
       }
     }
   }

@@ -8,6 +8,7 @@ import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 // ignore: unused_import
 import '../../domain/repositories/budget_repository.dart';
+import '../../../../core/widgets/toast.dart';
 
 /// 预算设置页
 /// 总预算 + 分类预算列表 + 添加
@@ -209,16 +210,12 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> {
 
   void _onAddCategoryBudget() {
     // TODO: 显示分类选择 + 金额输入对话框
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context)!.budgetAddCategoryBudgetDeveloping), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 500)),
-    );
+    AppToast.show(context, AppLocalizations.of(context)!.budgetAddCategoryBudgetDeveloping, duration: const Duration(milliseconds: 500));
   }
 
   void _onEditBudget(BudgetProgress progress) {
     // TODO: 编辑预算金额
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context)!.budgetEditBudgetDeveloping), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 500)),
-    );
+    AppToast.show(context, AppLocalizations.of(context)!.budgetEditBudgetDeveloping, duration: const Duration(milliseconds: 500));
   }
 
   Color _parseColor(BuildContext context, String? hex) {

@@ -9,6 +9,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../ai/data/models/llm_config.dart';
 import '../../../ai/data/repositories/llm_repository_impl.dart';
 import '../../../../core/ai/llm_error_resolver.dart';
+import '../../../../core/widgets/toast.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 
 // ============================================================
@@ -216,9 +217,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
 
   Future<void> _testProvider(LlmProvider provider) async {
     if (!provider.isComplete) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.llmConfigIncomplete), behavior: SnackBarBehavior.floating),
-      );
+      AppToast.show(context, AppLocalizations.of(context)!.llmConfigIncomplete);
       return;
     }
 
@@ -229,13 +228,17 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
 
     if (mounted) {
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(success ? AppLocalizations.of(context)!.llmConnectSuccess : AppLocalizations.of(context)!.llmConnectFail),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: success ? context.colors.success : context.colors.error,
-        ),
-      );
+      if (success) {
+        AppToast.show(context, AppLocalizations.of(context)!.llmConnectSuccess);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.llmConnectFail),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: context.colors.error,
+          ),
+        );
+      }
     }
   }
 
@@ -243,9 +246,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
     final json = await LlmConfigManager.exportConfig();
     await Clipboard.setData(ClipboardData(text: json));
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.llmConfigCopied), behavior: SnackBarBehavior.floating),
-      );
+      AppToast.show(context, AppLocalizations.of(context)!.llmConfigCopied);
     }
   }
 
@@ -254,9 +255,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
     final text = data?.text;
     if (text == null || text.isEmpty) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.llmClipboardEmpty), behavior: SnackBarBehavior.floating),
-        );
+        AppToast.show(context, AppLocalizations.of(context)!.llmClipboardEmpty);
       }
       return;
     }
@@ -264,14 +263,10 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
     final count = await LlmConfigManager.importConfig(text);
     if (mounted) {
       if (count > 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.llmImported(count.toString())), behavior: SnackBarBehavior.floating),
-        );
+        AppToast.show(context, AppLocalizations.of(context)!.llmImported(count.toString()));
         await _load();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.llmImportFailed), behavior: SnackBarBehavior.floating),
-        );
+        AppToast.show(context, AppLocalizations.of(context)!.llmImportFailed);
       }
     }
   }
@@ -651,9 +646,7 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
     if (entry == null) return;
 
     if (provider.apiKey.isEmpty || provider.baseUrl.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.llmProviderNotConfigured), behavior: SnackBarBehavior.floating),
-      );
+      AppToast.show(context, AppLocalizations.of(context)!.llmProviderNotConfigured);
       return;
     }
 
@@ -671,9 +664,7 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
         final msg = filtered.isNotEmpty
             ? AppLocalizations.of(context)!.llmModelsFetched(filtered.length.toString(), widget.capability.getLocalizedLabel(AppLocalizations.of(context)!))
             : AppLocalizations.of(context)!.llmModelsFetchedAll(allModels.length.toString());
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating),
-        );
+        AppToast.show(context, msg);
       }
     } catch (e) {
       if (mounted) {
@@ -685,13 +676,9 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
           setState(() {
             entry.fetchedModels = defaults.map((m) => _FetchedModel(id: m)).toList();
           });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context)!.llmFetchFailed), behavior: SnackBarBehavior.floating),
-          );
+          AppToast.show(context, AppLocalizations.of(context)!.llmFetchFailed);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context)!.llmFetchError(resolveLlmError(e, AppLocalizations.of(context)!))), behavior: SnackBarBehavior.floating),
-          );
+          AppToast.show(context, AppLocalizations.of(context)!.llmFetchError(resolveLlmError(e, AppLocalizations.of(context)!)));
         }
       }
     }
@@ -716,9 +703,7 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
         final idx = _providers.indexWhere((p) => p.id == provider.id);
         if (idx != -1) _providers[idx] = updated;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.llmModelSet(widget.capability.label, provider.name, model)), behavior: SnackBarBehavior.floating),
-      );
+      AppToast.show(context, AppLocalizations.of(context)!.llmModelSet(widget.capability.label, provider.name, model));
     }
   }
 
@@ -1225,9 +1210,7 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
     final baseUrl = _baseUrlCtrl.text.trim();
 
     if (apiKey.isEmpty || baseUrl.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.llmFillApiKey), behavior: SnackBarBehavior.floating),
-      );
+      AppToast.show(context, l10n.llmFillApiKey);
       return;
     }
 

@@ -13,6 +13,7 @@ import '../widgets/amount_edit_sheet.dart';
 import '../widgets/datetime_edit_sheet.dart';
 import '../widgets/category_picker_sheet.dart';
 import '../widgets/note_edit_sheet.dart';
+import '../../../../core/widgets/toast.dart';
 
 /// 账单详情页（重设计）
 class TransactionDetailPage extends ConsumerStatefulWidget {
@@ -122,13 +123,7 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
           updatedAt: now,
         );
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.txnDetailSaved),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 1),
-        ),
-      );
+      AppToast.show(context, AppLocalizations.of(context)!.txnDetailSaved, duration: const Duration(seconds: 1));
     }
   }
 

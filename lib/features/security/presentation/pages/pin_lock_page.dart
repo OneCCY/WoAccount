@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/toast.dart';
 
 /// PIN 密码锁页面
 /// 支持设置模式（设置新密码）和验证模式（输入密码解锁）
@@ -249,9 +250,7 @@ class _PinLockPageState extends State<PinLockPage> {
       await prefs.setString('lock_type', 'pin');
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.securityPinSetSuccess), duration: const Duration(milliseconds: 500)),
-        );
+        AppToast.show(context, AppLocalizations.of(context)!.securityPinSetSuccess, duration: const Duration(milliseconds: 500));
         Navigator.of(context).pop(true);
       }
     } else {

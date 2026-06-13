@@ -11,6 +11,7 @@ import '../../../../config/di/providers.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/toast.dart';
 
 /// 个人资料编辑页
 class ProfileEditPage extends ConsumerStatefulWidget {
@@ -126,9 +127,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
     );
     if (confirmed == true && mounted) {
       // TODO: 实际退出逻辑（清除 token、跳转登录页）
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.profileEditLogoutComingSoon), behavior: SnackBarBehavior.floating),
-      );
+      AppToast.show(context, l10n.profileEditLogoutComingSoon);
     }
   }
 
@@ -146,9 +145,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
       ),
     );
     if (confirmed == true && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.profileEditDeleteAccountSubmitted), behavior: SnackBarBehavior.floating),
-      );
+      AppToast.show(context, l10n.profileEditDeleteAccountSubmitted);
     }
   }
 

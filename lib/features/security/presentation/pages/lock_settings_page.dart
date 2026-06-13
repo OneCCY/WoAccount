@@ -6,6 +6,7 @@ import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/toast.dart';
 
 /// 密码锁设置页
 /// 支持多选解锁方式：指纹、图案、PIN
@@ -234,9 +235,7 @@ class _LockSettingsPageState extends State<LockSettingsPage> {
                 );
               } catch (e) {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(AppLocalizations.of(context)!.securityBiometricFail(e.toString())), duration: const Duration(milliseconds: 500)),
-                  );
+                  AppToast.show(context, AppLocalizations.of(context)!.securityBiometricFail(e.toString()), duration: const Duration(milliseconds: 500));
                 }
               }
             }

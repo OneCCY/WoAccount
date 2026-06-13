@@ -8,6 +8,7 @@ import '../../../../config/di/providers.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/toast.dart';
 
 /// 打卡日历页
 class CheckInCalendarPage extends ConsumerStatefulWidget {
@@ -109,9 +110,7 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
 
   Future<void> _checkIn() async {
     if (_todayCheckedIn) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.checkinAlreadyCheckedIn), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
-      );
+      AppToast.show(context, AppLocalizations.of(context)!.checkinAlreadyCheckedIn, duration: const Duration(milliseconds: 800));
       return;
     }
 
@@ -133,9 +132,7 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
     await _loadData();
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.checkinCheckInSuccess), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
-      );
+      AppToast.show(context, AppLocalizations.of(context)!.checkinCheckInSuccess, duration: const Duration(milliseconds: 800));
     }
   }
 
@@ -178,9 +175,7 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
 
   void _showRewardSnackBar(String msg) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 2)),
-      );
+      AppToast.show(context, msg, duration: const Duration(seconds: 2));
     }
   }
 
@@ -188,9 +183,7 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
     final l10n = AppLocalizations.of(context)!;
     final selected = _selectedDay;
     if (selected == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.checkinMakeupSelectHint), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
-      );
+      AppToast.show(context, l10n.checkinMakeupSelectHint, duration: const Duration(milliseconds: 800));
       return;
     }
 
@@ -199,23 +192,17 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
     final selectedDate = DateTime(selected.year, selected.month, selected.day);
 
     if (!selectedDate.isBefore(today)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.checkinMakeupFutureError), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
-      );
+      AppToast.show(context, l10n.checkinMakeupFutureError, duration: const Duration(milliseconds: 800));
       return;
     }
 
     if (_checkedDays.contains(selected.day)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.checkinMakeupAlreadyChecked), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
-      );
+      AppToast.show(context, l10n.checkinMakeupAlreadyChecked, duration: const Duration(milliseconds: 800));
       return;
     }
 
     if (_acBalance < 100) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.checkinMakeupInsufficient), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
-      );
+      AppToast.show(context, l10n.checkinMakeupInsufficient, duration: const Duration(milliseconds: 800));
       return;
     }
 
@@ -265,9 +252,7 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
     await _loadData();
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.checkinMakeupSuccess), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
-      );
+      AppToast.show(context, l10n.checkinMakeupSuccess, duration: const Duration(milliseconds: 800));
     }
   }
 

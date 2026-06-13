@@ -8,6 +8,7 @@ import '../../../../core/locale/category_l10n.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/toast.dart';
 import '../../domain/repositories/category_repository.dart';
 
 /// 分类管理类型
@@ -273,9 +274,7 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
           final existing = await _catRepo.getByName(name);
           if (existing != null) {
             if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(AppLocalizations.of(context)!.catManageNameExists), duration: const Duration(milliseconds: 800)),
-              );
+              AppToast.show(context, AppLocalizations.of(context)!.catManageNameExists, duration: const Duration(milliseconds: 800));
             }
             return;
           }
@@ -310,9 +309,7 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
           final existing = await _catRepo.getByName(name);
           if (existing != null) {
             if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(AppLocalizations.of(context)!.catManageSubNameExists), duration: const Duration(milliseconds: 800)),
-              );
+              AppToast.show(context, AppLocalizations.of(context)!.catManageSubNameExists, duration: const Duration(milliseconds: 800));
             }
             return;
           }
@@ -347,9 +344,7 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
           final existing = await _catRepo.getByName(name);
           if (existing != null && existing.id != cat.id) {
             if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(AppLocalizations.of(context)!.catManageNameExists), duration: const Duration(milliseconds: 800)),
-              );
+              AppToast.show(context, AppLocalizations.of(context)!.catManageNameExists, duration: const Duration(milliseconds: 800));
             }
             return;
           }
@@ -389,9 +384,7 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
                 success = await _catRepo.delete(cat.id);
               }
               if (!success && mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(l10n.catManageDeleteBlocked), duration: const Duration(milliseconds: 800)),
-                );
+                AppToast.show(context, l10n.catManageDeleteBlocked, duration: const Duration(milliseconds: 800));
               }
             },
             child: Text(l10n.commonDelete, style: TextStyle(color: context.colors.error)),
@@ -679,9 +672,7 @@ class _AddCategorySheetState extends State<_AddCategorySheet> {
               onPressed: () {
                 final name = _nameController.text.trim();
                 if (name.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.catManageNameHint), duration: const Duration(milliseconds: 500)),
-                  );
+                  AppToast.show(context, l10n.catManageNameHint, duration: const Duration(milliseconds: 500));
                   return;
                 }
                 Navigator.of(context).pop();
@@ -818,9 +809,7 @@ class _AddSubCategorySheetState extends State<_AddSubCategorySheet> {
               onPressed: () {
                 final name = _nameController.text.trim();
                 if (name.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.catManageSubNameHint), duration: const Duration(milliseconds: 500)),
-                  );
+                  AppToast.show(context, l10n.catManageSubNameHint, duration: const Duration(milliseconds: 500));
                   return;
                 }
                 Navigator.of(context).pop();
@@ -964,9 +953,7 @@ class _EditCategorySheetState extends State<_EditCategorySheet> {
               onPressed: () {
                 final name = _nameController.text.trim();
                 if (name.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.catManageNameHint), duration: const Duration(milliseconds: 500)),
-                  );
+                  AppToast.show(context, l10n.catManageNameHint, duration: const Duration(milliseconds: 500));
                   return;
                 }
                 Navigator.of(context).pop();

@@ -22,6 +22,7 @@ import '../../domain/repositories/chat_repository.dart';
 import '../widgets/chat_bubble.dart';
 import '../widgets/chat_input_bar.dart';
 import '../widgets/confirm_card.dart';
+import '../../../../core/widgets/toast.dart';
 
 /// AI 记账对话页
 class AiChatPage extends ConsumerStatefulWidget {
@@ -548,13 +549,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
   /// 复制消息内容到剪贴板
   void _copyMessage(String content) {
     Clipboard.setData(ClipboardData(text: content));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppLocalizations.of(context)!.chatCopyMessage),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(milliseconds: 1200),
-      ),
-    );
+    AppToast.show(context, AppLocalizations.of(context)!.chatCopyMessage, duration: const Duration(milliseconds: 1200));
   }
 
   /// 长按消息弹出操作菜单
@@ -697,13 +692,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                 _items = [];
                 _hasMore = false;
               });
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(l10n.chatDeleteSuccess),
-                  behavior: SnackBarBehavior.floating,
-                  duration: const Duration(milliseconds: 1500),
-                ),
-              );
+              AppToast.show(context, l10n.chatDeleteSuccess, duration: const Duration(milliseconds: 1500));
             },
             child: Text(l10n.commonDelete, style: TextStyle(color: context.colors.error)),
           ),

@@ -12,6 +12,7 @@ import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/repositories/account_book_repository.dart';
 import '../widgets/create_book_sheet.dart';
+import '../../../../core/widgets/toast.dart';
 
 /// 账本列表页
 /// 当前默认账本高亮卡片 + 其他账本列表 + 新建按钮
@@ -337,9 +338,7 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
     await switchCurrentBook(ref, book.id);
     _loadData();
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.bookSwitchedTo(book.name)), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
-      );
+      AppToast.show(context, AppLocalizations.of(context)!.bookSwitchedTo(book.name), duration: const Duration(milliseconds: 800));
     }
   }
 
@@ -366,9 +365,7 @@ class _AccountBookPageState extends ConsumerState<AccountBookPage> {
       if (success) {
         _loadData();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.bookDeleted), behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 800)),
-          );
+          AppToast.show(context, l10n.bookDeleted, duration: const Duration(milliseconds: 800));
         }
       }
     }

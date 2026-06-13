@@ -8,6 +8,7 @@ import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../core/ai/llm_error_resolver.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/toast.dart';
 
 /// 聊天底部输入栏
 /// 左: 记账按钮（醒目，长按语音）  |  中: 文本输入  |  右: 拍照
@@ -82,9 +83,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
     if (!hasPermission) {
       if (mounted) {
         setState(() => _isRecording = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.chatInputMicPermission), behavior: SnackBarBehavior.floating),
-        );
+        AppToast.show(context, AppLocalizations.of(context)!.chatInputMicPermission);
       }
       return;
     }
@@ -107,9 +106,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
     } catch (e) {
       if (mounted) {
         setState(() => _isRecording = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.chatInputMicPermission), behavior: SnackBarBehavior.floating),
-        );
+        AppToast.show(context, AppLocalizations.of(context)!.chatInputMicPermission);
       }
     }
   }
@@ -149,9 +146,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
         : Duration.zero;
     if (duration.inMilliseconds < 500) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.chatInputRecordShort), behavior: SnackBarBehavior.floating, duration: Duration(milliseconds: 800)),
-        );
+        AppToast.show(context, AppLocalizations.of(context)!.chatInputRecordShort, duration: const Duration(milliseconds: 800));
       }
       return;
     }
@@ -175,9 +170,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.chatInputImageFailed(resolveLlmError(e, AppLocalizations.of(context)!))), behavior: SnackBarBehavior.floating),
-        );
+        AppToast.show(context, AppLocalizations.of(context)!.chatInputImageFailed(resolveLlmError(e, AppLocalizations.of(context)!)));
       }
     }
   }

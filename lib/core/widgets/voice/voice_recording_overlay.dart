@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'fan_shape_painter.dart';
+import '../toast.dart';
 import 'waveform_painter.dart';
 
 /// 语音录制结果
@@ -103,9 +104,7 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
     if (!hasPermission) {
       if (mounted) {
         Navigator.of(context).pop(const VoiceResult(action: VoiceResultAction.cancel));
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('请授权麦克风权限'), behavior: SnackBarBehavior.floating),
-        );
+        AppToast.show(context, '请授权麦克风权限');
       }
       return;
     }
@@ -197,9 +196,7 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
       if (duration.inMilliseconds < 500) {
         if (mounted) {
           Navigator.of(context).pop(const VoiceResult(action: VoiceResultAction.cancel));
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('录音时间太短'), behavior: SnackBarBehavior.floating, duration: Duration(milliseconds: 800)),
-          );
+          AppToast.show(context, '录音时间太短', duration: const Duration(milliseconds: 800));
         }
         return;
       }

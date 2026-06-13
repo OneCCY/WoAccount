@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/toast.dart';
 
 /// 图案解锁页面
 /// 支持设置模式和验证模式
@@ -168,12 +169,7 @@ class _PatternLockPageState extends State<PatternLockPage> {
     await prefs.setString('lock_type', 'pattern');
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.securityPatternSetSuccess),
-          duration: const Duration(milliseconds: 500),
-        ),
-      );
+      AppToast.show(context, AppLocalizations.of(context)!.securityPatternSetSuccess, duration: const Duration(milliseconds: 500));
       Navigator.of(context).pop(true);
     }
   }
