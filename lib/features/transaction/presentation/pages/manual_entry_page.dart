@@ -569,15 +569,20 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
 
   void _onPlus() {
     setState(() {
-      if (_amountStr.isEmpty) return;
-      // 如果已有运算符，先计算结果
-      if (_amountStr.contains('+') || _amountStr.contains('-')) {
+      if (_amountStr.isEmpty || _amountStr == '-') return;
+      // 先计算已有表达式
+      if (_hasOperator()) {
         final result = _calculateExpression();
         if (result != null) {
           _amountStr = _formatAmount(result);
+        } else {
+          _amountStr = _stripTrailingOperator();
         }
       }
-      if (!_amountStr.endsWith('+')) {
+      // 替换末尾运算符或追加
+      if (_amountStr.endsWith('+') || _amountStr.endsWith('-')) {
+        _amountStr = '${_amountStr.substring(0, _amountStr.length - 1)}+';
+      } else {
         _amountStr = '$_amountStr+';
       }
     });
@@ -590,23 +595,46 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
         _amountStr = '-';
         return;
       }
-      // 如果已有运算符，先计算结果
-      if (_amountStr.contains('+') || (_amountStr.contains('-') && _amountStr.indexOf('-') > 0)) {
+      // 如果只有负号，不追加
+      if (_amountStr == '-') return;
+      // 先计算已有表达式
+      if (_hasOperator()) {
         final result = _calculateExpression();
         if (result != null) {
           _amountStr = _formatAmount(result);
+        } else {
+          _amountStr = _stripTrailingOperator();
         }
       }
-      if (!_amountStr.endsWith('-')) {
+      // 替换末尾运算符或追加
+      if (_amountStr.endsWith('+') || _amountStr.endsWith('-')) {
+        _amountStr = '${_amountStr.substring(0, _amountStr.length - 1)}-';
+      } else {
         _amountStr = '$_amountStr-';
       }
     });
   }
 
+  /// 是否包含运算符（排除开头的负号）
+  bool _hasOperator() {
+    if (_amountStr.contains('+')) return true;
+    if (_amountStr.length > 1 && _amountStr.substring(1).contains('-')) return true;
+    return false;
+  }
+
+  /// 去除末尾运算符
+  String _stripTrailingOperator() {
+    if (_amountStr.endsWith('+') || _amountStr.endsWith('-')) {
+      return _amountStr.substring(0, _amountStr.length - 1);
+    }
+    return _amountStr;
+  }
+
   /// 计算表达式结果
   double? _calculateExpression() {
-    final expr = _amountStr;
-    if (expr.isEmpty) return null;
+    // 清理末尾运算符
+    var expr = _stripTrailingOperator();
+    if (expr.isEmpty || expr == '-') return null;
 
     // 尝试加法
     final plusIdx = expr.indexOf('+');
@@ -617,8 +645,9 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
     }
 
     // 尝试减法（排除开头的负号）
-    final minusIdx = expr.indexOf('-', 1);
-    if (minusIdx > 0) {
+    final searchStart = expr.startsWith('-') ? 1 : 0;
+    final minusIdx = expr.indexOf('-', searchStart);
+    if (minusIdx > searchStart) {
       final a = double.tryParse(expr.substring(0, minusIdx));
       final b = double.tryParse(expr.substring(minusIdx + 1));
       if (a != null && b != null) return a - b;
