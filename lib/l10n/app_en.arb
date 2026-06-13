@@ -53,6 +53,10 @@
   "chatConfirmInputDescription": "Enter description",
   "chatConfirmInputAmount": "Enter amount",
 
+  "chatDeleteTitle": "Clear Chat",
+  "chatDeleteMessage": "Are you sure you want to clear all chat history? This cannot be undone.",
+  "chatDeleteSuccess": "Chat history cleared",
+
   "homePageAiNotConfigured": "AI service not configured yet, basic rule parsing will be used",
   "homePageGoSettings": "Go to Settings",
   "homePageNoContent": "No content recognized",

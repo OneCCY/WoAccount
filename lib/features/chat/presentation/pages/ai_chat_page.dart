@@ -501,6 +501,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
   }
 
   Widget _buildTopBar() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: AppDimensions.sm),
       color: context.colors.surface,
@@ -519,15 +520,62 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                 children: [
                   Icon(Icons.receipt_long_outlined, size: 16, color: context.colors.textSecondary),
                   const SizedBox(width: 4),
-                  Text(AppLocalizations.of(context)!.navTransactions, style: AppTextStyles.caption.copyWith(color: context.colors.textSecondary)),
+                  Text(l10n.navTransactions, style: AppTextStyles.caption.copyWith(color: context.colors.textSecondary)),
                 ],
               ),
             ),
           ),
           const Spacer(),
-          Text(AppLocalizations.of(context)!.chatPageTitle, style: AppTextStyles.h3.copyWith(fontSize: 16)),
+          Text(l10n.chatPageTitle, style: AppTextStyles.h3.copyWith(fontSize: 16)),
           const Spacer(),
-          const SizedBox(width: 56),
+          // 清空对话按钮
+          GestureDetector(
+            onTap: _onDeleteConversation,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: context.colors.surfaceSecondary,
+                borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+              ),
+              child: Icon(Icons.delete_outline, size: 16, color: context.colors.textSecondary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _onDeleteConversation() {
+    final l10n = AppLocalizations.of(context)!;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.chatDeleteTitle),
+        content: Text(l10n.chatDeleteMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(l10n.commonCancel),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              await _chatRepo.deleteConversation(_bookId, _conversationId);
+              if (!mounted) return;
+              setState(() {
+                _items = [];
+                _hasMore = false;
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(l10n.chatDeleteSuccess),
+                  behavior: SnackBarBehavior.floating,
+                  duration: const Duration(milliseconds: 1500),
+                ),
+              );
+            },
+            child: Text(l10n.commonDelete, style: TextStyle(color: context.colors.error)),
+          ),
         ],
       ),
     );

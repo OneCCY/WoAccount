@@ -159,6 +159,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get chatConfirmInputAmount => '금액 입력';
 
   @override
+  String get chatDeleteTitle => '대화 지우기';
+
+  @override
+  String get chatDeleteMessage => '모든 대화 기록을 지우시겠습니까? 이 작업은 되돌릴 수 없습니다.';
+
+  @override
+  String get chatDeleteSuccess => '대화 기록이 지워졌습니다';
+
+  @override
   String get homePageAiNotConfigured => 'AI 서비스가 설정되지 않았습니다. 기본 규칙으로 분석합니다';
 
   @override

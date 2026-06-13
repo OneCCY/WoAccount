@@ -39,10 +39,16 @@ class ConfirmCard extends StatelessWidget {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: context.colors.primarySurface,
+              gradient: LinearGradient(
+                colors: [context.colors.primary, context.colors.primary.withValues(alpha: 0.7)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Center(child: Text('🤖', style: TextStyle(fontSize: 16))),
+            child: const Center(
+              child: Icon(Icons.auto_awesome, size: 16, color: Colors.white),
+            ),
           ),
           const SizedBox(width: 8),
 

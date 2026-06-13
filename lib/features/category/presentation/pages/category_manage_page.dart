@@ -261,12 +261,14 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
   void _onAddCategory() {
     final isExpense = _type == CategoryManageType.expense;
     final isOther = _type == CategoryManageType.other;
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (ctx) => _AddCategoryDialog(
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _AddCategorySheet(
         isExpense: isExpense,
         isOther: isOther,
-        onConfirm: (name, icon, color) async {
+        onConfirm: (name, icon) async {
           // BUG-7 修复：重名校验
           final existing = await _catRepo.getByName(name);
           if (existing != null) {
@@ -280,10 +282,12 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
 
           final allTopLevel = await _catRepo.getTopLevel();
           final maxSort = allTopLevel.isEmpty ? 0 : allTopLevel.map((c) => c.sortOrder).reduce((a, b) => a > b ? a : b);
+          // 随机分配颜色
+          final randomColor = _colorOptions[DateTime.now().millisecondsSinceEpoch % _colorOptions.length];
           await _catRepo.insert(CategoriesCompanion.insert(
             name: name,
             icon: Value(icon),
-            color: Value(color),
+            color: Value(randomColor),
             level: const Value(1),
             isSystem: const Value(false),
             isExpense: Value(isExpense && !isOther),
@@ -295,9 +299,11 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
   }
 
   void _onAddSubCategory() {
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (ctx) => _AddSubCategoryDialog(
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _AddSubCategorySheet(
         parentName: _selectedParent!.name,
         onConfirm: (name, icon) async {
           // BUG-7 修复：重名校验
@@ -330,11 +336,13 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
 
   // BUG-8 修复：编辑分类功能
   void _onEditCategory(Category cat) {
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (ctx) => _EditCategoryDialog(
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _EditCategorySheet(
         category: cat,
-        onConfirm: (name, icon, color) async {
+        onConfirm: (name, icon) async {
           // 检查重名（排除自身）
           final existing = await _catRepo.getByName(name);
           if (existing != null && existing.id != cat.id) {
@@ -349,7 +357,6 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
           await _catRepo.update(cat.toCompanion(false).copyWith(
             name: Value(name),
             icon: Value(icon),
-            color: Value(color),
           ));
         },
       ),
@@ -543,7 +550,7 @@ class _SubCategoryListItem extends StatelessWidget {
   }
 }
 
-// ==================== 添加分类对话框 ====================
+// ==================== 添加分类底部弹窗 ====================
 
 const _emojiOptions = [
   '🍜', '🚗', '🛒', '🏠', '🎮', '📚', '💊', '👤', '🐾', '💰',
@@ -558,25 +565,24 @@ const _colorOptions = [
   '#3F51B5', '#009688', '#FFC107', '#FFEB3B', '#9E9E9E',
 ];
 
-class _AddCategoryDialog extends StatefulWidget {
+class _AddCategorySheet extends StatefulWidget {
   final bool isExpense;
   final bool isOther;
-  final Function(String name, String icon, String color) onConfirm;
+  final Function(String name, String icon) onConfirm;
 
-  const _AddCategoryDialog({
+  const _AddCategorySheet({
     required this.isExpense,
     required this.isOther,
     required this.onConfirm,
   });
 
   @override
-  State<_AddCategoryDialog> createState() => _AddCategoryDialogState();
+  State<_AddCategorySheet> createState() => _AddCategorySheetState();
 }
 
-class _AddCategoryDialogState extends State<_AddCategoryDialog> {
+class _AddCategorySheetState extends State<_AddCategorySheet> {
   final _nameController = TextEditingController();
   String _selectedIcon = '📦';
-  String _selectedColor = '#607D8B';
 
   @override
   void dispose() {
@@ -589,36 +595,71 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
     final l10n = AppLocalizations.of(context)!;
     final typeLabel = widget.isOther ? l10n.entryOther : (widget.isExpense ? l10n.entryExpense : l10n.entryIncome);
 
-    return AlertDialog(
-      title: Text(l10n.catManageAddTitle(typeLabel)),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 名称输入
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                labelText: l10n.catManageNameLabel,
-                hintText: l10n.catManageNameHint,
-              ),
-              maxLength: 20,
+    return Container(
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      padding: EdgeInsets.fromLTRB(
+        AppDimensions.md,
+        8,
+        AppDimensions.md,
+        MediaQuery.of(context).viewInsets.bottom + AppDimensions.md,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 拖拽指示条
+          Container(
+            width: 36,
+            height: 4,
+            decoration: BoxDecoration(
+              color: context.colors.textTertiary.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(2),
             ),
-            const SizedBox(height: 16),
-            // 图标选择
-            Text(l10n.catManageSelectIcon, style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _emojiOptions.map((emoji) {
+          ),
+          const SizedBox(height: 16),
+          // 标题居中
+          Text(
+            l10n.catManageAddTitle(typeLabel),
+            style: AppTextStyles.h3.copyWith(fontSize: 16),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 20),
+          // 名称输入
+          TextField(
+            controller: _nameController,
+            decoration: InputDecoration(
+              labelText: l10n.catManageNameLabel,
+              hintText: l10n.catManageNameHint,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+              ),
+            ),
+            maxLength: 20,
+          ),
+          const SizedBox(height: 16),
+          // 图标选择标签
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(l10n.catManageSelectIcon, style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)),
+          ),
+          const SizedBox(height: 8),
+          // 横向滚动图标选择
+          SizedBox(
+            height: 48,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: _emojiOptions.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                final emoji = _emojiOptions[index];
                 final isSelected = _selectedIcon == emoji;
                 return GestureDetector(
                   onTap: () => setState(() => _selectedIcon = emoji),
                   child: Container(
-                    width: 40,
-                    height: 40,
+                    width: 44,
+                    height: 44,
                     decoration: BoxDecoration(
                       color: isSelected ? context.colors.primarySurface : context.colors.surfaceSecondary,
                       borderRadius: BorderRadius.circular(8),
@@ -627,80 +668,60 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
                     child: Center(child: Text(emoji, style: const TextStyle(fontSize: 20))),
                   ),
                 );
-              }).toList(),
+              },
             ),
-            const SizedBox(height: 16),
-            // 颜色选择
-            Text(l10n.catManageSelectColor, style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _colorOptions.map((hex) {
-                final color = Color(int.parse('FF${hex.replaceFirst('#', '')}', radix: 16));
-                final isSelected = _selectedColor == hex;
-                return GestureDetector(
-                  onTap: () => setState(() => _selectedColor = hex),
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: color,
-                      shape: BoxShape.circle,
-                      border: isSelected
-                          ? Border.all(color: context.colors.textPrimary, width: 3)
-                          : null,
-                    ),
-                    child: isSelected
-                        ? const Icon(Icons.check, size: 16, color: Colors.white)
-                        : null,
-                  ),
-                );
-              }).toList(),
+          ),
+          const SizedBox(height: 20),
+          // 确认按钮
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                final name = _nameController.text.trim();
+                if (name.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.catManageNameHint), duration: const Duration(milliseconds: 500)),
+                  );
+                  return;
+                }
+                Navigator.of(context).pop();
+                widget.onConfirm(name, _selectedIcon);
+              },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                backgroundColor: context.colors.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+                ),
+              ),
+              child: Text(l10n.commonConfirm, style: AppTextStyles.body.copyWith(
+                color: context.colors.textOnPrimary,
+                fontWeight: FontWeight.w600,
+              )),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(l10n.commonCancel),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            final name = _nameController.text.trim();
-            if (name.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(l10n.catManageNameHint), duration: const Duration(milliseconds: 500)),
-              );
-              return;
-            }
-            Navigator.of(context).pop();
-            widget.onConfirm(name, _selectedIcon, _selectedColor);
-          },
-          child: Text(l10n.commonConfirm),
-        ),
-      ],
     );
   }
 }
 
-// ==================== 添加子分类对话框 ====================
+// ==================== 添加子分类底部弹窗 ====================
 
-class _AddSubCategoryDialog extends StatefulWidget {
+class _AddSubCategorySheet extends StatefulWidget {
   final String parentName;
   final Function(String name, String icon) onConfirm;
 
-  const _AddSubCategoryDialog({
+  const _AddSubCategorySheet({
     required this.parentName,
     required this.onConfirm,
   });
 
   @override
-  State<_AddSubCategoryDialog> createState() => _AddSubCategoryDialogState();
+  State<_AddSubCategorySheet> createState() => _AddSubCategorySheetState();
 }
 
-class _AddSubCategoryDialogState extends State<_AddSubCategoryDialog> {
+class _AddSubCategorySheetState extends State<_AddSubCategorySheet> {
   final _nameController = TextEditingController();
   String _selectedIcon = '📦';
 
@@ -713,34 +734,71 @@ class _AddSubCategoryDialogState extends State<_AddSubCategoryDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return AlertDialog(
-      title: Text(l10n.catManageAddSubTitle(widget.parentName)),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                labelText: l10n.catManageSubNameLabel,
-                hintText: l10n.catManageSubNameHint,
-              ),
-              maxLength: 20,
+    return Container(
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      padding: EdgeInsets.fromLTRB(
+        AppDimensions.md,
+        8,
+        AppDimensions.md,
+        MediaQuery.of(context).viewInsets.bottom + AppDimensions.md,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 拖拽指示条
+          Container(
+            width: 36,
+            height: 4,
+            decoration: BoxDecoration(
+              color: context.colors.textTertiary.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(2),
             ),
-            const SizedBox(height: 16),
-            Text(l10n.catManageSelectIcon, style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _emojiOptions.map((emoji) {
+          ),
+          const SizedBox(height: 16),
+          // 标题居中
+          Text(
+            l10n.catManageAddSubTitle(widget.parentName),
+            style: AppTextStyles.h3.copyWith(fontSize: 16),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 20),
+          // 名称输入
+          TextField(
+            controller: _nameController,
+            decoration: InputDecoration(
+              labelText: l10n.catManageSubNameLabel,
+              hintText: l10n.catManageSubNameHint,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+              ),
+            ),
+            maxLength: 20,
+          ),
+          const SizedBox(height: 16),
+          // 图标选择标签
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(l10n.catManageSelectIcon, style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)),
+          ),
+          const SizedBox(height: 8),
+          // 横向滚动图标选择
+          SizedBox(
+            height: 48,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: _emojiOptions.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                final emoji = _emojiOptions[index];
                 final isSelected = _selectedIcon == emoji;
                 return GestureDetector(
                   onTap: () => setState(() => _selectedIcon = emoji),
                   child: Container(
-                    width: 40,
-                    height: 40,
+                    width: 44,
+                    height: 44,
                     decoration: BoxDecoration(
                       color: isSelected ? context.colors.primarySurface : context.colors.surfaceSecondary,
                       borderRadius: BorderRadius.circular(8),
@@ -749,61 +807,68 @@ class _AddSubCategoryDialogState extends State<_AddSubCategoryDialog> {
                     child: Center(child: Text(emoji, style: const TextStyle(fontSize: 20))),
                   ),
                 );
-              }).toList(),
+              },
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 20),
+          // 确认按钮
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                final name = _nameController.text.trim();
+                if (name.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.catManageSubNameHint), duration: const Duration(milliseconds: 500)),
+                  );
+                  return;
+                }
+                Navigator.of(context).pop();
+                widget.onConfirm(name, _selectedIcon);
+              },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                backgroundColor: context.colors.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+                ),
+              ),
+              child: Text(l10n.commonConfirm, style: AppTextStyles.body.copyWith(
+                color: context.colors.textOnPrimary,
+                fontWeight: FontWeight.w600,
+              )),
+            ),
+          ),
+        ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(l10n.commonCancel),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            final name = _nameController.text.trim();
-            if (name.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(l10n.catManageSubNameHint), duration: const Duration(milliseconds: 500)),
-              );
-              return;
-            }
-            Navigator.of(context).pop();
-            widget.onConfirm(name, _selectedIcon);
-          },
-          child: Text(l10n.commonConfirm),
-        ),
-      ],
     );
   }
 }
 
-// ==================== 编辑分类对话框（BUG-8 新增） ====================
+// ==================== 编辑分类底部弹窗 ====================
 
-class _EditCategoryDialog extends StatefulWidget {
+class _EditCategorySheet extends StatefulWidget {
   final Category category;
-  final Function(String name, String icon, String color) onConfirm;
+  final Function(String name, String icon) onConfirm;
 
-  const _EditCategoryDialog({
+  const _EditCategorySheet({
     required this.category,
     required this.onConfirm,
   });
 
   @override
-  State<_EditCategoryDialog> createState() => _EditCategoryDialogState();
+  State<_EditCategorySheet> createState() => _EditCategorySheetState();
 }
 
-class _EditCategoryDialogState extends State<_EditCategoryDialog> {
+class _EditCategorySheetState extends State<_EditCategorySheet> {
   late final TextEditingController _nameController;
   late String _selectedIcon;
-  late String _selectedColor;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.category.name);
     _selectedIcon = widget.category.icon ?? '📦';
-    _selectedColor = widget.category.color;
   }
 
   @override
@@ -815,34 +880,71 @@ class _EditCategoryDialogState extends State<_EditCategoryDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return AlertDialog(
-      title: Text(l10n.catManageEditTitle),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                labelText: l10n.catManageNameLabel,
-                hintText: l10n.catManageNameHint,
-              ),
-              maxLength: 20,
+    return Container(
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      padding: EdgeInsets.fromLTRB(
+        AppDimensions.md,
+        8,
+        AppDimensions.md,
+        MediaQuery.of(context).viewInsets.bottom + AppDimensions.md,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 拖拽指示条
+          Container(
+            width: 36,
+            height: 4,
+            decoration: BoxDecoration(
+              color: context.colors.textTertiary.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(2),
             ),
-            const SizedBox(height: 16),
-            Text(l10n.catManageSelectIcon, style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _emojiOptions.map((emoji) {
+          ),
+          const SizedBox(height: 16),
+          // 标题居中
+          Text(
+            l10n.catManageEditTitle,
+            style: AppTextStyles.h3.copyWith(fontSize: 16),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 20),
+          // 名称输入
+          TextField(
+            controller: _nameController,
+            decoration: InputDecoration(
+              labelText: l10n.catManageNameLabel,
+              hintText: l10n.catManageNameHint,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+              ),
+            ),
+            maxLength: 20,
+          ),
+          const SizedBox(height: 16),
+          // 图标选择标签
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(l10n.catManageSelectIcon, style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)),
+          ),
+          const SizedBox(height: 8),
+          // 横向滚动图标选择
+          SizedBox(
+            height: 48,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: _emojiOptions.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                final emoji = _emojiOptions[index];
                 final isSelected = _selectedIcon == emoji;
                 return GestureDetector(
                   onTap: () => setState(() => _selectedIcon = emoji),
                   child: Container(
-                    width: 40,
-                    height: 40,
+                    width: 44,
+                    height: 44,
                     decoration: BoxDecoration(
                       color: isSelected ? context.colors.primarySurface : context.colors.surfaceSecondary,
                       borderRadius: BorderRadius.circular(8),
@@ -851,59 +953,40 @@ class _EditCategoryDialogState extends State<_EditCategoryDialog> {
                     child: Center(child: Text(emoji, style: const TextStyle(fontSize: 20))),
                   ),
                 );
-              }).toList(),
+              },
             ),
-            const SizedBox(height: 16),
-            Text(l10n.catManageSelectColor, style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _colorOptions.map((hex) {
-                final color = Color(int.parse('FF${hex.replaceFirst('#', '')}', radix: 16));
-                final isSelected = _selectedColor == hex;
-                return GestureDetector(
-                  onTap: () => setState(() => _selectedColor = hex),
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: color,
-                      shape: BoxShape.circle,
-                      border: isSelected
-                          ? Border.all(color: context.colors.textPrimary, width: 3)
-                          : null,
-                    ),
-                    child: isSelected
-                        ? const Icon(Icons.check, size: 16, color: Colors.white)
-                        : null,
-                  ),
-                );
-              }).toList(),
+          ),
+          const SizedBox(height: 20),
+          // 保存按钮
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                final name = _nameController.text.trim();
+                if (name.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.catManageNameHint), duration: const Duration(milliseconds: 500)),
+                  );
+                  return;
+                }
+                Navigator.of(context).pop();
+                widget.onConfirm(name, _selectedIcon);
+              },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                backgroundColor: context.colors.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+                ),
+              ),
+              child: Text(l10n.commonSave, style: AppTextStyles.body.copyWith(
+                color: context.colors.textOnPrimary,
+                fontWeight: FontWeight.w600,
+              )),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(l10n.commonCancel),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            final name = _nameController.text.trim();
-            if (name.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(l10n.catManageNameHint), duration: const Duration(milliseconds: 500)),
-              );
-              return;
-            }
-            Navigator.of(context).pop();
-            widget.onConfirm(name, _selectedIcon, _selectedColor);
-          },
-          child: Text(l10n.commonSave),
-        ),
-      ],
     );
   }
 }

@@ -158,6 +158,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get chatConfirmInputAmount => '金額を入力';
 
   @override
+  String get chatDeleteTitle => '会話をクリア';
+
+  @override
+  String get chatDeleteMessage => 'すべての会話履歴をクリアしますか？この操作は元に戻せません。';
+
+  @override
+  String get chatDeleteSuccess => '会話履歴をクリアしました';
+
+  @override
   String get homePageAiNotConfigured => 'AIサービスが未設定です。基本ルールで解析します';
 
   @override

@@ -53,6 +53,10 @@
   "chatConfirmInputDescription": "輸入描述",
   "chatConfirmInputAmount": "輸入金額",
 
+  "chatDeleteTitle": "清空對話",
+  "chatDeleteMessage": "確定要清空所有對話記錄嗎？此操作不可撤銷。",
+  "chatDeleteSuccess": "對話已清空",
+
   "homePageAiNotConfigured": "尚未配置 AI 服務，將使用基礎規則解析",
   "homePageGoSettings": "前往設定",
   "homePageNoContent": "未辨識到內容",

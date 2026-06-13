@@ -338,10 +338,16 @@ class _ChatBubbleState extends State<ChatBubble> {
       width: 32,
       height: 32,
       decoration: BoxDecoration(
-        color: context.colors.primarySurface,
+        gradient: LinearGradient(
+          colors: [context.colors.primary, context.colors.primary.withValues(alpha: 0.7)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: const Center(child: Text('🤖', style: TextStyle(fontSize: 16))),
+      child: const Center(
+        child: Icon(Icons.auto_awesome, size: 16, color: Colors.white),
+      ),
     );
   }
 
@@ -350,14 +356,14 @@ class _ChatBubbleState extends State<ChatBubble> {
       width: 32,
       height: 32,
       decoration: BoxDecoration(
-        color: context.colors.surfaceSecondary,
+        color: context.colors.primarySurface,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Center(
         child: Icon(
           Icons.person,
           size: 18,
-          color: context.colors.textSecondary,
+          color: context.colors.primary,
         ),
       ),
     );

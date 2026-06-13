@@ -163,6 +163,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatConfirmInputAmount => 'Enter amount';
 
   @override
+  String get chatDeleteTitle => 'Clear Chat';
+
+  @override
+  String get chatDeleteMessage =>
+      'Are you sure you want to clear all chat history? This cannot be undone.';
+
+  @override
+  String get chatDeleteSuccess => 'Chat history cleared';
+
+  @override
   String get homePageAiNotConfigured =>
       'AI service not configured yet, basic rule parsing will be used';
 

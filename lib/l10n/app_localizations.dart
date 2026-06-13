@@ -372,6 +372,24 @@ abstract class AppLocalizations {
   /// **'输入金额'**
   String get chatConfirmInputAmount;
 
+  /// No description provided for @chatDeleteTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'清空对话'**
+  String get chatDeleteTitle;
+
+  /// No description provided for @chatDeleteMessage.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要清空所有对话记录吗？此操作不可撤销。'**
+  String get chatDeleteMessage;
+
+  /// No description provided for @chatDeleteSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'对话已清空'**
+  String get chatDeleteSuccess;
+
   /// No description provided for @homePageAiNotConfigured.
   ///
   /// In zh, this message translates to:

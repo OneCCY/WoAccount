@@ -158,6 +158,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatConfirmInputAmount => '输入金额';
 
   @override
+  String get chatDeleteTitle => '清空对话';
+
+  @override
+  String get chatDeleteMessage => '确定要清空所有对话记录吗？此操作不可撤销。';
+
+  @override
+  String get chatDeleteSuccess => '对话已清空';
+
+  @override
   String get homePageAiNotConfigured => '尚未配置 AI 服务，将使用基础规则解析';
 
   @override
@@ -2401,6 +2410,15 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get chatConfirmInputAmount => '輸入金額';
+
+  @override
+  String get chatDeleteTitle => '清空對話';
+
+  @override
+  String get chatDeleteMessage => '確定要清空所有對話記錄嗎？此操作不可撤銷。';
+
+  @override
+  String get chatDeleteSuccess => '對話已清空';
 
   @override
   String get homePageAiNotConfigured => '尚未配置 AI 服務，將使用基礎規則解析';

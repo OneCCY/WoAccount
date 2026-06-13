@@ -53,6 +53,10 @@
   "chatConfirmInputDescription": "メモを入力",
   "chatConfirmInputAmount": "金額を入力",
 
+  "chatDeleteTitle": "会話をクリア",
+  "chatDeleteMessage": "すべての会話履歴をクリアしますか？この操作は元に戻せません。",
+  "chatDeleteSuccess": "会話履歴をクリアしました",
+
   "homePageAiNotConfigured": "AIサービスが未設定です。基本ルールで解析します",
   "homePageGoSettings": "設定へ",
   "homePageNoContent": "内容を認識できませんでした",
