@@ -9,6 +9,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/toast.dart';
+import '../../../../core/widgets/page_refresh_mixin.dart';
 
 /// 打卡日历页
 class CheckInCalendarPage extends ConsumerStatefulWidget {
@@ -18,7 +19,13 @@ class CheckInCalendarPage extends ConsumerStatefulWidget {
   ConsumerState<CheckInCalendarPage> createState() => _CheckInCalendarPageState();
 }
 
-class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> {
+class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> with PageRefreshMixin {
+  @override
+  String get routePath => '/profile/checkin';
+
+  @override
+  void onRefresh() => _loadData();
+
   late DateTime _currentMonth;
   Set<int> _checkedDays = {}; // 当月已打卡的 day 集合
   Set<int> _makeupDays = {}; // 当月补签的 day 集合

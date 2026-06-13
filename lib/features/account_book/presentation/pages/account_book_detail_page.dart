@@ -9,6 +9,7 @@ import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/repositories/account_book_repository.dart';
 import '../../../../core/widgets/toast.dart';
+import '../../../../core/widgets/page_refresh_mixin.dart';
 
 /// 账本详情页
 /// 显示账本信息、月度统计，支持设为默认、切换、清空数据、删除
@@ -21,7 +22,13 @@ class AccountBookDetailPage extends ConsumerStatefulWidget {
   ConsumerState<AccountBookDetailPage> createState() => _AccountBookDetailPageState();
 }
 
-class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> {
+class _AccountBookDetailPageState extends ConsumerState<AccountBookDetailPage> with PageRefreshMixin {
+  @override
+  String get routePath => '/account-book/detail';
+
+  @override
+  void onRefresh() => _loadData();
+
   late final AccountBookRepository _repo;
   AccountBook? _book;
   AccountBookStats? _stats;

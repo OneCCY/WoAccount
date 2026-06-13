@@ -14,6 +14,7 @@ import '../widgets/datetime_edit_sheet.dart';
 import '../widgets/category_picker_sheet.dart';
 import '../widgets/note_edit_sheet.dart';
 import '../../../../core/widgets/toast.dart';
+import '../../../../core/widgets/page_refresh_mixin.dart';
 
 /// 账单详情页（重设计）
 class TransactionDetailPage extends ConsumerStatefulWidget {
@@ -24,7 +25,13 @@ class TransactionDetailPage extends ConsumerStatefulWidget {
   ConsumerState<TransactionDetailPage> createState() => _TransactionDetailPageState();
 }
 
-class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> {
+class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> with PageRefreshMixin {
+  @override
+  String get routePath => '/transaction/detail';
+
+  @override
+  void onRefresh() => _loadData();
+
   Transaction? _transaction;
   Category? _category;
   Category? _parentCategory;

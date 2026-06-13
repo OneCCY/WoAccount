@@ -9,6 +9,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/repositories/report_repository.dart';
 import '../widgets/category_pie_chart.dart';
 import '../widgets/category_ranking_list.dart';
+import '../../../../core/widgets/page_refresh_mixin.dart';
 
 /// 时间维度
 enum ReportPeriod { week, month, year }
@@ -21,7 +22,13 @@ class ReportPage extends ConsumerStatefulWidget {
   ConsumerState<ReportPage> createState() => _ReportPageState();
 }
 
-class _ReportPageState extends ConsumerState<ReportPage> {
+class _ReportPageState extends ConsumerState<ReportPage> with PageRefreshMixin {
+  @override
+  String get routePath => '/report';
+
+  @override
+  void onRefresh() => _loadData();
+
   ReportPeriod _period = ReportPeriod.month;
   bool _isExpense = true;
   late DateTime _currentDate;

@@ -9,6 +9,7 @@ import '../../../../core/theme/app_text_styles.dart';
 // ignore: unused_import
 import '../../domain/repositories/budget_repository.dart';
 import '../../../../core/widgets/toast.dart';
+import '../../../../core/widgets/page_refresh_mixin.dart';
 
 /// 预算设置页
 /// 总预算 + 分类预算列表 + 添加
@@ -19,7 +20,13 @@ class BudgetSettingPage extends ConsumerStatefulWidget {
   ConsumerState<BudgetSettingPage> createState() => _BudgetSettingPageState();
 }
 
-class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> {
+class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> with PageRefreshMixin {
+  @override
+  String get routePath => '/budget';
+
+  @override
+  void onRefresh() => _loadData();
+
   late final BudgetRepository _budgetRepo;
   final now = DateTime.now();
   List<BudgetProgress> _progresses = [];

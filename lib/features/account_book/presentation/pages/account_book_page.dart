@@ -13,6 +13,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/repositories/account_book_repository.dart';
 import '../widgets/create_book_sheet.dart';
 import '../../../../core/widgets/toast.dart';
+import '../../../../core/widgets/page_refresh_mixin.dart';
 
 /// 账本列表页
 /// 当前默认账本高亮卡片 + 其他账本列表 + 新建按钮
@@ -23,7 +24,13 @@ class AccountBookPage extends ConsumerStatefulWidget {
   ConsumerState<AccountBookPage> createState() => _AccountBookPageState();
 }
 
-class _AccountBookPageState extends ConsumerState<AccountBookPage> {
+class _AccountBookPageState extends ConsumerState<AccountBookPage> with PageRefreshMixin {
+  @override
+  String get routePath => '/account-book';
+
+  @override
+  void onRefresh() => _loadData();
+
   late final AccountBookRepository _repo;
   List<AccountBook> _books = [];
   Map<int, AccountBookStats> _statsMap = {};
