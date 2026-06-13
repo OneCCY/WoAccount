@@ -623,12 +623,28 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
     for (final p in providers) {
       final entry = _ProviderModelEntry();
       entry.selectedModel = p.getModelForCapability(widget.capability);
-      // 加载预设默认模型
-      final preset = getPresetByKey(p.providerKey);
-      if (preset != null) {
-        final defaults = preset.defaultModelsByCapability[widget.capability.name] ?? [];
-        entry.fetchedModels = defaults.map((m) => _FetchedModel(id: m)).toList();
+
+      // 1. 优先加载已缓存的模型列表
+      final cached = await LlmConfigManager.loadFetchedModels(
+          p.id, widget.capability.name);
+
+      if (cached.isNotEmpty) {
+        entry.fetchedModels = cached.map((m) => _FetchedModel(id: m)).toList();
+      } else {
+        // 2. 回退到预设默认模型
+        final preset = getPresetByKey(p.providerKey);
+        if (preset != null) {
+          final defaults = preset.defaultModelsByCapability[widget.capability.name] ?? [];
+          entry.fetchedModels = defaults.map((m) => _FetchedModel(id: m)).toList();
+        }
       }
+
+      // 3. 确保当前选中的模型在列表中（防止 DropdownButton 断言错误）
+      if (entry.selectedModel != null &&
+          !entry.fetchedModels.any((m) => m.id == entry.selectedModel)) {
+        entry.fetchedModels.insert(0, _FetchedModel(id: entry.selectedModel!));
+      }
+
       entries[p.id] = entry;
     }
 
@@ -657,10 +673,14 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
       final filtered = filterModelsByCapability(allModels, widget.capability);
 
       if (mounted) {
+        final models = filtered.isNotEmpty ? filtered : allModels;
         setState(() {
-          entry.fetchedModels = filtered.isNotEmpty ? filtered : allModels;
+          entry.fetchedModels = models;
           entry.isLoading = false;
         });
+        // 缓存获取到的模型列表
+        await LlmConfigManager.saveFetchedModels(
+            provider.id, widget.capability.name, models.map((m) => m.id).toList());
         final msg = filtered.isNotEmpty
             ? AppLocalizations.of(context)!.llmModelsFetched(filtered.length.toString(), widget.capability.getLocalizedLabel(AppLocalizations.of(context)!))
             : AppLocalizations.of(context)!.llmModelsFetchedAll(allModels.length.toString());

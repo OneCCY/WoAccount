@@ -197,6 +197,7 @@ class LlmProvider {
 class LlmConfigManager {
   static const _keyProviders = 'llm_providers';
   static const _keyActiveId = 'llm_active_provider_id';
+  static const _keyFetchedModels = 'llm_fetched_models';
 
   static Future<List<LlmProvider>> loadProviders() async {
     final prefs = await SharedPreferences.getInstance();
@@ -250,6 +251,31 @@ class LlmConfigManager {
       providers[index] = provider;
       await saveProviders(providers);
     }
+  }
+
+  /// 保存已获取的模型列表（按 provider+capability 缓存）
+  static Future<void> saveFetchedModels(
+      String providerId, String capability, List<String> models) async {
+    final prefs = await SharedPreferences.getInstance();
+    final all = prefs.getString(_keyFetchedModels);
+    final map = all != null ? Map<String, dynamic>.from(jsonDecode(all)) : <String, dynamic>{};
+    map['${providerId}_$capability'] = models;
+    await prefs.setString(_keyFetchedModels, jsonEncode(map));
+  }
+
+  /// 加载已缓存的模型列表
+  static Future<List<String>> loadFetchedModels(
+      String providerId, String capability) async {
+    final prefs = await SharedPreferences.getInstance();
+    final all = prefs.getString(_keyFetchedModels);
+    if (all == null) return [];
+    try {
+      final map = Map<String, dynamic>.from(jsonDecode(all));
+      final key = '${providerId}_$capability';
+      final list = map[key];
+      if (list is List) return list.cast<String>();
+    } catch (_) {}
+    return [];
   }
 
   static Future<void> deleteProvider(String id) async {
