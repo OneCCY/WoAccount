@@ -22,6 +22,7 @@ import '../../domain/repositories/chat_repository.dart';
 import '../widgets/chat_bubble.dart';
 import '../widgets/chat_input_bar.dart';
 import '../widgets/confirm_card.dart';
+import '../../../../core/widgets/page_refresh_mixin.dart';
 import '../../../../core/widgets/toast.dart';
 
 /// AI 记账对话页
@@ -32,10 +33,19 @@ class AiChatPage extends ConsumerStatefulWidget {
   ConsumerState<AiChatPage> createState() => _AiChatPageState();
 }
 
-class _AiChatPageState extends ConsumerState<AiChatPage> {
+class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
   final _scrollController = ScrollController();
   final _pageSize = 20;
   final String _conversationId = 'default';
+
+  @override
+  String get routePath => '/';
+
+  @override
+  void onRefresh() {
+    _loadUserProfile();
+    _loadAiProviderIcon();
+  }
 
   List<_ChatItem> _items = [];
   bool _isLoading = false;

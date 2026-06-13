@@ -10,6 +10,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/responsive.dart';
+import '../../../../core/widgets/page_refresh_mixin.dart';
 import '../../../category/domain/repositories/category_repository.dart';
 import '../../domain/repositories/transaction_repository.dart';
 import '../widgets/view_switcher.dart';
@@ -26,7 +27,7 @@ class TransactionListPage extends ConsumerStatefulWidget {
   ConsumerState<TransactionListPage> createState() => _TransactionListPageState();
 }
 
-class _TransactionListPageState extends ConsumerState<TransactionListPage> {
+class _TransactionListPageState extends ConsumerState<TransactionListPage> with PageRefreshMixin {
   ViewType _currentView = ViewType.week;
   late DateTime _currentDate;
   DateTime? _selectedWeekDay;
@@ -37,6 +38,12 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> {
 
   // 刷新key
   int _refreshKey = 0;
+
+  @override
+  String get routePath => '/transactions';
+
+  @override
+  void onRefresh() => _triggerRefresh();
 
   @override
   void initState() {
