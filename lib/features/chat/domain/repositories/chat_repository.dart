@@ -26,4 +26,7 @@ abstract class ChatRepository {
 
   /// 删除账本内某个对话的所有消息
   Future<void> deleteConversation(int bookId, String conversationId);
+
+  /// 删除单条消息
+  Future<void> deleteMessage(int messageId);
 }

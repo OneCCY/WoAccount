@@ -56,6 +56,10 @@
   "chatDeleteTitle": "清空对话",
   "chatDeleteMessage": "确定要清空所有对话记录吗？此操作不可撤销。",
   "chatDeleteSuccess": "对话已清空",
+  "chatActionCopy": "复制",
+  "chatActionDelete": "删除消息",
+  "chatDeleteMsgConfirm": "确定要删除这条消息吗？",
+  "chatCopyMessage": "已复制到剪贴板",
 
   "homePageAiNotConfigured": "尚未配置 AI 服务，将使用基础规则解析",
   "homePageGoSettings": "去配置",

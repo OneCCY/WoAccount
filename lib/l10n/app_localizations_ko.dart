@@ -168,6 +168,18 @@ class AppLocalizationsKo extends AppLocalizations {
   String get chatDeleteSuccess => '대화 기록이 지워졌습니다';
 
   @override
+  String get chatActionCopy => '복사';
+
+  @override
+  String get chatActionDelete => '메시지 삭제';
+
+  @override
+  String get chatDeleteMsgConfirm => '이 메시지를 삭제하시겠습니까?';
+
+  @override
+  String get chatCopyMessage => '클립보드에 복사되었습니다';
+
+  @override
   String get homePageAiNotConfigured => 'AI 서비스가 설정되지 않았습니다. 기본 규칙으로 분석합니다';
 
   @override

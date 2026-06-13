@@ -16,6 +16,9 @@ class ChatBubble extends StatefulWidget {
   final DateTime time;
   final MessageMediaType mediaType;
   final String? mediaFilePath;
+  final String? userAvatarPath;
+  final String? aiIcon;
+  final VoidCallback? onLongPress;
 
   const ChatBubble({
     super.key,
@@ -24,6 +27,9 @@ class ChatBubble extends StatefulWidget {
     required this.time,
     this.mediaType = MessageMediaType.text,
     this.mediaFilePath,
+    this.userAvatarPath,
+    this.aiIcon,
+    this.onLongPress,
   });
 
   @override
@@ -72,37 +78,40 @@ class _ChatBubbleState extends State<ChatBubble> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        mainAxisAlignment: widget.isUser
-            ? MainAxisAlignment.end
-            : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (!widget.isUser) _buildAvatar(context),
-          if (!widget.isUser) const SizedBox(width: 8),
-          Flexible(
-            child: Column(
-              crossAxisAlignment: widget.isUser
-                  ? CrossAxisAlignment.end
-                  : CrossAxisAlignment.start,
-              children: [
-                _buildBubbleContent(context),
-                const SizedBox(height: 4),
-                Text(
-                  DateFormat('HH:mm').format(widget.time),
-                  style: context.textStyles.caption.copyWith(
-                    color: context.colors.textTertiary,
-                    fontSize: 10,
+    return GestureDetector(
+      onLongPress: widget.onLongPress,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Row(
+          mainAxisAlignment: widget.isUser
+              ? MainAxisAlignment.end
+              : MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (!widget.isUser) _buildAvatar(context),
+            if (!widget.isUser) const SizedBox(width: 8),
+            Flexible(
+              child: Column(
+                crossAxisAlignment: widget.isUser
+                    ? CrossAxisAlignment.end
+                    : CrossAxisAlignment.start,
+                children: [
+                  _buildBubbleContent(context),
+                  const SizedBox(height: 4),
+                  Text(
+                    DateFormat('HH:mm').format(widget.time),
+                    style: context.textStyles.caption.copyWith(
+                      color: context.colors.textTertiary,
+                      fontSize: 10,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          if (widget.isUser) const SizedBox(width: 8),
-          if (widget.isUser) _buildUserAvatar(context),
-        ],
+            if (widget.isUser) const SizedBox(width: 8),
+            if (widget.isUser) _buildUserAvatar(context),
+          ],
+        ),
       ),
     );
   }
@@ -334,6 +343,7 @@ class _ChatBubbleState extends State<ChatBubble> {
   }
 
   Widget _buildAvatar(BuildContext context) {
+    final icon = widget.aiIcon ?? '🤖';
     return Container(
       width: 32,
       height: 32,
@@ -345,13 +355,16 @@ class _ChatBubbleState extends State<ChatBubble> {
         ),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: const Center(
-        child: Icon(Icons.auto_awesome, size: 16, color: Colors.white),
+      child: Center(
+        child: Text(icon, style: const TextStyle(fontSize: 16)),
       ),
     );
   }
 
   Widget _buildUserAvatar(BuildContext context) {
+    final avatarPath = widget.userAvatarPath;
+    final hasAvatar = avatarPath != null && File(avatarPath).existsSync();
+
     return Container(
       width: 32,
       height: 32,
@@ -359,13 +372,14 @@ class _ChatBubbleState extends State<ChatBubble> {
         color: context.colors.primarySurface,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Center(
-        child: Icon(
-          Icons.person,
-          size: 18,
-          color: context.colors.primary,
-        ),
-      ),
+      clipBehavior: Clip.antiAlias,
+      child: hasAvatar
+          ? Image.file(
+              File(avatarPath),
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => Icon(Icons.person, size: 18, color: context.colors.primary),
+            )
+          : Icon(Icons.person, size: 18, color: context.colors.primary),
     );
   }
 }

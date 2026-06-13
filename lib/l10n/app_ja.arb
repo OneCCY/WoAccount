@@ -56,6 +56,10 @@
   "chatDeleteTitle": "会話をクリア",
   "chatDeleteMessage": "すべての会話履歴をクリアしますか？この操作は元に戻せません。",
   "chatDeleteSuccess": "会話履歴をクリアしました",
+  "chatActionCopy": "コピー",
+  "chatActionDelete": "メッセージを削除",
+  "chatDeleteMsgConfirm": "このメッセージを削除しますか？",
+  "chatCopyMessage": "クリップボードにコピーしました",
 
   "homePageAiNotConfigured": "AIサービスが未設定です。基本ルールで解析します",
   "homePageGoSettings": "設定へ",

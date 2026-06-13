@@ -167,6 +167,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatDeleteSuccess => '对话已清空';
 
   @override
+  String get chatActionCopy => '复制';
+
+  @override
+  String get chatActionDelete => '删除消息';
+
+  @override
+  String get chatDeleteMsgConfirm => '确定要删除这条消息吗？';
+
+  @override
+  String get chatCopyMessage => '已复制到剪贴板';
+
+  @override
   String get homePageAiNotConfigured => '尚未配置 AI 服务，将使用基础规则解析';
 
   @override
@@ -2419,6 +2431,18 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get chatDeleteSuccess => '對話已清空';
+
+  @override
+  String get chatActionCopy => '複製';
+
+  @override
+  String get chatActionDelete => '刪除訊息';
+
+  @override
+  String get chatDeleteMsgConfirm => '確定要刪除這條訊息嗎？';
+
+  @override
+  String get chatCopyMessage => '已複製到剪貼簿';
 
   @override
   String get homePageAiNotConfigured => '尚未配置 AI 服務，將使用基礎規則解析';

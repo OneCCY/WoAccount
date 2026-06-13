@@ -390,6 +390,30 @@ abstract class AppLocalizations {
   /// **'对话已清空'**
   String get chatDeleteSuccess;
 
+  /// No description provided for @chatActionCopy.
+  ///
+  /// In zh, this message translates to:
+  /// **'复制'**
+  String get chatActionCopy;
+
+  /// No description provided for @chatActionDelete.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除消息'**
+  String get chatActionDelete;
+
+  /// No description provided for @chatDeleteMsgConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要删除这条消息吗？'**
+  String get chatDeleteMsgConfirm;
+
+  /// No description provided for @chatCopyMessage.
+  ///
+  /// In zh, this message translates to:
+  /// **'已复制到剪贴板'**
+  String get chatCopyMessage;
+
   /// No description provided for @homePageAiNotConfigured.
   ///
   /// In zh, this message translates to:

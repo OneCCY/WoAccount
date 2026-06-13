@@ -173,6 +173,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatDeleteSuccess => 'Chat history cleared';
 
   @override
+  String get chatActionCopy => 'Copy';
+
+  @override
+  String get chatActionDelete => 'Delete Message';
+
+  @override
+  String get chatDeleteMsgConfirm =>
+      'Are you sure you want to delete this message?';
+
+  @override
+  String get chatCopyMessage => 'Copied to clipboard';
+
+  @override
   String get homePageAiNotConfigured =>
       'AI service not configured yet, basic rule parsing will be used';
 

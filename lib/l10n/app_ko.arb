@@ -56,6 +56,10 @@
   "chatDeleteTitle": "대화 지우기",
   "chatDeleteMessage": "모든 대화 기록을 지우시겠습니까? 이 작업은 되돌릴 수 없습니다.",
   "chatDeleteSuccess": "대화 기록이 지워졌습니다",
+  "chatActionCopy": "복사",
+  "chatActionDelete": "메시지 삭제",
+  "chatDeleteMsgConfirm": "이 메시지를 삭제하시겠습니까?",
+  "chatCopyMessage": "클립보드에 복사되었습니다",
 
   "homePageAiNotConfigured": "AI 서비스가 설정되지 않았습니다. 기본 규칙으로 분석합니다",
   "homePageGoSettings": "설정으로 이동",

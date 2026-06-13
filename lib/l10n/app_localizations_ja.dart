@@ -167,6 +167,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get chatDeleteSuccess => '会話履歴をクリアしました';
 
   @override
+  String get chatActionCopy => 'コピー';
+
+  @override
+  String get chatActionDelete => 'メッセージを削除';
+
+  @override
+  String get chatDeleteMsgConfirm => 'このメッセージを削除しますか？';
+
+  @override
+  String get chatCopyMessage => 'クリップボードにコピーしました';
+
+  @override
   String get homePageAiNotConfigured => 'AIサービスが未設定です。基本ルールで解析します';
 
   @override

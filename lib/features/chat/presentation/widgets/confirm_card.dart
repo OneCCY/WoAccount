@@ -14,6 +14,7 @@ class ConfirmCard extends StatelessWidget {
   final VoidCallback onConfirm;
   final VoidCallback onCancel;
   final ValueChanged<ConfirmData> onEdit;
+  final String? aiIcon;
 
   const ConfirmCard({
     super.key,
@@ -21,6 +22,7 @@ class ConfirmCard extends StatelessWidget {
     required this.onConfirm,
     required this.onCancel,
     required this.onEdit,
+    this.aiIcon,
   });
 
   @override
@@ -46,8 +48,8 @@ class ConfirmCard extends StatelessWidget {
               ),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: const Center(
-              child: Icon(Icons.auto_awesome, size: 16, color: Colors.white),
+            child: Center(
+              child: Text(aiIcon ?? '🤖', style: const TextStyle(fontSize: 16)),
             ),
           ),
           const SizedBox(width: 8),

@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:go_router/go_router.dart';
@@ -9,6 +10,7 @@ import '../../../../config/di/providers.dart';
 import '../../../../config/di/ai_providers.dart';
 import '../../../../core/ai/llm_error_resolver.dart';
 import '../../../../core/ai/transaction_pipeline.dart';
+import '../../../../core/config/ai_provider_presets.dart';
 import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
@@ -40,6 +42,9 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
   bool _hasMore = true;
   bool _isAiResponding = false;
 
+  String? _userAvatarPath;
+  String _aiIcon = '🤖';
+
   late final ChatRepository _chatRepo;
   late final TransactionRepository _txnRepo;
   late final CategoryRepository _catRepo;
@@ -59,6 +64,38 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
 
     _scrollController.addListener(_onScroll);
     _loadInitialMessages().then((_) => _handleExternalInput());
+    _loadUserProfile();
+    _loadAiProviderIcon();
+  }
+
+  /// 加载用户头像
+  Future<void> _loadUserProfile() async {
+    try {
+      final db = ref.read(appDatabaseProvider);
+      final profiles = await db.select(db.userProfiles).get();
+      if (!mounted) return;
+      if (profiles.isNotEmpty) {
+        setState(() => _userAvatarPath = profiles.first.avatarPath);
+      }
+    } catch (e) {
+      debugPrint('[AiChatPage] _loadUserProfile error: $e');
+    }
+  }
+
+  /// 加载当前 AI 模型图标
+  Future<void> _loadAiProviderIcon() async {
+    try {
+      final provider = await LlmConfigManager.getActiveProvider();
+      if (!mounted) return;
+      if (provider != null) {
+        final preset = getPresetByKey(provider.providerKey);
+        if (preset != null) {
+          setState(() => _aiIcon = preset.icon);
+        }
+      }
+    } catch (e) {
+      debugPrint('[AiChatPage] _loadAiProviderIcon error: $e');
+    }
   }
 
   /// 处理从外部传入的输入（如浮动按钮录音结果）
@@ -476,6 +513,100 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
     });
   }
 
+  /// 删除单条消息
+  Future<void> _deleteMessage(_ChatItem item) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.commonDelete),
+        content: Text(l10n.chatDeleteMsgConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l10n.commonDelete, style: TextStyle(color: context.colors.error)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    // 从数据库删除
+    if (item.message != null && item.message!.id > 0) {
+      await _chatRepo.deleteMessage(item.message!.id);
+    }
+    if (!mounted) return;
+    setState(() {
+      _items.remove(item);
+    });
+  }
+
+  /// 复制消息内容到剪贴板
+  void _copyMessage(String content) {
+    Clipboard.setData(ClipboardData(text: content));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.chatCopyMessage),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(milliseconds: 1200),
+      ),
+    );
+  }
+
+  /// 长按消息弹出操作菜单
+  void _showMessageActions(_ChatItem item) {
+    final l10n = AppLocalizations.of(context)!;
+    final content = item.message?.content ?? '';
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: context.colors.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: context.colors.textTertiary.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 8),
+              if (content.isNotEmpty)
+                ListTile(
+                  leading: Icon(Icons.copy, color: context.colors.textSecondary),
+                  title: Text(l10n.chatActionCopy),
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    _copyMessage(content);
+                  },
+                ),
+              ListTile(
+                leading: Icon(Icons.delete_outline, color: context.colors.error),
+                title: Text(l10n.chatActionDelete, style: TextStyle(color: context.colors.error)),
+                onTap: () {
+                  Navigator.of(ctx).pop();
+                  _deleteMessage(item);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   // ==================== UI ====================
 
   @override
@@ -613,6 +744,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
               onConfirm: () => _confirmSave(data),
               onCancel: () => _cancelConfirm(data),
               onEdit: (newData) => _updateConfirm(data, newData),
+              aiIcon: _aiIcon,
             );
           }
 
@@ -624,6 +756,9 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
               time: msg.createdAt,
               mediaType: _parseMediaType(msg.mediaType),
               mediaFilePath: msg.mediaFilePath,
+              userAvatarPath: _userAvatarPath,
+              aiIcon: _aiIcon,
+              onLongPress: () => _showMessageActions(item),
             );
           }
 

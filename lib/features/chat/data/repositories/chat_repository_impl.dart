@@ -67,4 +67,11 @@ class ChatRepositoryImpl implements ChatRepository {
           ..where((t) => t.accountBookId.equals(bookId) & t.conversationId.equals(conversationId)))
         .go();
   }
+
+  @override
+  Future<void> deleteMessage(int messageId) async {
+    await (_db.delete(_db.conversationMessages)
+          ..where((t) => t.id.equals(messageId)))
+        .go();
+  }
 }
