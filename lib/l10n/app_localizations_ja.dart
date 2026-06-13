@@ -2180,7 +2180,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get llmAdvancedSettings => '詳細設定';
 
   @override
-  String get llmTemperature => '温度パラメータ';
+  String get llmTemperature => '回答スタイル';
+
+  @override
+  String get llmTemperatureHint => '低いほど正確で安定、高いほど多様で創造的';
+
+  @override
+  String get llmTemperaturePrecise => '正確';
+
+  @override
+  String get llmTemperatureCreative => '創造的';
 
   @override
   String get llmMaxToken => '最大トークン数';

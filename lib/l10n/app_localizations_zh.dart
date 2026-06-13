@@ -2176,7 +2176,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get llmAdvancedSettings => '高级设置';
 
   @override
-  String get llmTemperature => '温度参数';
+  String get llmTemperature => '回答风格';
+
+  @override
+  String get llmTemperatureHint => '越低越精确稳定，越高越发散多样';
+
+  @override
+  String get llmTemperaturePrecise => '精确';
+
+  @override
+  String get llmTemperatureCreative => '创意';
 
   @override
   String get llmMaxToken => '最大 Token';
@@ -4442,7 +4451,16 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get llmAdvancedSettings => '進階設定';
 
   @override
-  String get llmTemperature => '溫度參數';
+  String get llmTemperature => '回答風格';
+
+  @override
+  String get llmTemperatureHint => '越低越精確穩定，越發散多樣';
+
+  @override
+  String get llmTemperaturePrecise => '精確';
+
+  @override
+  String get llmTemperatureCreative => '創意';
 
   @override
   String get llmMaxToken => '最大 Token';

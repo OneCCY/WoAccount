@@ -1435,20 +1435,33 @@ class _ProviderEditPageState extends State<_ProviderEditPage> {
           initiallyExpanded: _showAdvanced,
           title: Text(l10n.llmAdvancedSettings, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
           children: [
+            // 回答风格标题 + 提示
+            Text(l10n.llmTemperature, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w500)),
+            const SizedBox(height: 2),
+            Text(l10n.llmTemperatureHint, style: AppTextStyles.caption.copyWith(color: context.colors.textTertiary)),
+            const SizedBox(height: 8),
+            // 滑块 + 两端标签
             Row(
               children: [
-                Text(l10n.llmTemperature, style: AppTextStyles.body),
-                const Spacer(),
-                Text(_temperature.toStringAsFixed(1), style: AppTextStyles.body.copyWith(color: context.colors.textSecondary)),
+                Text(l10n.llmTemperaturePrecise, style: AppTextStyles.caption.copyWith(color: context.colors.textTertiary)),
+                Expanded(
+                  child: Slider(
+                    value: _temperature,
+                    min: 0.0,
+                    max: 1.0,
+                    divisions: 10,
+                    activeColor: context.colors.primary,
+                    onChanged: (v) => setState(() => _temperature = v),
+                  ),
+                ),
+                Text(l10n.llmTemperatureCreative, style: AppTextStyles.caption.copyWith(color: context.colors.textTertiary)),
               ],
             ),
-            Slider(
-              value: _temperature,
-              min: 0.0,
-              max: 1.0,
-              divisions: 10,
-              activeColor: context.colors.primary,
-              onChanged: (v) => setState(() => _temperature = v),
+            Center(
+              child: Text(
+                _temperature.toStringAsFixed(1),
+                style: AppTextStyles.caption.copyWith(color: context.colors.textSecondary),
+              ),
             ),
             const SizedBox(height: 8),
             Row(

@@ -764,7 +764,10 @@
   "llmInputApiKey": "API Keyを入力",
   "llmApiUrlExample": "例：https://api.example.com",
   "llmAdvancedSettings": "詳細設定",
-  "llmTemperature": "温度パラメータ",
+  "llmTemperature": "回答スタイル",
+  "llmTemperatureHint": "低いほど正確で安定、高いほど多様で創造的",
+  "llmTemperaturePrecise": "正確",
+  "llmTemperatureCreative": "創造的",
   "llmMaxToken": "最大トークン数",
   "llmTimeout": "タイムアウト（秒）",
 

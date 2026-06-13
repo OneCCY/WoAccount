@@ -764,7 +764,10 @@
   "llmInputApiKey": "API Key 입력",
   "llmApiUrlExample": "예: https://api.example.com",
   "llmAdvancedSettings": "고급 설정",
-  "llmTemperature": "온도 파라미터",
+  "llmTemperature": "응답 스타일",
+  "llmTemperatureHint": "낮을수록 정확하고 안정적, 높을수록 다양하고 창의적",
+  "llmTemperaturePrecise": "정확",
+  "llmTemperatureCreative": "창의적",
   "llmMaxToken": "최대 토큰 수",
   "llmTimeout": "타임아웃 (초)",
 

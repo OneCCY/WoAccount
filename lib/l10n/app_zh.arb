@@ -770,7 +770,10 @@
   "llmInputApiKey": "输入 API Key",
   "llmApiUrlExample": "如：https://api.example.com",
   "llmAdvancedSettings": "高级设置",
-  "llmTemperature": "温度参数",
+  "llmTemperature": "回答风格",
+  "llmTemperatureHint": "越低越精确稳定，越高越发散多样",
+  "llmTemperaturePrecise": "精确",
+  "llmTemperatureCreative": "创意",
   "llmMaxToken": "最大 Token",
   "llmTimeout": "超时（秒）",
 

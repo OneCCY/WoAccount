@@ -2212,7 +2212,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get llmAdvancedSettings => 'Advanced Settings';
 
   @override
-  String get llmTemperature => 'Temperature';
+  String get llmTemperature => 'Response Style';
+
+  @override
+  String get llmTemperatureHint =>
+      'Lower = more precise and stable, Higher = more diverse and creative';
+
+  @override
+  String get llmTemperaturePrecise => 'Precise';
+
+  @override
+  String get llmTemperatureCreative => 'Creative';
 
   @override
   String get llmMaxToken => 'Max Token';

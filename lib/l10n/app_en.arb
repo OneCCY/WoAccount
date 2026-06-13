@@ -769,7 +769,10 @@
   "llmInputApiKey": "Enter API Key",
   "llmApiUrlExample": "e.g. https://api.example.com",
   "llmAdvancedSettings": "Advanced Settings",
-  "llmTemperature": "Temperature",
+  "llmTemperature": "Response Style",
+  "llmTemperatureHint": "Lower = more precise and stable, Higher = more diverse and creative",
+  "llmTemperaturePrecise": "Precise",
+  "llmTemperatureCreative": "Creative",
   "llmMaxToken": "Max Token",
   "llmTimeout": "Timeout (seconds)",
 

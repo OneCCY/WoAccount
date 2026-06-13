@@ -2184,7 +2184,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get llmAdvancedSettings => '고급 설정';
 
   @override
-  String get llmTemperature => '온도 파라미터';
+  String get llmTemperature => '응답 스타일';
+
+  @override
+  String get llmTemperatureHint => '낮을수록 정확하고 안정적, 높을수록 다양하고 창의적';
+
+  @override
+  String get llmTemperaturePrecise => '정확';
+
+  @override
+  String get llmTemperatureCreative => '창의적';
 
   @override
   String get llmMaxToken => '최대 토큰 수';

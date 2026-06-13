@@ -4209,8 +4209,26 @@ abstract class AppLocalizations {
   /// No description provided for @llmTemperature.
   ///
   /// In zh, this message translates to:
-  /// **'温度参数'**
+  /// **'回答风格'**
   String get llmTemperature;
+
+  /// No description provided for @llmTemperatureHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'越低越精确稳定，越高越发散多样'**
+  String get llmTemperatureHint;
+
+  /// No description provided for @llmTemperaturePrecise.
+  ///
+  /// In zh, this message translates to:
+  /// **'精确'**
+  String get llmTemperaturePrecise;
+
+  /// No description provided for @llmTemperatureCreative.
+  ///
+  /// In zh, this message translates to:
+  /// **'创意'**
+  String get llmTemperatureCreative;
 
   /// No description provided for @llmMaxToken.
   ///
