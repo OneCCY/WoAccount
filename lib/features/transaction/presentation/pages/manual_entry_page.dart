@@ -12,6 +12,7 @@ import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../category/domain/repositories/category_repository.dart';
 import '../../domain/repositories/transaction_repository.dart';
+import '../../presentation/widgets/datetime_edit_sheet.dart';
 import '../../../../core/widgets/toast.dart';
 
 /// 记账类型
@@ -444,7 +445,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
           ),
           const SizedBox(width: 16),
           Text(
-            _amountStr.isEmpty ? '0.00' : _amountStr,
+            _getDisplayAmount(),
             style: context.textStyles.amountLarge.copyWith(color: amountColor),
           ),
         ],
@@ -513,7 +514,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
                 _NumpadKey(label: '0', onTap: () => _onDigit('0')),
                 _NumpadKey(
                   label: isToday ? l10n.entryNumpadToday : dateLabel,
-                  onTap: _showDatePicker,
+                  onTap: _showDatePickerSheet,
                   textStyle: context.textStyles.caption.copyWith(
                     color: context.colors.primary,
                     fontWeight: FontWeight.w500,
@@ -538,8 +539,8 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
   // ==================== 键盘操作 ====================
 
   bool get _canSubmit {
-    final amount = double.tryParse(_amountStr);
-    return amount != null && amount > 0 && _selectedCategory != null;
+    final result = _calculateExpression();
+    return result != null && result > 0 && _selectedCategory != null;
   }
 
   void _onDigit(String d) {
@@ -567,23 +568,91 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
   }
 
   void _onPlus() {
-    // TODO: 计算器模式（暂不实现）
+    setState(() {
+      if (_amountStr.isEmpty) return;
+      // 如果已有运算符，先计算结果
+      if (_amountStr.contains('+') || _amountStr.contains('-')) {
+        final result = _calculateExpression();
+        if (result != null) {
+          _amountStr = _formatAmount(result);
+        }
+      }
+      if (!_amountStr.endsWith('+')) {
+        _amountStr = '$_amountStr+';
+      }
+    });
   }
 
   void _onMinus() {
-    // TODO: 计算器模式（暂不实现）
+    setState(() {
+      // 允许开头输入负号
+      if (_amountStr.isEmpty) {
+        _amountStr = '-';
+        return;
+      }
+      // 如果已有运算符，先计算结果
+      if (_amountStr.contains('+') || (_amountStr.contains('-') && _amountStr.indexOf('-') > 0)) {
+        final result = _calculateExpression();
+        if (result != null) {
+          _amountStr = _formatAmount(result);
+        }
+      }
+      if (!_amountStr.endsWith('-')) {
+        _amountStr = '$_amountStr-';
+      }
+    });
   }
 
-  Future<void> _showDatePicker() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now().add(const Duration(days: 1)),
-      locale: Localizations.localeOf(context),
-    );
-    if (picked != null && mounted) {
-      setState(() => _selectedDate = picked);
+  /// 计算表达式结果
+  double? _calculateExpression() {
+    final expr = _amountStr;
+    if (expr.isEmpty) return null;
+
+    // 尝试加法
+    final plusIdx = expr.indexOf('+');
+    if (plusIdx > 0) {
+      final a = double.tryParse(expr.substring(0, plusIdx));
+      final b = double.tryParse(expr.substring(plusIdx + 1));
+      if (a != null && b != null) return a + b;
+    }
+
+    // 尝试减法（排除开头的负号）
+    final minusIdx = expr.indexOf('-', 1);
+    if (minusIdx > 0) {
+      final a = double.tryParse(expr.substring(0, minusIdx));
+      final b = double.tryParse(expr.substring(minusIdx + 1));
+      if (a != null && b != null) return a - b;
+    }
+
+    return double.tryParse(expr);
+  }
+
+  /// 格式化金额（去除尾部多余小数点）
+  String _formatAmount(double value) {
+    if (value == value.roundToDouble() && !value.toString().contains('.')) {
+      return value.toStringAsFixed(0);
+    }
+    final str = value.toStringAsFixed(2);
+    return str.replaceAll(RegExp(r'\.?0+$'), '');
+  }
+
+  /// 获取显示金额（有运算符时显示计算结果）
+  String _getDisplayAmount() {
+    if (_amountStr.isEmpty) return '0.00';
+    // 如果正在输入运算符，显示当前数字部分
+    if (_amountStr.endsWith('+') || _amountStr.endsWith('-')) {
+      final partial = _amountStr.substring(0, _amountStr.length - 1);
+      return partial.isEmpty ? '0.00' : partial;
+    }
+    final result = _calculateExpression();
+    if (result == null) return '0.00';
+    return _formatAmount(result);
+  }
+
+  Future<void> _showDatePickerSheet() async {
+    final result = await DatetimeEditSheet.show(context, initialDateTime: _selectedDate);
+    if (result != null && mounted) {
+      setState(() => _selectedDate = result);
     }
   }
 
@@ -591,7 +660,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
     if (!_canSubmit) return;
 
     final l10n = AppLocalizations.of(context)!;
-    final amount = double.parse(_amountStr);
+    final amount = _calculateExpression()!;
     final category = _selectedSubCategory ?? _selectedCategory!;
 
     try {
