@@ -401,6 +401,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get entryNoteHint => 'メモを追加...';
 
   @override
+  String get entrySelectCategoryHint => 'カテゴリを選択';
+
+  @override
+  String get entrySelectThisCategory => 'このカテゴリを選択';
+
+  @override
+  String get entryNoSubCategory => 'サブカテゴリなし';
+
+  @override
   String get entryNumpadToday => '今日';
 
   @override

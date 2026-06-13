@@ -401,6 +401,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get entryNoteHint => '添加备注...';
 
   @override
+  String get entrySelectCategoryHint => '请选择分类';
+
+  @override
+  String get entrySelectThisCategory => '选此分类';
+
+  @override
+  String get entryNoSubCategory => '暂无子分类';
+
+  @override
   String get entryNumpadToday => '今天';
 
   @override
@@ -2674,6 +2683,15 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get entryNoteHint => '新增備註...';
+
+  @override
+  String get entrySelectCategoryHint => '請選擇分類';
+
+  @override
+  String get entrySelectThisCategory => '選此分類';
+
+  @override
+  String get entryNoSubCategory => '暫無子分類';
 
   @override
   String get entryNumpadToday => '今天';

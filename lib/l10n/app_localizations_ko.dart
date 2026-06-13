@@ -403,6 +403,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get entryNoteHint => '메모 추가...';
 
   @override
+  String get entrySelectCategoryHint => '카테고리 선택';
+
+  @override
+  String get entrySelectThisCategory => '이 카테고리 선택';
+
+  @override
+  String get entryNoSubCategory => '하위 카테고리 없음';
+
+  @override
   String get entryNumpadToday => '오늘';
 
   @override

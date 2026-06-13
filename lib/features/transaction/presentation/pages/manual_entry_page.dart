@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' hide Column;
+import 'package:intl/intl.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
@@ -17,7 +18,7 @@ import '../../../../core/widgets/toast.dart';
 enum EntryType { expense, income, other }
 
 /// 手动记账页
-/// 类型切换 → 分类网格 → 子分类 → 备注+金额 → 数字键盘
+/// 类型切换 → 分类网格（自动进入子分类）→ 已选分类 + 金额 + 数字键盘
 class ManualEntryPage extends ConsumerStatefulWidget {
   const ManualEntryPage({super.key});
 
@@ -29,11 +30,11 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
   EntryType _entryType = EntryType.expense;
   Category? _selectedCategory;
   Category? _selectedSubCategory;
+  Category? _parentCategory; // 子分类的父分类
+  bool _showSubCategories = false;
   DateTime _selectedDate = DateTime.now();
   String _amountStr = '';
   String _note = '';
-  bool _showSubCategoryOverlay = false;
-  bool _showDatePicker = false;
   late final CategoryRepository _catRepo;
   late final TransactionRepository _txnRepo;
 
@@ -54,16 +55,21 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
           SizedBox(height: MediaQuery.of(context).padding.top),
           _buildTopBar(l10n),
           _buildTypeTabs(l10n),
-          Expanded(child: _buildCategoryGrid()),
-          if (_selectedCategory != null) _buildSelectedCategoryBar(),
-          _buildNoteAmountRow(l10n),
+          Expanded(
+            child: _showSubCategories && _parentCategory != null
+                ? _buildSubCategoryGrid(_parentCategory!)
+                : _buildCategoryGrid(),
+          ),
+          _buildSelectedCategoryBar(l10n),
+          _buildAmountNoteRow(l10n),
           _buildNumpad(l10n),
         ],
       ),
     );
   }
 
-  /// 顶部栏
+  // ==================== 顶部栏 ====================
+
   Widget _buildTopBar(AppLocalizations l10n) {
     return Container(
       height: 48,
@@ -96,7 +102,8 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
     );
   }
 
-  /// 类型切换 Tab
+  // ==================== 类型切换 ====================
+
   Widget _buildTypeTabs(AppLocalizations l10n) {
     return Container(
       color: context.colors.surface,
@@ -115,15 +122,15 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
                 _entryType = type;
                 _selectedCategory = null;
                 _selectedSubCategory = null;
+                _parentCategory = null;
+                _showSubCategories = false;
               });
             },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
                 border: isActive
-                    ? Border(
-                        bottom: BorderSide(color: context.colors.primary, width: 2),
-                      )
+                    ? Border(bottom: BorderSide(color: context.colors.primary, width: 2))
                     : null,
               ),
               child: Text(
@@ -140,7 +147,8 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
     );
   }
 
-  /// 分类网格
+  // ==================== 一级分类网格 ====================
+
   Widget _buildCategoryGrid() {
     return FutureBuilder<List<Category>>(
       future: _catRepo.getTopLevel(),
@@ -152,40 +160,138 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        return Stack(
+        return Padding(
+          padding: const EdgeInsets.all(AppDimensions.md),
+          child: GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 5,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 0.75,
+            ),
+            itemCount: categories.length,
+            itemBuilder: (context, index) {
+              final cat = categories[index];
+              final isSelected = _selectedCategory?.id == cat.id &&
+                  _selectedSubCategory == null;
+              return _CategoryItem(
+                category: cat,
+                isSelected: isSelected,
+                onTap: () => _onCategoryTap(cat),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  // ==================== 二级分类网格 ====================
+
+  Widget _buildSubCategoryGrid(Category parent) {
+    return FutureBuilder<List<Category>>(
+      future: _catRepo.getChildren(parent.id),
+      builder: (context, snapshot) {
+        final children = snapshot.data ?? [];
+
+        return Column(
           children: [
+            // 返回按钮 + 父分类名
             Padding(
-              padding: const EdgeInsets.all(AppDimensions.md),
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 5,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  childAspectRatio: 0.75,
-                ),
-                itemCount: categories.length,
-                itemBuilder: (context, index) {
-                  final cat = categories[index];
-                  final isSelected = _selectedCategory?.id == cat.id;
-                  return _CategoryItem(
-                    category: cat,
-                    isSelected: isSelected,
-                    onTap: () => _onCategoryTap(cat),
-                    onSubTap: () => _onSubCategoryTap(cat),
-                  );
-                },
+              padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 8),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _showSubCategories = false;
+                        _parentCategory = null;
+                        _selectedSubCategory = null;
+                      });
+                    },
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.arrow_back_ios, size: 14, color: context.colors.textSecondary),
+                        const SizedBox(width: 4),
+                        Text(
+                          getCategoryDisplayName(parent, AppLocalizations.of(context)!),
+                          style: context.textStyles.body.copyWith(color: context.colors.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                  // 选择父分类（无子分类时直接选这个）
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedCategory = parent;
+                        _selectedSubCategory = null;
+                        _showSubCategories = false;
+                        _parentCategory = null;
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: context.colors.primarySurface,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        AppLocalizations.of(context)!.entrySelectThisCategory,
+                        style: context.textStyles.caption.copyWith(color: context.colors.primary),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            // 子分类浮层
-            if (_showSubCategoryOverlay && _selectedCategory != null)
-              _buildSubCategoryOverlay(_selectedCategory!),
-            // 日期选择器
-            if (_showDatePicker) _buildDatePickerOverlay(),
+            // 子分类网格
+            Expanded(
+              child: children.isEmpty
+                  ? Center(
+                      child: Text(
+                        AppLocalizations.of(context)!.entryNoSubCategory,
+                        style: context.textStyles.body.copyWith(color: context.colors.textTertiary),
+                      ),
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
+                      child: GridView.builder(
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 5,
+                          mainAxisSpacing: 12,
+                          crossAxisSpacing: 12,
+                          childAspectRatio: 0.75,
+                        ),
+                        itemCount: children.length,
+                        itemBuilder: (context, index) {
+                          final sub = children[index];
+                          final isSelected = _selectedSubCategory?.id == sub.id;
+                          return _CategoryItem(
+                            category: sub,
+                            isSelected: isSelected,
+                            onTap: () {
+                              setState(() {
+                                _selectedSubCategory = sub;
+                                _selectedCategory = parent;
+                                _showSubCategories = false;
+                                _parentCategory = null;
+                              });
+                            },
+                          );
+                        },
+                      ),
+                    ),
+            ),
           ],
         );
       },
     );
   }
+
+  // ==================== 分类点击逻辑 ====================
 
   List<Category> _filterCategories(List<Category> categories) {
     const otherKeys = {'catOtherTransfer', 'catOtherRepayment', 'catOtherSocial'};
@@ -199,105 +305,102 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
     }
   }
 
-  void _onCategoryTap(Category cat) {
-    setState(() {
-      _selectedCategory = cat;
-      _selectedSubCategory = null;
-      _showSubCategoryOverlay = false;
-    });
+  Future<void> _onCategoryTap(Category cat) async {
+    // 检查是否有子分类
+    final children = await _catRepo.getChildren(cat.id);
+    if (!mounted) return;
+
+    if (children.isNotEmpty) {
+      // 有子分类 → 自动进入子分类界面
+      setState(() {
+        _parentCategory = cat;
+        _showSubCategories = true;
+        _selectedSubCategory = null;
+      });
+    } else {
+      // 无子分类 → 直接选中
+      setState(() {
+        _selectedCategory = cat;
+        _selectedSubCategory = null;
+        _showSubCategories = false;
+        _parentCategory = null;
+      });
+    }
   }
 
-  void _onSubCategoryTap(Category cat) {
-    setState(() {
-      _selectedCategory = cat;
-      _showSubCategoryOverlay = true;
-    });
-  }
+  // ==================== 已选分类栏 ====================
 
-  /// 子分类浮层
-  Widget _buildSubCategoryOverlay(Category parent) {
-    return FutureBuilder<List<Category>>(
-      future: _catRepo.getChildren(parent.id),
-      builder: (context, snapshot) {
-        final children = snapshot.data ?? [];
-        if (children.isEmpty) {
-          return const SizedBox.shrink();
-        }
-
-        return Positioned.fill(
-          child: Container(
-            color: context.colors.surface,
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(AppDimensions.md),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back, size: 20),
-                        onPressed: () {
-                          setState(() => _showSubCategoryOverlay = false);
-                        },
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(AppLocalizations.of(context)!.entrySubCategoryTitle(parent.name), style: context.textStyles.h3),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: GridView.builder(
-                    padding: const EdgeInsets.all(AppDimensions.md),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 5,
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      childAspectRatio: 0.75,
-                    ),
-                    itemCount: children.length,
-                    itemBuilder: (context, index) {
-                      final sub = children[index];
-                      final isSelected = _selectedSubCategory?.id == sub.id;
-                      return _CategoryItem(
-                        category: sub,
-                        isSelected: isSelected,
-                        onTap: () {
-                          setState(() {
-                            _selectedSubCategory = sub;
-                            _showSubCategoryOverlay = false;
-                          });
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
+  Widget _buildSelectedCategoryBar(AppLocalizations l10n) {
+    if (_selectedCategory == null) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 10),
+        color: context.colors.surface,
+        child: Row(
+          children: [
+            Icon(Icons.category_outlined, size: 18, color: context.colors.textHint),
+            const SizedBox(width: 8),
+            Text(
+              l10n.entrySelectCategoryHint,
+              style: context.textStyles.body.copyWith(color: context.colors.textHint),
             ),
-          ),
-        );
-      },
-    );
-  }
+          ],
+        ),
+      );
+    }
 
-  /// 已选分类显示栏
-  Widget _buildSelectedCategoryBar() {
-    final category = _selectedSubCategory ?? _selectedCategory!;
-    final parentName = _selectedSubCategory != null ? '${_selectedCategory!.name}/' : '';
+    final cat = _selectedCategory!;
+    final sub = _selectedSubCategory;
+    final catName = getCategoryDisplayName(cat, l10n);
+    final subName = sub != null ? getCategoryDisplayName(sub, l10n) : null;
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDimensions.md,
-        vertical: 8,
+      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 10),
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        border: Border(bottom: BorderSide(color: context.colors.separatorOpaque, width: 0.5)),
       ),
-      color: context.colors.primarySurface,
       child: Row(
         children: [
-          Text(
-            '$parentName${getCategoryDisplayName(category, AppLocalizations.of(context)!)}',
-            style: context.textStyles.footnote.copyWith(color: context.colors.primaryDark),
+          // 图标
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: context.colors.primarySurface,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Center(
+              child: Text(sub?.icon ?? cat.icon ?? '📦', style: const TextStyle(fontSize: 16)),
+            ),
           ),
-          const Spacer(),
+          const SizedBox(width: 8),
+          // 分类名
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: subName ?? catName,
+                    style: AppTextStyles.body.copyWith(
+                      color: context.colors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (subName != null) ...[
+                    TextSpan(
+                      text: '  ›  ',
+                      style: AppTextStyles.body.copyWith(color: context.colors.textTertiary),
+                    ),
+                    TextSpan(
+                      text: catName,
+                      style: AppTextStyles.caption.copyWith(color: context.colors.textSecondary),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          // 清除按钮
           GestureDetector(
             onTap: () {
               setState(() {
@@ -305,15 +408,16 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
                 _selectedSubCategory = null;
               });
             },
-            child: Icon(Icons.close, size: 16, color: context.colors.primaryDark),
+            child: Icon(Icons.close, size: 16, color: context.colors.textTertiary),
           ),
         ],
       ),
     );
   }
 
-  /// 备注输入 + 金额显示
-  Widget _buildNoteAmountRow(AppLocalizations l10n) {
+  // ==================== 金额 + 备注行 ====================
+
+  Widget _buildAmountNoteRow(AppLocalizations l10n) {
     final amountColor = switch (_entryType) {
       EntryType.expense => context.colors.expense,
       EntryType.income => context.colors.income,
@@ -321,11 +425,10 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
     };
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       color: context.colors.surface,
       child: Row(
         children: [
-          // 备注输入
           Expanded(
             child: TextField(
               style: context.textStyles.body,
@@ -340,7 +443,6 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
             ),
           ),
           const SizedBox(width: 16),
-          // 金额显示
           Text(
             _amountStr.isEmpty ? '0.00' : _amountStr,
             style: context.textStyles.amountLarge.copyWith(color: amountColor),
@@ -350,8 +452,14 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
     );
   }
 
-  /// 自定义数字键盘
+  // ==================== 自定义数字键盘 ====================
+
   Widget _buildNumpad(AppLocalizations l10n) {
+    final dateLabel = DateFormat('MM/dd').format(_selectedDate);
+    final isToday = _selectedDate.year == DateTime.now().year &&
+        _selectedDate.month == DateTime.now().month &&
+        _selectedDate.day == DateTime.now().day;
+
     return Container(
       color: context.colors.surface,
       padding: const EdgeInsets.fromLTRB(4, 4, 4, 4),
@@ -359,46 +467,58 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
         top: false,
         child: Column(
           children: [
+            // Row 1: 1 2 3 退格
             Row(
               children: [
                 _NumpadKey(label: '1', onTap: () => _onDigit('1')),
                 _NumpadKey(label: '2', onTap: () => _onDigit('2')),
                 _NumpadKey(label: '3', onTap: () => _onDigit('3')),
                 _NumpadKey(
-                  label: l10n.entryNumpadToday,
-                  onTap: () => setState(() => _showDatePicker = !_showDatePicker),
-                  textStyle: context.textStyles.caption.copyWith(color: context.colors.primary),
+                  label: '⌫',
+                  onTap: _onDelete,
+                  icon: Icons.backspace_outlined,
                 ),
               ],
             ),
+            // Row 2: 4 5 6 +
             Row(
               children: [
                 _NumpadKey(label: '4', onTap: () => _onDigit('4')),
                 _NumpadKey(label: '5', onTap: () => _onDigit('5')),
                 _NumpadKey(label: '6', onTap: () => _onDigit('6')),
                 _NumpadKey(
-                  label: l10n.entryNumpadDelete,
-                  onTap: _onDelete,
-                  icon: Icons.backspace_outlined,
+                  label: '+',
+                  onTap: _onPlus,
+                  textStyle: context.textStyles.h3.copyWith(color: context.colors.income),
                 ),
               ],
             ),
+            // Row 3: 7 8 9 -
             Row(
               children: [
                 _NumpadKey(label: '7', onTap: () => _onDigit('7')),
                 _NumpadKey(label: '8', onTap: () => _onDigit('8')),
                 _NumpadKey(label: '9', onTap: () => _onDigit('9')),
                 _NumpadKey(
-                  label: '+/-',
-                  onTap: _onToggleSign,
-                  textStyle: context.textStyles.body.copyWith(color: context.colors.textSecondary),
+                  label: '−',
+                  onTap: _onMinus,
+                  textStyle: context.textStyles.h3.copyWith(color: context.colors.expense),
                 ),
               ],
             ),
+            // Row 4: .  0  日期  完成
             Row(
               children: [
                 _NumpadKey(label: '.', onTap: _onDot),
                 _NumpadKey(label: '0', onTap: () => _onDigit('0')),
+                _NumpadKey(
+                  label: isToday ? l10n.entryNumpadToday : dateLabel,
+                  onTap: _showDatePicker,
+                  textStyle: context.textStyles.caption.copyWith(
+                    color: context.colors.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
                 _NumpadKey(
                   label: l10n.entryNumpadDone,
                   onTap: _onSubmit,
@@ -415,6 +535,8 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
     );
   }
 
+  // ==================== 键盘操作 ====================
+
   bool get _canSubmit {
     final amount = double.tryParse(_amountStr);
     return amount != null && amount > 0 && _selectedCategory != null;
@@ -422,10 +544,8 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
 
   void _onDigit(String d) {
     setState(() {
-      // 小数点后最多2位
       final dotIndex = _amountStr.indexOf('.');
       if (dotIndex != -1 && _amountStr.length - dotIndex > 2) return;
-      // 最大长度
       if (_amountStr.length >= 12) return;
       _amountStr += d;
     });
@@ -434,11 +554,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
   void _onDot() {
     setState(() {
       if (_amountStr.contains('.')) return;
-      if (_amountStr.isEmpty) {
-        _amountStr = '0.';
-      } else {
-        _amountStr += '.';
-      }
+      _amountStr += _amountStr.isEmpty ? '0.' : '.';
     });
   }
 
@@ -450,14 +566,31 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
     });
   }
 
-  void _onToggleSign() {
-    // 简单实现：在金额前加/减号
-    // 实际可扩展为计算器模式
+  void _onPlus() {
+    // TODO: 计算器模式（暂不实现）
+  }
+
+  void _onMinus() {
+    // TODO: 计算器模式（暂不实现）
+  }
+
+  Future<void> _showDatePicker() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now().add(const Duration(days: 1)),
+      locale: Localizations.localeOf(context),
+    );
+    if (picked != null && mounted) {
+      setState(() => _selectedDate = picked);
+    }
   }
 
   Future<void> _onSubmit() async {
     if (!_canSubmit) return;
 
+    final l10n = AppLocalizations.of(context)!;
     final amount = double.parse(_amountStr);
     final category = _selectedSubCategory ?? _selectedCategory!;
 
@@ -466,7 +599,9 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
         amount: amount,
         description: _note.isEmpty ? category.name : _note,
         categoryId: category.id,
-        subcategoryId: _selectedSubCategory != null ? Value(_selectedCategory!.id) : const Value.absent(),
+        subcategoryId: _selectedSubCategory != null
+            ? Value(_selectedCategory!.id)
+            : const Value.absent(),
         transactionDate: _selectedDate,
         originalInput: Value(_note),
         aiSource: const Value('manual'),
@@ -474,47 +609,30 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
       ));
 
       if (mounted) {
-        AppToast.show(context, AppLocalizations.of(context)!.entrySuccess(context.localeProvider.currency.formatAmount(amount)));
+        AppToast.show(context, l10n.entrySuccess(
+            context.localeProvider.currency.formatAmount(amount)));
         Navigator.of(context).pop();
       }
     } catch (e) {
       if (mounted) {
-        AppToast.show(context, AppLocalizations.of(context)!.entryFailure(e.toString()));
+        AppToast.show(context, l10n.entryFailure(e.toString()));
       }
     }
   }
-
-  /// 日期选择器浮层
-  Widget _buildDatePickerOverlay() {
-    return Positioned.fill(
-      child: Container(
-        color: context.colors.surface,
-        child: _SimpleCalendar(
-          selectedDate: _selectedDate,
-          onDateSelected: (date) {
-            setState(() {
-              _selectedDate = date;
-              _showDatePicker = false;
-            });
-          },
-        ),
-      ),
-    );
-  }
 }
+
+// ==================== 子组件 ====================
 
 /// 分类网格项
 class _CategoryItem extends StatelessWidget {
   final Category category;
   final bool isSelected;
   final VoidCallback onTap;
-  final VoidCallback? onSubTap;
 
   const _CategoryItem({
     required this.category,
     required this.onTap,
     this.isSelected = false,
-    this.onSubTap,
   });
 
   @override
@@ -526,47 +644,19 @@ class _CategoryItem extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                  border: isSelected
-                      ? Border.all(color: context.colors.primary, width: 2)
-                      : null,
-                ),
-                child: Center(
-                  child: Text(
-                    category.icon ?? '📦',
-                    style: const TextStyle(fontSize: 22),
-                  ),
-                ),
-              ),
-              // 子分类指示点
-              if (onSubTap != null)
-                Positioned(
-                  right: -2,
-                  top: -2,
-                  child: GestureDetector(
-                    onTap: onSubTap,
-                    child: Container(
-                      width: 16,
-                      height: 16,
-                      decoration: BoxDecoration(
-                        color: context.colors.primary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Icon(Icons.add, size: 10, color: context.colors.textOnPrimary),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+              border: isSelected
+                  ? Border.all(color: context.colors.primary, width: 2)
+                  : null,
+            ),
+            child: Center(
+              child: Text(category.icon ?? '📦', style: const TextStyle(fontSize: 22)),
+            ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -620,104 +710,12 @@ class _NumpadKey extends StatelessWidget {
               child: Center(
                 child: icon != null
                     ? Icon(icon, size: 20, color: context.colors.textPrimary)
-                    : Text(
-                        label,
-                        style: textStyle ?? context.textStyles.h3,
-                      ),
+                    : Text(label, style: textStyle ?? context.textStyles.h3),
               ),
             ),
           ),
         ),
       ),
-    );
-  }
-}
-
-/// 简单日历组件
-class _SimpleCalendar extends StatelessWidget {
-  final DateTime selectedDate;
-  final ValueChanged<DateTime> onDateSelected;
-
-  const _SimpleCalendar({
-    required this.selectedDate,
-    required this.onDateSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final now = DateTime.now();
-    final firstDay = DateTime(selectedDate.year, selectedDate.month, 1);
-    final lastDay = DateTime(selectedDate.year, selectedDate.month + 1, 0);
-    final startWeekday = firstDay.weekday % 7; // 0=Sunday
-
-    return Column(
-      children: [
-        // 月份标题
-        Padding(
-          padding: const EdgeInsets.all(AppDimensions.md),
-          child: Text(
-            l10n.reportMonthLabel(selectedDate.year.toString(), selectedDate.month.toString()),
-            style: context.textStyles.h3,
-          ),
-        ),
-        // 星期标题
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
-          child: Row(
-            children: [l10n.weekSun, l10n.weekMon, l10n.weekTue, l10n.weekWed, l10n.weekThu, l10n.weekFri, l10n.weekSat]
-                .map((d) => Expanded(
-                      child: Center(
-                        child: Text(d, style: context.textStyles.caption),
-                      ),
-                    ))
-                .toList(),
-          ),
-        ),
-        const SizedBox(height: 8),
-        // 日期网格
-        Expanded(
-          child: GridView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 7,
-              mainAxisSpacing: 4,
-              crossAxisSpacing: 4,
-            ),
-            itemCount: startWeekday + lastDay.day,
-            itemBuilder: (context, index) {
-              if (index < startWeekday) {
-                return const SizedBox.shrink();
-              }
-              final day = index - startWeekday + 1;
-              final date = DateTime(selectedDate.year, selectedDate.month, day);
-              final isToday = date.year == now.year && date.month == now.month && date.day == now.day;
-              final isSelected = date.year == selectedDate.year &&
-                  date.month == selectedDate.month &&
-                  date.day == selectedDate.day;
-
-              return GestureDetector(
-                onTap: () => onDateSelected(date),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: isSelected ? context.colors.primary : (isToday ? context.colors.primarySurface : null),
-                    borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-                  ),
-                  child: Center(
-                    child: Text(
-                      '$day',
-                      style: context.textStyles.body.copyWith(
-                        color: isSelected ? context.colors.textOnPrimary : context.colors.textPrimary,
-                        fontWeight: isToday ? FontWeight.w600 : FontWeight.w400,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
     );
   }
 }

@@ -822,6 +822,24 @@ abstract class AppLocalizations {
   /// **'添加备注...'**
   String get entryNoteHint;
 
+  /// No description provided for @entrySelectCategoryHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'请选择分类'**
+  String get entrySelectCategoryHint;
+
+  /// No description provided for @entrySelectThisCategory.
+  ///
+  /// In zh, this message translates to:
+  /// **'选此分类'**
+  String get entrySelectThisCategory;
+
+  /// No description provided for @entryNoSubCategory.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无子分类'**
+  String get entryNoSubCategory;
+
   /// No description provided for @entryNumpadToday.
   ///
   /// In zh, this message translates to:

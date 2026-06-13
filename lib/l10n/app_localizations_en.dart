@@ -411,6 +411,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get entryNoteHint => 'Add a note...';
 
   @override
+  String get entrySelectCategoryHint => 'Select a category';
+
+  @override
+  String get entrySelectThisCategory => 'Select this';
+
+  @override
+  String get entryNoSubCategory => 'No subcategories';
+
+  @override
   String get entryNumpadToday => 'Today';
 
   @override
