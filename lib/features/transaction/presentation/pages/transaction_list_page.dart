@@ -478,9 +478,8 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
     // 筛选
     if (_filterType != null) {
       filtered = txns.where((t) {
-        final cat = catMap[t.categoryId];
-        if (_filterType == 'expense') return cat?.isExpense ?? true;
-        if (_filterType == 'income') return !(cat?.isExpense ?? true);
+        if (_filterType == 'expense') return t.type == 'expense';
+        if (_filterType == 'income') return t.type == 'income';
         return true;
       }).toList();
     }
@@ -617,14 +616,12 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
           return FutureBuilder<List<Category>>(
             future: catRepo.getAll(),
             builder: (context, catSnap) {
-              final catMap = <int, Category>{for (final c in (catSnap.data ?? [])) c.id: c};
               // 计算本周每天的收支
               final dailyTotals = <int, ({double expense, double income})>{};
               for (final t in allTxns) {
                 if (t.transactionDate.isBefore(weekStartDay) || !t.transactionDate.isBefore(weekEnd)) continue;
                 final day = t.transactionDate.day;
-                final cat = catMap[t.categoryId];
-                final isExpense = cat?.isExpense ?? true;
+                final isExpense = t.type == 'expense';
                 final existing = dailyTotals[day];
                 if (isExpense) {
                   dailyTotals[day] = (expense: (existing?.expense ?? 0) + t.amount, income: existing?.income ?? 0);

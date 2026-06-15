@@ -305,7 +305,7 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
   }
 
   Widget _buildContent(AppLocalizations l10n) {
-    final isExpense = _category?.isExpense ?? true;
+    final isExpense = _type == 'expense';
     final amountColor = isExpense ? context.colors.expense : context.colors.income;
     final prefix = isExpense ? '-' : '+';
 
@@ -380,10 +380,27 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
             style: context.textStyles.amountLarge.copyWith(color: amountColor),
           ),
           const SizedBox(height: 8),
-          // 日期
-          Text(
-            DateFormat('yyyy-MM-dd HH:mm').format(_transactionDate),
-            style: context.textStyles.caption.copyWith(color: context.colors.textTertiary),
+          // 日期 + 类型标签
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                DateFormat('yyyy-MM-dd HH:mm').format(_transactionDate),
+                style: context.textStyles.caption.copyWith(color: context.colors.textTertiary),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: amountColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  _type == 'expense' ? l10n.entryExpense : _type == 'income' ? l10n.entryIncome : l10n.entryOther,
+                  style: context.textStyles.caption.copyWith(color: amountColor, fontSize: 10, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
           ),
         ],
       ),

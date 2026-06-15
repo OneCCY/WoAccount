@@ -36,8 +36,7 @@ class TransactionGroup extends StatelessWidget {
     double totalExpense = 0;
     double totalIncome = 0;
     for (final t in transactions) {
-      final cat = categoryMap[t.categoryId];
-      if (cat?.isExpense ?? true) {
+      if (t.type == 'expense') {
         totalExpense += t.amount;
       } else {
         totalIncome += t.amount;
@@ -216,7 +215,7 @@ class _TransactionItemState extends State<_TransactionItem>
     final categoryName = widget.category != null ? getCategoryDisplayName(widget.category!, l10n) : null;
     final categoryKey = widget.category?.l10nKey;
     final (icon, bgColor) = _getCategoryStyle(categoryKey);
-    final isExpense = widget.category?.isExpense ?? true;
+    final isExpense = widget.transaction.type == 'expense';
     final amountColor = isExpense ? context.colors.expense : context.colors.income;
     final screenWidth = MediaQuery.of(context).size.width;
 
