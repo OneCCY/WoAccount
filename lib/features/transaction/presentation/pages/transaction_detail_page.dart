@@ -178,7 +178,7 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
     if (picked != null && mounted) {
       setState(() {
         _categoryId = picked.id;
-        _parentCategoryId = picked.parentId != null ? picked.id : null;
+        _parentCategoryId = picked.parentId;
         _isDirty = true;
       });
       await _reloadCategory();

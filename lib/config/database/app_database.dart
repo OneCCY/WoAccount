@@ -211,7 +211,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -326,6 +326,17 @@ class AppDatabase extends _$AppDatabase {
         await m.createTable(transactionMedia);
         await m.createTable(tags);
         await m.createTable(transactionTags);
+      }
+      if (from < 10) {
+        // 修复 v9 迁移数据：旧 schema 中 categoryId=父分类, subcategoryId=子分类
+        // 迁移后 parentCategoryId 存的是子分类ID，需要交换
+        // 正确语义：categoryId=叶子分类(子分类), parentCategoryId=父分类
+        await customStatement(
+          "UPDATE transactions SET "
+          "parent_category_id = category_id, "
+          "category_id = parent_category_id "
+          "WHERE parent_category_id IS NOT NULL",
+        );
       }
     },
   );
