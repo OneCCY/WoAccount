@@ -150,7 +150,7 @@ class LlmRepositoryImpl implements LlmRepository {
   }
 
   @override
-  Future<List<TransactionParseResult>> parseTransaction(String input) async {
+  Future<List<TransactionParseResult>> parseTransaction(String input, {String? categoryTaxonomy}) async {
     // 降级策略：先尝试 LLM，失败后用规则引擎
     try {
       final provider = await LlmConfigManager.getActiveProvider();
@@ -161,10 +161,15 @@ class LlmRepositoryImpl implements LlmRepository {
         throw const LlmException('请先在设置中添加 AI 服务商，或输入更明确的描述（如"午饭拉面25"）', errorCode: 'llmErrorNoProviderOrInput');
       }
 
+      // 构建系统提示词（使用动态分类或默认分类）
+      final systemPrompt = categoryTaxonomy != null
+          ? PromptTemplates.parseTransactionSystem(categoryTaxonomy)
+          : PromptTemplates.parseTransactionSystem(_defaultCategoryTaxonomy);
+
       // 调用 LLM（使用文本能力）
       final response = await chat(LlmRequest(
         messages: [
-          ChatMessage(role: 'system', content: PromptTemplates.parseTransactionSystem),
+          ChatMessage(role: 'system', content: systemPrompt),
           ChatMessage(role: 'user', content: PromptTemplates.parseTransactionUser(input)),
         ],
         temperature: 0.0,
@@ -179,6 +184,27 @@ class LlmRepositoryImpl implements LlmRepository {
       rethrow;
     }
   }
+
+  /// 默认分类体系（当无法从数据库获取时的兜底）
+  static const _defaultCategoryTaxonomy = '''
+### 支出分类
+- 餐饮（早餐、午餐、晚餐、外卖、零食、饮料、火锅、烧烤）
+- 交通（公交地铁、打车、加油、停车、火车、飞机）
+- 购物（日用品、衣服、电子产品、家居、美妆）
+- 住房（房租、水电燃气、物业、维修）
+- 娱乐（电影、游戏、旅游、运动、演出）
+- 教育（课程、书籍、培训、考试）
+- 医疗（挂号、药品、体检、牙科、眼科）
+- 社交（礼物、聚餐、红包、份子钱）
+- 其他支出（无法归类的支出）
+
+### 收入分类
+- 工资（月薪、日结、加班费）
+- 奖金（年终奖、绩效奖、提成）
+- 投资收益（股票、基金、利息）
+- 退款（退货退款、保险理赔）
+- 兼职（副业、freelance）
+- 其他收入（无法归类的收入）''';
 
   @override
   Future<bool> testConnection(LlmProvider provider) async {

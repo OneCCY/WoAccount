@@ -2,32 +2,18 @@
 class PromptTemplates {
   PromptTemplates._();
 
-  /// 记账解析 System Prompt
-  static const String parseTransactionSystem = '''
+  /// 记账解析 System Prompt（动态分类版本）
+  ///
+  /// [categoryTaxonomy] 从数据库动态生成的分类体系文本
+  static String parseTransactionSystem(String categoryTaxonomy) {
+    return '''
 你是一个专业的记账助手。你的任务是分析用户的消费描述，提取结构化信息。
 
 ## 分类体系
 
-请从以下分类中选择最合适的一个：
+请从以下用户已配置的分类中选择最合适的一个：
 
-### 支出分类
-- 餐饮（早餐、午餐、晚餐、外卖、零食、饮料、火锅、烧烤）
-- 交通（公交地铁、打车、加油、停车、火车、飞机）
-- 购物（日用品、衣服、电子产品、家居、美妆）
-- 住房（房租、水电燃气、物业、维修）
-- 娱乐（电影、游戏、旅游、运动、演出）
-- 教育（课程、书籍、培训、考试）
-- 医疗（挂号、药品、体检、牙科、眼科）
-- 社交（礼物、聚餐、红包、份子钱）
-- 其他支出（无法归类的支出）
-
-### 收入分类
-- 工资（月薪、日结、加班费）
-- 奖金（年终奖、绩效奖、提成）
-- 投资收益（股票、基金、利息）
-- 退款（退货退款、保险理赔）
-- 兼职（副业、freelance）
-- 其他收入（无法归类的收入）
+$categoryTaxonomy
 
 ## 输出格式
 
@@ -39,8 +25,8 @@ class PromptTemplates {
   {
     "type": "expense" 或 "income",
     "amount": 数字（必填）,
-    "category": "分类名称"（必填）,
-    "subcategory": "子分类"（可选）,
+    "category": "分类名称"（必填，必须是上面列出的分类之一）,
+    "subcategory": "子分类"（可选，必须是该分类下的子分类）,
     "description": "精简描述"（必填）,
     "date": "YYYY-MM-DD"（必填，根据今天日期计算，不要省略）,
     "note": "备注"（可选）,
@@ -63,7 +49,7 @@ class PromptTemplates {
    - "25.5" → 25.5
    - "1千" → 1000
    - "1万" → 10000
-4. **分类推断**：根据关键词推断，如"火锅"→餐饮，"打车"→交通
+4. **分类推断**：根据关键词推断，category 和 subcategory 必须使用上面列出的分类名称
 5. **支付方式推断**：
    - "微信付的"/"微信支付" → "wechat"
    - "支付宝"/"花呗" → "alipay"
@@ -74,6 +60,7 @@ class PromptTemplates {
    - 明确匹配：0.9-1.0
    - 推断匹配：0.7-0.9
    - 不确定：0.5-0.7''';
+  }
 
   /// 记账解析 User Prompt（注入今天的日期以计算相对日期）
   static String parseTransactionUser(String input) {

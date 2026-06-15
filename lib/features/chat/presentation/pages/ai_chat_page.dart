@@ -264,15 +264,19 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
         throw LlmException(AppLocalizations.of(context)!.chatPageConfigAiError);
       }
 
+      // 动态构建用户分类体系
+      final categoryTaxonomy = await _buildCategoryTaxonomy();
+
       PipelineResult result;
       switch (source) {
         case InputSource.text:
-          result = await _pipeline.processText(displayText);
+          result = await _pipeline.processText(displayText, categoryTaxonomy: categoryTaxonomy);
           break;
         case InputSource.voice:
           result = await _pipeline.processVoice(
             audioTempPath: voicePath!,
             provider: provider,
+            categoryTaxonomy: categoryTaxonomy,
           );
           if (!mounted) return;
           // 更新用户消息为转写文本
@@ -299,6 +303,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
           result = await _pipeline.processImage(
             imageTempPath: imagePath!,
             provider: provider,
+            categoryTaxonomy: categoryTaxonomy,
           );
           if (!mounted) return;
           // 显示图片识别结果
@@ -511,6 +516,51 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
         _items[idx] = _ChatItem.confirm(newData);
       }
     });
+  }
+
+  /// 从数据库动态构建分类体系文本（用于 LLM 提示词）
+  Future<String> _buildCategoryTaxonomy() async {
+    try {
+      final categories = await _catRepo.getTopLevel();
+      if (categories.isEmpty) return '';
+
+      final expenseCats = categories.where((c) => c.isExpense).toList();
+      final incomeCats = categories.where((c) => !c.isExpense).toList();
+
+      final buffer = StringBuffer();
+
+      if (expenseCats.isNotEmpty) {
+        buffer.writeln('### 支出分类');
+        for (final cat in expenseCats) {
+          final children = await _catRepo.getChildren(cat.id);
+          if (children.isNotEmpty) {
+            final subNames = children.map((c) => c.name).join('、');
+            buffer.writeln('- ${cat.name}（$subNames）');
+          } else {
+            buffer.writeln('- ${cat.name}');
+          }
+        }
+        buffer.writeln();
+      }
+
+      if (incomeCats.isNotEmpty) {
+        buffer.writeln('### 收入分类');
+        for (final cat in incomeCats) {
+          final children = await _catRepo.getChildren(cat.id);
+          if (children.isNotEmpty) {
+            final subNames = children.map((c) => c.name).join('、');
+            buffer.writeln('- ${cat.name}（$subNames）');
+          } else {
+            buffer.writeln('- ${cat.name}');
+          }
+        }
+      }
+
+      return buffer.toString().trim();
+    } catch (e) {
+      debugPrint('[AiChatPage] _buildCategoryTaxonomy error: $e');
+      return '';
+    }
   }
 
   /// 删除单条消息
