@@ -67,26 +67,30 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
     final catRepo = ref.read(categoryRepositoryProvider);
 
     return Scaffold(
-      body: GestureDetector(
-        onVerticalDragEnd: (details) {
-          if (details.primaryVelocity == null) return;
-          if (details.primaryVelocity! > 300) {
-            // 下滑 - 上一期
-            _goPrevious();
-          } else if (details.primaryVelocity! < -300) {
-            // 上滑 - 下一期
-            _goNext();
-          }
-        },
-        child: Column(
-          children: [
-            SizedBox(height: MediaQuery.of(context).padding.top),
-            _buildTopBar(),
-            _buildSearchBar(l10n),
-            _buildStatsBar(repo, l10n),
-            Expanded(child: _buildContent(repo, catRepo, l10n)),
-          ],
-        ),
+      body: Column(
+        children: [
+          SizedBox(height: MediaQuery.of(context).padding.top),
+          // 顶部区域支持上下滑动切换周期
+          GestureDetector(
+            onVerticalDragEnd: (details) {
+              if (details.primaryVelocity == null) return;
+              if (details.primaryVelocity! > 300) {
+                _goPrevious();
+              } else if (details.primaryVelocity! < -300) {
+                _goNext();
+              }
+            },
+            child: Column(
+              children: [
+                _buildTopBar(),
+                _buildSearchBar(l10n),
+                _buildStatsBar(repo, l10n),
+              ],
+            ),
+          ),
+          // 列表区域正常滚动
+          Expanded(child: _buildContent(repo, catRepo, l10n)),
+        ],
       ),
     );
   }
