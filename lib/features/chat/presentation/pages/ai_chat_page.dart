@@ -42,6 +42,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
 
   @override
   void onRefresh() {
+    _loadInitialMessages();
     _loadUserProfile();
     _loadAiProviderIcon();
   }
