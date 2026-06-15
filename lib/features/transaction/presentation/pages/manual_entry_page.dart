@@ -45,10 +45,10 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
   double _result = 0.0;
   /// 待执行的运算符（null 表示还没有运算符）
   String? _pendingOp;
-  /// 表达式历史（用于显示）
-  String _expression = '';
+  /// 表达式历史（用于小字显示）
+  String _expressionHistory = '';
   /// 按下运算符后显示结果，开始新输入时重置
-  bool _showResult = false;
+  bool _waitingForInput = false;
 
   @override
   void initState() {
@@ -565,25 +565,23 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
 
   bool get _canSubmit => _result > 0 && _selectedCategory != null;
 
-  /// 显示文本：正在输入时显示输入，否则显示结果
+  /// 显示文本：正在输入时显示输入，否则显示累计结果
   String get _displayText {
-    if (!_showResult && _currentInput.isNotEmpty) return _currentInput;
+    if (!_waitingForInput && _currentInput.isNotEmpty) return _currentInput;
     if (_result > 0) return _formatAmount(_result);
     return '0.00';
   }
 
   /// 表达式历史文本
-  String get _expressionText => _expression;
+  String get _expressionText => _expressionHistory;
 
   /// 输入数字
   void _onDigit(String d) {
     setState(() {
-      // 如果刚按了运算符，开始新输入
-      if (_showResult) {
+      if (_waitingForInput) {
         _currentInput = '';
-        _showResult = false;
+        _waitingForInput = false;
       }
-      // 小数点后最多2位
       final dotIndex = _currentInput.indexOf('.');
       if (dotIndex != -1 && _currentInput.length - dotIndex > 2) return;
       if (_currentInput.length >= 12) return;
@@ -594,9 +592,9 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
   /// 输入小数点
   void _onDot() {
     setState(() {
-      if (_showResult) {
+      if (_waitingForInput) {
         _currentInput = '';
-        _showResult = false;
+        _waitingForInput = false;
       }
       if (_currentInput.contains('.')) return;
       _currentInput += _currentInput.isEmpty ? '0.' : '.';
@@ -609,7 +607,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
       if (_currentInput.isNotEmpty) {
         _currentInput = _currentInput.substring(0, _currentInput.length - 1);
       }
-      _showResult = false;
+      _waitingForInput = false;
     });
   }
 
@@ -618,7 +616,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
     setState(() {
       _commitAndCompute();
       _pendingOp = '+';
-      _showResult = true;
+      _waitingForInput = true;
       _updateExpression('+');
     });
   }
@@ -626,15 +624,14 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
   /// 减法
   void _onMinus() {
     setState(() {
-      // 允许开头输入负号
       if (_result == 0 && _currentInput.isEmpty && _pendingOp == null) {
         _currentInput = '-';
-        _showResult = false;
+        _waitingForInput = false;
         return;
       }
       _commitAndCompute();
       _pendingOp = '-';
-      _showResult = true;
+      _waitingForInput = true;
       _updateExpression('-');
     });
   }
@@ -647,14 +644,11 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
     if (value == null) return;
 
     if (_pendingOp == null) {
-      // 第一个操作数
       _result = value;
     } else {
-      // 执行待定运算
       _result = _applyOperator(_result, value, _pendingOp!);
     }
     _currentInput = '';
-    // 精确到分
     _result = (_result * 100).roundToDouble() / 100;
   }
 
@@ -669,11 +663,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
 
   /// 更新表达式历史
   void _updateExpression(String op) {
-    if (_expression.isEmpty) {
-      _expression = '${_formatAmount(_result)} $op';
-    } else {
-      _expression = '${_formatAmount(_result)} $op';
-    }
+    _expressionHistory = '${_formatAmount(_result)} $op';
   }
 
   /// 格式化金额（最多2位小数，去除尾部零）
