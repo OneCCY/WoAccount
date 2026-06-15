@@ -337,7 +337,10 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
         DateTime txnDate = DateTime.now();
         if (txn.date != null && txn.date!.isNotEmpty) {
           try {
-            txnDate = DateTime.parse(txn.date!);
+            final parsed = DateTime.parse(txn.date!);
+            // AI 只返回日期（YYYY-MM-DD），补上当前时间
+            final now = DateTime.now();
+            txnDate = DateTime(parsed.year, parsed.month, parsed.day, now.hour, now.minute, now.second);
           } catch (_) {}
         }
 
