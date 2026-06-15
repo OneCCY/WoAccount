@@ -34,10 +34,21 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
   Category? _parentCategory; // 子分类的父分类
   bool _showSubCategories = false;
   DateTime _selectedDate = DateTime.now();
-  String _amountStr = '';
   String _note = '';
   late final CategoryRepository _catRepo;
   late final TransactionRepository _txnRepo;
+
+  // ==================== 栈式计算器状态 ====================
+  /// 表达式显示字符串，如 "100+50-30"
+  String _expression = '';
+  /// 当前正在输入的数字
+  String _currentInput = '';
+  /// 运算数栈（存储中间结果）
+  final List<double> _operandStack = [];
+  /// 运算符栈
+  final List<String> _operatorStack = [];
+  /// 最终计算结果
+  double _result = 0.0;
 
   @override
   void initState() {
@@ -431,21 +442,35 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
       child: Row(
         children: [
           Expanded(
-            child: TextField(
-              style: context.textStyles.body,
-              decoration: InputDecoration(
-                hintText: l10n.entryNoteHint,
-                hintStyle: context.textStyles.body.copyWith(color: context.colors.textHint),
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: EdgeInsets.zero,
-              ),
-              onChanged: (v) => _note = v,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 备注输入
+                TextField(
+                  style: context.textStyles.body,
+                  decoration: InputDecoration(
+                    hintText: l10n.entryNoteHint,
+                    hintStyle: context.textStyles.body.copyWith(color: context.colors.textHint),
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  onChanged: (v) => _note = v,
+                ),
+                // 表达式历史
+                if (_expressionText.isNotEmpty)
+                  Text(
+                    _expressionText,
+                    style: context.textStyles.caption.copyWith(color: context.colors.textTertiary),
+                  ),
+              ],
             ),
           ),
           const SizedBox(width: 16),
+          // 金额显示（大字）
           Text(
-            _getDisplayAmount(),
+            _displayText,
             style: context.textStyles.amountLarge.copyWith(color: amountColor),
           ),
         ],
@@ -536,146 +561,152 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
     );
   }
 
-  // ==================== 键盘操作 ====================
+  // ==================== 栈式计算器 ====================
 
-  bool get _canSubmit {
-    final result = _calculateExpression();
-    return result != null && result > 0 && _selectedCategory != null;
+  bool get _canSubmit => _result > 0 && _selectedCategory != null;
+
+  /// 获取显示文本：表达式 + 当前输入
+  String get _displayText {
+    if (_currentInput.isNotEmpty) return _currentInput;
+    if (_operandStack.isNotEmpty) return _formatAmount(_result);
+    return '0.00';
   }
 
+  /// 获取副显示文本：表达式历史
+  String get _expressionText {
+    if (_expression.isEmpty) return '';
+    return _expression;
+  }
+
+  /// 输入数字
   void _onDigit(String d) {
     setState(() {
-      final dotIndex = _amountStr.indexOf('.');
-      if (dotIndex != -1 && _amountStr.length - dotIndex > 2) return;
-      if (_amountStr.length >= 12) return;
-      _amountStr += d;
+      // 小数点后最多2位
+      final dotIndex = _currentInput.indexOf('.');
+      if (dotIndex != -1 && _currentInput.length - dotIndex > 2) return;
+      // 最大长度
+      if (_currentInput.length >= 12) return;
+      _currentInput += d;
+      _updateResult();
     });
   }
 
+  /// 输入小数点
   void _onDot() {
     setState(() {
-      if (_amountStr.contains('.')) return;
-      _amountStr += _amountStr.isEmpty ? '0.' : '.';
+      if (_currentInput.contains('.')) return;
+      _currentInput += _currentInput.isEmpty ? '0.' : '.';
     });
   }
 
+  /// 退格
   void _onDelete() {
     setState(() {
-      if (_amountStr.isNotEmpty) {
-        _amountStr = _amountStr.substring(0, _amountStr.length - 1);
+      if (_currentInput.isNotEmpty) {
+        _currentInput = _currentInput.substring(0, _currentInput.length - 1);
+        _updateResult();
+      } else if (_operatorStack.isNotEmpty) {
+        // 撤回最后一个运算符，恢复上一个操作数
+        _operatorStack.removeLast();
+        if (_operandStack.isNotEmpty) {
+          _result = _operandStack.removeLast();
+        }
+        _rebuildExpression();
       }
     });
   }
 
+  /// 加法
   void _onPlus() {
     setState(() {
-      if (_amountStr.isEmpty || _amountStr == '-') return;
-      // 先计算已有表达式
-      if (_hasOperator()) {
-        final result = _calculateExpression();
-        if (result != null) {
-          _amountStr = _formatAmount(result);
-        } else {
-          _amountStr = _stripTrailingOperator();
-        }
-      }
-      // 替换末尾运算符或追加
-      if (_amountStr.endsWith('+') || _amountStr.endsWith('-')) {
-        _amountStr = '${_amountStr.substring(0, _amountStr.length - 1)}+';
-      } else {
-        _amountStr = '$_amountStr+';
-      }
+      _commitCurrentInput();
+      _operatorStack.add('+');
+      _rebuildExpression();
     });
   }
 
+  /// 减法
   void _onMinus() {
     setState(() {
-      // 允许开头输入负号
-      if (_amountStr.isEmpty) {
-        _amountStr = '-';
+      // 如果还没输入任何数字，允许输入负号作为开头
+      if (_operandStack.isEmpty && _currentInput.isEmpty) {
+        _currentInput = '-';
         return;
       }
-      // 如果只有负号，不追加
-      if (_amountStr == '-') return;
-      // 先计算已有表达式
-      if (_hasOperator()) {
-        final result = _calculateExpression();
-        if (result != null) {
-          _amountStr = _formatAmount(result);
-        } else {
-          _amountStr = _stripTrailingOperator();
-        }
-      }
-      // 替换末尾运算符或追加
-      if (_amountStr.endsWith('+') || _amountStr.endsWith('-')) {
-        _amountStr = '${_amountStr.substring(0, _amountStr.length - 1)}-';
-      } else {
-        _amountStr = '$_amountStr-';
-      }
+      _commitCurrentInput();
+      _operatorStack.add('-');
+      _rebuildExpression();
     });
   }
 
-  /// 是否包含运算符（排除开头的负号）
-  bool _hasOperator() {
-    if (_amountStr.contains('+')) return true;
-    if (_amountStr.length > 1 && _amountStr.substring(1).contains('-')) return true;
-    return false;
+  /// 将当前输入提交到栈并计算中间结果
+  void _commitCurrentInput() {
+    if (_currentInput.isEmpty || _currentInput == '-') return;
+    final value = double.tryParse(_currentInput);
+    if (value == null) return;
+
+    if (_operandStack.isEmpty) {
+      // 第一个操作数
+      _operandStack.add(value);
+      _result = value;
+    } else {
+      // 有前一个操作数和运算符，执行计算
+      final prev = _operandStack.last;
+      final op = _operatorStack.isNotEmpty ? _operatorStack.last : '+';
+      final computed = _applyOperator(prev, value, op);
+      _operandStack.add(computed);
+      _result = computed;
+    }
+    _currentInput = '';
   }
 
-  /// 去除末尾运算符
-  String _stripTrailingOperator() {
-    if (_amountStr.endsWith('+') || _amountStr.endsWith('-')) {
-      return _amountStr.substring(0, _amountStr.length - 1);
+  /// 执行运算
+  double _applyOperator(double a, double b, String op) {
+    switch (op) {
+      case '+': return a + b;
+      case '-': return a - b;
+      default: return a + b;
     }
-    return _amountStr;
   }
 
-  /// 计算表达式结果
-  double? _calculateExpression() {
-    // 清理末尾运算符
-    var expr = _stripTrailingOperator();
-    if (expr.isEmpty || expr == '-') return null;
+  /// 实时更新结果预览（不提交到栈）
+  void _updateResult() {
+    if (_currentInput.isEmpty || _currentInput == '-') return;
+    final value = double.tryParse(_currentInput);
+    if (value == null) return;
 
-    // 尝试加法
-    final plusIdx = expr.indexOf('+');
-    if (plusIdx > 0) {
-      final a = double.tryParse(expr.substring(0, plusIdx));
-      final b = double.tryParse(expr.substring(plusIdx + 1));
-      if (a != null && b != null) return a + b;
+    if (_operandStack.isEmpty) {
+      _result = value;
+    } else {
+      final prev = _operandStack.last;
+      final op = _operatorStack.isNotEmpty ? _operatorStack.last : '+';
+      _result = _applyOperator(prev, value, op);
     }
-
-    // 尝试减法（排除开头的负号）
-    final searchStart = expr.startsWith('-') ? 1 : 0;
-    final minusIdx = expr.indexOf('-', searchStart);
-    if (minusIdx > searchStart) {
-      final a = double.tryParse(expr.substring(0, minusIdx));
-      final b = double.tryParse(expr.substring(minusIdx + 1));
-      if (a != null && b != null) return a - b;
-    }
-
-    return double.tryParse(expr);
   }
 
-  /// 格式化金额（去除尾部多余小数点）
+  /// 重建表达式字符串
+  void _rebuildExpression() {
+    _expression = '';
+    for (int i = 0; i < _operandStack.length; i++) {
+      if (i == 0) {
+        // 第一个操作数取最新计算值
+        _expression = _formatAmount(_operandStack[i]);
+      }
+      if (i < _operatorStack.length) {
+        _expression += _operatorStack[i];
+      }
+    }
+  }
+
+  /// 格式化金额（最多2位小数，去除尾部零）
   String _formatAmount(double value) {
-    if (value == value.roundToDouble() && !value.toString().contains('.')) {
-      return value.toStringAsFixed(0);
+    // 精确到分
+    final rounded = (value * 100).roundToDouble() / 100;
+    if (rounded == rounded.roundToDouble()) {
+      return rounded.toStringAsFixed(0);
     }
-    final str = value.toStringAsFixed(2);
-    return str.replaceAll(RegExp(r'\.?0+$'), '');
-  }
-
-  /// 获取显示金额（有运算符时显示计算结果）
-  String _getDisplayAmount() {
-    if (_amountStr.isEmpty) return '0.00';
-    // 如果正在输入运算符，显示当前数字部分
-    if (_amountStr.endsWith('+') || _amountStr.endsWith('-')) {
-      final partial = _amountStr.substring(0, _amountStr.length - 1);
-      return partial.isEmpty ? '0.00' : partial;
-    }
-    final result = _calculateExpression();
-    if (result == null) return '0.00';
-    return _formatAmount(result);
+    final str = rounded.toStringAsFixed(2);
+    return str.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
   }
 
   Future<void> _showDatePickerSheet() async {
@@ -689,7 +720,13 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
     if (!_canSubmit) return;
 
     final l10n = AppLocalizations.of(context)!;
-    final amount = _calculateExpression()!;
+    // 如果有未提交的输入，先提交
+    if (_currentInput.isNotEmpty && _currentInput != '-') {
+      _commitCurrentInput();
+    }
+    final amount = _result;
+    if (amount <= 0) return;
+
     final category = _selectedSubCategory ?? _selectedCategory!;
 
     try {
