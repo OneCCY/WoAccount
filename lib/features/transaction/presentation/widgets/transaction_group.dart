@@ -276,7 +276,9 @@ class _TransactionItemState extends State<_TransactionItem>
                             borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
                           ),
                           child: Center(
-                            child: Icon(icon, size: 20, color: context.colors.textPrimary),
+                            child: widget.category?.icon != null
+                                ? Text(widget.category!.icon!, style: const TextStyle(fontSize: 20))
+                                : Icon(icon, size: 20, color: context.colors.textPrimary),
                           ),
                         ),
                         const SizedBox(width: 12),
