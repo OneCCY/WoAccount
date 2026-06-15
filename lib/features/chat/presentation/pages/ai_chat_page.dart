@@ -74,9 +74,35 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
     _pipeline = ref.read(transactionPipelineProvider);
 
     _scrollController.addListener(_onScroll);
-    _loadInitialMessages().then((_) => _handleExternalInput());
+    _loadInitialMessages().then((_) {
+      _restorePendingCards();
+      _handleExternalInput();
+    });
     _loadUserProfile();
     _loadAiProviderIcon();
+  }
+
+  /// 从 provider 恢复未保存的确认卡片
+  void _restorePendingCards() {
+    final pending = ref.read(pendingConfirmCardsProvider);
+    if (pending.isNotEmpty) {
+      setState(() {
+        for (final data in pending) {
+          if (data is ConfirmData && !_items.any((i) => i.isConfirm && i.confirmData == data)) {
+            _items.add(_ChatItem.confirm(data));
+          }
+        }
+      });
+      _scrollToBottom();
+    }
+  }
+
+  /// 保存未保存的确认卡片到 provider
+  void _persistPendingCards() {
+    final pending = _items.where((i) => i.isConfirm && i.confirmData != null)
+        .map((i) => i.confirmData!)
+        .toList();
+    ref.read(pendingConfirmCardsProvider.notifier).state = pending;
   }
 
   /// 加载用户头像
@@ -376,6 +402,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
         }
         _isAiResponding = false;
       });
+      _persistPendingCards();
     } catch (e) {
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
@@ -496,6 +523,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
         )));
       });
       _scrollToBottom();
+      _persistPendingCards();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -514,6 +542,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
       final idx = _items.indexWhere((i) => i.isConfirm && i.confirmData == data);
       if (idx != -1) _items.removeAt(idx);
     });
+    _persistPendingCards();
   }
 
   void _updateConfirm(ConfirmData oldData, ConfirmData newData) {
@@ -523,6 +552,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
         _items[idx] = _ChatItem.confirm(newData);
       }
     });
+    _persistPendingCards();
   }
 
   /// 从数据库动态构建分类体系文本（用于 LLM 提示词）

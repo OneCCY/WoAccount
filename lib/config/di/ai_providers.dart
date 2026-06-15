@@ -44,3 +44,7 @@ final transactionPipelineProvider = Provider<TransactionPipeline>((ref) {
     mediaStorage: ref.watch(mediaStorageServiceProvider),
   );
 });
+
+/// AI 记账页未保存的确认卡片（跨页面切换持久化）
+/// 存储 ConfirmData 列表，页面重建时恢复
+final pendingConfirmCardsProvider = StateProvider<List<dynamic>>((ref) => []);
