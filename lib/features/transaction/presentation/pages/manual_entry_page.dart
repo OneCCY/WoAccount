@@ -38,17 +38,17 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
   late final CategoryRepository _catRepo;
   late final TransactionRepository _txnRepo;
 
-  // ==================== 栈式计算器状态 ====================
-  /// 表达式显示字符串，如 "100+50-30"
-  String _expression = '';
-  /// 当前正在输入的数字
+  // ==================== 计算器状态 ====================
+  /// 当前正在输入的数字字符串
   String _currentInput = '';
-  /// 运算数栈（存储中间结果）
-  final List<double> _operandStack = [];
-  /// 运算符栈
-  final List<String> _operatorStack = [];
-  /// 最终计算结果
+  /// 累计结果（按下运算符时更新）
   double _result = 0.0;
+  /// 待执行的运算符（null 表示还没有运算符）
+  String? _pendingOp;
+  /// 表达式历史（用于显示）
+  String _expression = '';
+  /// 按下运算符后显示结果，开始新输入时重置
+  bool _showResult = false;
 
   @override
   void initState() {
@@ -561,39 +561,43 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
     );
   }
 
-  // ==================== 栈式计算器 ====================
+  // ==================== 计算器逻辑 ====================
 
   bool get _canSubmit => _result > 0 && _selectedCategory != null;
 
-  /// 获取显示文本：表达式 + 当前输入
+  /// 显示文本：正在输入时显示输入，否则显示结果
   String get _displayText {
-    if (_currentInput.isNotEmpty) return _currentInput;
-    if (_operandStack.isNotEmpty) return _formatAmount(_result);
+    if (!_showResult && _currentInput.isNotEmpty) return _currentInput;
+    if (_result > 0) return _formatAmount(_result);
     return '0.00';
   }
 
-  /// 获取副显示文本：表达式历史
-  String get _expressionText {
-    if (_expression.isEmpty) return '';
-    return _expression;
-  }
+  /// 表达式历史文本
+  String get _expressionText => _expression;
 
   /// 输入数字
   void _onDigit(String d) {
     setState(() {
+      // 如果刚按了运算符，开始新输入
+      if (_showResult) {
+        _currentInput = '';
+        _showResult = false;
+      }
       // 小数点后最多2位
       final dotIndex = _currentInput.indexOf('.');
       if (dotIndex != -1 && _currentInput.length - dotIndex > 2) return;
-      // 最大长度
       if (_currentInput.length >= 12) return;
       _currentInput += d;
-      _updateResult();
     });
   }
 
   /// 输入小数点
   void _onDot() {
     setState(() {
+      if (_showResult) {
+        _currentInput = '';
+        _showResult = false;
+      }
       if (_currentInput.contains('.')) return;
       _currentInput += _currentInput.isEmpty ? '0.' : '.';
     });
@@ -604,60 +608,54 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
     setState(() {
       if (_currentInput.isNotEmpty) {
         _currentInput = _currentInput.substring(0, _currentInput.length - 1);
-        _updateResult();
-      } else if (_operatorStack.isNotEmpty) {
-        // 撤回最后一个运算符，恢复上一个操作数
-        _operatorStack.removeLast();
-        if (_operandStack.isNotEmpty) {
-          _result = _operandStack.removeLast();
-        }
-        _rebuildExpression();
       }
+      _showResult = false;
     });
   }
 
   /// 加法
   void _onPlus() {
     setState(() {
-      _commitCurrentInput();
-      _operatorStack.add('+');
-      _rebuildExpression();
+      _commitAndCompute();
+      _pendingOp = '+';
+      _showResult = true;
+      _updateExpression('+');
     });
   }
 
   /// 减法
   void _onMinus() {
     setState(() {
-      // 如果还没输入任何数字，允许输入负号作为开头
-      if (_operandStack.isEmpty && _currentInput.isEmpty) {
+      // 允许开头输入负号
+      if (_result == 0 && _currentInput.isEmpty && _pendingOp == null) {
         _currentInput = '-';
+        _showResult = false;
         return;
       }
-      _commitCurrentInput();
-      _operatorStack.add('-');
-      _rebuildExpression();
+      _commitAndCompute();
+      _pendingOp = '-';
+      _showResult = true;
+      _updateExpression('-');
     });
   }
 
-  /// 将当前输入提交到栈并计算中间结果
-  void _commitCurrentInput() {
-    if (_currentInput.isEmpty || _currentInput == '-') return;
-    final value = double.tryParse(_currentInput);
+  /// 提交当前输入并执行待定运算
+  void _commitAndCompute() {
+    final input = _currentInput;
+    if (input.isEmpty || input == '-') return;
+    final value = double.tryParse(input);
     if (value == null) return;
 
-    if (_operandStack.isEmpty) {
+    if (_pendingOp == null) {
       // 第一个操作数
-      _operandStack.add(value);
       _result = value;
     } else {
-      // 有前一个操作数和运算符，执行计算
-      final prev = _operandStack.last;
-      final op = _operatorStack.isNotEmpty ? _operatorStack.last : '+';
-      final computed = _applyOperator(prev, value, op);
-      _operandStack.add(computed);
-      _result = computed;
+      // 执行待定运算
+      _result = _applyOperator(_result, value, _pendingOp!);
     }
     _currentInput = '';
+    // 精确到分
+    _result = (_result * 100).roundToDouble() / 100;
   }
 
   /// 执行运算
@@ -665,42 +663,21 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
     switch (op) {
       case '+': return a + b;
       case '-': return a - b;
-      default: return a + b;
+      default: return a;
     }
   }
 
-  /// 实时更新结果预览（不提交到栈）
-  void _updateResult() {
-    if (_currentInput.isEmpty || _currentInput == '-') return;
-    final value = double.tryParse(_currentInput);
-    if (value == null) return;
-
-    if (_operandStack.isEmpty) {
-      _result = value;
+  /// 更新表达式历史
+  void _updateExpression(String op) {
+    if (_expression.isEmpty) {
+      _expression = '${_formatAmount(_result)} $op';
     } else {
-      final prev = _operandStack.last;
-      final op = _operatorStack.isNotEmpty ? _operatorStack.last : '+';
-      _result = _applyOperator(prev, value, op);
-    }
-  }
-
-  /// 重建表达式字符串
-  void _rebuildExpression() {
-    _expression = '';
-    for (int i = 0; i < _operandStack.length; i++) {
-      if (i == 0) {
-        // 第一个操作数取最新计算值
-        _expression = _formatAmount(_operandStack[i]);
-      }
-      if (i < _operatorStack.length) {
-        _expression += _operatorStack[i];
-      }
+      _expression = '${_formatAmount(_result)} $op';
     }
   }
 
   /// 格式化金额（最多2位小数，去除尾部零）
   String _formatAmount(double value) {
-    // 精确到分
     final rounded = (value * 100).roundToDouble() / 100;
     if (rounded == rounded.roundToDouble()) {
       return rounded.toStringAsFixed(0);
@@ -719,14 +696,14 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
   Future<void> _onSubmit() async {
     if (!_canSubmit) return;
 
-    final l10n = AppLocalizations.of(context)!;
-    // 如果有未提交的输入，先提交
+    // 如果有未提交的输入，先提交计算
     if (_currentInput.isNotEmpty && _currentInput != '-') {
-      _commitCurrentInput();
+      _commitAndCompute();
     }
     final amount = _result;
     if (amount <= 0) return;
 
+    final l10n = AppLocalizations.of(context)!;
     final category = _selectedSubCategory ?? _selectedCategory!;
 
     try {
