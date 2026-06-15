@@ -344,10 +344,11 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
           category: matchedCategory.name,
           categoryId: matchedCategory.id,
           subcategory: matchedSub?.name ?? (mounted ? AppLocalizations.of(context)!.chatPageNoSubcategory : 'N/A'),
-          subcategoryId: matchedSub?.id,
+          parentCategoryId: matchedSub?.id,
           description: txn.description.isNotEmpty
               ? txn.description
               : result.normalizedText.replaceAll(RegExp(r'\d+\.?\d*'), '').trim(),
+          note: txn.note,
           date: txnDate,
           confidence: txn.confidence,
           mediaFilePath: result.mediaFilePath,
@@ -452,9 +453,11 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
     try {
       await _txnRepo.insert(TransactionsCompanion.insert(
         amount: data.amount,
+        type: Value(data.type),
         description: data.description,
+        note: Value(data.note),
         categoryId: data.categoryId,
-        subcategoryId: Value(data.subcategoryId),
+        parentCategoryId: Value(data.parentCategoryId),
         transactionDate: data.date,
         originalInput: Value(data.originalInput),
         aiSource: Value(data.confidence > 0.85 ? 'llm' : 'rule'),
@@ -844,8 +847,9 @@ class ConfirmData {
   String category;
   int categoryId;
   String? subcategory;
-  int? subcategoryId;
+  int? parentCategoryId;
   String description;
+  String? note;
   DateTime date;
   final double confidence;
   final String? mediaFilePath;
@@ -858,8 +862,9 @@ class ConfirmData {
     required this.category,
     required this.categoryId,
     this.subcategory,
-    this.subcategoryId,
+    this.parentCategoryId,
     required this.description,
+    this.note,
     required this.date,
     required this.confidence,
     this.mediaFilePath,
@@ -872,8 +877,9 @@ class ConfirmData {
     String? category,
     int? categoryId,
     String? subcategory,
-    int? subcategoryId,
+    int? parentCategoryId,
     String? description,
+    String? note,
     DateTime? date,
   }) {
     return ConfirmData(
@@ -883,8 +889,9 @@ class ConfirmData {
       category: category ?? this.category,
       categoryId: categoryId ?? this.categoryId,
       subcategory: subcategory ?? this.subcategory,
-      subcategoryId: subcategoryId ?? this.subcategoryId,
+      parentCategoryId: parentCategoryId ?? this.parentCategoryId,
       description: description ?? this.description,
+      note: note ?? this.note,
       date: date ?? this.date,
       confidence: confidence,
       mediaFilePath: mediaFilePath,

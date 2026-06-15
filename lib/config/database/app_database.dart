@@ -12,10 +12,13 @@ part 'app_database.g.dart';
 class Transactions extends Table {
   IntColumn get id => integer().autoIncrement()();
   RealColumn get amount => real()();
+  TextColumn get type => text().withLength(max: 10).withDefault(const Constant('expense'))(); // expense/income/other
   TextColumn get description => text().withLength(min: 1, max: 500)();
+  TextColumn get note => text().withLength(max: 500).nullable()(); // 补充备注（区别于核心描述）
   IntColumn get categoryId => integer().references(Categories, #id)();
-  IntColumn get subcategoryId => integer().nullable().references(Categories, #id)();
+  IntColumn get parentCategoryId => integer().nullable().references(Categories, #id)(); // 父分类ID（原subcategoryId）
   DateTimeColumn get transactionDate => dateTime()();
+  TextColumn get payMethod => text().withLength(max: 20).nullable()(); // 支付方式: cash/wechat/alipay/card/other
   TextColumn get originalInput => text().nullable()();
   TextColumn get mediaFilePath => text().nullable()();
   TextColumn get mediaType => text().withLength(max: 10).nullable()();
@@ -28,6 +31,34 @@ class Transactions extends Table {
 
   /// 所属账本
   IntColumn get accountBookId => integer().references(AccountBooks, #id)();
+}
+
+/// 交易媒体关联表（支持多张小票/发票）
+@DataClassName('TransactionMedium')
+class TransactionMedia extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get transactionId => integer().references(Transactions, #id)();
+  TextColumn get filePath => text()();
+  TextColumn get mediaType => text().withLength(max: 10)(); // image/audio
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+/// 标签表
+@DataClassName('Tag')
+class Tags extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text().withLength(min: 1, max: 30)();
+  TextColumn get color => text().withLength(max: 9).withDefault(const Constant('#607D8B'))();
+  IntColumn get accountBookId => integer().references(AccountBooks, #id)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+/// 交易-标签关联表
+@DataClassName('TransactionTag')
+class TransactionTags extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get transactionId => integer().references(Transactions, #id)();
+  IntColumn get tagId => integer().references(Tags, #id)();
 }
 
 /// 分类表
@@ -161,6 +192,9 @@ class AcCoinTransactions extends Table {
 @DriftDatabase(tables: [
   AccountBooks,
   Transactions,
+  TransactionMedia,
+  Tags,
+  TransactionTags,
   Categories,
   Budgets,
   AiTrainingRecords,
@@ -177,7 +211,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -206,12 +240,10 @@ class AppDatabase extends _$AppDatabase {
       if (from < 4) {
         await m.createTable(acCoinBalances);
         await m.createTable(acCoinTransactions);
-        // 为默认用户初始化 AC 币余额（新用户赠送 100 AC 币）
         await into(acCoinBalances).insert(AcCoinBalancesCompanion.insert(
           userId: const Value(1),
           balance: const Value(100),
         ));
-        // 记录初始赠送 AC 币明细
         await into(acCoinTransactions).insert(AcCoinTransactionsCompanion.insert(
           userId: const Value(1),
           amount: 100,
@@ -220,37 +252,29 @@ class AppDatabase extends _$AppDatabase {
         ));
       }
       if (from < 5) {
-        // 创建账本表
         await m.createTable(accountBooks);
-        // 插入默认账本
         await into(accountBooks).insert(AccountBooksCompanion.insert(
           name: '默认账本',
           type: 'personal',
           isDefault: const Value(true),
         ));
-        // 给现有表加 accountBookId 列，默认关联到默认账本 (id=1)
         await m.addColumn(transactions, transactions.accountBookId);
         await m.addColumn(budgets, budgets.accountBookId);
         await m.addColumn(aiTrainingRecords, aiTrainingRecords.accountBookId);
         await m.addColumn(conversationMessages, conversationMessages.accountBookId);
-        // 回填已有行的 accountBookId（addColumn 对已有行填 NULL，需手动更新）
         await customStatement('UPDATE transactions SET account_book_id = 1 WHERE account_book_id IS NULL');
         await customStatement('UPDATE budgets SET account_book_id = 1 WHERE account_book_id IS NULL');
         await customStatement('UPDATE ai_training_records SET account_book_id = 1 WHERE account_book_id IS NULL');
         await customStatement('UPDATE conversation_messages SET account_book_id = 1 WHERE account_book_id IS NULL');
       }
       if (from < 6) {
-        // 给交易表添加媒体字段
         await m.addColumn(transactions, transactions.mediaFilePath);
         await m.addColumn(transactions, transactions.mediaType);
-        // 给对话消息表添加媒体字段
         await m.addColumn(conversationMessages, conversationMessages.mediaType);
         await m.addColumn(conversationMessages, conversationMessages.mediaFilePath);
       }
       if (from < 7) {
-        // 给分类表添加 l10nKey 列（用于国际化显示）
         await m.addColumn(categories, categories.l10nKey);
-        // 回填系统分类的 l10nKey
         final l10nMap = {
           '餐饮美食': 'catExpenseFood', '交通出行': 'catExpenseTransport',
           '居住': 'catExpenseHousing', '服饰美容': 'catExpenseClothing',
@@ -274,12 +298,34 @@ class AppDatabase extends _$AppDatabase {
         }
       }
       if (from < 8) {
-        // Migrate hardcoded Chinese gender values to English keys
         await customStatement("UPDATE user_profiles SET gender = 'male' WHERE gender = '男'");
         await customStatement("UPDATE user_profiles SET gender = 'female' WHERE gender = '女'");
         await customStatement("UPDATE user_profiles SET gender = 'secret' WHERE gender = '保密'");
-        // Migrate hardcoded Chinese nickname to empty string (will be resolved at display time)
         await customStatement("UPDATE user_profiles SET nickname = '' WHERE nickname = '用户'");
+      }
+      if (from < 9) {
+        // 新增字段: type, note, payMethod
+        await m.addColumn(transactions, transactions.type);
+        await m.addColumn(transactions, transactions.note);
+        await m.addColumn(transactions, transactions.payMethod);
+        // 回填 type：根据分类的 isExpense 字段推断
+        await customStatement(
+          "UPDATE transactions SET type = CASE "
+          "WHEN (SELECT is_expense FROM categories WHERE id = transactions.category_id) = 1 THEN 'expense' "
+          "WHEN (SELECT l10n_key FROM categories WHERE id = transactions.category_id) IN "
+          "('catOtherTransfer','catOtherRepayment','catOtherSocial') THEN 'other' "
+          "ELSE 'income' END",
+        );
+        // 重命名 subcategoryId → parentCategoryId
+        // SQLite 不支持 RENAME COLUMN（< 3.25.0），用新建列+复制数据的方式
+        await m.addColumn(transactions, transactions.parentCategoryId);
+        await customStatement(
+          'UPDATE transactions SET parent_category_id = subcategory_id WHERE subcategory_id IS NOT NULL',
+        );
+        // 创建新表
+        await m.createTable(transactionMedia);
+        await m.createTable(tags);
+        await m.createTable(transactionTags);
       }
     },
   );

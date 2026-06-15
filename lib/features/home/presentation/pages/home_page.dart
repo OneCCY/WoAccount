@@ -154,6 +154,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             await _saveTransaction(
               input: result.normalizedText,
               amount: txn.amount,
+              type: txn.type,
               categoryId: matchedCategory.id,
               description: txn.description.isNotEmpty
                   ? txn.description
@@ -228,6 +229,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           await _saveTransaction(
             input: input,
             amount: result.amount,
+            type: result.type,
             categoryId: matchedCategory.id,
             description: result.description.isNotEmpty
                 ? result.description
@@ -249,6 +251,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   Future<void> _saveTransaction({
     required String input,
     required double amount,
+    required String type,
     required int categoryId,
     required String description,
     required DateTime date,
@@ -258,6 +261,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     try {
       await _transactionRepo.insert(TransactionsCompanion.insert(
         amount: amount,
+        type: Value(type),
         description: description,
         categoryId: categoryId,
         transactionDate: date,

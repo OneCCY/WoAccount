@@ -65,7 +65,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
 
     // 检查是否有关联交易
     final txCount = await (_db.select(_db.transactions)
-          ..where((t) => t.categoryId.equals(id) | t.subcategoryId.equals(id))
+          ..where((t) => t.categoryId.equals(id) | t.parentCategoryId.equals(id))
           ..limit(1))
         .get();
     if (txCount.isNotEmpty) return false;
@@ -93,7 +93,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
     final children = await getChildren(id);
     for (final child in children) {
       final txCount = await (_db.select(_db.transactions)
-            ..where((t) => t.categoryId.equals(child.id) | t.subcategoryId.equals(child.id))
+            ..where((t) => t.categoryId.equals(child.id) | t.parentCategoryId.equals(child.id))
             ..limit(1))
           .get();
       if (txCount.isNotEmpty) return false;
@@ -107,7 +107,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
 
     // 检查父分类本身是否有关联数据
     final parentTxCount = await (_db.select(_db.transactions)
-          ..where((t) => t.categoryId.equals(id) | t.subcategoryId.equals(id))
+          ..where((t) => t.categoryId.equals(id) | t.parentCategoryId.equals(id))
           ..limit(1))
         .get();
     if (parentTxCount.isNotEmpty) return false;

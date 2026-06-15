@@ -102,7 +102,7 @@ class TransactionGroup extends StatelessWidget {
         ...transactions.map((t) => _TransactionItem(
               transaction: t,
               category: categoryMap[t.categoryId],
-              subcategory: t.subcategoryId != null ? categoryMap[t.subcategoryId] : null,
+              subcategory: t.parentCategoryId != null ? categoryMap[t.parentCategoryId] : null,
               onDelete: () => onDelete(t.id),
               onTap: onTap != null ? () => onTap!(t) : null,
             )),

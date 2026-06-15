@@ -699,9 +699,11 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
     try {
       await _txnRepo.insert(TransactionsCompanion.insert(
         amount: amount,
-        description: _note.isEmpty ? category.name : _note,
+        type: Value(_entryType == EntryType.expense ? 'expense' : _entryType == EntryType.income ? 'income' : 'other'),
+        description: category.name,
+        note: Value(_note.isNotEmpty ? _note : null),
         categoryId: category.id,
-        subcategoryId: _selectedSubCategory != null
+        parentCategoryId: _selectedSubCategory != null
             ? Value(_selectedCategory!.id)
             : const Value.absent(),
         transactionDate: _selectedDate,

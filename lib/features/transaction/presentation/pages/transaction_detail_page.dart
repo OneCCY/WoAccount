@@ -41,8 +41,10 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
 
   // 编辑态（本地副本，保存时才写库）
   late double _amount;
+  late String _type;
+  String? _note;
   late int _categoryId;
-  late int? _subcategoryId;
+  late int? _parentCategoryId;
   late DateTime _transactionDate;
   late String _description;
   String? _originalInput;
@@ -75,8 +77,10 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
         _category = cat;
         _parentCategory = parent;
         _amount = txn.amount;
+        _type = txn.type;
+        _note = txn.note;
         _categoryId = txn.categoryId;
-        _subcategoryId = txn.subcategoryId;
+        _parentCategoryId = txn.parentCategoryId;
         _transactionDate = txn.transactionDate;
         _description = txn.description;
         _originalInput = txn.originalInput;
@@ -95,9 +99,11 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
     final companion = TransactionsCompanion(
       id: Value(txn.id),
       amount: Value(_amount),
+      type: Value(_type),
       description: Value(_description),
+      note: Value(_note),
       categoryId: Value(_categoryId),
-      subcategoryId: Value(_subcategoryId),
+      parentCategoryId: Value(_parentCategoryId),
       transactionDate: Value(_transactionDate),
       originalInput: Value(_originalInput),
       aiConfidence: Value(txn.aiConfidence),
@@ -169,7 +175,7 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
     if (picked != null && mounted) {
       setState(() {
         _categoryId = picked.id;
-        _subcategoryId = picked.parentId != null ? picked.id : null;
+        _parentCategoryId = picked.parentId != null ? picked.id : null;
         _isDirty = true;
       });
       await _reloadCategory();
@@ -202,10 +208,10 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
   }
 
   Future<void> _editNote() async {
-    final result = await NoteEditSheet.show(context, initialNote: _description);
-    if (result != null && mounted && result != _description) {
+    final result = await NoteEditSheet.show(context, initialNote: _note ?? '');
+    if (result != null && mounted) {
       setState(() {
-        _description = result;
+        _note = result.isNotEmpty ? result : null;
         _isDirty = true;
       });
     }
@@ -423,8 +429,8 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
             icon: Icons.notes,
             iconColor: context.colors.textSecondary,
             label: l10n.txnDetailNote,
-            value: _description.isEmpty ? l10n.txnDetailAddNoteHint : _description,
-            valueColor: _description.isEmpty ? context.colors.textHint : null,
+            value: (_note == null || _note!.isEmpty) ? l10n.txnDetailAddNoteHint : _note!,
+            valueColor: (_note == null || _note!.isEmpty) ? context.colors.textHint : null,
             onTap: _editNote,
             showDivider: false,
           ),

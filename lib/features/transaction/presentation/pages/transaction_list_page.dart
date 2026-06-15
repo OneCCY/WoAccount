@@ -67,14 +67,26 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
     final catRepo = ref.read(categoryRepositoryProvider);
 
     return Scaffold(
-      body: Column(
-        children: [
-          SizedBox(height: MediaQuery.of(context).padding.top),
-          _buildTopBar(),
-          _buildSearchBar(l10n),
-          _buildStatsBar(repo, l10n),
-          Expanded(child: _buildContent(repo, catRepo, l10n)),
-        ],
+      body: GestureDetector(
+        onVerticalDragEnd: (details) {
+          if (details.primaryVelocity == null) return;
+          if (details.primaryVelocity! > 300) {
+            // 下滑 - 上一期
+            _goPrevious();
+          } else if (details.primaryVelocity! < -300) {
+            // 上滑 - 下一期
+            _goNext();
+          }
+        },
+        child: Column(
+          children: [
+            SizedBox(height: MediaQuery.of(context).padding.top),
+            _buildTopBar(),
+            _buildSearchBar(l10n),
+            _buildStatsBar(repo, l10n),
+            Expanded(child: _buildContent(repo, catRepo, l10n)),
+          ],
+        ),
       ),
     );
   }
@@ -152,6 +164,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
   }
 
   void _goNext() {
+    if (!_canGoNext()) return;
     setState(() {
       switch (_currentView) {
         case ViewType.day:
@@ -163,6 +176,22 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
           _currentDate = DateTime(_currentDate.year, _currentDate.month + 1, 1);
       }
     });
+  }
+
+  /// 是否可以往前导航（不超过当前日期）
+  bool _canGoNext() {
+    final now = DateTime.now();
+    switch (_currentView) {
+      case ViewType.day:
+        return _currentDate.isBefore(DateTime(now.year, now.month, now.day));
+      case ViewType.week:
+        final currentWeekStart = now.subtract(Duration(days: now.weekday - 1));
+        final thisWeekStart = DateTime(currentWeekStart.year, currentWeekStart.month, currentWeekStart.day);
+        final viewWeekStart = _currentDate.subtract(Duration(days: _currentDate.weekday - 1));
+        return viewWeekStart.isBefore(thisWeekStart);
+      case ViewType.month:
+        return _currentDate.isBefore(DateTime(now.year, now.month, 1));
+    }
   }
 
   String _getPeriodLabel() {
@@ -742,26 +771,10 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
     );
   }
 
-  // ==================== 月视图（支持左右滑动切换月份） ====================
+  // ==================== 月视图 ====================
 
   Widget _buildMonthView(TransactionRepository repo, CategoryRepository catRepo, AppLocalizations l10n) {
-    return GestureDetector(
-      onHorizontalDragEnd: (details) {
-        if (details.primaryVelocity == null) return;
-        if (details.primaryVelocity! > 300) {
-          // 右滑 - 上个月
-          setState(() {
-            _currentDate = DateTime(_currentDate.year, _currentDate.month - 1, 1);
-          });
-        } else if (details.primaryVelocity! < -300) {
-          // 左滑 - 下个月
-          setState(() {
-            _currentDate = DateTime(_currentDate.year, _currentDate.month + 1, 1);
-          });
-        }
-      },
-      child: _buildMonthContent(repo, catRepo),
-    );
+    return _buildMonthContent(repo, catRepo);
   }
 
   Widget _buildMonthContent(TransactionRepository repo, CategoryRepository catRepo) {
