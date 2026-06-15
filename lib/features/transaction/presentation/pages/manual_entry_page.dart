@@ -31,10 +31,11 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
   EntryType _entryType = EntryType.expense;
   Category? _selectedCategory;
   Category? _selectedSubCategory;
-  Category? _parentCategory; // 子分类的父分类
+  Category? _parentCategory;
   bool _showSubCategories = false;
   DateTime _selectedDate = DateTime.now();
   String _note = '';
+  String? _payMethod;
   late final CategoryRepository _catRepo;
   late final TransactionRepository _txnRepo;
 
@@ -73,6 +74,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
                 : _buildCategoryGrid(),
           ),
           _buildSelectedCategoryBar(l10n),
+          _buildPayMethodRow(l10n),
           _buildAmountNoteRow(l10n),
           _buildNumpad(l10n),
         ],
@@ -427,6 +429,53 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
     );
   }
 
+  // ==================== 支付方式选择 ====================
+
+  Widget _buildPayMethodRow(AppLocalizations l10n) {
+    final methods = [
+      (null, Icons.payment, l10n.payMethodDefault),
+      ('cash', Icons.payments_outlined, l10n.payMethodCash),
+      ('wechat', Icons.chat_bubble, l10n.payMethodWechat),
+      ('alipay', Icons.account_balance_wallet, l10n.payMethodAlipay),
+      ('card', Icons.credit_card, l10n.payMethodCard),
+    ];
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 6),
+      color: context.colors.surface,
+      child: Row(
+        children: methods.map((m) {
+          final isSelected = _payMethod == m.$1;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: GestureDetector(
+              onTap: () => setState(() => _payMethod = m.$1),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isSelected ? context.colors.primarySurface : context.colors.surfaceSecondary,
+                  borderRadius: BorderRadius.circular(12),
+                  border: isSelected ? Border.all(color: context.colors.primary, width: 1) : null,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(m.$2, size: 14, color: isSelected ? context.colors.primary : context.colors.textTertiary),
+                    const SizedBox(width: 4),
+                    Text(m.$3, style: context.textStyles.caption.copyWith(
+                      color: isSelected ? context.colors.primary : context.colors.textSecondary,
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    )),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
   // ==================== 金额 + 备注行 ====================
 
   Widget _buildAmountNoteRow(AppLocalizations l10n) {
@@ -707,6 +756,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
             ? Value(_selectedCategory!.id)
             : const Value.absent(),
         transactionDate: _selectedDate,
+        payMethod: Value(_payMethod),
         originalInput: Value(_note),
         aiSource: const Value('manual'),
         accountBookId: ref.read(currentBookProvider),

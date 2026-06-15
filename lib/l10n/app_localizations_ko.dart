@@ -362,6 +362,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get txnDetailNote => '메모';
 
   @override
+  String get txnDetailPayMethod => '결제 수단';
+
+  @override
   String get txnDetailAddNoteHint => '탭하여 메모 추가';
 
   @override
@@ -410,6 +413,21 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get entryNoSubCategory => '하위 카테고리 없음';
+
+  @override
+  String get payMethodDefault => '기본';
+
+  @override
+  String get payMethodCash => '현금';
+
+  @override
+  String get payMethodWechat => 'WeChat';
+
+  @override
+  String get payMethodAlipay => 'Alipay';
+
+  @override
+  String get payMethodCard => '카드';
 
   @override
   String get entryNumpadToday => '오늘';

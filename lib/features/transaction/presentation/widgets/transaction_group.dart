@@ -219,9 +219,6 @@ class _TransactionItemState extends State<_TransactionItem>
     final amountColor = isExpense ? context.colors.expense : context.colors.income;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    // 二级分类
-    final subName = widget.subcategory != null ? getCategoryDisplayName(widget.subcategory!, l10n) : l10n.txnGroupNoSubcategory;
-
     return GestureDetector(
       onHorizontalDragStart: _handleDragStart,
       onHorizontalDragUpdate: _handleDragUpdate,
@@ -283,24 +280,41 @@ class _TransactionItemState extends State<_TransactionItem>
                           ),
                         ),
                         const SizedBox(width: 12),
-                        // 信息（分类 + 二级分类 + 时间）
+                        // 信息（分类 + 备注 + 时间）
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                widget.transaction.description,
-                                style: context.textStyles.body,
+                                widget.transaction.note?.isNotEmpty == true
+                                    ? widget.transaction.note!
+                                    : widget.transaction.description,
+                                style: context.textStyles.body.copyWith(
+                                  fontWeight: widget.transaction.note?.isNotEmpty == true
+                                      ? FontWeight.w500
+                                      : FontWeight.w400,
+                                ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 2),
-                              Text(
-                                '${DateFormat('HH:mm:ss').format(widget.transaction.transactionDate)} · ${categoryName ?? l10n.txnGroupUncategorized} · $subName',
-                                style: context.textStyles.caption,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                              Row(
+                                children: [
+                                  // 支付方式图标
+                                  if (widget.transaction.payMethod != null) ...[
+                                    Icon(_getPayMethodIcon(widget.transaction.payMethod), size: 11, color: context.colors.textTertiary),
+                                    const SizedBox(width: 3),
+                                  ],
+                                  Expanded(
+                                    child: Text(
+                                      '${DateFormat('HH:mm').format(widget.transaction.transactionDate)} · ${categoryName ?? l10n.txnGroupUncategorized}',
+                                      style: context.textStyles.caption,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
@@ -342,6 +356,16 @@ class _TransactionItemState extends State<_TransactionItem>
         return (Icons.people, context.colors.categorySocialBg);
       default:
         return (Icons.more_horiz, context.colors.categoryOtherBg);
+    }
+  }
+
+  IconData _getPayMethodIcon(String? method) {
+    switch (method) {
+      case 'wechat': return Icons.chat_bubble;
+      case 'alipay': return Icons.account_balance_wallet;
+      case 'card': return Icons.credit_card;
+      case 'cash': return Icons.payments_outlined;
+      default: return Icons.payment;
     }
   }
 }

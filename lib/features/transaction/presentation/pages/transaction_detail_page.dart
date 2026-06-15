@@ -43,6 +43,7 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
   late double _amount;
   late String _type;
   String? _note;
+  String? _payMethod;
   late int _categoryId;
   late int? _parentCategoryId;
   late DateTime _transactionDate;
@@ -79,6 +80,7 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
         _amount = txn.amount;
         _type = txn.type;
         _note = txn.note;
+        _payMethod = txn.payMethod;
         _categoryId = txn.categoryId;
         _parentCategoryId = txn.parentCategoryId;
         _transactionDate = txn.transactionDate;
@@ -102,6 +104,7 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
       type: Value(_type),
       description: Value(_description),
       note: Value(_note),
+      payMethod: Value(_payMethod),
       categoryId: Value(_categoryId),
       parentCategoryId: Value(_parentCategoryId),
       transactionDate: Value(_transactionDate),
@@ -212,6 +215,74 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
     if (result != null && mounted) {
       setState(() {
         _note = result.isNotEmpty ? result : null;
+        _isDirty = true;
+      });
+    }
+  }
+
+  // ==================== 支付方式 ====================
+
+  IconData _getPayMethodIcon(String? method) {
+    switch (method) {
+      case 'wechat': return Icons.chat_bubble;
+      case 'alipay': return Icons.account_balance_wallet;
+      case 'card': return Icons.credit_card;
+      case 'cash': return Icons.payments_outlined;
+      default: return Icons.payment;
+    }
+  }
+
+  String _getPayMethodLabel(String? method, AppLocalizations l10n) {
+    switch (method) {
+      case 'wechat': return l10n.payMethodWechat;
+      case 'alipay': return l10n.payMethodAlipay;
+      case 'card': return l10n.payMethodCard;
+      case 'cash': return l10n.payMethodCash;
+      default: return l10n.payMethodDefault;
+    }
+  }
+
+  Future<void> _editPayMethod() async {
+    final l10n = AppLocalizations.of(context)!;
+    final methods = <(String?, String)>[
+      (null, l10n.payMethodDefault),
+      ('cash', l10n.payMethodCash),
+      ('wechat', l10n.payMethodWechat),
+      ('alipay', l10n.payMethodAlipay),
+      ('card', l10n.payMethodCard),
+    ];
+    final result = await showModalBottomSheet<String?>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: context.colors.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(width: 36, height: 4, margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(color: context.colors.textTertiary.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2))),
+              ...methods.map((m) => ListTile(
+                leading: Icon(m.$1 == null ? Icons.payment : _getPayMethodIcon(m.$1),
+                  color: _payMethod == m.$1 ? context.colors.primary : context.colors.textSecondary),
+                title: Text(m.$2, style: TextStyle(
+                  fontWeight: _payMethod == m.$1 ? FontWeight.w600 : FontWeight.w400,
+                  color: _payMethod == m.$1 ? context.colors.primary : null,
+                )),
+                onTap: () => Navigator.pop(ctx, m.$1),
+              )),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (mounted && result != _payMethod) {
+      setState(() {
+        _payMethod = result;
         _isDirty = true;
       });
     }
@@ -449,6 +520,13 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
             value: (_note == null || _note!.isEmpty) ? l10n.txnDetailAddNoteHint : _note!,
             valueColor: (_note == null || _note!.isEmpty) ? context.colors.textHint : null,
             onTap: _editNote,
+          ),
+          _buildFormRow(
+            icon: _getPayMethodIcon(_payMethod),
+            iconColor: context.colors.textSecondary,
+            label: l10n.txnDetailPayMethod,
+            value: _getPayMethodLabel(_payMethod, l10n),
+            onTap: _editPayMethod,
             showDivider: false,
           ),
         ],

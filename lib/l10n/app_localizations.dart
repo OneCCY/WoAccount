@@ -744,6 +744,12 @@ abstract class AppLocalizations {
   /// **'备注'**
   String get txnDetailNote;
 
+  /// No description provided for @txnDetailPayMethod.
+  ///
+  /// In zh, this message translates to:
+  /// **'支付方式'**
+  String get txnDetailPayMethod;
+
   /// No description provided for @txnDetailAddNoteHint.
   ///
   /// In zh, this message translates to:
@@ -839,6 +845,36 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'暂无子分类'**
   String get entryNoSubCategory;
+
+  /// No description provided for @payMethodDefault.
+  ///
+  /// In zh, this message translates to:
+  /// **'默认'**
+  String get payMethodDefault;
+
+  /// No description provided for @payMethodCash.
+  ///
+  /// In zh, this message translates to:
+  /// **'现金'**
+  String get payMethodCash;
+
+  /// No description provided for @payMethodWechat.
+  ///
+  /// In zh, this message translates to:
+  /// **'微信'**
+  String get payMethodWechat;
+
+  /// No description provided for @payMethodAlipay.
+  ///
+  /// In zh, this message translates to:
+  /// **'支付宝'**
+  String get payMethodAlipay;
+
+  /// No description provided for @payMethodCard.
+  ///
+  /// In zh, this message translates to:
+  /// **'银行卡'**
+  String get payMethodCard;
 
   /// No description provided for @entryNumpadToday.
   ///

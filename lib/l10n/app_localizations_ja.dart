@@ -360,6 +360,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get txnDetailNote => 'メモ';
 
   @override
+  String get txnDetailPayMethod => '支払方法';
+
+  @override
   String get txnDetailAddNoteHint => 'タップしてメモを追加';
 
   @override
@@ -408,6 +411,21 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get entryNoSubCategory => 'サブカテゴリなし';
+
+  @override
+  String get payMethodDefault => 'デフォルト';
+
+  @override
+  String get payMethodCash => '現金';
+
+  @override
+  String get payMethodWechat => 'WeChat';
+
+  @override
+  String get payMethodAlipay => 'Alipay';
+
+  @override
+  String get payMethodCard => 'カード';
 
   @override
   String get entryNumpadToday => '今日';

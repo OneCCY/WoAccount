@@ -360,6 +360,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get txnDetailNote => '备注';
 
   @override
+  String get txnDetailPayMethod => '支付方式';
+
+  @override
   String get txnDetailAddNoteHint => '点击添加备注';
 
   @override
@@ -408,6 +411,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get entryNoSubCategory => '暂无子分类';
+
+  @override
+  String get payMethodDefault => '默认';
+
+  @override
+  String get payMethodCash => '现金';
+
+  @override
+  String get payMethodWechat => '微信';
+
+  @override
+  String get payMethodAlipay => '支付宝';
+
+  @override
+  String get payMethodCard => '银行卡';
 
   @override
   String get entryNumpadToday => '今天';
@@ -2644,6 +2662,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get txnDetailNote => '備註';
 
   @override
+  String get txnDetailPayMethod => '支付方式';
+
+  @override
   String get txnDetailAddNoteHint => '點擊新增備註';
 
   @override
@@ -2692,6 +2713,21 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get entryNoSubCategory => '暫無子分類';
+
+  @override
+  String get payMethodDefault => '預設';
+
+  @override
+  String get payMethodCash => '現金';
+
+  @override
+  String get payMethodWechat => '微信';
+
+  @override
+  String get payMethodAlipay => '支付寶';
+
+  @override
+  String get payMethodCard => '銀行卡';
 
   @override
   String get entryNumpadToday => '今天';

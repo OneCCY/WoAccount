@@ -370,6 +370,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get txnDetailNote => 'Note';
 
   @override
+  String get txnDetailPayMethod => 'Payment Method';
+
+  @override
   String get txnDetailAddNoteHint => 'Tap to add a note';
 
   @override
@@ -418,6 +421,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get entryNoSubCategory => 'No subcategories';
+
+  @override
+  String get payMethodDefault => 'Default';
+
+  @override
+  String get payMethodCash => 'Cash';
+
+  @override
+  String get payMethodWechat => 'WeChat';
+
+  @override
+  String get payMethodAlipay => 'Alipay';
+
+  @override
+  String get payMethodCard => 'Card';
 
   @override
   String get entryNumpadToday => 'Today';
