@@ -791,14 +791,10 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
           return FutureBuilder<List<Category>>(
             future: catRepo.getAll(),
             builder: (context, catSnap) {
-              final categories = catSnap.data ?? [];
-              final categoryMap = <int, Category>{for (final c in categories) c.id: c};
-
               final correctedTotals = <int, ({double expense, double income})>{};
               for (final t in monthTxns) {
                 final day = t.transactionDate.day;
-                final cat = categoryMap[t.categoryId];
-                final isExpense = cat?.isExpense ?? true;
+                final isExpense = t.type == 'expense';
                 final existing = correctedTotals[day];
                 if (isExpense) {
                   correctedTotals[day] = (
