@@ -146,7 +146,9 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
       );
       if (!mounted) return;
       setState(() {
-        _items = messages.map((m) => _ChatItem.fromMessage(m)).toList();
+        // 保留未保存的确认卡片和已保存卡片（仅存在于内存中）
+        final pendingItems = _items.where((i) => i.isConfirm || i.isSaved).toList();
+        _items = [...messages.map((m) => _ChatItem.fromMessage(m)), ...pendingItems];
         _isLoading = false;
         _hasMore = messages.length >= _pageSize;
       });
@@ -155,7 +157,8 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
       debugPrint('[AiChatPage] _loadInitialMessages error: $e');
       if (!mounted) return;
       setState(() {
-        _items = [];
+        // 出错时也保留未保存的卡片
+        _items = _items.where((i) => i.isConfirm || i.isSaved).toList();
         _isLoading = false;
         _hasMore = false;
       });
