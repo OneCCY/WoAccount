@@ -471,6 +471,22 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
   // ==================== 日视图 ====================
 
   Widget _buildDayView(TransactionRepository repo, CategoryRepository catRepo, AppLocalizations l10n) {
+    return GestureDetector(
+      onHorizontalDragEnd: (details) {
+        if (details.primaryVelocity == null) return;
+        if (details.primaryVelocity! > 300) {
+          // 右滑 - 上一天
+          setState(() => _currentDate = _currentDate.subtract(const Duration(days: 1)));
+        } else if (details.primaryVelocity! < -300) {
+          // 左滑 - 下一天
+          setState(() => _currentDate = _currentDate.add(const Duration(days: 1)));
+        }
+      },
+      child: _buildDayContent(repo, catRepo, l10n),
+    );
+  }
+
+  Widget _buildDayContent(TransactionRepository repo, CategoryRepository catRepo, AppLocalizations l10n) {
     final start = DateTime(_currentDate.year, _currentDate.month, _currentDate.day);
     final end = start.add(const Duration(days: 1));
 
@@ -532,6 +548,28 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
   // ==================== 周视图 ====================
 
   Widget _buildWeekView(TransactionRepository repo, CategoryRepository catRepo, AppLocalizations l10n) {
+    return GestureDetector(
+      onHorizontalDragEnd: (details) {
+        if (details.primaryVelocity == null) return;
+        if (details.primaryVelocity! > 300) {
+          // 右滑 - 上一周
+          setState(() {
+            _currentDate = _currentDate.subtract(const Duration(days: 7));
+            _selectedWeekDay = null;
+          });
+        } else if (details.primaryVelocity! < -300) {
+          // 左滑 - 下一周
+          setState(() {
+            _currentDate = _currentDate.add(const Duration(days: 7));
+            _selectedWeekDay = null;
+          });
+        }
+      },
+      child: _buildWeekContent(repo, catRepo, l10n),
+    );
+  }
+
+  Widget _buildWeekContent(TransactionRepository repo, CategoryRepository catRepo, AppLocalizations l10n) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final weekStart = _currentDate.subtract(Duration(days: _currentDate.weekday - 1));

@@ -111,26 +111,8 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
 
     final success = await repo.update(companion);
     if (success && mounted) {
-      setState(() {
-        _isDirty = false;
-        _transaction = Transaction(
-          id: txn.id,
-          amount: _amount,
-          description: _description,
-          categoryId: _categoryId,
-          subcategoryId: _subcategoryId,
-          transactionDate: _transactionDate,
-          originalInput: _originalInput,
-          aiConfidence: txn.aiConfidence,
-          aiSource: txn.aiSource,
-          userConfirmed: true,
-          isDeleted: txn.isDeleted,
-          accountBookId: txn.accountBookId,
-          createdAt: txn.createdAt,
-          updatedAt: now,
-        );
-      });
       AppToast.show(context, AppLocalizations.of(context)!.txnDetailSaved, duration: const Duration(seconds: 1));
+      Navigator.of(context).pop(true);
     }
   }
 
