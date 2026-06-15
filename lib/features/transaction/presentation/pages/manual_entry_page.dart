@@ -612,7 +612,18 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
 
   // ==================== 计算器逻辑 ====================
 
-  bool get _canSubmit => _result > 0 && _selectedCategory != null;
+  bool get _canSubmit {
+    final amount = _getSubmitAmount();
+    return amount > 0 && _selectedCategory != null;
+  }
+
+  /// 获取可提交的金额（优先取当前输入，否则取累计结果）
+  double _getSubmitAmount() {
+    if (_currentInput.isNotEmpty && _currentInput != '-') {
+      return double.tryParse(_currentInput) ?? 0;
+    }
+    return _result;
+  }
 
   /// 显示文本：正在输入时显示输入，否则显示累计结果
   String get _displayText {
@@ -739,7 +750,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
     if (_currentInput.isNotEmpty && _currentInput != '-') {
       _commitAndCompute();
     }
-    final amount = _result;
+    final amount = _result > 0 ? _result : _getSubmitAmount();
     if (amount <= 0) return;
 
     final l10n = AppLocalizations.of(context)!;
