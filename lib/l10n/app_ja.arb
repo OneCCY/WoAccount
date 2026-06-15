@@ -26,6 +26,7 @@
   "chatPageParseError": "❌ 解析に失敗しました：{error}\n\n「昼食ラーメン25」のように具体的に入力してください",
   "@chatPageParseError": { "placeholders": { "error": { "type": "String" } } },
   "chatPageNoCategoryError": "利用可能なカテゴリがありません。カテゴリ管理で追加してください",
+  "chatPageSaveSuccessTitle": "記帳成功",
   "chatPageSaveSuccess": "✅ 保存しました\n{amount} · {category}\n{description} · {date}",
   "@chatPageSaveSuccess": { "placeholders": { "amount": { "type": "String" }, "category": { "type": "String" }, "description": { "type": "String" }, "date": { "type": "String" } } },
   "chatPageSaveFailed": "保存に失敗しました: {error}",

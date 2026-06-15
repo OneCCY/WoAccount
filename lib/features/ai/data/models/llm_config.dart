@@ -369,6 +369,7 @@ class TransactionParseResult {
   final double confidence;
   final String? date;
   final String? note;
+  final String? payMethod;
 
   const TransactionParseResult({
     required this.type,
@@ -379,6 +380,7 @@ class TransactionParseResult {
     required this.confidence,
     this.date,
     this.note,
+    this.payMethod,
   });
 }
 

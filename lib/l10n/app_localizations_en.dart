@@ -80,6 +80,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'No categories available. Please add a category in Category Management first';
 
   @override
+  String get chatPageSaveSuccessTitle => 'Saved';
+
+  @override
   String chatPageSaveSuccess(
     String amount,
     String category,

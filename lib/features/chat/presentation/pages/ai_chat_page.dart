@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
@@ -11,7 +10,6 @@ import '../../../../config/di/ai_providers.dart';
 import '../../../../core/ai/llm_error_resolver.dart';
 import '../../../../core/ai/transaction_pipeline.dart';
 import '../../../../core/config/ai_provider_presets.dart';
-import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -22,6 +20,7 @@ import '../../domain/repositories/chat_repository.dart';
 import '../widgets/chat_bubble.dart';
 import '../widgets/chat_input_bar.dart';
 import '../widgets/confirm_card.dart';
+import '../widgets/saved_card.dart';
 import '../../../../core/widgets/page_refresh_mixin.dart';
 import '../../../../core/widgets/toast.dart';
 
@@ -349,6 +348,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
               ? txn.description
               : result.normalizedText.replaceAll(RegExp(r'\d+\.?\d*'), '').trim(),
           note: txn.note,
+          payMethod: txn.payMethod,
           date: txnDate,
           confidence: txn.confidence,
           mediaFilePath: result.mediaFilePath,
@@ -459,6 +459,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
         categoryId: data.categoryId,
         parentCategoryId: Value(data.parentCategoryId),
         transactionDate: data.date,
+        payMethod: Value(data.payMethod),
         originalInput: Value(data.originalInput),
         aiSource: Value(data.confidence > 0.85 ? 'llm' : 'rule'),
         aiConfidence: Value(data.confidence),
@@ -468,33 +469,18 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
       ));
 
       if (!mounted) return;
-      final summary = AppLocalizations.of(context)!.chatPageSaveSuccess(
-          context.localeProvider.currency.formatWithSign(data.amount, data.type == 'expense'),
-          data.category,
-          data.description,
-          DateFormat('MM/dd').format(data.date),
-        );
-
-      await _chatRepo.insertMessage(
-        ConversationMessagesCompanion.insert(
-          conversationId: _conversationId,
-          role: 'assistant',
-          content: summary,
-          accountBookId: _bookId,
-        ),
-      );
 
       setState(() {
         final idx = _items.indexWhere((i) => i.isConfirm && i.confirmData == data);
         if (idx != -1) _items.removeAt(idx);
 
-        _items.add(_ChatItem.assistant(ConversationMessage(
-          id: 0,
-          conversationId: _conversationId,
-          role: 'assistant',
-          content: summary,
-          accountBookId: _bookId,
-          createdAt: DateTime.now(),
+        _items.add(_ChatItem.saved(SavedData(
+          amount: data.amount,
+          type: data.type,
+          category: data.category,
+          description: data.description,
+          date: data.date,
+          payMethod: data.payMethod,
         )));
       });
       _scrollToBottom();
@@ -750,6 +736,19 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
             );
           }
 
+          if (item.isSaved && item.savedData != null) {
+            final data = item.savedData!;
+            return SavedCard(
+              amount: data.amount,
+              type: data.type,
+              category: data.category,
+              description: data.description,
+              date: data.date,
+              payMethod: data.payMethod,
+              aiIcon: _aiIcon,
+            );
+          }
+
           if (item.message != null) {
             final msg = item.message!;
             return ChatBubble(
@@ -828,15 +827,37 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
 class _ChatItem {
   final ConversationMessage? message;
   final ConfirmData? confirmData;
+  final SavedData? savedData;
   final bool isConfirm;
+  final bool isSaved;
 
-  _ChatItem.user(this.message) : confirmData = null, isConfirm = false;
-  _ChatItem.assistant(this.message) : confirmData = null, isConfirm = false;
-  _ChatItem.confirm(this.confirmData) : message = null, isConfirm = true;
+  _ChatItem.user(this.message) : confirmData = null, savedData = null, isConfirm = false, isSaved = false;
+  _ChatItem.assistant(this.message) : confirmData = null, savedData = null, isConfirm = false, isSaved = false;
+  _ChatItem.confirm(this.confirmData) : message = null, savedData = null, isConfirm = true, isSaved = false;
+  _ChatItem.saved(this.savedData) : message = null, confirmData = null, isConfirm = false, isSaved = true;
 
   static _ChatItem fromMessage(ConversationMessage m) {
     return m.role == 'user' ? _ChatItem.user(m) : _ChatItem.assistant(m);
   }
+}
+
+/// 已保存账单数据（用于展示保存成功卡片）
+class SavedData {
+  final double amount;
+  final String type;
+  final String category;
+  final String description;
+  final DateTime date;
+  final String? payMethod;
+
+  const SavedData({
+    required this.amount,
+    required this.type,
+    required this.category,
+    required this.description,
+    required this.date,
+    this.payMethod,
+  });
 }
 
 /// AI 解析确认数据（可编辑）
@@ -850,6 +871,7 @@ class ConfirmData {
   int? parentCategoryId;
   String description;
   String? note;
+  String? payMethod;
   DateTime date;
   final double confidence;
   final String? mediaFilePath;
@@ -865,6 +887,7 @@ class ConfirmData {
     this.parentCategoryId,
     required this.description,
     this.note,
+    this.payMethod,
     required this.date,
     required this.confidence,
     this.mediaFilePath,
@@ -880,6 +903,7 @@ class ConfirmData {
     int? parentCategoryId,
     String? description,
     String? note,
+    String? payMethod,
     DateTime? date,
   }) {
     return ConfirmData(
@@ -892,6 +916,7 @@ class ConfirmData {
       parentCategoryId: parentCategoryId ?? this.parentCategoryId,
       description: description ?? this.description,
       note: note ?? this.note,
+      payMethod: payMethod ?? this.payMethod,
       date: date ?? this.date,
       confidence: confidence,
       mediaFilePath: mediaFilePath,

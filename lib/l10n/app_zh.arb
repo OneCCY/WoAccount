@@ -26,6 +26,7 @@
   "chatPageParseError": "❌ 解析失败：{error}\n\n请尝试更明确的描述，如\"午饭拉面25\"",
   "@chatPageParseError": { "placeholders": { "error": { "type": "String" } } },
   "chatPageNoCategoryError": "没有可用分类，请先在分类管理中添加分类",
+  "chatPageSaveSuccessTitle": "记账成功",
   "chatPageSaveSuccess": "✅ 已保存\n{amount} · {category}\n{description} · {date}",
   "@chatPageSaveSuccess": { "placeholders": { "amount": { "type": "String" }, "category": { "type": "String" }, "description": { "type": "String" }, "date": { "type": "String" } } },
   "chatPageSaveFailed": "保存失败: {error}",

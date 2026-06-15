@@ -78,6 +78,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatPageNoCategoryError => '没有可用分类，请先在分类管理中添加分类';
 
   @override
+  String get chatPageSaveSuccessTitle => '记账成功';
+
+  @override
   String chatPageSaveSuccess(
     String amount,
     String category,
@@ -2378,6 +2381,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get chatPageNoCategoryError => '沒有可用分類，請先在分類管理中新增分類';
+
+  @override
+  String get chatPageSaveSuccessTitle => '記帳成功';
 
   @override
   String chatPageSaveSuccess(

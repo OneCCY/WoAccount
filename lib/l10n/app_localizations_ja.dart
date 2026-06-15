@@ -78,6 +78,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get chatPageNoCategoryError => '利用可能なカテゴリがありません。カテゴリ管理で追加してください';
 
   @override
+  String get chatPageSaveSuccessTitle => '記帳成功';
+
+  @override
   String chatPageSaveSuccess(
     String amount,
     String category,

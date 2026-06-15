@@ -26,6 +26,7 @@
   "chatPageParseError": "❌ 解析失敗：{error}\n\n請嘗試更明確的描述，如\"午餐拉麵25\"",
   "@chatPageParseError": { "placeholders": { "error": { "type": "String" } } },
   "chatPageNoCategoryError": "沒有可用分類，請先在分類管理中新增分類",
+  "chatPageSaveSuccessTitle": "記帳成功",
   "chatPageSaveSuccess": "✅ 已儲存\n{amount} · {category}\n{description} · {date}",
   "@chatPageSaveSuccess": { "placeholders": { "amount": { "type": "String" }, "category": { "type": "String" }, "description": { "type": "String" }, "date": { "type": "String" } } },
   "chatPageSaveFailed": "儲存失敗: {error}",

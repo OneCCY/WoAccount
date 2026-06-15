@@ -26,6 +26,7 @@
   "chatPageParseError": "❌ 분석에 실패했습니다: {error}\n\n\"점심 라면 25\"처럼 구체적으로 입력해 주세요",
   "@chatPageParseError": { "placeholders": { "error": { "type": "String" } } },
   "chatPageNoCategoryError": "사용 가능한 카테고리가 없습니다. 카테고리 관리에서 추가해 주세요",
+  "chatPageSaveSuccessTitle": "기록 완료",
   "chatPageSaveSuccess": "✅ 저장 완료\n{amount} · {category}\n{description} · {date}",
   "@chatPageSaveSuccess": { "placeholders": { "amount": { "type": "String" }, "category": { "type": "String" }, "description": { "type": "String" }, "date": { "type": "String" } } },
   "chatPageSaveFailed": "저장에 실패했습니다: {error}",

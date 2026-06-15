@@ -281,6 +281,7 @@ class LlmRepositoryImpl implements LlmRepository {
       confidence: (json['confidence'] as num?)?.toDouble() ?? 0.8,
       date: json['date'] as String?,
       note: json['note'] as String?,
+      payMethod: json['payMethod'] as String?,
     );
   }
 

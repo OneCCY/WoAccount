@@ -229,6 +229,12 @@ abstract class AppLocalizations {
   /// **'没有可用分类，请先在分类管理中添加分类'**
   String get chatPageNoCategoryError;
 
+  /// No description provided for @chatPageSaveSuccessTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'记账成功'**
+  String get chatPageSaveSuccessTitle;
+
   /// No description provided for @chatPageSaveSuccess.
   ///
   /// In zh, this message translates to:

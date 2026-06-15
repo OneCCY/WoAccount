@@ -26,6 +26,7 @@
   "chatPageParseError": "❌ Parse failed: {error}\n\nPlease try a more specific description, e.g. \"lunch ramen 25\"",
   "@chatPageParseError": { "placeholders": { "error": { "type": "String" } } },
   "chatPageNoCategoryError": "No categories available. Please add a category in Category Management first",
+  "chatPageSaveSuccessTitle": "Saved",
   "chatPageSaveSuccess": "✅ Saved\n{amount} · {category}\n{description} · {date}",
   "@chatPageSaveSuccess": { "placeholders": { "amount": { "type": "String" }, "category": { "type": "String" }, "description": { "type": "String" }, "date": { "type": "String" } } },
   "chatPageSaveFailed": "Save failed: {error}",

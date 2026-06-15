@@ -1,0 +1,146 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
+import '../../../../core/locale/locale_provider.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
+
+/// 记账成功卡片（替代纯文本消息）
+class SavedCard extends StatelessWidget {
+  final double amount;
+  final String type;
+  final String category;
+  final String description;
+  final DateTime date;
+  final String? payMethod;
+  final String? aiIcon;
+
+  const SavedCard({
+    super.key,
+    required this.amount,
+    required this.type,
+    required this.category,
+    required this.description,
+    required this.date,
+    this.payMethod,
+    this.aiIcon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final isExpense = type == 'expense';
+    final amountColor = isExpense ? context.colors.expense : context.colors.income;
+    final prefix = isExpense ? '-' : '+';
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // AI 头像
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [context.colors.primary, context.colors.primary.withValues(alpha: 0.7)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Center(
+              child: Text(aiIcon ?? '🤖', style: const TextStyle(fontSize: 16)),
+            ),
+          ),
+          const SizedBox(width: 8),
+          // 卡片内容
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: context.colors.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: context.colors.success.withValues(alpha: 0.3), width: 1),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 标题行
+                  Row(
+                    children: [
+                      Icon(Icons.check_circle, size: 16, color: context.colors.success),
+                      const SizedBox(width: 6),
+                      Text(l10n.chatPageSaveSuccessTitle, style: AppTextStyles.footnote.copyWith(
+                        fontWeight: FontWeight.w600, color: context.colors.success,
+                      )),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  // 金额
+                  Text(
+                    '$prefix${context.localeProvider.currency.formatAmount(amount)}',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: amountColor, height: 1.2),
+                  ),
+                  const SizedBox(height: 8),
+                  // 信息行
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 4,
+                    children: [
+                      _InfoChip(icon: Icons.category_outlined, label: category),
+                      _InfoChip(icon: Icons.edit_outlined, label: description),
+                      _InfoChip(icon: Icons.calendar_today_outlined, label: DateFormat('MM/dd HH:mm').format(date)),
+                      if (payMethod != null)
+                        _InfoChip(icon: _getPayMethodIcon(payMethod), label: _getPayMethodLabel(payMethod, l10n)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _getPayMethodIcon(String? method) {
+    switch (method) {
+      case 'wechat': return Icons.chat_bubble;
+      case 'alipay': return Icons.account_balance_wallet;
+      case 'card': return Icons.credit_card;
+      case 'cash': return Icons.payments_outlined;
+      default: return Icons.payment;
+    }
+  }
+
+  String _getPayMethodLabel(String? method, AppLocalizations l10n) {
+    switch (method) {
+      case 'wechat': return l10n.payMethodWechat;
+      case 'alipay': return l10n.payMethodAlipay;
+      case 'card': return l10n.payMethodCard;
+      case 'cash': return l10n.payMethodCash;
+      default: return l10n.payMethodDefault;
+    }
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _InfoChip({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 12, color: context.colors.textTertiary),
+        const SizedBox(width: 3),
+        Text(label, style: context.textStyles.caption.copyWith(color: context.colors.textSecondary)),
+      ],
+    );
+  }
+}
