@@ -2355,4 +2355,106 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get llmSettingsGetModelListError => 'Failed to get model list';
+
+  @override
+  String get searchPageTitle => 'Search Transactions';
+
+  @override
+  String get searchHint =>
+      'Enter keywords or natural language, e.g. \'how much on taxis last month\'';
+
+  @override
+  String get searchAiParsing => 'AI is understanding your query...';
+
+  @override
+  String get searchNoResults => 'No matching transactions found';
+
+  @override
+  String get searchNoResultsHint => 'Try different keywords or rephrase';
+
+  @override
+  String searchResultCount(String count) {
+    return 'Found $count results';
+  }
+
+  @override
+  String get searchAiSummaryTitle => '📊 AI Analysis';
+
+  @override
+  String get searchAiSummaryLoading => 'AI is analyzing...';
+
+  @override
+  String get searchTotalExpense => 'Total Expense';
+
+  @override
+  String get searchTotalIncome => 'Total Income';
+
+  @override
+  String searchTransactionCount(String count) {
+    return '$count transactions';
+  }
+
+  @override
+  String get searchAverage => 'Daily Avg';
+
+  @override
+  String get searchMaxSingle => 'Largest';
+
+  @override
+  String get searchLlmNotConfigured => 'AI not configured, keyword search only';
+
+  @override
+  String get searchLlmError =>
+      'AI query parsing failed, switched to keyword search';
+
+  @override
+  String get searchQuickSuggestions => 'Suggestions';
+
+  @override
+  String get searchSuggestionLastMonthExpense => 'Last month expenses';
+
+  @override
+  String get searchSuggestionThisMonthFood => 'This month food expenses';
+
+  @override
+  String get searchSuggestionRecentLarge => 'Recent large expenses';
+
+  @override
+  String get searchSuggestionRecentWeek => 'Recent week transactions';
+
+  @override
+  String get searchFilterExpense => 'Expense';
+
+  @override
+  String get searchFilterIncome => 'Income';
+
+  @override
+  String get searchFilterAll => 'All';
+
+  @override
+  String get searchFilterDateRange => 'Date Range';
+
+  @override
+  String get searchFilterAmountRange => 'Amount Range';
+
+  @override
+  String get searchFilterCategory => 'Category';
+
+  @override
+  String get searchFilterPayment => 'Payment';
+
+  @override
+  String get searchFilterClear => 'Clear Filters';
+
+  @override
+  String get searchModeKeyword => 'Keyword';
+
+  @override
+  String get searchModeAi => 'AI Search';
+
+  @override
+  String get searchKeywordPlaceholder => 'Search description, notes, amount...';
+
+  @override
+  String get searchParsingFailed => 'AI parsing failed';
 }

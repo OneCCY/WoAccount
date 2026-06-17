@@ -70,6 +70,91 @@ $categoryTaxonomy
     return '今天是 $today 星期$weekday。\n\n请分析以下消费描述：\n\n"$input"';
   }
 
+  /// 搜索查询解析 System Prompt
+  ///
+  /// 将用户自然语言查询解析为结构化搜索条件
+  static String searchQueryParseSystem(String categoryTaxonomy) {
+    return '''
+你是一个账单搜索助手。用户会用自然语言描述想查找的账单，你需要将其解析为结构化查询条件。
+
+## 分类体系
+
+$categoryTaxonomy
+
+## 输出格式
+
+请严格按照以下JSON格式输出，不要输出其他内容：
+
+{
+  "keyword": "模糊搜索关键词，可为null",
+  "keywordSynonyms": ["同义词扩展列表，如搜\"奶茶\"时包含\"喜茶\"、\"蜜雪冰城\"等"],
+  "type": "expense/income/null",
+  "minAmount": 数字或null,
+  "maxAmount": 数字或null,
+  "startDate": "YYYY-MM-DD或null",
+  "endDate": "YYYY-MM-DD或null",
+  "parentCategory": "一级分类名称或null",
+  "subcategory": "二级分类名称或null",
+  "payMethod": "cash/wechat/alipay/card/other/null",
+  "aggregation": "none/count/sum/avg/max/min",
+  "sortBy": "time/amount",
+  "intent": "用户搜索意图的简要描述"
+}
+
+## 时间解析规则
+
+以今天的日期为基准计算：
+- "今天" → 今天日期
+- "昨天" → 前一天
+- "上周" → 上周一到周日
+- "本月" → 本月1日到今天
+- "上月" → 上月1日到上月最后一天
+- "最近一周" → 7天前到今天
+- "最近一个月" → 30天前到今天
+- "今年" → 今年1月1日到今天
+
+## 关键词扩展规则
+
+当用户搜索品牌或品类时，主动扩展同义词：
+- "奶茶" → ["喜茶", "奈雪", "蜜雪冰城", "coco", "一点点", "霸王茶姬", "茶百道"]
+- "外卖" → ["美团", "饿了么", "配送费"]
+- "打车" → ["滴滴", "高德打车", "曹操出行", "T3出行"]
+- "咖啡" → ["星巴克", "瑞幸", "Manner", "库迪"]
+
+## 聚合规则
+
+- 用户问"花了多少"、"总共" → aggregation: "sum"
+- 用户问"几笔"、"多少次" → aggregation: "count"
+- 用户问"平均"、"日均" → aggregation: "avg"
+- 用户问"最大"、"最贵" → aggregation: "max"
+- 用户问"最小"、"最便宜" → aggregation: "min"
+- 用户只是搜索列表 → aggregation: "none"''';
+  }
+
+  /// 搜索查询解析 User Prompt
+  static String searchQueryParseUser(String input) {
+    final now = DateTime.now();
+    final today = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    final weekday = ['一', '二', '三', '四', '五', '六', '日'][now.weekday - 1];
+    return '今天是 $today 星期$weekday。\n\n请解析以下搜索查询：\n\n"$input"';
+  }
+
+  /// AI 搜索摘要 System Prompt
+  ///
+  /// 根据搜索结果数据生成自然语言摘要
+  static String searchSummarySystem() {
+    return '''
+你是一个账单分析助手。根据用户查询和提供的交易数据，生成简洁的分析摘要。
+
+## 回复风格
+
+- 简洁明了，不啰嗦
+- 数据准确，有具体数字
+- 适当使用emoji，增加亲和力
+- 中文回复
+- 如果有统计数据，给出直观的结论''';
+  }
+
   /// AI 对话助手 System Prompt
   static const String aiAssistantSystem = '''
 你是WoAccount的AI记账助手。你可以帮助用户：

@@ -1,5 +1,98 @@
 import '../../../../config/database/app_database.dart';
 
+/// 搜索条件
+class SearchQuery {
+  /// 关键词（模糊匹配 description / note / originalInput）
+  final String? keyword;
+
+  /// 扩展同义词列表（LLM 生成，用于语义扩展搜索）
+  final List<String> keywordSynonyms;
+
+  /// 交易类型：expense / income / null(全部)
+  final String? type;
+
+  /// 最小金额
+  final double? minAmount;
+
+  /// 最大金额
+  final double? maxAmount;
+
+  /// 日期范围起始
+  final DateTime? startDate;
+
+  /// 日期范围结束
+  final DateTime? endDate;
+
+  /// 父分类 ID
+  final int? parentCategoryId;
+
+  /// 子分类 ID
+  final int? categoryId;
+
+  /// 支付方式
+  final String? payMethod;
+
+  /// 聚合类型
+  final SearchAggregation aggregation;
+
+  /// 排序方式
+  final SearchSortBy sortBy;
+
+  /// LLM 意图描述
+  final String? intent;
+
+  const SearchQuery({
+    this.keyword,
+    this.keywordSynonyms = const [],
+    this.type,
+    this.minAmount,
+    this.maxAmount,
+    this.startDate,
+    this.endDate,
+    this.parentCategoryId,
+    this.categoryId,
+    this.payMethod,
+    this.aggregation = SearchAggregation.none,
+    this.sortBy = SearchSortBy.time,
+    this.intent,
+  });
+}
+
+/// 搜索聚合类型
+enum SearchAggregation {
+  none,   // 返回列表
+  count,  // 计数
+  sum,    // 求和
+  avg,    // 平均
+  max,    // 最大值
+  min,    // 最小值
+}
+
+/// 搜索排序
+enum SearchSortBy {
+  time,    // 按时间倒序
+  amount,  // 按金额倒序
+}
+
+/// 搜索结果聚合数据
+class SearchResultStats {
+  final int count;
+  final double totalExpense;
+  final double totalIncome;
+  final double? average;
+  final double? maxAmount;
+  final Transaction? maxTransaction;
+
+  const SearchResultStats({
+    required this.count,
+    required this.totalExpense,
+    required this.totalIncome,
+    this.average,
+    this.maxAmount,
+    this.maxTransaction,
+  });
+}
+
 /// 交易记录 Repository 接口（Domain 层）
 abstract class TransactionRepository {
   /// 获取账本内所有交易（排除软删除）
@@ -40,6 +133,12 @@ abstract class TransactionRepository {
 
   /// 获取日期范围内的统计
   Future<TransactionStats> getStats(int bookId, DateTime start, DateTime end);
+
+  /// 搜索交易记录
+  Future<List<Transaction>> search(int bookId, SearchQuery query);
+
+  /// 搜索交易记录并返回聚合统计
+  Future<SearchResultStats> searchWithStats(int bookId, SearchQuery query);
 }
 
 /// 交易统计数据

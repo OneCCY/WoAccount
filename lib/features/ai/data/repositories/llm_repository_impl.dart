@@ -278,6 +278,153 @@ class LlmRepositoryImpl implements LlmRepository {
     return response.statusCode == 200;
   }
 
+  @override
+  Future<Map<String, dynamic>> parseSearchQuery(String input, {String? categoryTaxonomy}) async {
+    try {
+      final provider = await LlmConfigManager.getActiveProvider();
+      if (provider == null || !provider.isComplete) {
+        // 未配置 LLM，返回基础关键词查询
+        return {
+          'keyword': input,
+          'keywordSynonyms': <String>[],
+          'type': null,
+          'minAmount': null,
+          'maxAmount': null,
+          'startDate': null,
+          'endDate': null,
+          'parentCategory': null,
+          'subcategory': null,
+          'payMethod': null,
+          'aggregation': 'none',
+          'sortBy': 'time',
+          'intent': '关键词搜索',
+        };
+      }
+
+      final systemPrompt = categoryTaxonomy != null
+          ? PromptTemplates.searchQueryParseSystem(categoryTaxonomy)
+          : PromptTemplates.searchQueryParseSystem(_defaultCategoryTaxonomy);
+
+      final response = await chat(LlmRequest(
+        messages: [
+          ChatMessage(role: 'system', content: systemPrompt),
+          ChatMessage(role: 'user', content: PromptTemplates.searchQueryParseUser(input)),
+        ],
+        temperature: 0.0,
+        capability: ModelCapability.text,
+      ));
+
+      return _parseSearchQueryResponse(response.content, input);
+    } on LlmException {
+      // LLM 失败，返回基础关键词查询
+      return {
+        'keyword': input,
+        'keywordSynonyms': <String>[],
+        'type': null,
+        'minAmount': null,
+        'maxAmount': null,
+        'startDate': null,
+        'endDate': null,
+        'parentCategory': null,
+        'subcategory': null,
+        'payMethod': null,
+        'aggregation': 'none',
+        'sortBy': 'time',
+        'intent': '关键词搜索（LLM不可用）',
+      };
+    }
+  }
+
+  /// 解析 LLM 返回的搜索查询 JSON
+  Map<String, dynamic> _parseSearchQueryResponse(String content, String fallbackInput) {
+    try {
+      final jsonMatch = RegExp(r'\{[\s\S]*\}').firstMatch(content);
+      if (jsonMatch == null) {
+        return {'keyword': fallbackInput, 'aggregation': 'none', 'sortBy': 'time'};
+      }
+      final raw = jsonDecode(jsonMatch.group(0)!) as Map<String, dynamic>;
+      return {
+        'keyword': raw['keyword'] as String?,
+        'keywordSynonyms': (raw['keywordSynonyms'] as List<dynamic>?)?.cast<String>() ?? [],
+        'type': raw['type'] as String?,
+        'minAmount': (raw['minAmount'] as num?)?.toDouble(),
+        'maxAmount': (raw['maxAmount'] as num?)?.toDouble(),
+        'startDate': raw['startDate'] as String?,
+        'endDate': raw['endDate'] as String?,
+        'parentCategory': raw['parentCategory'] as String?,
+        'subcategory': raw['subcategory'] as String?,
+        'payMethod': raw['payMethod'] as String?,
+        'aggregation': raw['aggregation'] as String? ?? 'none',
+        'sortBy': raw['sortBy'] as String? ?? 'time',
+        'intent': raw['intent'] as String?,
+      };
+    } catch (_) {
+      return {'keyword': fallbackInput, 'aggregation': 'none', 'sortBy': 'time'};
+    }
+  }
+
+  @override
+  Future<String> generateSearchSummary(String userQuery, Map<String, dynamic> stats) async {
+    try {
+      final provider = await LlmConfigManager.getActiveProvider();
+      if (provider == null || !provider.isComplete) {
+        return _generateLocalSummary(stats);
+      }
+
+      final statsText = StringBuffer()
+        ..writeln('用户查询: $userQuery')
+        ..writeln('匹配笔数: ${stats['count']}')
+        ..writeln('总支出: ${stats['totalExpense']}')
+        ..writeln('总收入: ${stats['totalIncome']}');
+      if (stats['average'] != null) {
+        statsText.writeln('平均金额: ${stats['average']}');
+      }
+      if (stats['maxAmount'] != null) {
+        statsText.writeln('最大单笔: ${stats['maxAmount']}');
+        if (stats['maxDescription'] != null) {
+          statsText.writeln('最大单笔描述: ${stats['maxDescription']}');
+        }
+      }
+      if (stats['topCategories'] != null) {
+        statsText.writeln('分类分布: ${stats['topCategories']}');
+      }
+
+      final response = await chat(LlmRequest(
+        messages: [
+          ChatMessage(role: 'system', content: PromptTemplates.searchSummarySystem()),
+          ChatMessage(role: 'user', content: statsText.toString()),
+        ],
+        temperature: 0.3,
+        capability: ModelCapability.text,
+      ));
+
+      return response.content;
+    } catch (_) {
+      return _generateLocalSummary(stats);
+    }
+  }
+
+  /// 本地生成简单统计摘要（LLM 不可用时的降级）
+  String _generateLocalSummary(Map<String, dynamic> stats) {
+    final count = stats['count'] as int? ?? 0;
+    final totalExpense = stats['totalExpense'] as double? ?? 0;
+    final totalIncome = stats['totalIncome'] as double? ?? 0;
+    final buffer = StringBuffer();
+
+    if (count == 0) return '未找到匹配的账单记录';
+
+    buffer.writeln('📊 共 $count 笔交易');
+    if (totalExpense > 0) buffer.writeln('💸 总支出: ¥${totalExpense.toStringAsFixed(2)}');
+    if (totalIncome > 0) buffer.writeln('💰 总收入: ¥${totalIncome.toStringAsFixed(2)}');
+    if (stats['average'] != null) {
+      buffer.writeln('📈 平均: ¥${(stats['average'] as double).toStringAsFixed(2)}');
+    }
+    if (stats['maxAmount'] != null) {
+      buffer.writeln('🔝 最大单笔: ¥${(stats['maxAmount'] as double).toStringAsFixed(2)}');
+    }
+    return buffer.toString();
+  }
+
   /// 解析 LLM 返回的交易 JSON（支持单笔和多笔）
   List<TransactionParseResult> _parseTransactionResponse(String content) {
     try {

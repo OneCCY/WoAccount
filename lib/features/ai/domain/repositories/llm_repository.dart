@@ -15,4 +15,12 @@ abstract class LlmRepository {
 
   /// 测试指定服务商的连接
   Future<bool> testConnection(LlmProvider provider);
+
+  /// 解析自然语言搜索查询为结构化搜索条件
+  /// [categoryTaxonomy] 可选的动态分类体系文本
+  /// 返回 JSON Map，包含 keyword/type/dateRange 等字段
+  Future<Map<String, dynamic>> parseSearchQuery(String input, {String? categoryTaxonomy});
+
+  /// 根据搜索结果数据生成自然语言摘要
+  Future<String> generateSearchSummary(String userQuery, Map<String, dynamic> stats);
 }

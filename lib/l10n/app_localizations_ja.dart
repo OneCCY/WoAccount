@@ -2311,4 +2311,104 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get llmSettingsGetModelListError => 'モデル一覧の取得に失敗しました';
+
+  @override
+  String get searchPageTitle => '取引検索';
+
+  @override
+  String get searchHint => 'キーワードまたは自然言語で入力（例：「先月タクシーにいくら」）';
+
+  @override
+  String get searchAiParsing => 'AIがクエリを理解中...';
+
+  @override
+  String get searchNoResults => '一致する取引が見つかりません';
+
+  @override
+  String get searchNoResultsHint => '別のキーワードや表現をお試しください';
+
+  @override
+  String searchResultCount(String count) {
+    return '$count件の結果';
+  }
+
+  @override
+  String get searchAiSummaryTitle => '📊 AI分析結果';
+
+  @override
+  String get searchAiSummaryLoading => 'AIが分析中...';
+
+  @override
+  String get searchTotalExpense => '合計支出';
+
+  @override
+  String get searchTotalIncome => '合計収入';
+
+  @override
+  String searchTransactionCount(String count) {
+    return '$count件';
+  }
+
+  @override
+  String get searchAverage => '日平均';
+
+  @override
+  String get searchMaxSingle => '最大1件';
+
+  @override
+  String get searchLlmNotConfigured => 'AI未設定、キーワード検索のみ';
+
+  @override
+  String get searchLlmError => 'AI解析失敗、キーワード検索に切り替え';
+
+  @override
+  String get searchQuickSuggestions => '検索候補';
+
+  @override
+  String get searchSuggestionLastMonthExpense => '先月の支出合計';
+
+  @override
+  String get searchSuggestionThisMonthFood => '今月の飲食費';
+
+  @override
+  String get searchSuggestionRecentLarge => '最近の高額支出';
+
+  @override
+  String get searchSuggestionRecentWeek => '直近1週間の取引';
+
+  @override
+  String get searchFilterExpense => '支出';
+
+  @override
+  String get searchFilterIncome => '収入';
+
+  @override
+  String get searchFilterAll => 'すべて';
+
+  @override
+  String get searchFilterDateRange => '日付範囲';
+
+  @override
+  String get searchFilterAmountRange => '金額範囲';
+
+  @override
+  String get searchFilterCategory => 'カテゴリ';
+
+  @override
+  String get searchFilterPayment => '支払方法';
+
+  @override
+  String get searchFilterClear => 'フィルター解除';
+
+  @override
+  String get searchModeKeyword => 'キーワード';
+
+  @override
+  String get searchModeAi => 'AI検索';
+
+  @override
+  String get searchKeywordPlaceholder => '説明・メモ・金額を検索...';
+
+  @override
+  String get searchParsingFailed => 'AI解析失敗';
 }

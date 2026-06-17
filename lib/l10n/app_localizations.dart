@@ -4451,6 +4451,198 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'无法获取模型列表'**
   String get llmSettingsGetModelListError;
+
+  /// No description provided for @searchPageTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索账单'**
+  String get searchPageTitle;
+
+  /// No description provided for @searchHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'输入关键词或自然语言，如\"上月打车花了多少\"'**
+  String get searchHint;
+
+  /// No description provided for @searchAiParsing.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 正在理解你的查询...'**
+  String get searchAiParsing;
+
+  /// No description provided for @searchNoResults.
+  ///
+  /// In zh, this message translates to:
+  /// **'未找到匹配的账单'**
+  String get searchNoResults;
+
+  /// No description provided for @searchNoResultsHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'试试其他关键词或换个说法'**
+  String get searchNoResultsHint;
+
+  /// No description provided for @searchResultCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'找到 {count} 条结果'**
+  String searchResultCount(String count);
+
+  /// No description provided for @searchAiSummaryTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'📊 AI 分析结果'**
+  String get searchAiSummaryTitle;
+
+  /// No description provided for @searchAiSummaryLoading.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 正在分析...'**
+  String get searchAiSummaryLoading;
+
+  /// No description provided for @searchTotalExpense.
+  ///
+  /// In zh, this message translates to:
+  /// **'总支出'**
+  String get searchTotalExpense;
+
+  /// No description provided for @searchTotalIncome.
+  ///
+  /// In zh, this message translates to:
+  /// **'总收入'**
+  String get searchTotalIncome;
+
+  /// No description provided for @searchTransactionCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'共 {count} 笔'**
+  String searchTransactionCount(String count);
+
+  /// No description provided for @searchAverage.
+  ///
+  /// In zh, this message translates to:
+  /// **'日均'**
+  String get searchAverage;
+
+  /// No description provided for @searchMaxSingle.
+  ///
+  /// In zh, this message translates to:
+  /// **'最大单笔'**
+  String get searchMaxSingle;
+
+  /// No description provided for @searchLlmNotConfigured.
+  ///
+  /// In zh, this message translates to:
+  /// **'未配置 AI 服务，仅支持关键词搜索'**
+  String get searchLlmNotConfigured;
+
+  /// No description provided for @searchLlmError.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 查询解析失败，已切换为关键词搜索'**
+  String get searchLlmError;
+
+  /// No description provided for @searchQuickSuggestions.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索建议'**
+  String get searchQuickSuggestions;
+
+  /// No description provided for @searchSuggestionLastMonthExpense.
+  ///
+  /// In zh, this message translates to:
+  /// **'上月消费汇总'**
+  String get searchSuggestionLastMonthExpense;
+
+  /// No description provided for @searchSuggestionThisMonthFood.
+  ///
+  /// In zh, this message translates to:
+  /// **'本月餐饮消费'**
+  String get searchSuggestionThisMonthFood;
+
+  /// No description provided for @searchSuggestionRecentLarge.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近大额消费'**
+  String get searchSuggestionRecentLarge;
+
+  /// No description provided for @searchSuggestionRecentWeek.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近一周账单'**
+  String get searchSuggestionRecentWeek;
+
+  /// No description provided for @searchFilterExpense.
+  ///
+  /// In zh, this message translates to:
+  /// **'支出'**
+  String get searchFilterExpense;
+
+  /// No description provided for @searchFilterIncome.
+  ///
+  /// In zh, this message translates to:
+  /// **'收入'**
+  String get searchFilterIncome;
+
+  /// No description provided for @searchFilterAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部'**
+  String get searchFilterAll;
+
+  /// No description provided for @searchFilterDateRange.
+  ///
+  /// In zh, this message translates to:
+  /// **'日期范围'**
+  String get searchFilterDateRange;
+
+  /// No description provided for @searchFilterAmountRange.
+  ///
+  /// In zh, this message translates to:
+  /// **'金额范围'**
+  String get searchFilterAmountRange;
+
+  /// No description provided for @searchFilterCategory.
+  ///
+  /// In zh, this message translates to:
+  /// **'分类'**
+  String get searchFilterCategory;
+
+  /// No description provided for @searchFilterPayment.
+  ///
+  /// In zh, this message translates to:
+  /// **'支付方式'**
+  String get searchFilterPayment;
+
+  /// No description provided for @searchFilterClear.
+  ///
+  /// In zh, this message translates to:
+  /// **'清除筛选'**
+  String get searchFilterClear;
+
+  /// No description provided for @searchModeKeyword.
+  ///
+  /// In zh, this message translates to:
+  /// **'关键词'**
+  String get searchModeKeyword;
+
+  /// No description provided for @searchModeAi.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 搜索'**
+  String get searchModeAi;
+
+  /// No description provided for @searchKeywordPlaceholder.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索描述、备注、金额...'**
+  String get searchKeywordPlaceholder;
+
+  /// No description provided for @searchParsingFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 解析失败'**
+  String get searchParsingFailed;
 }
 
 class _AppLocalizationsDelegate

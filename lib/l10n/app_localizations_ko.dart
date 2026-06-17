@@ -2319,4 +2319,104 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get llmSettingsGetModelListError => '모델 목록을 가져오지 못했습니다';
+
+  @override
+  String get searchPageTitle => '거래 검색';
+
+  @override
+  String get searchHint => '키워드 또는 자연어 입력 (예: \'지난달 택시비 얼마\')';
+
+  @override
+  String get searchAiParsing => 'AI가 쿼리를 이해하는 중...';
+
+  @override
+  String get searchNoResults => '일치하는 거래를 찾을 수 없습니다';
+
+  @override
+  String get searchNoResultsHint => '다른 키워드나 표현을 시도해 보세요';
+
+  @override
+  String searchResultCount(String count) {
+    return '$count개 결과';
+  }
+
+  @override
+  String get searchAiSummaryTitle => '📊 AI 분석 결과';
+
+  @override
+  String get searchAiSummaryLoading => 'AI 분석 중...';
+
+  @override
+  String get searchTotalExpense => '총 지출';
+
+  @override
+  String get searchTotalIncome => '총 수입';
+
+  @override
+  String searchTransactionCount(String count) {
+    return '$count건';
+  }
+
+  @override
+  String get searchAverage => '일평균';
+
+  @override
+  String get searchMaxSingle => '최대 단건';
+
+  @override
+  String get searchLlmNotConfigured => 'AI 미설정, 키워드 검색만 가능';
+
+  @override
+  String get searchLlmError => 'AI 분석 실패, 키워드 검색으로 전환';
+
+  @override
+  String get searchQuickSuggestions => '검색 제안';
+
+  @override
+  String get searchSuggestionLastMonthExpense => '지난달 지출 합계';
+
+  @override
+  String get searchSuggestionThisMonthFood => '이번 달 식비';
+
+  @override
+  String get searchSuggestionRecentLarge => '최근 대액 지출';
+
+  @override
+  String get searchSuggestionRecentWeek => '최근 1주 거래';
+
+  @override
+  String get searchFilterExpense => '지출';
+
+  @override
+  String get searchFilterIncome => '수입';
+
+  @override
+  String get searchFilterAll => '전체';
+
+  @override
+  String get searchFilterDateRange => '날짜 범위';
+
+  @override
+  String get searchFilterAmountRange => '금액 범위';
+
+  @override
+  String get searchFilterCategory => '카테고리';
+
+  @override
+  String get searchFilterPayment => '결제수단';
+
+  @override
+  String get searchFilterClear => '필터 초기화';
+
+  @override
+  String get searchModeKeyword => '키워드';
+
+  @override
+  String get searchModeAi => 'AI 검색';
+
+  @override
+  String get searchKeywordPlaceholder => '설명, 메모, 금액 검색...';
+
+  @override
+  String get searchParsingFailed => 'AI 분석 실패';
 }

@@ -349,7 +349,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
           Expanded(
             child: GestureDetector(
               onTap: () {
-                // TODO: 跳转搜索页或展开搜索
+                context.push('/search');
               },
               child: Container(
                 height: Responsive.s(context, 36),

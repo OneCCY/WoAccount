@@ -150,4 +150,117 @@ class TransactionRepositoryImpl implements TransactionRepository {
       count: results.length,
     );
   }
+
+  @override
+  Future<List<Transaction>> search(int bookId, SearchQuery query) async {
+    final q = _db.select(_db.transactions)
+      ..where((t) {
+        final conditions = <Expression<bool>>[
+          t.isDeleted.equals(false),
+          t.accountBookId.equals(bookId),
+        ];
+
+        // 关键词模糊搜索（匹配 description / note / originalInput）
+        if (query.keyword != null && query.keyword!.isNotEmpty) {
+          final allKeywords = [query.keyword!, ...query.keywordSynonyms]
+              .where((k) => k.isNotEmpty)
+              .toList();
+          if (allKeywords.isNotEmpty) {
+            Expression<bool>? textCondition;
+            for (final kw in allKeywords) {
+              final likePattern = '%$kw%';
+              final kwCondition = t.description.like(likePattern) |
+                  t.note.like(likePattern) |
+                  t.originalInput.like(likePattern);
+              textCondition = textCondition == null
+                  ? kwCondition
+                  : textCondition | kwCondition;
+            }
+            if (textCondition != null) {
+              conditions.add(textCondition);
+            }
+          }
+        }
+
+        // 类型筛选
+        if (query.type != null) {
+          conditions.add(t.type.equals(query.type!));
+        }
+
+        // 金额范围
+        if (query.minAmount != null) {
+          conditions.add(t.amount.isBiggerOrEqualValue(query.minAmount!));
+        }
+        if (query.maxAmount != null) {
+          conditions.add(t.amount.isSmallerOrEqualValue(query.maxAmount!));
+        }
+
+        // 日期范围
+        if (query.startDate != null) {
+          conditions.add(t.transactionDate.isBiggerOrEqualValue(query.startDate!));
+        }
+        if (query.endDate != null) {
+          conditions.add(t.transactionDate.isSmallerOrEqualValue(query.endDate!));
+        }
+
+        // 分类筛选
+        if (query.parentCategoryId != null) {
+          conditions.add(t.parentCategoryId.equals(query.parentCategoryId!));
+        }
+        if (query.categoryId != null) {
+          conditions.add(t.categoryId.equals(query.categoryId!));
+        }
+
+        // 支付方式
+        if (query.payMethod != null) {
+          conditions.add(t.payMethod.equals(query.payMethod!));
+        }
+
+        // 组合所有条件为 AND
+        return conditions.reduce((a, b) => a & b);
+      });
+
+    // 排序
+    switch (query.sortBy) {
+      case SearchSortBy.time:
+        q.orderBy([(t) => OrderingTerm.desc(t.transactionDate)]);
+      case SearchSortBy.amount:
+        q.orderBy([(t) => OrderingTerm.desc(t.amount)]);
+    }
+
+    return q.get();
+  }
+
+  @override
+  Future<SearchResultStats> searchWithStats(int bookId, SearchQuery query) async {
+    final results = await search(bookId, query);
+
+    double totalExpense = 0;
+    double totalIncome = 0;
+    double? maxAmount;
+    Transaction? maxTxn;
+
+    for (final t in results) {
+      if (t.type == 'expense') {
+        totalExpense += t.amount;
+      } else {
+        totalIncome += t.amount;
+      }
+      if (maxAmount == null || t.amount > maxAmount) {
+        maxAmount = t.amount;
+        maxTxn = t;
+      }
+    }
+
+    final totalAmount = totalExpense + totalIncome;
+
+    return SearchResultStats(
+      count: results.length,
+      totalExpense: totalExpense,
+      totalIncome: totalIncome,
+      average: results.isNotEmpty ? totalAmount / results.length : null,
+      maxAmount: maxAmount,
+      maxTransaction: maxTxn,
+    );
+  }
 }

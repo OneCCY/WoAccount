@@ -6,6 +6,7 @@ import '../../features/chat/presentation/pages/ai_chat_page.dart';
 import '../../features/transaction/presentation/pages/transaction_list_page.dart';
 import '../../features/transaction/presentation/pages/manual_entry_page.dart';
 import '../../features/transaction/presentation/pages/transaction_detail_page.dart';
+import '../../features/transaction/presentation/pages/transaction_search_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/profile/presentation/pages/profile_edit_page.dart';
 import '../../features/profile/presentation/pages/checkin_calendar_page.dart';
@@ -75,6 +76,10 @@ class AppRouter {
       GoRoute(
         path: '/manual-entry',
         builder: (context, state) => const ManualEntryPage(),
+      ),
+      GoRoute(
+        path: '/search',
+        builder: (context, state) => const TransactionSearchPage(),
       ),
       GoRoute(
         path: '/ai-assistant',

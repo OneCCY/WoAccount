@@ -2307,6 +2307,106 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get llmSettingsGetModelListError => '无法获取模型列表';
+
+  @override
+  String get searchPageTitle => '搜索账单';
+
+  @override
+  String get searchHint => '输入关键词或自然语言，如\"上月打车花了多少\"';
+
+  @override
+  String get searchAiParsing => 'AI 正在理解你的查询...';
+
+  @override
+  String get searchNoResults => '未找到匹配的账单';
+
+  @override
+  String get searchNoResultsHint => '试试其他关键词或换个说法';
+
+  @override
+  String searchResultCount(String count) {
+    return '找到 $count 条结果';
+  }
+
+  @override
+  String get searchAiSummaryTitle => '📊 AI 分析结果';
+
+  @override
+  String get searchAiSummaryLoading => 'AI 正在分析...';
+
+  @override
+  String get searchTotalExpense => '总支出';
+
+  @override
+  String get searchTotalIncome => '总收入';
+
+  @override
+  String searchTransactionCount(String count) {
+    return '共 $count 笔';
+  }
+
+  @override
+  String get searchAverage => '日均';
+
+  @override
+  String get searchMaxSingle => '最大单笔';
+
+  @override
+  String get searchLlmNotConfigured => '未配置 AI 服务，仅支持关键词搜索';
+
+  @override
+  String get searchLlmError => 'AI 查询解析失败，已切换为关键词搜索';
+
+  @override
+  String get searchQuickSuggestions => '搜索建议';
+
+  @override
+  String get searchSuggestionLastMonthExpense => '上月消费汇总';
+
+  @override
+  String get searchSuggestionThisMonthFood => '本月餐饮消费';
+
+  @override
+  String get searchSuggestionRecentLarge => '最近大额消费';
+
+  @override
+  String get searchSuggestionRecentWeek => '最近一周账单';
+
+  @override
+  String get searchFilterExpense => '支出';
+
+  @override
+  String get searchFilterIncome => '收入';
+
+  @override
+  String get searchFilterAll => '全部';
+
+  @override
+  String get searchFilterDateRange => '日期范围';
+
+  @override
+  String get searchFilterAmountRange => '金额范围';
+
+  @override
+  String get searchFilterCategory => '分类';
+
+  @override
+  String get searchFilterPayment => '支付方式';
+
+  @override
+  String get searchFilterClear => '清除筛选';
+
+  @override
+  String get searchModeKeyword => '关键词';
+
+  @override
+  String get searchModeAi => 'AI 搜索';
+
+  @override
+  String get searchKeywordPlaceholder => '搜索描述、备注、金额...';
+
+  @override
+  String get searchParsingFailed => 'AI 解析失败';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -4612,4 +4712,104 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get llmSettingsGetModelListError => '無法取得模型列表';
+
+  @override
+  String get searchPageTitle => '搜尋帳單';
+
+  @override
+  String get searchHint => '輸入關鍵詞或自然語言，如「上月搭計程車花了多少」';
+
+  @override
+  String get searchAiParsing => 'AI 正在理解您的查詢...';
+
+  @override
+  String get searchNoResults => '未找到匹配的帳單';
+
+  @override
+  String get searchNoResultsHint => '試試其他關鍵詞或換個說法';
+
+  @override
+  String searchResultCount(String count) {
+    return '找到 $count 條結果';
+  }
+
+  @override
+  String get searchAiSummaryTitle => '📊 AI 分析結果';
+
+  @override
+  String get searchAiSummaryLoading => 'AI 正在分析...';
+
+  @override
+  String get searchTotalExpense => '總支出';
+
+  @override
+  String get searchTotalIncome => '總收入';
+
+  @override
+  String searchTransactionCount(String count) {
+    return '共 $count 筆';
+  }
+
+  @override
+  String get searchAverage => '日均';
+
+  @override
+  String get searchMaxSingle => '最大單筆';
+
+  @override
+  String get searchLlmNotConfigured => '未配置 AI 服務，僅支援關鍵詞搜尋';
+
+  @override
+  String get searchLlmError => 'AI 查詢解析失敗，已切換為關鍵詞搜尋';
+
+  @override
+  String get searchQuickSuggestions => '搜尋建議';
+
+  @override
+  String get searchSuggestionLastMonthExpense => '上月消費匯總';
+
+  @override
+  String get searchSuggestionThisMonthFood => '本月餐飲消費';
+
+  @override
+  String get searchSuggestionRecentLarge => '最近大額消費';
+
+  @override
+  String get searchSuggestionRecentWeek => '最近一週帳單';
+
+  @override
+  String get searchFilterExpense => '支出';
+
+  @override
+  String get searchFilterIncome => '收入';
+
+  @override
+  String get searchFilterAll => '全部';
+
+  @override
+  String get searchFilterDateRange => '日期範圍';
+
+  @override
+  String get searchFilterAmountRange => '金額範圍';
+
+  @override
+  String get searchFilterCategory => '分類';
+
+  @override
+  String get searchFilterPayment => '支付方式';
+
+  @override
+  String get searchFilterClear => '清除篩選';
+
+  @override
+  String get searchModeKeyword => '關鍵詞';
+
+  @override
+  String get searchModeAi => 'AI 搜尋';
+
+  @override
+  String get searchKeywordPlaceholder => '搜尋描述、備註、金額...';
+
+  @override
+  String get searchParsingFailed => 'AI 解析失敗';
 }
