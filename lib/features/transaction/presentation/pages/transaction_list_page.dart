@@ -654,6 +654,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
         children: List.generate(7, (i) {
           final date = weekStart.add(Duration(days: i));
           final isToday = date.year == today.year && date.month == today.month && date.day == today.day;
+          final isFuture = date.isAfter(today);
           final isSelected = date.year == selectedDay.year &&
               date.month == selectedDay.month &&
               date.day == selectedDay.day;
@@ -665,16 +666,18 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
 
           return Expanded(
             child: GestureDetector(
-              onTap: () => setState(() => _selectedWeekDay = date),
+              onTap: isFuture ? null : () => setState(() => _selectedWeekDay = date),
               child: Container(
                 margin: EdgeInsets.symmetric(horizontal: Responsive.s(context, 2)),
                 padding: EdgeInsets.symmetric(vertical: Responsive.s(context, 6)),
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? context.colors.primarySurface
-                      : (isToday ? context.colors.primarySurface.withValues(alpha: 0.5) : context.colors.surfaceSecondary),
+                  color: isFuture
+                      ? context.colors.surfaceSecondary.withValues(alpha: 0.4)
+                      : isSelected
+                          ? context.colors.primarySurface
+                          : (isToday ? context.colors.primarySurface.withValues(alpha: 0.5) : context.colors.surfaceSecondary),
                   borderRadius: BorderRadius.circular(Responsive.s(context, AppDimensions.radiusSm)),
-                  border: isSelected
+                  border: isSelected && !isFuture
                       ? Border.all(color: context.colors.primary, width: 2)
                       : (isToday ? Border.all(color: context.colors.primary.withValues(alpha: 0.3), width: 1) : null),
                 ),
@@ -683,25 +686,27 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
                     Text(weekday,
                         style: context.textStyles.caption.copyWith(
                           fontSize: Responsive.fs(context, 11),
-                          color: isSelected ? context.colors.primary : context.colors.textTertiary,
+                          color: isFuture
+                              ? context.colors.textTertiary.withValues(alpha: 0.4)
+                              : isSelected ? context.colors.primary : context.colors.textTertiary,
                         )),
                     SizedBox(height: Responsive.s(context, 4)),
-                    if (hasExpense)
+                    if (hasExpense && !isFuture)
                       Text(
                         '-${_formatCompact(totals.expense)}',
                         style: TextStyle(fontSize: amountFontSize, color: context.colors.expense, height: 1.1),
                         overflow: TextOverflow.ellipsis,
                       ),
-                    if (hasIncome)
+                    if (hasIncome && !isFuture)
                       Text(
                         '+${_formatCompact(totals.income)}',
                         style: TextStyle(fontSize: amountFontSize, color: context.colors.income, height: 1.1),
                         overflow: TextOverflow.ellipsis,
                       ),
                     // 始终保留两行高度，保持卡片高度一致
-                    if (!hasExpense)
+                    if (!hasExpense || isFuture)
                       SizedBox(height: amountFontSize * 1.1),
-                    if (!hasIncome)
+                    if (!hasIncome || isFuture)
                       SizedBox(height: amountFontSize * 1.1),
                   ],
                 ),
@@ -864,12 +869,13 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
                 final day = index - startWeekday + 1;
                 final date = DateTime(year, month, day);
                 final isToday = date.year == today.year && date.month == today.month && date.day == today.day;
+                final isFuture = date.isAfter(today);
                 final totals = dailyTotals[day];
                 final hasExpense = totals != null && totals.expense > 0;
                 final hasIncome = totals != null && totals.income > 0;
 
                 return GestureDetector(
-                  onTap: () {
+                  onTap: isFuture ? null : () {
                     // 点击日期跳转到日明细页
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -883,9 +889,11 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
                   child: Container(
                     margin: EdgeInsets.all(Responsive.s(context, 1)),
                     decoration: BoxDecoration(
-                      color: isToday ? context.colors.primarySurface : null,
+                      color: isFuture
+                          ? context.colors.surfaceSecondary.withValues(alpha: 0.4)
+                          : isToday ? context.colors.primarySurface : null,
                       borderRadius: BorderRadius.circular(Responsive.s(context, 4)),
-                      border: isToday ? Border.all(color: context.colors.primary, width: 1) : null,
+                      border: isToday && !isFuture ? Border.all(color: context.colors.primary, width: 1) : null,
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -894,23 +902,25 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
                           '$day',
                           style: TextStyle(
                             fontSize: dayFontSize,
-                            fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
-                            color: isToday ? context.colors.primary : context.colors.textPrimary,
+                            fontWeight: isToday && !isFuture ? FontWeight.w700 : FontWeight.w500,
+                            color: isFuture
+                                ? context.colors.textTertiary.withValues(alpha: 0.4)
+                                : isToday ? context.colors.primary : context.colors.textPrimary,
                           ),
                         ),
-                        if (hasExpense)
+                        if (hasExpense && !isFuture)
                           Text(
                             '-${_formatAmount(totals.expense)}',
                             style: TextStyle(fontSize: amountFontSize, color: context.colors.expense, height: 1.2),
                             overflow: TextOverflow.ellipsis,
                           ),
-                        if (hasIncome)
+                        if (hasIncome && !isFuture)
                           Text(
                             '+${_formatAmount(totals.income)}',
                             style: TextStyle(fontSize: amountFontSize, color: context.colors.income, height: 1.2),
                             overflow: TextOverflow.ellipsis,
                           ),
-                        if (!hasExpense && !hasIncome)
+                        if ((!hasExpense && !hasIncome) || isFuture)
                           SizedBox(height: amountFontSize * 1.2),
                       ],
                     ),
