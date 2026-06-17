@@ -67,6 +67,19 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
       if (mounted) ref.read(scrollToTopProvider.notifier).state = _scrollDayToTopAndRefresh;
     });
     _loadTransactions();
+    // 监听数据库变化，自动刷新日视图
+    _listenTransactionChanges();
+  }
+
+  /// 监听交易数据变化，当日视图可见时自动刷新
+  void _listenTransactionChanges() {
+    final repo = ref.read(transactionRepositoryProvider);
+    final bookId = ref.read(currentBookProvider);
+    repo.watchAll(bookId).listen((_) {
+      if (mounted && _currentView == ViewType.day && !_isDayLoading) {
+        _loadTransactions();
+      }
+    });
   }
 
   @override
