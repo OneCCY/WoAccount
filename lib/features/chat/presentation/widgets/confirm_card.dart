@@ -35,6 +35,7 @@ class ConfirmCard extends StatelessWidget {
     final isExpense = data.type == 'expense';
     final amountColor = isExpense ? context.colors.expense : context.colors.income;
     final prefix = isExpense ? '-' : '+';
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -58,8 +59,9 @@ class ConfirmCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          // 卡片内容
-          Flexible(
+          // 卡片内容（70% 宽度）
+          SizedBox(
+            width: screenWidth * 0.7,
             child: Container(
               decoration: BoxDecoration(
                 color: context.colors.surface,

@@ -6,12 +6,14 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
-/// 记账成功卡片（参考 ConfirmCard 样式）
+/// 记账成功卡片（参考 ConfirmCard 样式，70% 宽度，左侧对齐）
 class SavedCard extends StatelessWidget {
   final double amount;
   final String type;
   final String category;
+  final String? subcategory;
   final String description;
+  final String? note;
   final DateTime date;
   final String? payMethod;
   final String? aiIcon;
@@ -21,7 +23,9 @@ class SavedCard extends StatelessWidget {
     required this.amount,
     required this.type,
     required this.category,
+    this.subcategory,
     required this.description,
+    this.note,
     required this.date,
     this.payMethod,
     this.aiIcon,
@@ -33,6 +37,7 @@ class SavedCard extends StatelessWidget {
     final isExpense = type == 'expense';
     final amountColor = isExpense ? context.colors.expense : context.colors.income;
     final prefix = isExpense ? '-' : '+';
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -56,8 +61,9 @@ class SavedCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          // 卡片内容
-          Flexible(
+          // 卡片内容（70% 宽度）
+          SizedBox(
+            width: screenWidth * 0.7,
             child: Container(
               decoration: BoxDecoration(
                 color: context.colors.surface,
@@ -96,7 +102,6 @@ class SavedCard extends StatelessWidget {
             fontWeight: FontWeight.w600, color: context.colors.success,
           )),
           const SizedBox(width: 6),
-          // 类型标签
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
@@ -126,6 +131,10 @@ class SavedCard extends StatelessWidget {
 
   /// 表单信息卡片
   Widget _buildFormCard(BuildContext context, AppLocalizations l10n) {
+    final catDisplay = subcategory != null && subcategory!.isNotEmpty
+        ? '$category > $subcategory'
+        : category;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
@@ -139,13 +148,19 @@ class SavedCard extends StatelessWidget {
             icon: Icons.category_outlined,
             iconColor: context.colors.primary,
             label: l10n.chatConfirmCategory,
-            value: category,
+            value: catDisplay,
           ),
           _FormRow(
             icon: Icons.edit_outlined,
             iconColor: context.colors.textSecondary,
             label: l10n.chatConfirmDescription,
             value: description,
+          ),
+          _FormRow(
+            icon: Icons.notes,
+            iconColor: context.colors.textTertiary,
+            label: l10n.txnDetailNote,
+            value: (note == null || note!.isEmpty) ? '无' : note!,
           ),
           _FormRow(
             icon: _getPayMethodIcon(payMethod),
@@ -186,7 +201,7 @@ class SavedCard extends StatelessWidget {
   }
 }
 
-/// 表单信息行（参考 ConfirmCard 样式，只读无点击）
+/// 表单信息行（只读无点击）
 class _FormRow extends StatelessWidget {
   final IconData icon;
   final Color iconColor;

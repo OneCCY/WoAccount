@@ -273,9 +273,9 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(isActive ? activeIcon : icon, size: 24, color: color),
-            const SizedBox(height: 4),
-            Text(label, style: AppTextStyles.navLabel.copyWith(color: color)),
+            Icon(isActive ? activeIcon : icon, size: 28, color: color),
+            const SizedBox(height: 5),
+            Text(label, style: AppTextStyles.navLabel.copyWith(color: color, fontSize: 13)),
           ],
         ),
       ),

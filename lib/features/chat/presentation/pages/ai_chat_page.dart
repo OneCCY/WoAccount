@@ -515,7 +515,9 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
         'amount': data.amount,
         'type': data.type,
         'category': data.category,
+        'subcategory': data.subcategory,
         'description': data.description,
+        'note': data.note,
         'date': data.date.toIso8601String(),
         'payMethod': data.payMethod,
       });
@@ -537,7 +539,9 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
           amount: data.amount,
           type: data.type,
           category: data.category,
+          subcategory: data.subcategory,
           description: data.description,
+          note: data.note,
           date: data.date,
           payMethod: data.payMethod,
         )));
@@ -849,7 +853,9 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
               amount: data.amount,
               type: data.type,
               category: data.category,
+              subcategory: data.subcategory,
               description: data.description,
+              note: data.note,
               date: data.date,
               payMethod: data.payMethod,
               aiIcon: _aiIcon,
@@ -867,7 +873,9 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
                   amount: (map['amount'] as num).toDouble(),
                   type: map['type'] as String,
                   category: map['category'] as String,
+                  subcategory: map['subcategory'] as String?,
                   description: map['description'] as String,
+                  note: map['note'] as String?,
                   date: DateTime.parse(map['date'] as String),
                   payMethod: map['payMethod'] as String?,
                   aiIcon: _aiIcon,
@@ -972,7 +980,9 @@ class SavedData {
   final double amount;
   final String type;
   final String category;
+  final String? subcategory;
   final String description;
+  final String? note;
   final DateTime date;
   final String? payMethod;
 
@@ -980,7 +990,9 @@ class SavedData {
     required this.amount,
     required this.type,
     required this.category,
+    this.subcategory,
     required this.description,
+    this.note,
     required this.date,
     this.payMethod,
   });

@@ -213,6 +213,11 @@ class _TransactionItemState extends State<_TransactionItem>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final categoryName = widget.category != null ? getCategoryDisplayName(widget.category!, l10n) : null;
+    // parentCat 是一级分类（parentCategoryId 指向一级），category 是叶子分类（categoryId 指向叶子）
+    final parentCatName = widget.subcategory != null ? getCategoryDisplayName(widget.subcategory!, l10n) : null;
+    final catDisplay = parentCatName != null
+        ? '$parentCatName > ${categoryName ?? ''}'
+        : (categoryName ?? l10n.txnGroupUncategorized);
     final categoryKey = widget.category?.l10nKey;
     final (icon, bgColor) = _getCategoryStyle(categoryKey);
     final isExpense = widget.transaction.type == 'expense';
@@ -310,7 +315,7 @@ class _TransactionItemState extends State<_TransactionItem>
                                   ],
                                   Expanded(
                                     child: Text(
-                                      '${DateFormat('HH:mm').format(widget.transaction.transactionDate)} · ${categoryName ?? l10n.txnGroupUncategorized}',
+                                      '${DateFormat('HH:mm').format(widget.transaction.transactionDate)} · $catDisplay',
                                       style: context.textStyles.caption,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,

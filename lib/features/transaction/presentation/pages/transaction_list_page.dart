@@ -161,10 +161,8 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
           Column(
             children: [
               _buildTopBar(),
-              if (_currentView != ViewType.day) ...[
-                _buildSearchBar(l10n),
-                _buildStatsBar(repo, l10n),
-              ],
+              _buildSearchBar(l10n),
+              _buildStatsBar(repo, l10n),
             ],
           ),
           // 列表区域正常滚动
@@ -594,9 +592,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
     final groupEntries = grouped.entries.toList();
 
     return RefreshIndicator(
-      onRefresh: () async {
-        await _loadTransactions();
-      },
+      onRefresh: _loadTransactions,
       child: ListView.builder(
         controller: _dayScrollController,
         padding: EdgeInsets.only(bottom: Responsive.s(context, 16)),
