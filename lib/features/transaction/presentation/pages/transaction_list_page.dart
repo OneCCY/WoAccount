@@ -70,23 +70,13 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
       body: Column(
         children: [
           SizedBox(height: MediaQuery.of(context).padding.top),
-          // 顶部区域支持上下滑动切换周期
-          GestureDetector(
-            onVerticalDragEnd: (details) {
-              if (details.primaryVelocity == null) return;
-              if (details.primaryVelocity! > 300) {
-                _goPrevious();
-              } else if (details.primaryVelocity! < -300) {
-                _goNext();
-              }
-            },
-            child: Column(
-              children: [
-                _buildTopBar(),
-                _buildSearchBar(l10n),
-                _buildStatsBar(repo, l10n),
-              ],
-            ),
+          // 顶部区域（仅通过左右箭头切换周期）
+          Column(
+            children: [
+              _buildTopBar(),
+              _buildSearchBar(l10n),
+              _buildStatsBar(repo, l10n),
+            ],
           ),
           // 列表区域正常滚动
           Expanded(child: _buildContent(repo, catRepo, l10n)),
@@ -510,8 +500,10 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
           // 右滑 - 上一天
           setState(() => _currentDate = _currentDate.subtract(const Duration(days: 1)));
         } else if (details.primaryVelocity! < -300) {
-          // 左滑 - 下一天
-          setState(() => _currentDate = _currentDate.add(const Duration(days: 1)));
+          // 左滑 - 下一天（不超过今天）
+          if (_canGoNext()) {
+            setState(() => _currentDate = _currentDate.add(const Duration(days: 1)));
+          }
         }
       },
       child: _buildDayContent(repo, catRepo, l10n),
@@ -590,11 +582,13 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
             _selectedWeekDay = null;
           });
         } else if (details.primaryVelocity! < -300) {
-          // 左滑 - 下一周
-          setState(() {
-            _currentDate = _currentDate.add(const Duration(days: 7));
-            _selectedWeekDay = null;
-          });
+          // 左滑 - 下一周（不超过本周）
+          if (_canGoNext()) {
+            setState(() {
+              _currentDate = _currentDate.add(const Duration(days: 7));
+              _selectedWeekDay = null;
+            });
+          }
         }
       },
       child: _buildWeekContent(repo, catRepo, l10n),

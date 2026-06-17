@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' hide Column;
@@ -362,7 +363,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
       final confirmCards = <ConfirmData>[];
       for (final txn in result.transactions) {
         final matchedCategory = await _matchCategory(txn.category, txn.type);
-        final matchedSub = await _matchSubcategory(matchedCategory.id, txn.subcategory);
+        final matchedSub = await _matchSubcategory(matchedCategory.id, txn.subcategory, txn.type == 'expense');
 
         DateTime txnDate = DateTime.now();
         if (txn.date != null && txn.date!.isNotEmpty) {
@@ -379,9 +380,9 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
           amount: txn.amount,
           type: txn.type,
           category: matchedCategory.name,
-          categoryId: matchedCategory.id,
+          categoryId: matchedSub?.id ?? matchedCategory.id,
           subcategory: matchedSub?.name ?? (mounted ? AppLocalizations.of(context)!.chatPageNoSubcategory : 'N/A'),
-          parentCategoryId: matchedSub?.id,
+          parentCategoryId: matchedSub != null ? matchedCategory.id : null,
           description: txn.description.isNotEmpty
               ? txn.description
               : result.normalizedText.replaceAll(RegExp(r'\d+\.?\d*'), '').trim(),
@@ -455,7 +456,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
     return categories.first;
   }
 
-  Future<Category?> _matchSubcategory(int parentId, String? subcategoryName) async {
+  Future<Category?> _matchSubcategory(int parentId, String? subcategoryName, bool isExpense) async {
     if (subcategoryName == null || subcategoryName.isEmpty) return null;
 
     final children = await _catRepo.getChildren(parentId);
@@ -477,7 +478,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
         parentId: Value(parentId),
         level: const Value(2),
         isSystem: const Value(false),
-        isExpense: Value(true),
+        isExpense: Value(isExpense),
         sortOrder: Value(children.length + 1),
       ));
       return await _catRepo.getById(newId);
@@ -508,6 +509,25 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
       ));
 
       if (!mounted) return;
+
+      // 将保存成功的卡片存入对话记录，确保刷新后仍可见
+      final savedJson = jsonEncode({
+        'amount': data.amount,
+        'type': data.type,
+        'category': data.category,
+        'description': data.description,
+        'date': data.date.toIso8601String(),
+        'payMethod': data.payMethod,
+      });
+      await _chatRepo.insertMessage(
+        ConversationMessagesCompanion.insert(
+          conversationId: _conversationId,
+          role: 'assistant',
+          content: savedJson,
+          accountBookId: _bookId,
+          functionName: const Value('saved_card'),
+        ),
+      );
 
       setState(() {
         final idx = _items.indexWhere((i) => i.isConfirm && i.confirmData == data);
@@ -838,6 +858,25 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
 
           if (item.message != null) {
             final msg = item.message!;
+
+            // 从数据库加载的保存成功卡片
+            if (msg.functionName == 'saved_card') {
+              try {
+                final map = jsonDecode(msg.content) as Map<String, dynamic>;
+                return SavedCard(
+                  amount: (map['amount'] as num).toDouble(),
+                  type: map['type'] as String,
+                  category: map['category'] as String,
+                  description: map['description'] as String,
+                  date: DateTime.parse(map['date'] as String),
+                  payMethod: map['payMethod'] as String?,
+                  aiIcon: _aiIcon,
+                );
+              } catch (_) {
+                // JSON 解析失败则降级为普通消息
+              }
+            }
+
             return ChatBubble(
               isUser: msg.role == 'user',
               content: msg.content,

@@ -104,9 +104,11 @@ class _HomePageState extends ConsumerState<HomePage> {
       // 完整管线：语音→转文字→AI解析→确认卡片
       try {
         setState(() => _isLoading = true);
+        final categoryTaxonomy = await _buildCategoryTaxonomy();
         final result = await pipeline.processVoice(
           audioTempPath: filePath,
           provider: provider,
+          categoryTaxonomy: categoryTaxonomy,
         );
         if (!mounted) return;
 
@@ -181,7 +183,9 @@ class _HomePageState extends ConsumerState<HomePage> {
     try {
       // 使用 AI 服务解析（含降级策略：LLM → 规则引擎）
       final llmRepo = ref.read(llmRepositoryProvider);
-      final results = await llmRepo.parseTransaction(input);
+      // 动态构建用户分类体系（包含最新分类和子分类）
+      final categoryTaxonomy = await _buildCategoryTaxonomy();
+      final results = await llmRepo.parseTransaction(input, categoryTaxonomy: categoryTaxonomy);
       stopwatch.stop();
       if (!mounted) return;
 
@@ -275,6 +279,51 @@ class _HomePageState extends ConsumerState<HomePage> {
     } catch (e) {
       if (!mounted) return;
       _showSnackBar(AppLocalizations.of(context)!.homePageSaveFailed(resolveLlmError(e, AppLocalizations.of(context)!)));
+    }
+  }
+
+  /// 从数据库动态构建分类体系文本（用于 LLM 提示词）
+  Future<String> _buildCategoryTaxonomy() async {
+    try {
+      final categories = await _categoryRepo.getTopLevel();
+      if (categories.isEmpty) return '';
+
+      final expenseCats = categories.where((c) => c.isExpense).toList();
+      final incomeCats = categories.where((c) => !c.isExpense).toList();
+
+      final buffer = StringBuffer();
+
+      if (expenseCats.isNotEmpty) {
+        buffer.writeln('### 支出分类');
+        for (final cat in expenseCats) {
+          final children = await _categoryRepo.getChildren(cat.id);
+          if (children.isNotEmpty) {
+            final subNames = children.map((c) => c.name).join('、');
+            buffer.writeln('- ${cat.name}（$subNames）');
+          } else {
+            buffer.writeln('- ${cat.name}');
+          }
+        }
+        buffer.writeln();
+      }
+
+      if (incomeCats.isNotEmpty) {
+        buffer.writeln('### 收入分类');
+        for (final cat in incomeCats) {
+          final children = await _categoryRepo.getChildren(cat.id);
+          if (children.isNotEmpty) {
+            final subNames = children.map((c) => c.name).join('、');
+            buffer.writeln('- ${cat.name}（$subNames）');
+          } else {
+            buffer.writeln('- ${cat.name}');
+          }
+        }
+      }
+
+      return buffer.toString().trim();
+    } catch (e) {
+      debugPrint('[HomePage] _buildCategoryTaxonomy error: $e');
+      return '';
     }
   }
 

@@ -11,7 +11,7 @@ class PromptTemplates {
 
 ## 分类体系
 
-请从以下用户已配置的分类中选择最合适的一个：
+请从以下用户已配置的分类中选择最合适的一个。每个一级分类后面括号内列出了可选的二级分类。
 
 $categoryTaxonomy
 
@@ -25,8 +25,8 @@ $categoryTaxonomy
   {
     "type": "expense" 或 "income",
     "amount": 数字（必填）,
-    "category": "分类名称"（必填，必须是上面列出的分类之一）,
-    "subcategory": "子分类"（可选，必须是该分类下的子分类）,
+    "category": "一级分类名称"（必填，必须是上面列出的分类之一）,
+    "subcategory": "二级分类名称"（必填，必须从该一级分类的括号内子分类中选择最匹配的一个）,
     "description": "精简描述"（必填）,
     "date": "YYYY-MM-DD"（必填，根据今天日期计算，不要省略）,
     "note": "备注"（可选）,
@@ -49,7 +49,7 @@ $categoryTaxonomy
    - "25.5" → 25.5
    - "1千" → 1000
    - "1万" → 10000
-4. **分类推断**：根据关键词推断，category 和 subcategory 必须使用上面列出的分类名称
+4. **分类推断**：根据关键词推断，category 和 subcategory 必须使用上面列出的分类名称。subcategory 必须从对应 category 括号内的子分类中选择，不要自创子分类名称
 5. **支付方式推断**：
    - "微信付的"/"微信支付" → "wechat"
    - "支付宝"/"花呗" → "alipay"
