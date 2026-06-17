@@ -28,7 +28,7 @@ class TransactionListPage extends ConsumerStatefulWidget {
 }
 
 class _TransactionListPageState extends ConsumerState<TransactionListPage> with PageRefreshMixin {
-  ViewType _currentView = ViewType.week;
+  ViewType _currentView = ViewType.day;
   late DateTime _currentDate;
   DateTime? _selectedWeekDay;
 
@@ -38,6 +38,15 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
 
   // 刷新key
   int _refreshKey = 0;
+
+  // 日视图分页状态
+  final _dayScrollController = ScrollController();
+  List<Transaction> _allTransactions = [];
+  Map<int, Category> _dayCatMap = {};
+  static const _pageSize = 20;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
+  bool _isDayLoading = false;
 
   @override
   String get routePath => '/transactions';
@@ -49,6 +58,81 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
   void initState() {
     super.initState();
     _currentDate = DateTime.now();
+    _dayScrollController.addListener(_onDayScroll);
+    // 注册双击账单tab回到顶部的回调
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.read(scrollToTopProvider.notifier).state = _scrollDayToTopAndRefresh;
+    });
+    _loadTransactions();
+  }
+
+  @override
+  void dispose() {
+    _dayScrollController.dispose();
+    super.dispose();
+  }
+
+  /// 滚动监听：触底加载更多
+  void _onDayScroll() {
+    if (_dayScrollController.position.pixels >= _dayScrollController.position.maxScrollExtent - 100) {
+      _loadMoreTransactions();
+    }
+  }
+
+  /// 双击账单tab：滚动到顶部并刷新
+  void _scrollDayToTopAndRefresh() {
+    if (_currentView != ViewType.day) {
+      setState(() => _currentView = ViewType.day);
+    }
+    _loadTransactions();
+    if (_dayScrollController.hasClients) {
+      _dayScrollController.jumpTo(0);
+    }
+  }
+
+  /// 加载交易记录（重置分页）
+  Future<void> _loadTransactions() async {
+    if (_isDayLoading) return;
+    setState(() {
+      _isDayLoading = true;
+      _allTransactions = [];
+      _hasMore = true;
+    });
+    try {
+      final repo = ref.read(transactionRepositoryProvider);
+      final catRepo = ref.read(categoryRepositoryProvider);
+      final bookId = ref.read(currentBookProvider);
+      final txns = await repo.getPaged(bookId, _pageSize, 0);
+      final cats = await catRepo.getAll();
+      if (!mounted) return;
+      setState(() {
+        _allTransactions = txns;
+        _dayCatMap = {for (final c in cats) c.id: c};
+        _hasMore = txns.length >= _pageSize;
+        _isDayLoading = false;
+      });
+    } catch (e) {
+      if (mounted) setState(() => _isDayLoading = false);
+    }
+  }
+
+  /// 加载更多交易记录
+  Future<void> _loadMoreTransactions() async {
+    if (_isLoadingMore || !_hasMore || _isDayLoading) return;
+    setState(() => _isLoadingMore = true);
+    try {
+      final repo = ref.read(transactionRepositoryProvider);
+      final bookId = ref.read(currentBookProvider);
+      final txns = await repo.getPaged(bookId, _pageSize, _allTransactions.length);
+      if (!mounted) return;
+      setState(() {
+        _allTransactions.addAll(txns);
+        _hasMore = txns.length >= _pageSize;
+        _isLoadingMore = false;
+      });
+    } catch (e) {
+      if (mounted) setState(() => _isLoadingMore = false);
+    }
   }
 
   /// 触发刷新
@@ -58,6 +142,9 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
       _filterType = null;
       _sortType = SortType.time;
     });
+    if (_currentView == ViewType.day) {
+      _loadTransactions();
+    }
   }
 
   @override
@@ -70,12 +157,14 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
       body: Column(
         children: [
           SizedBox(height: MediaQuery.of(context).padding.top),
-          // 顶部区域（仅通过左右箭头切换周期）
+          // 顶部区域
           Column(
             children: [
               _buildTopBar(),
-              _buildSearchBar(l10n),
-              _buildStatsBar(repo, l10n),
+              if (_currentView != ViewType.day) ...[
+                _buildSearchBar(l10n),
+                _buildStatsBar(repo, l10n),
+              ],
             ],
           ),
           // 列表区域正常滚动
@@ -101,12 +190,14 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
             onViewChanged: (view) => setState(() {
               _currentView = view;
               _selectedWeekDay = null;
-              // 切到月视图时清空筛选，避免月视图显示已激活但无列表承载的状态
               if (view == ViewType.month) _filterType = null;
+              if (view == ViewType.day) _loadTransactions();
             }),
           ),
-          const Spacer(),
-          _buildPeriodNav(),
+          if (_currentView != ViewType.day) ...[
+            const Spacer(),
+            _buildPeriodNav(),
+          ],
         ],
       ),
     );
@@ -326,6 +417,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
       switch (_currentView) {
         case ViewType.day:
           _currentDate = DateTime(now.year, now.month, now.day);
+          _loadTransactions();
         case ViewType.week:
           _currentDate = now;
           _selectedWeekDay = DateTime(now.year, now.month, now.day);
@@ -490,79 +582,49 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
     return filtered;
   }
 
-  // ==================== 日视图 ====================
+  // ==================== 日视图（连续分页列表） ====================
 
   Widget _buildDayView(TransactionRepository repo, CategoryRepository catRepo, AppLocalizations l10n) {
-    return GestureDetector(
-      onHorizontalDragEnd: (details) {
-        if (details.primaryVelocity == null) return;
-        if (details.primaryVelocity! > 300) {
-          // 右滑 - 上一天
-          setState(() => _currentDate = _currentDate.subtract(const Duration(days: 1)));
-        } else if (details.primaryVelocity! < -300) {
-          // 左滑 - 下一天（不超过今天）
-          if (_canGoNext()) {
-            setState(() => _currentDate = _currentDate.add(const Duration(days: 1)));
-          }
-        }
-      },
-      child: _buildDayContent(repo, catRepo, l10n),
-    );
-  }
+    if (_isDayLoading && _allTransactions.isEmpty) {
+      return Center(child: CircularProgressIndicator(color: context.colors.primary));
+    }
+    if (_allTransactions.isEmpty) return _buildEmptyState(l10n);
 
-  Widget _buildDayContent(TransactionRepository repo, CategoryRepository catRepo, AppLocalizations l10n) {
-    final start = DateTime(_currentDate.year, _currentDate.month, _currentDate.day);
-    final end = start.add(const Duration(days: 1));
+    final grouped = _groupByDate(_allTransactions);
+    final groupEntries = grouped.entries.toList();
 
     return RefreshIndicator(
-      onRefresh: () async { _triggerRefresh(); },
-      child: StreamBuilder<List<Transaction>>(
-        key: ValueKey('day_$_refreshKey'),
-        stream: repo.watchAll(ref.watch(currentBookProvider)),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator(color: context.colors.primary));
+      onRefresh: () async {
+        await _loadTransactions();
+      },
+      child: ListView.builder(
+        controller: _dayScrollController,
+        padding: EdgeInsets.only(bottom: Responsive.s(context, 16)),
+        itemCount: groupEntries.length + (_hasMore ? 1 : 0),
+        itemBuilder: (context, index) {
+          // 底部加载更多指示器
+          if (index == groupEntries.length) {
+            return Padding(
+              padding: EdgeInsets.all(Responsive.s(context, 16)),
+              child: Center(
+                child: _isLoadingMore
+                    ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: context.colors.primary))
+                    : Text(l10n.txnEmpty, style: context.textStyles.caption.copyWith(color: context.colors.textTertiary)),
+              ),
+            );
           }
-          if (snapshot.hasError) {
-            debugPrint('[TransactionList] stream error: ${snapshot.error}');
-            return Center(child: Text(AppLocalizations.of(context)!.loadFailedPullToRefresh, style: context.textStyles.body.copyWith(color: context.colors.textTertiary)));
-          }
-          final allTxns = snapshot.data ?? [];
-          final dayTxns = allTxns.where((t) =>
-              !t.transactionDate.isBefore(start) && t.transactionDate.isBefore(end)).toList();
 
-          return FutureBuilder<List<Category>>(
-            future: catRepo.getAll(),
-            builder: (context, catSnap) {
-              final categoryMap = <int, Category>{for (final c in (catSnap.data ?? [])) c.id: c};
-              final filtered = _applyFilterAndSort(dayTxns, categoryMap);
-
-              if (filtered.isEmpty) return _buildEmptyState(l10n);
-
-              final grouped = _groupByDate(filtered);
-              return ListView.builder(
-                padding: EdgeInsets.only(bottom: Responsive.s(context, 16)),
-                itemCount: grouped.length,
-                itemBuilder: (context, index) {
-                  final entry = grouped.entries.elementAt(index);
-                  return TransactionGroup(
-                    date: entry.key,
-                    transactions: entry.value,
-                    categoryMap: categoryMap,
-                    sortLabel: _sortType == SortType.time ? l10n.txnSortByTime : l10n.txnSortByAmount,
-                    onSortToggle: () => setState(() {
-                      _sortType = _sortType == SortType.time ? SortType.amount : SortType.time;
-                    }),
-                    onDelete: (id) async {
-                      final result = await repo.delete(id);
-                      setState(() {});
-                      return result;
-                    },
-                    onTap: (t) => context.push('/transactions/${t.id}'),
-                  );
-                },
-              );
+          final entry = groupEntries[index];
+          return TransactionGroup(
+            date: entry.key,
+            transactions: entry.value,
+            categoryMap: _dayCatMap,
+            onDelete: (id) async {
+              final result = await repo.delete(id);
+              if (result) _loadTransactions();
+              return result;
             },
+            onTap: (t) => context.push('/transactions/${t.id}'),
           );
         },
       ),
@@ -652,7 +714,9 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
       ),
       child: Row(
         children: List.generate(7, (i) {
-          final date = weekStart.add(Duration(days: i));
+          final rawDate = weekStart.add(Duration(days: i));
+          // 规范化日期为纯日期（去除时间分量），确保比较准确
+          final date = DateTime(rawDate.year, rawDate.month, rawDate.day);
           final isToday = date.year == today.year && date.month == today.month && date.day == today.day;
           final isFuture = date.isAfter(today);
           final isSelected = date.year == selectedDay.year &&
@@ -867,7 +931,8 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
               itemBuilder: (context, index) {
                 if (index < startWeekday) return const SizedBox.shrink();
                 final day = index - startWeekday + 1;
-                final date = DateTime(year, month, day);
+                final rawDate = DateTime(year, month, day);
+                final date = DateTime(rawDate.year, rawDate.month, rawDate.day);
                 final isToday = date.year == today.year && date.month == today.month && date.day == today.day;
                 final isFuture = date.isAfter(today);
                 final totals = dailyTotals[day];

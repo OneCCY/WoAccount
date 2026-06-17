@@ -90,6 +90,15 @@ class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   @override
+  Future<List<Transaction>> getPaged(int bookId, int limit, int offset) async {
+    return (_db.select(_db.transactions)
+          ..where((t) => t.isDeleted.equals(false) & t.accountBookId.equals(bookId))
+          ..orderBy([(t) => OrderingTerm.desc(t.transactionDate)])
+          ..limit(limit, offset: offset))
+        .get();
+  }
+
+  @override
   Stream<List<Transaction>> watchToday(int bookId) {
     final now = DateTime.now();
     final startOfDay = DateTime(now.year, now.month, now.day);

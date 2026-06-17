@@ -3,9 +3,10 @@ import 'package:intl/intl.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
-/// 记账成功卡片（替代纯文本消息）
+/// 记账成功卡片（参考 ConfirmCard 样式）
 class SavedCard extends StatelessWidget {
   final double amount;
   final String type;
@@ -58,47 +59,106 @@ class SavedCard extends StatelessWidget {
           // 卡片内容
           Flexible(
             child: Container(
-              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: context.colors.surface,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: context.colors.success.withValues(alpha: 0.3), width: 1),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 标题行
-                  Row(
-                    children: [
-                      Icon(Icons.check_circle, size: 16, color: context.colors.success),
-                      const SizedBox(width: 6),
-                      Text(l10n.chatPageSaveSuccessTitle, style: AppTextStyles.footnote.copyWith(
-                        fontWeight: FontWeight.w600, color: context.colors.success,
-                      )),
-                    ],
-                  ),
+                  _buildHeader(context, l10n, amountColor),
+                  _buildAmountDisplay(context, amountColor, prefix),
+                  const SizedBox(height: 4),
+                  _buildFormCard(context, l10n),
                   const SizedBox(height: 10),
-                  // 金额
-                  Text(
-                    '$prefix${context.localeProvider.currency.formatAmount(amount)}',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: amountColor, height: 1.2),
-                  ),
-                  const SizedBox(height: 8),
-                  // 信息行
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 4,
-                    children: [
-                      _InfoChip(icon: Icons.category_outlined, label: category),
-                      _InfoChip(icon: Icons.edit_outlined, label: description),
-                      _InfoChip(icon: Icons.calendar_today_outlined, label: DateFormat('MM/dd HH:mm').format(date)),
-                      if (payMethod != null)
-                        _InfoChip(icon: _getPayMethodIcon(payMethod), label: _getPayMethodLabel(payMethod, l10n)),
-                    ],
-                  ),
                 ],
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 顶部标题 + 类型标签
+  Widget _buildHeader(BuildContext context, AppLocalizations l10n, Color amountColor) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
+      child: Row(
+        children: [
+          Icon(Icons.check_circle, size: 14, color: context.colors.success),
+          const SizedBox(width: 4),
+          Text(l10n.chatPageSaveSuccessTitle, style: AppTextStyles.caption.copyWith(
+            fontWeight: FontWeight.w600, color: context.colors.success,
+          )),
+          const SizedBox(width: 6),
+          // 类型标签
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: amountColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              type == 'expense' ? l10n.entryExpense : type == 'income' ? l10n.entryIncome : l10n.entryOther,
+              style: AppTextStyles.caption.copyWith(color: amountColor, fontSize: 10, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 金额大字显示
+  Widget _buildAmountDisplay(BuildContext context, Color amountColor, String prefix) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      child: Text(
+        '$prefix${context.localeProvider.currency.formatAmount(amount)}',
+        style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: amountColor, height: 1.2),
+      ),
+    );
+  }
+
+  /// 表单信息卡片
+  Widget _buildFormCard(BuildContext context, AppLocalizations l10n) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: context.colors.background,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          _FormRow(
+            icon: Icons.category_outlined,
+            iconColor: context.colors.primary,
+            label: l10n.chatConfirmCategory,
+            value: category,
+          ),
+          _FormRow(
+            icon: Icons.edit_outlined,
+            iconColor: context.colors.textSecondary,
+            label: l10n.chatConfirmDescription,
+            value: description,
+          ),
+          _FormRow(
+            icon: _getPayMethodIcon(payMethod),
+            iconColor: context.colors.textSecondary,
+            label: l10n.txnDetailPayMethod,
+            value: _getPayMethodLabel(payMethod, l10n),
+          ),
+          _FormRow(
+            icon: Icons.calendar_today_outlined,
+            iconColor: context.colors.primary,
+            label: l10n.chatConfirmDate,
+            value: DateFormat('MM/dd HH:mm').format(date),
+            showDivider: false,
           ),
         ],
       ),
@@ -126,21 +186,46 @@ class SavedCard extends StatelessWidget {
   }
 }
 
-class _InfoChip extends StatelessWidget {
+/// 表单信息行（参考 ConfirmCard 样式，只读无点击）
+class _FormRow extends StatelessWidget {
   final IconData icon;
+  final Color iconColor;
   final String label;
+  final String value;
+  final bool showDivider;
 
-  const _InfoChip({required this.icon, required this.label});
+  const _FormRow({
+    required this.icon,
+    required this.iconColor,
+    required this.label,
+    required this.value,
+    this.showDivider = true,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 12, color: context.colors.textTertiary),
-        const SizedBox(width: 3),
-        Text(label, style: context.textStyles.caption.copyWith(color: context.colors.textSecondary)),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: showDivider
+          ? BoxDecoration(border: Border(bottom: BorderSide(color: context.colors.separatorOpaque, width: 0.5)))
+          : null,
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: iconColor),
+          const SizedBox(width: 8),
+          Text(label, style: AppTextStyles.caption.copyWith(color: context.colors.textTertiary)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              value,
+              style: AppTextStyles.body.copyWith(fontSize: 14),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.end,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

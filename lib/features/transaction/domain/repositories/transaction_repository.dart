@@ -32,6 +32,9 @@ abstract class TransactionRepository {
   /// 监听账本内所有交易变化（响应式）
   Stream<List<Transaction>> watchAll(int bookId);
 
+  /// 分页获取账本内所有交易（按时间倒序）
+  Future<List<Transaction>> getPaged(int bookId, int limit, int offset);
+
   /// 监听账本内今日交易变化
   Stream<List<Transaction>> watchToday(int bookId);
 

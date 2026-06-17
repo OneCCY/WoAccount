@@ -75,3 +75,6 @@ Future<void> switchCurrentBook(WidgetRef ref, int bookId) async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setInt('current_book_id', bookId);
 }
+
+/// 账单页面滚动到顶部并刷新的回调（由 TransactionListPage 注册，MainShell 调用）
+final scrollToTopProvider = StateProvider<void Function()?>((ref) => null);
