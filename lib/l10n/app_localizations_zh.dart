@@ -697,6 +697,36 @@ class AppLocalizationsZh extends AppLocalizations {
   String get budgetEditBudgetDeveloping => '编辑预算功能开发中';
 
   @override
+  String get budgetSetTotalTitle => '设置总预算';
+
+  @override
+  String get budgetEditTotalTitle => '编辑总预算';
+
+  @override
+  String get budgetEditCategoryTitle => '编辑分类预算';
+
+  @override
+  String get budgetInputAmount => '输入预算金额';
+
+  @override
+  String get budgetSelectCategory => '选择分类';
+
+  @override
+  String get budgetNoCategoryAvailable => '没有可用的分类';
+
+  @override
+  String get budgetCategoryAlreadyExists => '该分类预算已存在';
+
+  @override
+  String get budgetDeleteTitle => '删除预算';
+
+  @override
+  String get budgetDeleteConfirm => '确定要删除该分类的预算吗？';
+
+  @override
+  String get budgetNoBudgets => '暂未设置预算，点击右上角编辑按钮开始';
+
+  @override
   String get bookTitle => '我的账本';
 
   @override
@@ -3100,6 +3130,36 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get budgetEditBudgetDeveloping => '編輯預算功能開發中';
+
+  @override
+  String get budgetSetTotalTitle => '設定總預算';
+
+  @override
+  String get budgetEditTotalTitle => '編輯總預算';
+
+  @override
+  String get budgetEditCategoryTitle => '編輯分類預算';
+
+  @override
+  String get budgetInputAmount => '輸入預算金額';
+
+  @override
+  String get budgetSelectCategory => '選擇分類';
+
+  @override
+  String get budgetNoCategoryAvailable => '沒有可用的分類';
+
+  @override
+  String get budgetCategoryAlreadyExists => '該分類預算已存在';
+
+  @override
+  String get budgetDeleteTitle => '刪除預算';
+
+  @override
+  String get budgetDeleteConfirm => '確定要刪除該分類的預算嗎？';
+
+  @override
+  String get budgetNoBudgets => '暫未設定預算，點擊右上角編輯按鈕開始';
 
   @override
   String get bookTitle => '我的帳本';

@@ -1374,6 +1374,66 @@ abstract class AppLocalizations {
   /// **'编辑预算功能开发中'**
   String get budgetEditBudgetDeveloping;
 
+  /// No description provided for @budgetSetTotalTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'设置总预算'**
+  String get budgetSetTotalTitle;
+
+  /// No description provided for @budgetEditTotalTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑总预算'**
+  String get budgetEditTotalTitle;
+
+  /// No description provided for @budgetEditCategoryTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑分类预算'**
+  String get budgetEditCategoryTitle;
+
+  /// No description provided for @budgetInputAmount.
+  ///
+  /// In zh, this message translates to:
+  /// **'输入预算金额'**
+  String get budgetInputAmount;
+
+  /// No description provided for @budgetSelectCategory.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择分类'**
+  String get budgetSelectCategory;
+
+  /// No description provided for @budgetNoCategoryAvailable.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有可用的分类'**
+  String get budgetNoCategoryAvailable;
+
+  /// No description provided for @budgetCategoryAlreadyExists.
+  ///
+  /// In zh, this message translates to:
+  /// **'该分类预算已存在'**
+  String get budgetCategoryAlreadyExists;
+
+  /// No description provided for @budgetDeleteTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除预算'**
+  String get budgetDeleteTitle;
+
+  /// No description provided for @budgetDeleteConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要删除该分类的预算吗？'**
+  String get budgetDeleteConfirm;
+
+  /// No description provided for @budgetNoBudgets.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂未设置预算，点击右上角编辑按钮开始'**
+  String get budgetNoBudgets;
+
   /// No description provided for @bookTitle.
   ///
   /// In zh, this message translates to:

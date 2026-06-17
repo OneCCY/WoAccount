@@ -714,6 +714,39 @@ class AppLocalizationsEn extends AppLocalizations {
       'Budget editing feature is under development';
 
   @override
+  String get budgetSetTotalTitle => 'Set Total Budget';
+
+  @override
+  String get budgetEditTotalTitle => 'Edit Total Budget';
+
+  @override
+  String get budgetEditCategoryTitle => 'Edit Category Budget';
+
+  @override
+  String get budgetInputAmount => 'Enter budget amount';
+
+  @override
+  String get budgetSelectCategory => 'Select Category';
+
+  @override
+  String get budgetNoCategoryAvailable => 'No categories available';
+
+  @override
+  String get budgetCategoryAlreadyExists =>
+      'Budget for this category already exists';
+
+  @override
+  String get budgetDeleteTitle => 'Delete Budget';
+
+  @override
+  String get budgetDeleteConfirm =>
+      'Are you sure you want to delete this category budget?';
+
+  @override
+  String get budgetNoBudgets =>
+      'No budgets set yet, tap the edit button to start';
+
+  @override
   String get bookTitle => 'My Account Books';
 
   @override

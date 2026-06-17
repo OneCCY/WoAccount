@@ -248,6 +248,17 @@
   "budgetAddCategoryBudgetDeveloping": "카테고리 예산 추가 기능 개발 중",
   "budgetEditBudgetDeveloping": "예산 편집 기능 개발 중",
 
+  "budgetSetTotalTitle": "총 예산 설정",
+  "budgetEditTotalTitle": "총 예산 편집",
+  "budgetEditCategoryTitle": "카테고리 예산 편집",
+  "budgetInputAmount": "예산 금액 입력",
+  "budgetSelectCategory": "카테고리 선택",
+  "budgetNoCategoryAvailable": "사용 가능한 카테고리가 없습니다",
+  "budgetCategoryAlreadyExists": "해당 카테고리 예산이 이미 존재합니다",
+  "budgetDeleteTitle": "예산 삭제",
+  "budgetDeleteConfirm": "이 카테고리 예산을 삭제하시겠습니까?",
+  "budgetNoBudgets": "예산이 미설정입니다. 우상단 편집 버튼으로 시작",
+
   "bookTitle": "내 가계부",
   "bookCreate": "새 가계부",
   "bookDescription": "각 가계부에는 독립적인 거래 기록, 예산, AI 대화 내역이 있습니다",

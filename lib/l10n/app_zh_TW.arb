@@ -248,6 +248,17 @@
   "budgetAddCategoryBudgetDeveloping": "新增分類預算功能開發中",
   "budgetEditBudgetDeveloping": "編輯預算功能開發中",
 
+  "budgetSetTotalTitle": "設定總預算",
+  "budgetEditTotalTitle": "編輯總預算",
+  "budgetEditCategoryTitle": "編輯分類預算",
+  "budgetInputAmount": "輸入預算金額",
+  "budgetSelectCategory": "選擇分類",
+  "budgetNoCategoryAvailable": "沒有可用的分類",
+  "budgetCategoryAlreadyExists": "該分類預算已存在",
+  "budgetDeleteTitle": "刪除預算",
+  "budgetDeleteConfirm": "確定要刪除該分類的預算嗎？",
+  "budgetNoBudgets": "暫未設定預算，點擊右上角編輯按鈕開始",
+
   "bookTitle": "我的帳本",
   "bookCreate": "新建帳本",
   "bookDescription": "每個帳本擁有獨立的交易記錄、預算和 AI 對話歷史",

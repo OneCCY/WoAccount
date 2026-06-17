@@ -1,18 +1,20 @@
+import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
+import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
-// ignore: unused_import
-import '../../domain/repositories/budget_repository.dart';
 import '../../../../core/widgets/toast.dart';
 import '../../../../core/widgets/page_refresh_mixin.dart';
+import '../../domain/repositories/budget_repository.dart';
 
 /// 预算设置页
-/// 总预算 + 分类预算列表 + 添加
+/// 总预算 + 分类预算列表 + 添加/编辑/删除
 class BudgetSettingPage extends ConsumerStatefulWidget {
   const BudgetSettingPage({super.key});
 
@@ -22,7 +24,7 @@ class BudgetSettingPage extends ConsumerStatefulWidget {
 
 class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> with PageRefreshMixin {
   @override
-  String get routePath => '/budget';
+  String get routePath => '/budget/setting';
 
   @override
   void onRefresh() => _loadData();
@@ -30,6 +32,7 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> with Page
   late final BudgetRepository _budgetRepo;
   final now = DateTime.now();
   List<BudgetProgress> _progresses = [];
+  List<Category> _allCategories = [];
   bool _isLoading = true;
 
   @override
@@ -40,10 +43,13 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> with Page
   }
 
   Future<void> _loadData() async {
-    final bookId = ref.watch(currentBookProvider);
+    final bookId = ref.read(currentBookProvider);
     final progresses = await _budgetRepo.getBudgetProgress(bookId, now.year, now.month);
+    final categories = await ref.read(categoryRepositoryProvider).getAll();
+    if (!mounted) return;
     setState(() {
       _progresses = progresses;
+      _allCategories = categories;
       _isLoading = false;
     });
   }
@@ -64,21 +70,37 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> with Page
       backgroundColor: context.colors.background,
       appBar: AppBar(title: Text(l10n.budgetSettingTitle)),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator(color: context.colors.primary))
           : SingleChildScrollView(
               child: Column(
                 children: [
                   const SizedBox(height: 24),
 
-                  // 总预算显示
-                  Text(
-                    context.localeProvider.currency.formatAmount(totalBudget, decimals: 0),
-                    style: context.textStyles.amountLarge,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    l10n.budgetCategoryCount('${categoryProgresses.length}'),
-                    style: context.textStyles.caption,
+                  // 总预算（可点击编辑）
+                  GestureDetector(
+                    onTap: () => _showTotalBudgetDialog(totalBudget > 0
+                        ? _progresses.firstWhere((p) => p.budget.categoryId == null)
+                        : null),
+                    child: Column(
+                      children: [
+                        Text(
+                          context.localeProvider.currency.formatAmount(totalBudget, decimals: 0),
+                          style: context.textStyles.amountLarge,
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              l10n.budgetCategoryCount('${categoryProgresses.length}'),
+                              style: context.textStyles.caption,
+                            ),
+                            const SizedBox(width: 4),
+                            Icon(Icons.edit_outlined, size: 14, color: context.colors.textTertiary),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
 
                   const SizedBox(height: 16),
@@ -158,76 +180,440 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> with Page
   }
 
   Widget _buildCategoryBudgetItem(BuildContext context, BudgetProgress progress) {
-    final l10n = AppLocalizations.of(context)!;
     final cat = progress.category;
     final color = _parseColor(context, cat?.color);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDimensions.md,
-        vertical: 4,
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(16),
+    return Dismissible(
+      key: ValueKey(progress.budget.id),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (_) => _confirmDeleteBudget(progress),
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 24),
+        margin: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 4),
         decoration: BoxDecoration(
-          color: context.colors.surface,
+          color: context.colors.error,
           borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
         ),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+        child: const Icon(Icons.delete_outline, color: Colors.white),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppDimensions.md,
+          vertical: 4,
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: context.colors.surface,
+            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+                ),
+                child: Center(
+                  child: Text(cat?.icon ?? '📦', style: const TextStyle(fontSize: 18)),
+                ),
               ),
-              child: Center(
-                child: Text(cat?.icon ?? '📦', style: const TextStyle(fontSize: 18)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(cat?.name ?? AppLocalizations.of(context)!.budgetUncategorized, style: context.textStyles.body),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${AppLocalizations.of(context)!.budgetSpent(context.localeProvider.currency.formatAmount(progress.spent, decimals: 0))}  ·  ${progress.percentage.toStringAsFixed(0)}%',
+                      style: context.textStyles.caption.copyWith(
+                        color: progress.isOverBudget ? context.colors.error : null,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(cat?.name ?? AppLocalizations.of(context)!.budgetUncategorized, style: context.textStyles.body),
-                  const SizedBox(height: 4),
-                  Text(
-                    l10n.budgetSpent(context.localeProvider.currency.formatAmount(progress.spent, decimals: 0)),
-                    style: context.textStyles.caption,
-                  ),
-                ],
+              Text(
+                context.localeProvider.currency.formatAmount(progress.budget.amount, decimals: 0),
+                style: context.textStyles.amountSmall,
               ),
-            ),
-            Text(
-              context.localeProvider.currency.formatAmount(progress.budget.amount, decimals: 0),
-              style: context.textStyles.amountSmall,
-            ),
-            const SizedBox(width: 8),
-            GestureDetector(
-              onTap: () => _onEditBudget(progress),
-              child: Icon(Icons.edit_outlined, size: 18, color: context.colors.textTertiary),
-            ),
-          ],
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () => _onEditBudget(progress),
+                child: Icon(Icons.edit_outlined, size: 18, color: context.colors.textTertiary),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  void _onAddCategoryBudget() {
-    // TODO: 显示分类选择 + 金额输入对话框
-    AppToast.show(context, AppLocalizations.of(context)!.budgetAddCategoryBudgetDeveloping, duration: const Duration(milliseconds: 500));
+  // ==================== 总预算设置/编辑 ====================
+
+  void _showTotalBudgetDialog(BudgetProgress? existing) {
+    final l10n = AppLocalizations.of(context)!;
+    final controller = TextEditingController(
+      text: existing != null ? existing.budget.amount.toStringAsFixed(0) : '',
+    );
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(existing != null ? l10n.budgetEditTotalTitle : l10n.budgetSetTotalTitle),
+        content: TextField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))],
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText: l10n.budgetInputAmount,
+            prefixText: '${context.localeProvider.currency.symbol} ',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l10n.commonCancel),
+          ),
+          if (existing != null)
+            TextButton(
+              onPressed: () async {
+                await _budgetRepo.delete(existing.budget.id);
+                if (ctx.mounted) Navigator.pop(ctx);
+                _loadData();
+              },
+              child: Text(l10n.commonDelete, style: TextStyle(color: context.colors.error)),
+            ),
+          TextButton(
+            onPressed: () async {
+              final amount = double.tryParse(controller.text);
+              if (amount == null || amount <= 0) return;
+              final bookId = ref.read(currentBookProvider);
+              if (existing != null) {
+                await _budgetRepo.update(BudgetsCompanion(
+                  id: drift.Value(existing.budget.id),
+                  accountBookId: drift.Value(bookId),
+                  amount: drift.Value(amount),
+                  year: drift.Value(now.year),
+                  month: drift.Value(now.month),
+                  period: const drift.Value('monthly'),
+                ));
+              } else {
+                await _budgetRepo.insert(BudgetsCompanion(
+                  accountBookId: drift.Value(bookId),
+                  amount: drift.Value(amount),
+                  year: drift.Value(now.year),
+                  month: drift.Value(now.month),
+                  period: const drift.Value('monthly'),
+                ));
+              }
+              if (ctx.mounted) Navigator.pop(ctx);
+              _loadData();
+            },
+            child: Text(l10n.commonSave),
+          ),
+        ],
+      ),
+    );
   }
 
+  // ==================== 添加分类预算 ====================
+
+  void _onAddCategoryBudget() {
+    final l10n = AppLocalizations.of(context)!;
+
+    // 获取已设置预算的分类 ID
+    final existingCatIds = _progresses
+        .where((p) => p.budget.categoryId != null)
+        .map((p) => p.budget.categoryId!)
+        .toSet();
+
+    // 筛选支出子分类（level 2）且未设置预算的
+    final available = _allCategories
+        .where((c) => c.level == 2 && c.isExpense && !existingCatIds.contains(c.id))
+        .toList();
+
+    if (available.isEmpty) {
+      AppToast.show(context, l10n.budgetNoCategoryAvailable, duration: const Duration(seconds: 1));
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (ctx) => _CategoryBudgetDialog(
+        categories: available,
+        allCategories: _allCategories,
+        onSave: (categoryId, amount) => _saveCategoryBudget(categoryId, amount, ctx),
+      ),
+    );
+  }
+
+  Future<void> _saveCategoryBudget(int categoryId, double amount, BuildContext dialogCtx) async {
+    final bookId = ref.read(currentBookProvider);
+    await _budgetRepo.insert(BudgetsCompanion(
+      accountBookId: drift.Value(bookId),
+      categoryId: drift.Value(categoryId),
+      amount: drift.Value(amount),
+      year: drift.Value(now.year),
+      month: drift.Value(now.month),
+      period: const drift.Value('monthly'),
+    ));
+    if (dialogCtx.mounted) Navigator.pop(dialogCtx);
+    _loadData();
+  }
+
+  // ==================== 编辑分类预算 ====================
+
   void _onEditBudget(BudgetProgress progress) {
-    // TODO: 编辑预算金额
-    AppToast.show(context, AppLocalizations.of(context)!.budgetEditBudgetDeveloping, duration: const Duration(milliseconds: 500));
+    final l10n = AppLocalizations.of(context)!;
+    final controller = TextEditingController(
+      text: progress.budget.amount.toStringAsFixed(0),
+    );
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.budgetEditCategoryTitle),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 分类名称
+            Row(
+              children: [
+                Text(progress.category?.icon ?? '📦', style: const TextStyle(fontSize: 20)),
+                const SizedBox(width: 8),
+                Text(progress.category?.name ?? l10n.budgetUncategorized,
+                    style: context.textStyles.body.copyWith(fontWeight: FontWeight.w600)),
+              ],
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))],
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: l10n.budgetInputAmount,
+                prefixText: '${context.localeProvider.currency.symbol} ',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l10n.commonCancel),
+          ),
+          TextButton(
+            onPressed: () async {
+              await _budgetRepo.delete(progress.budget.id);
+              if (ctx.mounted) Navigator.pop(ctx);
+              _loadData();
+            },
+            child: Text(l10n.commonDelete, style: TextStyle(color: context.colors.error)),
+          ),
+          TextButton(
+            onPressed: () => _updateCategoryBudget(progress, controller.text, ctx),
+            child: Text(l10n.commonSave),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _updateCategoryBudget(BudgetProgress progress, String amountStr, BuildContext dialogCtx) async {
+    final amount = double.tryParse(amountStr);
+    if (amount == null || amount <= 0) return;
+
+    await _budgetRepo.update(BudgetsCompanion(
+      id: drift.Value(progress.budget.id),
+      accountBookId: drift.Value(progress.budget.accountBookId),
+      categoryId: drift.Value(progress.budget.categoryId),
+      amount: drift.Value(amount),
+      year: drift.Value(progress.budget.year),
+      month: drift.Value(progress.budget.month),
+      period: drift.Value(progress.budget.period),
+    ));
+
+    if (dialogCtx.mounted) Navigator.pop(dialogCtx);
+    _loadData();
+  }
+
+  // ==================== 删除确认 ====================
+
+  Future<bool?> _confirmDeleteBudget(BudgetProgress progress) {
+    final l10n = AppLocalizations.of(context)!;
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.budgetDeleteTitle),
+        content: Text(l10n.budgetDeleteConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.commonCancel),
+          ),
+          TextButton(
+            onPressed: () async {
+              await _budgetRepo.delete(progress.budget.id);
+              if (ctx.mounted) Navigator.pop(ctx, true);
+              _loadData();
+            },
+            child: Text(l10n.commonDelete, style: TextStyle(color: context.colors.error)),
+          ),
+        ],
+      ),
+    );
   }
 
   Color _parseColor(BuildContext context, String? hex) {
     if (hex == null || hex.isEmpty) return context.colors.textTertiary;
     final clean = hex.replaceFirst('#', '');
     return Color(int.parse('FF$clean', radix: 16));
+  }
+}
+
+// ==================== 分类预算选择对话框 ====================
+
+/// 分类选择 + 金额输入 一体化对话框
+class _CategoryBudgetDialog extends StatefulWidget {
+  final List<Category> categories;
+  final List<Category> allCategories;
+  final void Function(int categoryId, double amount) onSave;
+
+  const _CategoryBudgetDialog({
+    required this.categories,
+    required this.allCategories,
+    required this.onSave,
+  });
+
+  @override
+  State<_CategoryBudgetDialog> createState() => _CategoryBudgetDialogState();
+}
+
+class _CategoryBudgetDialogState extends State<_CategoryBudgetDialog> {
+  int? _selectedCategoryId;
+  final _amountController = TextEditingController();
+
+  /// 按父分类分组
+  Map<Category, List<Category>> get _grouped {
+    final map = <Category, List<Category>>{};
+    for (final cat in widget.categories) {
+      final parent = widget.allCategories.firstWhere(
+        (c) => c.id == cat.parentId,
+        orElse: () => cat,
+      );
+      map.putIfAbsent(parent, () => []).add(cat);
+    }
+    return map;
+  }
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return AlertDialog(
+      title: Text(l10n.budgetAddCategoryBudget),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 金额输入
+            TextField(
+              controller: _amountController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))],
+              autofocus: _selectedCategoryId != null,
+              decoration: InputDecoration(
+                hintText: l10n.budgetInputAmount,
+                prefixText: '${context.localeProvider.currency.symbol} ',
+              ),
+            ),
+            const SizedBox(height: 16),
+            // 分类列表
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: _grouped.entries.map((entry) {
+                    final parent = entry.key;
+                    final children = entry.value;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8, bottom: 4),
+                          child: Text(
+                            '${parent.icon ?? ''} ${parent.name}',
+                            style: context.textStyles.caption.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: context.colors.textSecondary,
+                            ),
+                          ),
+                        ),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: children.map((cat) {
+                            final isSelected = _selectedCategoryId == cat.id;
+                            return ChoiceChip(
+                              label: Text(cat.name, style: TextStyle(fontSize: 13)),
+                              selected: isSelected,
+                              onSelected: (selected) {
+                                setState(() {
+                                  _selectedCategoryId = selected ? cat.id : null;
+                                  // 选中后聚焦金额输入
+                                  if (selected) {
+                                    FocusScope.of(context).nextFocus();
+                                  }
+                                });
+                              },
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.commonCancel),
+        ),
+        TextButton(
+          onPressed: _canSave ? _save : null,
+          child: Text(l10n.commonSave),
+        ),
+      ],
+    );
+  }
+
+  bool get _canSave =>
+      _selectedCategoryId != null &&
+      double.tryParse(_amountController.text) != null &&
+      double.parse(_amountController.text) > 0;
+
+  void _save() {
+    final amount = double.tryParse(_amountController.text);
+    if (amount == null || amount <= 0 || _selectedCategoryId == null) return;
+    widget.onSave(_selectedCategoryId!, amount);
   }
 }

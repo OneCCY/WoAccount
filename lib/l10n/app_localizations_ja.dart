@@ -698,6 +698,36 @@ class AppLocalizationsJa extends AppLocalizations {
   String get budgetEditBudgetDeveloping => '予算編集機能は開発中です';
 
   @override
+  String get budgetSetTotalTitle => '合計予算を設定';
+
+  @override
+  String get budgetEditTotalTitle => '合計予算を編集';
+
+  @override
+  String get budgetEditCategoryTitle => 'カテゴリ予算を編集';
+
+  @override
+  String get budgetInputAmount => '予算金額を入力';
+
+  @override
+  String get budgetSelectCategory => 'カテゴリを選択';
+
+  @override
+  String get budgetNoCategoryAvailable => '利用可能なカテゴリがありません';
+
+  @override
+  String get budgetCategoryAlreadyExists => 'このカテゴリの予算は既に存在します';
+
+  @override
+  String get budgetDeleteTitle => '予算を削除';
+
+  @override
+  String get budgetDeleteConfirm => 'このカテゴリの予算を削除しますか？';
+
+  @override
+  String get budgetNoBudgets => '予算が未設定です。右上の編集ボタンから開始';
+
+  @override
   String get bookTitle => 'マイ家計簿';
 
   @override

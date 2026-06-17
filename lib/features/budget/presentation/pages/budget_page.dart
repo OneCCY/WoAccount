@@ -2,23 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
+import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
-// ignore: unused_import
 import '../../domain/repositories/budget_repository.dart';
 
 /// 预算管理页
 /// 总额卡片 + 分类预算列表
-class BudgetPage extends ConsumerWidget {
+class BudgetPage extends ConsumerStatefulWidget {
   const BudgetPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BudgetPage> createState() => _BudgetPageState();
+}
+
+class _BudgetPageState extends ConsumerState<BudgetPage> {
+  final now = DateTime.now();
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final now = DateTime.now();
     final repo = ref.read(budgetRepositoryProvider);
     final bookId = ref.watch(currentBookProvider);
 
@@ -29,28 +35,23 @@ class BudgetPage extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit_outlined),
-            onPressed: () => context.push('/budget/setting'),
+            onPressed: () async {
+              await context.push('/budget/setting');
+              // 返回后自动刷新（StreamBuilder 自动处理）
+            },
           ),
         ],
       ),
-      body: FutureBuilder<List<BudgetProgress>>(
-        future: repo.getBudgetProgress(bookId, now.year, now.month),
+      body: StreamBuilder<List<Budget>>(
+        stream: repo.watchByMonth(bookId, now.year, now.month),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+          if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+            return Center(child: CircularProgressIndicator(color: context.colors.primary));
           }
 
-          final progresses = snapshot.data ?? [];
-          final totalBudget = progresses
-              .where((p) => p.budget.categoryId == null)
-              .fold<double>(0, (sum, p) => sum + p.budget.amount);
-          final totalSpent = progresses
-              .where((p) => p.budget.categoryId == null)
-              .fold<double>(0, (sum, p) => sum + p.spent);
-          final categoryProgresses =
-              progresses.where((p) => p.budget.categoryId != null).toList();
+          final budgets = snapshot.data ?? [];
 
-          if (progresses.isEmpty) {
+          if (budgets.isEmpty) {
             return Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -68,26 +69,63 @@ class BudgetPage extends ConsumerWidget {
             );
           }
 
-          return SingleChildScrollView(
-            child: Column(
-              children: [
-                const SizedBox(height: 16),
+          // 有预算数据时，异步加载进度（含实际消费统计）
+          return FutureBuilder<List<BudgetProgress>>(
+            future: repo.getBudgetProgress(bookId, now.year, now.month),
+            builder: (context, progressSnap) {
+              if (progressSnap.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator(color: context.colors.primary));
+              }
 
-                // 总预算卡片
-                _buildTotalCard(context, totalBudget, totalSpent),
+              final progresses = progressSnap.data ?? [];
+              final totalBudget = progresses
+                  .where((p) => p.budget.categoryId == null)
+                  .fold<double>(0, (sum, p) => sum + p.budget.amount);
+              final totalSpent = progresses
+                  .where((p) => p.budget.categoryId == null)
+                  .fold<double>(0, (sum, p) => sum + p.spent);
+              final categoryProgresses =
+                  progresses.where((p) => p.budget.categoryId != null).toList();
 
-                // 超支警告
-                if (categoryProgresses.any((p) => p.isOverBudget))
-                  _buildOverBudgetWarning(context, categoryProgresses),
+              return RefreshIndicator(
+                onRefresh: () async {
+                  // 触发 StreamBuilder 重建
+                  setState(() {});
+                },
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 16),
 
-                const SizedBox(height: 16),
+                      // 总预算卡片
+                      if (totalBudget > 0)
+                        _buildTotalCard(context, totalBudget, totalSpent),
 
-                // 分类预算列表
-                ...categoryProgresses.map((p) => _buildCategoryItem(context, p)),
+                      // 超支警告
+                      if (categoryProgresses.any((p) => p.isOverBudget))
+                        _buildOverBudgetWarning(context, categoryProgresses),
 
-                const SizedBox(height: 24),
-              ],
-            ),
+                      const SizedBox(height: 16),
+
+                      // 分类预算列表
+                      if (categoryProgresses.isNotEmpty)
+                        ...categoryProgresses.map((p) => _buildCategoryItem(context, p))
+                      else if (totalBudget > 0)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 40),
+                          child: Text(
+                            l10n.budgetNoBudgets,
+                            style: context.textStyles.caption.copyWith(color: context.colors.textTertiary),
+                          ),
+                        ),
+
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
+              );
+            },
           );
         },
       ),
@@ -159,20 +197,25 @@ class BudgetPage extends ConsumerWidget {
           color: const Color(0xFFFFEBEE),
           borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
         ),
-        child: Row(
-          children: [
-            Icon(Icons.warning_amber, size: 18, color: context.colors.error),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                l10n.budgetOverSpent(
-                  overBudget.first.category?.name ?? l10n.budgetUnknownCategory,
-                  context.localeProvider.currency.formatAmount(overBudget.first.spent - overBudget.first.budget.amount, decimals: 0),
+        child: Column(
+          children: overBudget.map((p) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Row(
+              children: [
+                Icon(Icons.warning_amber, size: 16, color: context.colors.error),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    l10n.budgetOverSpent(
+                      p.category?.name ?? l10n.budgetUnknownCategory,
+                      context.localeProvider.currency.formatAmount(p.spent - p.budget.amount, decimals: 0),
+                    ),
+                    style: context.textStyles.caption.copyWith(color: context.colors.error),
+                  ),
                 ),
-                style: context.textStyles.caption.copyWith(color: context.colors.error),
-              ),
+              ],
             ),
-          ],
+          )).toList(),
         ),
       ),
     );

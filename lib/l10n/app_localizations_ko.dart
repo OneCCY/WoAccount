@@ -700,6 +700,36 @@ class AppLocalizationsKo extends AppLocalizations {
   String get budgetEditBudgetDeveloping => '예산 편집 기능 개발 중';
 
   @override
+  String get budgetSetTotalTitle => '총 예산 설정';
+
+  @override
+  String get budgetEditTotalTitle => '총 예산 편집';
+
+  @override
+  String get budgetEditCategoryTitle => '카테고리 예산 편집';
+
+  @override
+  String get budgetInputAmount => '예산 금액 입력';
+
+  @override
+  String get budgetSelectCategory => '카테고리 선택';
+
+  @override
+  String get budgetNoCategoryAvailable => '사용 가능한 카테고리가 없습니다';
+
+  @override
+  String get budgetCategoryAlreadyExists => '해당 카테고리 예산이 이미 존재합니다';
+
+  @override
+  String get budgetDeleteTitle => '예산 삭제';
+
+  @override
+  String get budgetDeleteConfirm => '이 카테고리 예산을 삭제하시겠습니까?';
+
+  @override
+  String get budgetNoBudgets => '예산이 미설정입니다. 우상단 편집 버튼으로 시작';
+
+  @override
   String get bookTitle => '내 가계부';
 
   @override

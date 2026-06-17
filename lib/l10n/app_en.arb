@@ -248,6 +248,17 @@
   "budgetAddCategoryBudgetDeveloping": "Category budget feature is under development",
   "budgetEditBudgetDeveloping": "Budget editing feature is under development",
 
+  "budgetSetTotalTitle": "Set Total Budget",
+  "budgetEditTotalTitle": "Edit Total Budget",
+  "budgetEditCategoryTitle": "Edit Category Budget",
+  "budgetInputAmount": "Enter budget amount",
+  "budgetSelectCategory": "Select Category",
+  "budgetNoCategoryAvailable": "No categories available",
+  "budgetCategoryAlreadyExists": "Budget for this category already exists",
+  "budgetDeleteTitle": "Delete Budget",
+  "budgetDeleteConfirm": "Are you sure you want to delete this category budget?",
+  "budgetNoBudgets": "No budgets set yet, tap the edit button to start",
+
   "bookTitle": "My Account Books",
   "bookCreate": "New Account Book",
   "bookDescription": "Each account book has its own transactions, budgets, and AI conversation history",

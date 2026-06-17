@@ -248,6 +248,17 @@
   "budgetAddCategoryBudgetDeveloping": "カテゴリ予算追加機能は開発中です",
   "budgetEditBudgetDeveloping": "予算編集機能は開発中です",
 
+  "budgetSetTotalTitle": "合計予算を設定",
+  "budgetEditTotalTitle": "合計予算を編集",
+  "budgetEditCategoryTitle": "カテゴリ予算を編集",
+  "budgetInputAmount": "予算金額を入力",
+  "budgetSelectCategory": "カテゴリを選択",
+  "budgetNoCategoryAvailable": "利用可能なカテゴリがありません",
+  "budgetCategoryAlreadyExists": "このカテゴリの予算は既に存在します",
+  "budgetDeleteTitle": "予算を削除",
+  "budgetDeleteConfirm": "このカテゴリの予算を削除しますか？",
+  "budgetNoBudgets": "予算が未設定です。右上の編集ボタンから開始",
+
   "bookTitle": "マイ家計簿",
   "bookCreate": "新しい家計簿",
   "bookDescription": "各家計簿には独立した取引記録・予算・AI会話履歴があります",
