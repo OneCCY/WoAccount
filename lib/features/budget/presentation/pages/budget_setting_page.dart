@@ -343,9 +343,13 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> with Page
       return;
     }
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (ctx) => _CategoryBudgetDialog(
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => _CategoryBudgetSheet(
         categories: available,
         allCategories: _allCategories,
         onSave: (categoryId, amount) => _saveCategoryBudget(categoryId, amount, ctx),
@@ -479,25 +483,25 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> with Page
   }
 }
 
-// ==================== 分类预算选择对话框 ====================
+// ==================== 分类预算选择底部弹窗 ====================
 
-/// 分类选择 + 金额输入 一体化对话框
-class _CategoryBudgetDialog extends StatefulWidget {
+/// 分类选择 + 金额输入 底部弹窗
+class _CategoryBudgetSheet extends StatefulWidget {
   final List<Category> categories;
   final List<Category> allCategories;
   final void Function(int categoryId, double amount) onSave;
 
-  const _CategoryBudgetDialog({
+  const _CategoryBudgetSheet({
     required this.categories,
     required this.allCategories,
     required this.onSave,
   });
 
   @override
-  State<_CategoryBudgetDialog> createState() => _CategoryBudgetDialogState();
+  State<_CategoryBudgetSheet> createState() => _CategoryBudgetSheetState();
 }
 
-class _CategoryBudgetDialogState extends State<_CategoryBudgetDialog> {
+class _CategoryBudgetSheetState extends State<_CategoryBudgetSheet> {
   int? _selectedCategoryId;
   final _amountController = TextEditingController();
 
@@ -523,86 +527,135 @@ class _CategoryBudgetDialogState extends State<_CategoryBudgetDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
 
-    return AlertDialog(
-      title: Text(l10n.budgetAddCategoryBudget),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 金额输入
-            TextField(
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottomPadding),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 拖拽指示条
+          Padding(
+            padding: const EdgeInsets.only(top: 10, bottom: 4),
+            child: Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: context.colors.textHint,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          // 标题栏
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                Text(l10n.budgetAddCategoryBudget,
+                    style: context.textStyles.h3.copyWith(fontSize: 17)),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Icon(Icons.close, size: 22, color: context.colors.textSecondary),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          // 金额输入
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: TextField(
               controller: _amountController,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))],
-              autofocus: _selectedCategoryId != null,
+              autofocus: true,
               decoration: InputDecoration(
                 hintText: l10n.budgetInputAmount,
                 prefixText: '${context.localeProvider.currency.symbol} ',
+                filled: true,
+                fillColor: context.colors.surfaceSecondary,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               ),
+              onChanged: (_) => setState(() {}),
             ),
-            const SizedBox(height: 16),
-            // 分类列表
-            Flexible(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: _grouped.entries.map((entry) {
-                    final parent = entry.key;
-                    final children = entry.value;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8, bottom: 4),
-                          child: Text(
-                            '${parent.icon ?? ''} ${parent.name}',
-                            style: context.textStyles.caption.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: context.colors.textSecondary,
-                            ),
+          ),
+          // 分类列表
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.4,
+            ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: _grouped.entries.map((entry) {
+                  final parent = entry.key;
+                  final children = entry.value;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12, bottom: 6),
+                        child: Text(
+                          '${parent.icon ?? ''} ${parent.name}',
+                          style: context.textStyles.caption.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: context.colors.textSecondary,
                           ),
                         ),
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 6,
-                          children: children.map((cat) {
-                            final isSelected = _selectedCategoryId == cat.id;
-                            return ChoiceChip(
-                              label: Text(cat.name, style: TextStyle(fontSize: 13)),
-                              selected: isSelected,
-                              onSelected: (selected) {
-                                setState(() {
-                                  _selectedCategoryId = selected ? cat.id : null;
-                                  // 选中后聚焦金额输入
-                                  if (selected) {
-                                    FocusScope.of(context).nextFocus();
-                                  }
-                                });
-                              },
-                            );
-                          }).toList(),
-                        ),
-                      ],
-                    );
-                  }).toList(),
-                ),
+                      ),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: children.map((cat) {
+                          final isSelected = _selectedCategoryId == cat.id;
+                          return ChoiceChip(
+                            label: Text(cat.name, style: const TextStyle(fontSize: 13)),
+                            selected: isSelected,
+                            selectedColor: context.colors.primarySurface,
+                            onSelected: (selected) {
+                              setState(() {
+                                _selectedCategoryId = selected ? cat.id : null;
+                                if (selected) {
+                                  FocusScope.of(context).nextFocus();
+                                }
+                              });
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  );
+                }).toList(),
               ),
             ),
-          ],
-        ),
+          ),
+          // 底部按钮
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            child: SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: ElevatedButton(
+                onPressed: _canSave ? _save : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: context.colors.primary,
+                  foregroundColor: context.colors.textOnPrimary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: Text(l10n.commonSave, style: const TextStyle(fontWeight: FontWeight.w600)),
+              ),
+            ),
+          ),
+        ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(l10n.commonCancel),
-        ),
-        TextButton(
-          onPressed: _canSave ? _save : null,
-          child: Text(l10n.commonSave),
-        ),
-      ],
     );
   }
 
