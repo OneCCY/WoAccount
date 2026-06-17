@@ -11,6 +11,7 @@ import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/toast.dart';
 import '../../../../core/widgets/page_refresh_mixin.dart';
+import '../../../transaction/presentation/widgets/category_picker_sheet.dart';
 import '../../domain/repositories/budget_repository.dart';
 
 /// 预算设置页
@@ -32,7 +33,6 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> with Page
   late final BudgetRepository _budgetRepo;
   final now = DateTime.now();
   List<BudgetProgress> _progresses = [];
-  List<Category> _allCategories = [];
   bool _isLoading = true;
 
   @override
@@ -45,11 +45,9 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> with Page
   Future<void> _loadData() async {
     final bookId = ref.read(currentBookProvider);
     final progresses = await _budgetRepo.getBudgetProgress(bookId, now.year, now.month);
-    final categories = await ref.read(categoryRepositoryProvider).getAll();
     if (!mounted) return;
     setState(() {
       _progresses = progresses;
-      _allCategories = categories;
       _isLoading = false;
     });
   }
@@ -324,40 +322,43 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> with Page
 
   // ==================== 添加分类预算 ====================
 
-  void _onAddCategoryBudget() {
+  void _onAddCategoryBudget() async {
     final l10n = AppLocalizations.of(context)!;
 
-    // 获取已设置预算的分类 ID
+    // 1. 打开分类选择器（复用 CategoryPickerSheet）
+    final selected = await _showCategoryPicker();
+    if (selected == null || !mounted) return;
+
+    // 2. 检查是否已有该分类预算
     final existingCatIds = _progresses
         .where((p) => p.budget.categoryId != null)
         .map((p) => p.budget.categoryId!)
         .toSet();
-
-    // 筛选支出子分类（level 2）且未设置预算的
-    final available = _allCategories
-        .where((c) => c.level == 2 && c.isExpense && !existingCatIds.contains(c.id))
-        .toList();
-
-    if (available.isEmpty) {
-      AppToast.show(context, l10n.budgetNoCategoryAvailable, duration: const Duration(seconds: 1));
+    if (existingCatIds.contains(selected.id)) {
+      AppToast.show(context, l10n.budgetCategoryAlreadyExists, duration: const Duration(seconds: 1));
       return;
     }
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (ctx) => _CategoryBudgetSheet(
-        categories: available,
-        allCategories: _allCategories,
-        onSave: (categoryId, amount) => _saveCategoryBudget(categoryId, amount, ctx),
-      ),
+    // 3. 弹出金额输入对话框
+    _showAmountDialog(
+      title: '${selected.icon ?? ''} ${selected.name}',
+      onConfirm: (amount) => _saveCategoryBudget(selected.id, amount),
     );
   }
 
-  Future<void> _saveCategoryBudget(int categoryId, double amount, BuildContext dialogCtx) async {
+  /// 复用 CategoryPickerSheet，只允许选择未设置预算的支出子分类
+  Future<Category?> _showCategoryPicker() async {
+    // 先弹出分类选择器
+    final picked = await showModalBottomSheet<Category>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const CategoryPickerSheet(initialIsExpense: true),
+    );
+    return picked;
+  }
+
+  Future<void> _saveCategoryBudget(int categoryId, double amount) async {
     final bookId = ref.read(currentBookProvider);
     await _budgetRepo.insert(BudgetsCompanion(
       accountBookId: drift.Value(bookId),
@@ -367,8 +368,45 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> with Page
       month: drift.Value(now.month),
       period: const drift.Value('monthly'),
     ));
-    if (dialogCtx.mounted) Navigator.pop(dialogCtx);
     _loadData();
+  }
+
+  /// 金额输入对话框
+  void _showAmountDialog({required String title, required void Function(double amount) onConfirm}) {
+    final l10n = AppLocalizations.of(context)!;
+    final controller = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: TextField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))],
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText: l10n.budgetInputAmount,
+            prefixText: '${context.localeProvider.currency.symbol} ',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l10n.commonCancel),
+          ),
+          TextButton(
+            onPressed: () {
+              final amount = double.tryParse(controller.text);
+              if (amount == null || amount <= 0) return;
+              Navigator.pop(ctx);
+              onConfirm(amount);
+            },
+            child: Text(l10n.commonSave),
+          ),
+        ],
+      ),
+    );
   }
 
   // ==================== 编辑分类预算 ====================
@@ -480,193 +518,5 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> with Page
     if (hex == null || hex.isEmpty) return context.colors.textTertiary;
     final clean = hex.replaceFirst('#', '');
     return Color(int.parse('FF$clean', radix: 16));
-  }
-}
-
-// ==================== 分类预算选择底部弹窗 ====================
-
-/// 分类选择 + 金额输入 底部弹窗
-class _CategoryBudgetSheet extends StatefulWidget {
-  final List<Category> categories;
-  final List<Category> allCategories;
-  final void Function(int categoryId, double amount) onSave;
-
-  const _CategoryBudgetSheet({
-    required this.categories,
-    required this.allCategories,
-    required this.onSave,
-  });
-
-  @override
-  State<_CategoryBudgetSheet> createState() => _CategoryBudgetSheetState();
-}
-
-class _CategoryBudgetSheetState extends State<_CategoryBudgetSheet> {
-  int? _selectedCategoryId;
-  final _amountController = TextEditingController();
-
-  /// 按父分类分组
-  Map<Category, List<Category>> get _grouped {
-    final map = <Category, List<Category>>{};
-    for (final cat in widget.categories) {
-      final parent = widget.allCategories.firstWhere(
-        (c) => c.id == cat.parentId,
-        orElse: () => cat,
-      );
-      map.putIfAbsent(parent, () => []).add(cat);
-    }
-    return map;
-  }
-
-  @override
-  void dispose() {
-    _amountController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
-
-    return Padding(
-      padding: EdgeInsets.only(bottom: bottomPadding),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // 拖拽指示条
-          Padding(
-            padding: const EdgeInsets.only(top: 10, bottom: 4),
-            child: Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: context.colors.textHint,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          // 标题栏
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                Text(l10n.budgetAddCategoryBudget,
-                    style: context.textStyles.h3.copyWith(fontSize: 17)),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Icon(Icons.close, size: 22, color: context.colors.textSecondary),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1),
-          // 金额输入
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: TextField(
-              controller: _amountController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))],
-              autofocus: true,
-              decoration: InputDecoration(
-                hintText: l10n.budgetInputAmount,
-                prefixText: '${context.localeProvider.currency.symbol} ',
-                filled: true,
-                fillColor: context.colors.surfaceSecondary,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              ),
-              onChanged: (_) => setState(() {}),
-            ),
-          ),
-          // 分类列表
-          ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.4,
-            ),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: _grouped.entries.map((entry) {
-                  final parent = entry.key;
-                  final children = entry.value;
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(top: 12, bottom: 6),
-                        child: Text(
-                          '${parent.icon ?? ''} ${parent.name}',
-                          style: context.textStyles.caption.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: context.colors.textSecondary,
-                          ),
-                        ),
-                      ),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: children.map((cat) {
-                          final isSelected = _selectedCategoryId == cat.id;
-                          return ChoiceChip(
-                            label: Text(cat.name, style: const TextStyle(fontSize: 13)),
-                            selected: isSelected,
-                            selectedColor: context.colors.primarySurface,
-                            onSelected: (selected) {
-                              setState(() {
-                                _selectedCategoryId = selected ? cat.id : null;
-                                if (selected) {
-                                  FocusScope.of(context).nextFocus();
-                                }
-                              });
-                            },
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                  );
-                }).toList(),
-              ),
-            ),
-          ),
-          // 底部按钮
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-            child: SizedBox(
-              width: double.infinity,
-              height: 44,
-              child: ElevatedButton(
-                onPressed: _canSave ? _save : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: context.colors.primary,
-                  foregroundColor: context.colors.textOnPrimary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: Text(l10n.commonSave, style: const TextStyle(fontWeight: FontWeight.w600)),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  bool get _canSave =>
-      _selectedCategoryId != null &&
-      double.tryParse(_amountController.text) != null &&
-      double.parse(_amountController.text) > 0;
-
-  void _save() {
-    final amount = double.tryParse(_amountController.text);
-    if (amount == null || amount <= 0 || _selectedCategoryId == null) return;
-    widget.onSave(_selectedCategoryId!, amount);
   }
 }
