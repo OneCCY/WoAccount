@@ -52,7 +52,10 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
   String get routePath => '/transactions';
 
   @override
-  void onRefresh() => _triggerRefresh();
+  void onRefresh() {
+    _triggerRefresh();
+    if (_currentView == ViewType.day) _loadTransactions();
+  }
 
   @override
   void initState() {
@@ -92,7 +95,6 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
 
   /// 加载交易记录（重置分页）
   Future<void> _loadTransactions() async {
-    if (_isDayLoading) return;
     setState(() {
       _isDayLoading = true;
       _allTransactions = [];
@@ -595,6 +597,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
       onRefresh: _loadTransactions,
       child: ListView.builder(
         controller: _dayScrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.only(bottom: Responsive.s(context, 16)),
         itemCount: groupEntries.length + (_hasMore ? 1 : 0),
         itemBuilder: (context, index) {
