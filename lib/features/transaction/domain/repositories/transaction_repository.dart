@@ -122,6 +122,12 @@ abstract class TransactionRepository {
   /// 软删除交易
   Future<bool> delete(int id);
 
+  /// 恢复已软删除的交易
+  Future<bool> restore(int id);
+
+  /// 获取已软删除的交易列表
+  Future<List<Transaction>> getDeleted(int bookId);
+
   /// 监听账本内所有交易变化（响应式）
   Stream<List<Transaction>> watchAll(int bookId);
 

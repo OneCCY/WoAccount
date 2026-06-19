@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
+import 'package:wo_account/l10n/app_localizations.dart';
 import 'fan_shape_painter.dart';
 import '../toast.dart';
 import 'waveform_painter.dart';
@@ -104,7 +105,7 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
     if (!hasPermission) {
       if (mounted) {
         Navigator.of(context).pop(const VoiceResult(action: VoiceResultAction.cancel));
-        AppToast.show(context, '请授权麦克风权限');
+        AppToast.show(context, AppLocalizations.of(context)!.chatInputMicPermission);
       }
       return;
     }
@@ -196,7 +197,7 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
       if (duration.inMilliseconds < 500) {
         if (mounted) {
           Navigator.of(context).pop(const VoiceResult(action: VoiceResultAction.cancel));
-          AppToast.show(context, '录音时间太短', duration: const Duration(milliseconds: 800));
+          AppToast.show(context, AppLocalizations.of(context)!.chatInputRecordShort, duration: const Duration(milliseconds: 800));
         }
         return;
       }
@@ -264,7 +265,7 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
                   bottom: 20,
                   child: Center(
                     child: Text(
-                      '↑ 上滑取消或转文字',
+                      AppLocalizations.of(context)!.voiceOverlaySwipeHint,
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.5),
                         fontSize: 12,
@@ -317,7 +318,7 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
               ),
               const SizedBox(width: 8),
               Text(
-                isCancel ? '松手 取消' : _formatDuration(),
+                isCancel ? AppLocalizations.of(context)!.voiceOverlayCancelLabel : _formatDuration(),
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.9),
                   fontSize: 15,
@@ -343,7 +344,7 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
           if (isTranscribe) ...[
             const SizedBox(height: 8),
             Text(
-              '松手 仅转文字',
+              AppLocalizations.of(context)!.voiceOverlayTranscribeLabel,
               style: TextStyle(
                 color: const Color(0xFF2196F3).withValues(alpha: 0.8),
                 fontSize: 12,

@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../database/app_database.dart';
 import '../../features/transaction/domain/repositories/transaction_repository.dart';
 import '../../features/transaction/data/repositories/transaction_repository_impl.dart';
+import '../../features/transaction/domain/repositories/tag_repository.dart';
+import '../../features/transaction/data/repositories/tag_repository_impl.dart';
 import '../../features/category/domain/repositories/category_repository.dart';
 import '../../features/category/data/repositories/category_repository_impl.dart';
 import '../../features/budget/domain/repositories/budget_repository.dart';
@@ -14,6 +16,12 @@ import '../../features/account_book/domain/repositories/account_book_repository.
 import '../../features/account_book/data/repositories/account_book_repository_impl.dart';
 import '../../features/stats/domain/repositories/report_repository.dart';
 import '../../features/stats/data/repositories/report_repository_impl.dart';
+import '../../features/profile/domain/repositories/user_profile_repository.dart';
+import '../../features/profile/data/repositories/user_profile_repository_impl.dart';
+import '../../features/profile/domain/repositories/checkin_repository.dart';
+import '../../features/profile/data/repositories/checkin_repository_impl.dart';
+import '../../features/profile/domain/repositories/ac_coin_repository.dart';
+import '../../features/profile/data/repositories/ac_coin_repository_impl.dart';
 
 part 'providers.g.dart';
 
@@ -30,6 +38,12 @@ TransactionRepository transactionRepository(Ref ref) {
   final db = ref.watch(appDatabaseProvider);
   return TransactionRepositoryImpl(db);
 }
+
+/// 标签 Repository Provider
+final tagRepositoryProvider = Provider<TagRepository>((ref) {
+  final db = ref.watch(appDatabaseProvider);
+  return TagRepositoryImpl(db);
+});
 
 /// 分类 Repository Provider
 @riverpod
@@ -65,6 +79,25 @@ ReportRepository reportRepository(Ref ref) {
   final db = ref.watch(appDatabaseProvider);
   return ReportRepositoryImpl(db);
 }
+
+/// 用户资料 Repository Provider
+final userProfileRepositoryProvider = Provider<UserProfileRepository>((ref) {
+  final db = ref.watch(appDatabaseProvider);
+  return UserProfileRepositoryImpl(db);
+});
+
+/// AC 币 Repository Provider
+final acCoinRepositoryProvider = Provider<AcCoinRepository>((ref) {
+  final db = ref.watch(appDatabaseProvider);
+  return AcCoinRepositoryImpl(db);
+});
+
+/// 签到 Repository Provider
+final checkInRepositoryProvider = Provider<CheckInRepository>((ref) {
+  final db = ref.watch(appDatabaseProvider);
+  final acCoinRepo = ref.watch(acCoinRepositoryProvider);
+  return CheckInRepositoryImpl(db, acCoinRepo);
+});
 
 /// 当前选中的账本 ID（持久化到 SharedPreferences，默认 1）
 final currentBookProvider = StateProvider<int>((ref) => 1);

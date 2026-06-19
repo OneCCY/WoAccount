@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:drift/drift.dart' hide Column;
 import 'package:intl/intl.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
-import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
@@ -43,18 +41,14 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> with 
   }
 
   Future<void> _loadData() async {
-    final db = ref.read(appDatabaseProvider);
+    final checkInRepo = ref.read(checkInRepositoryProvider);
+    final acCoinRepo = ref.read(acCoinRepositoryProvider);
 
     // 加载 AC 币余额
-    final balances = await db.select(db.acCoinBalances).get();
-    final balance = balances.isNotEmpty ? balances.first.balance : 0;
+    final balance = await acCoinRepo.getBalance();
 
     // 加载当月打卡记录
-    final start = DateTime(_currentMonth.year, _currentMonth.month, 1);
-    final end = DateTime(_currentMonth.year, _currentMonth.month + 1, 1);
-    final allRecords = await db.select(db.checkInRecords).get();
-    final records = allRecords.where((r) =>
-        !r.checkInDate.isBefore(start) && r.checkInDate.isBefore(end)).toList();
+    final records = await checkInRepo.getByMonth(_currentMonth.year, _currentMonth.month);
 
     final checked = <int>{};
     final makeup = <int>{};
@@ -64,52 +58,17 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> with 
     }
 
     // 检查今天是否已打卡
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final todayRecords = allRecords.where((r) {
-      final d = r.checkInDate;
-      return d.year == today.year && d.month == today.month && d.day == today.day;
-    }).toList();
+    final checkedToday = await checkInRepo.isCheckedToday();
 
     // 计算连续打卡天数
-    int consecutive = 0;
-    if (todayRecords.isNotEmpty) {
-      // 今天已打卡：从今天开始往前数
-      consecutive = 1;
-      for (int i = 1; i < 365; i++) {
-        final day = today.subtract(Duration(days: i));
-        final found = allRecords.any((r) {
-          final d = r.checkInDate;
-          return d.year == day.year && d.month == day.month && d.day == day.day;
-        });
-        if (found) {
-          consecutive++;
-        } else {
-          break;
-        }
-      }
-    } else {
-      // 今天未打卡：从昨天开始往前数（显示截至昨天的连续记录）
-      for (int i = 1; i < 365; i++) {
-        final day = today.subtract(Duration(days: i));
-        final found = allRecords.any((r) {
-          final d = r.checkInDate;
-          return d.year == day.year && d.month == day.month && d.day == day.day;
-        });
-        if (found) {
-          consecutive++;
-        } else {
-          break;
-        }
-      }
-    }
+    final consecutive = await checkInRepo.getConsecutiveDays();
 
     if (mounted) {
       setState(() {
         _checkedDays = checked;
         _makeupDays = makeup;
         _acBalance = balance;
-        _todayCheckedIn = todayRecords.isNotEmpty;
+        _todayCheckedIn = checkedToday;
         _consecutiveDays = consecutive;
       });
     }
@@ -121,20 +80,20 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> with 
       return;
     }
 
-    final db = ref.read(appDatabaseProvider);
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
+    final checkInRepo = ref.read(checkInRepositoryProvider);
+    final oldConsecutive = _consecutiveDays;
+    final success = await checkInRepo.checkIn();
 
-    await db.into(db.checkInRecords).insert(
-      CheckInRecordsCompanion.insert(checkInDate: today),
-    );
-
-    // 发放每日打卡 AC 币
-    await _addAcCoins(db, 10, 'daily_checkin', today.millisecondsSinceEpoch);
+    if (!success) {
+      if (mounted) {
+        AppToast.show(context, AppLocalizations.of(context)!.checkinAlreadyCheckedIn, duration: const Duration(milliseconds: 800));
+      }
+      return;
+    }
 
     // 检查连续打卡奖励
-    final newConsecutive = _consecutiveDays + 1;
-    await _checkStreakRewards(db, newConsecutive, today);
+    final newConsecutive = oldConsecutive + 1;
+    _showStreakRewardIfNeeded(newConsecutive);
 
     await _loadData();
 
@@ -143,40 +102,17 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> with 
     }
   }
 
-  Future<void> _checkStreakRewards(AppDatabase db, int consecutive, DateTime today) async {
+  /// 根据连续天数判断并显示奖励通知
+  void _showStreakRewardIfNeeded(int consecutive) {
     final l10n = AppLocalizations.of(context)!;
-    // 获取已领取的连续奖励类型
-    final allTxns = await db.select(db.acCoinTransactions).get();
-    final claimedTypes = allTxns.where((t) => t.type.startsWith('streak_')).map((t) => t.type).toSet();
-
-    if (consecutive >= 365 && !claimedTypes.contains('streak_365d')) {
-      await _addAcCoins(db, 2000, 'streak_365d', today.millisecondsSinceEpoch);
+    if (consecutive == 365) {
       _showRewardSnackBar(l10n.checkinStreak365);
-    } else if (consecutive >= 180 && !claimedTypes.contains('streak_180d')) {
-      await _addAcCoins(db, 1000, 'streak_180d', today.millisecondsSinceEpoch);
+    } else if (consecutive == 180) {
       _showRewardSnackBar(l10n.checkinStreak180);
-    } else if (consecutive >= 30 && !claimedTypes.contains('streak_30d')) {
-      await _addAcCoins(db, 300, 'streak_30d', today.millisecondsSinceEpoch);
+    } else if (consecutive == 30) {
       _showRewardSnackBar(l10n.checkinStreak30);
-    } else if (consecutive >= 7 && !claimedTypes.contains('streak_7d')) {
-      await _addAcCoins(db, 70, 'streak_7d', today.millisecondsSinceEpoch);
+    } else if (consecutive == 7) {
       _showRewardSnackBar(l10n.checkinStreak7);
-    }
-  }
-
-  Future<void> _addAcCoins(AppDatabase db, int amount, String type, int? relatedDate) async {
-    await db.into(db.acCoinTransactions).insert(AcCoinTransactionsCompanion.insert(
-      userId: const Value(1),
-      amount: amount,
-      type: type,
-      description: Value(type), // store type as l10nKey; resolved at display time
-      relatedDate: Value(relatedDate),
-    ));
-
-    final balances = await db.select(db.acCoinBalances).get();
-    if (balances.isNotEmpty) {
-      await (db.update(db.acCoinBalances)..where((t) => t.id.equals(balances.first.id)))
-          .write(AcCoinBalancesCompanion(balance: Value(balances.first.balance + amount)));
     }
   }
 
@@ -231,29 +167,14 @@ class _CheckInCalendarPageState extends ConsumerState<CheckInCalendarPage> with 
 
     if (confirmed != true || !mounted) return;
 
-    final db = ref.read(appDatabaseProvider);
+    final checkInRepo = ref.read(checkInRepositoryProvider);
+    final success = await checkInRepo.makeupCheckIn(selectedDate);
 
-    // 插入补签记录
-    await db.into(db.checkInRecords).insert(
-      CheckInRecordsCompanion.insert(
-        checkInDate: selectedDate,
-        isMakeup: const Value(true),
-      ),
-    );
-
-    // 扣除 AC 币
-    await db.into(db.acCoinTransactions).insert(AcCoinTransactionsCompanion.insert(
-      userId: const Value(1),
-      amount: -100,
-      type: 'makeup_cost',
-      description: const Value('makeup_cost'), // resolved at display time using relatedDate
-      relatedDate: Value(selectedDate.millisecondsSinceEpoch),
-    ));
-
-    final balances = await db.select(db.acCoinBalances).get();
-    if (balances.isNotEmpty) {
-      await (db.update(db.acCoinBalances)..where((t) => t.id.equals(balances.first.id)))
-          .write(AcCoinBalancesCompanion(balance: Value(balances.first.balance - 100)));
+    if (!success) {
+      if (mounted) {
+        AppToast.show(context, l10n.checkinMakeupAlreadyChecked, duration: const Duration(milliseconds: 800));
+      }
+      return;
     }
 
     await _loadData();

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:drift/drift.dart' hide Column;
 import 'package:intl/intl.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
@@ -29,13 +28,9 @@ class _AcCoinRecordsPageState extends ConsumerState<AcCoinRecordsPage> {
 
   Future<void> _loadData() async {
     try {
-      final db = ref.read(appDatabaseProvider);
-
-      final balances = await db.select(db.acCoinBalances).get();
-      final balance = balances.isNotEmpty ? balances.first.balance : 0;
-
-      final txns = await (db.select(db.acCoinTransactions)
-        ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).get();
+      final acCoinRepo = ref.read(acCoinRepositoryProvider);
+      final balance = await acCoinRepo.getBalance();
+      final txns = await acCoinRepo.getAllTransactions();
 
       if (mounted) {
         setState(() {

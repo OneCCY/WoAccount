@@ -131,6 +131,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatInputVoiceHint => '松手发送，左滑取消 ↖，右滑转文字 ↗';
 
   @override
+  String get voiceOverlaySwipeHint => '↑ 上滑取消或转文字';
+
+  @override
+  String get voiceOverlayCancelLabel => '松手 取消';
+
+  @override
+  String get voiceOverlayTranscribeLabel => '松手 仅转文字';
+
+  @override
   String get chatInputTextHint => '说点什么...';
 
   @override
@@ -636,10 +645,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsClearConfirm => '此操作不可恢复，确定要清除所有数据吗？';
 
   @override
+  String get settingsClearDataSuccess => '数据已清除';
+
+  @override
   String get settingsDeleteAccount => '注销账号';
 
   @override
   String get settingsDeleteConfirm => '注销后所有数据将被永久删除，确定要继续吗？';
+
+  @override
+  String get settingsDeleteAccountSuccess => '账户数据已删除';
 
   @override
   String get budgetTitle => '预算管理';
@@ -783,6 +798,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get bookRestored => '账本已恢复';
+
+  @override
+  String get txnRecycleBin => '交易回收站';
+
+  @override
+  String get txnRecycleBinEmpty => '回收站为空';
+
+  @override
+  String get txnRestore => '恢复';
+
+  @override
+  String get txnRestored => '交易已恢复';
 
   @override
   String get bookPermanentDelete => '永久删除';
@@ -2566,6 +2593,15 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get chatInputVoiceHint => '鬆手傳送，左滑取消 ↖，右滑轉文字 ↗';
 
   @override
+  String get voiceOverlaySwipeHint => '↑ 上滑取消或轉文字';
+
+  @override
+  String get voiceOverlayCancelLabel => '鬆手 取消';
+
+  @override
+  String get voiceOverlayTranscribeLabel => '鬆手 僅轉文字';
+
+  @override
   String get chatInputTextHint => '說點什麼...';
 
   @override
@@ -3071,10 +3107,16 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get settingsClearConfirm => '此操作不可恢復，確定要清除所有資料嗎？';
 
   @override
+  String get settingsClearDataSuccess => '資料已清除';
+
+  @override
   String get settingsDeleteAccount => '註銷帳號';
 
   @override
   String get settingsDeleteConfirm => '註銷後所有資料將被永久刪除，確定要繼續嗎？';
+
+  @override
+  String get settingsDeleteAccountSuccess => '帳戶資料已刪除';
 
   @override
   String get budgetTitle => '預算管理';
@@ -3218,6 +3260,18 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get bookRestored => '帳本已恢復';
+
+  @override
+  String get txnRecycleBin => '交易回收站';
+
+  @override
+  String get txnRecycleBinEmpty => '回收站為空';
+
+  @override
+  String get txnRestore => '恢復';
+
+  @override
+  String get txnRestored => '交易已恢復';
 
   @override
   String get bookPermanentDelete => '永久刪除';

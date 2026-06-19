@@ -136,6 +136,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Release to send, swipe left to cancel ↖, swipe right to transcribe ↗';
 
   @override
+  String get voiceOverlaySwipeHint => '↑ Swipe up to cancel or transcribe';
+
+  @override
+  String get voiceOverlayCancelLabel => 'Release to cancel';
+
+  @override
+  String get voiceOverlayTranscribeLabel => 'Release to transcribe only';
+
+  @override
   String get chatInputTextHint => 'Say something...';
 
   @override
@@ -650,11 +659,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'This action cannot be undone. Are you sure you want to clear all data?';
 
   @override
+  String get settingsClearDataSuccess => 'All data has been cleared';
+
+  @override
   String get settingsDeleteAccount => 'Delete Account';
 
   @override
   String get settingsDeleteConfirm =>
       'All data will be permanently deleted. Are you sure you want to continue?';
+
+  @override
+  String get settingsDeleteAccountSuccess => 'Account data has been deleted';
 
   @override
   String get budgetTitle => 'Budget Management';
@@ -804,6 +819,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bookRestored => 'Account book restored';
+
+  @override
+  String get txnRecycleBin => 'Transaction Recycle Bin';
+
+  @override
+  String get txnRecycleBinEmpty => 'Recycle bin is empty';
+
+  @override
+  String get txnRestore => 'Restore';
+
+  @override
+  String get txnRestored => 'Transaction restored';
 
   @override
   String get bookPermanentDelete => 'Permanently Delete';

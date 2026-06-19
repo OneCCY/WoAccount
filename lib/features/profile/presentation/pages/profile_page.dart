@@ -1,8 +1,7 @@
-﻿import 'dart:io';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:drift/drift.dart' hide Column;
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
@@ -44,73 +43,23 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with PageRefreshMixin
   Future<void> _loadData() async {
     if (mounted) setState(() => _isLoading = true);
     try {
-      final db = ref.read(appDatabaseProvider);
+      final profileRepo = ref.read(userProfileRepositoryProvider);
+      final checkInRepo = ref.read(checkInRepositoryProvider);
+      final txnRepo = ref.read(transactionRepositoryProvider);
+      final bookId = ref.read(currentBookProvider);
 
-      // 加载用户资料
-      final profiles = await db.select(db.userProfiles).get();
-      final profile = profiles.isNotEmpty ? profiles.first : null;
-
-      // 加载打卡数据
-      final checkIns = await db.select(db.checkInRecords).get();
-      final totalDays = checkIns.length;
-
-      // 计算连续打卡天数
-      final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-      final todayRecord = checkIns.where((r) {
-        final d = r.checkInDate;
-        return d.year == today.year &&
-            d.month == today.month &&
-            d.day == today.day;
-      }).toList();
-      final checkedToday = todayRecord.isNotEmpty;
-
-      int consecutive = 0;
-      if (checkedToday) {
-        // 今天已打卡：从今天开始往前数
-        consecutive = 1;
-        for (int i = 1; i < 365; i++) {
-          final day = today.subtract(Duration(days: i));
-          final found = checkIns.any((r) {
-            final d = r.checkInDate;
-            return d.year == day.year &&
-                d.month == day.month &&
-                d.day == day.day;
-          });
-          if (found) {
-            consecutive++;
-          } else {
-            break;
-          }
-        }
-      } else {
-        // 今天未打卡：从昨天开始往前数（显示截至昨天的连续记录）
-        for (int i = 1; i < 365; i++) {
-          final day = today.subtract(Duration(days: i));
-          final found = checkIns.any((r) {
-            final d = r.checkInDate;
-            return d.year == day.year &&
-                d.month == day.month &&
-                d.day == day.day;
-          });
-          if (found) {
-            consecutive++;
-          } else {
-            break;
-          }
-        }
-      }
-
-      // 加载记账总笔数
-      final txnCount = await db.select(db.transactions).get();
-      final count = txnCount.where((t) => !t.isDeleted).length;
+      final profile = await profileRepo.getProfile();
+      final totalDays = await checkInRepo.getCount();
+      final checkedToday = await checkInRepo.isCheckedToday();
+      final consecutive = await checkInRepo.getConsecutiveDays();
+      final txns = await txnRepo.getAll(bookId);
 
       if (mounted) {
         setState(() {
           _profile = profile;
           _consecutiveDays = consecutive;
           _totalCheckInDays = totalDays;
-          _totalTransactions = count;
+          _totalTransactions = txns.length;
           _todayCheckedIn = checkedToday;
           _isLoading = false;
         });
@@ -130,26 +79,25 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with PageRefreshMixin
     }
 
     try {
-      final db = ref.read(appDatabaseProvider);
-      final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-      final l10n = AppLocalizations.of(context)!;
+      final checkInRepo = ref.read(checkInRepositoryProvider);
+      final success = await checkInRepo.checkIn();
 
-      await db
-          .into(db.checkInRecords)
-          .insert(CheckInRecordsCompanion.insert(checkInDate: today));
+      if (!success) {
+        if (mounted) {
+          AppToast.show(context, AppLocalizations.of(context)!.profileAlreadyCheckedIn, duration: const Duration(milliseconds: 800));
+        }
+        return;
+      }
 
-      // 发放每日打卡 AC 币
-      await _addAcCoins(db, 10, 'daily_checkin', today.millisecondsSinceEpoch);
-
-      // 检查连续打卡奖励
-      final newConsecutive = _consecutiveDays + 1;
-      await _checkStreakRewards(db, newConsecutive, today);
+      // 检查是否触发了连续打卡奖励
+      final claimedTypes = await checkInRepo.getConsecutiveDays();
+      final newConsecutive = claimedTypes;
+      _showStreakRewardIfNeeded(newConsecutive);
 
       await _loadData();
 
       if (mounted) {
-        AppToast.show(context, l10n.profileCheckInSuccess, duration: const Duration(milliseconds: 800));
+        AppToast.show(context, AppLocalizations.of(context)!.profileCheckInSuccess, duration: const Duration(milliseconds: 800));
       }
     } catch (e) {
       if (mounted) {
@@ -158,39 +106,18 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with PageRefreshMixin
     }
   }
 
-  Future<void> _checkStreakRewards(AppDatabase db, int consecutive, DateTime today) async {
+  /// 根据连续天数判断并显示奖励通知
+  void _showStreakRewardIfNeeded(int consecutive) {
     final l10n = AppLocalizations.of(context)!;
-    final allTxns = await db.select(db.acCoinTransactions).get();
-    final claimedTypes = allTxns.where((t) => t.type.startsWith('streak_')).map((t) => t.type).toSet();
-
-    if (consecutive >= 365 && !claimedTypes.contains('streak_365d')) {
-      await _addAcCoins(db, 2000, 'streak_365d', today.millisecondsSinceEpoch);
+    // 由于签到后连续天数已 +1，检查各里程碑
+    if (consecutive == 365) {
       _showRewardSnackBar(l10n.checkinStreak365);
-    } else if (consecutive >= 180 && !claimedTypes.contains('streak_180d')) {
-      await _addAcCoins(db, 1000, 'streak_180d', today.millisecondsSinceEpoch);
+    } else if (consecutive == 180) {
       _showRewardSnackBar(l10n.checkinStreak180);
-    } else if (consecutive >= 30 && !claimedTypes.contains('streak_30d')) {
-      await _addAcCoins(db, 300, 'streak_30d', today.millisecondsSinceEpoch);
+    } else if (consecutive == 30) {
       _showRewardSnackBar(l10n.checkinStreak30);
-    } else if (consecutive >= 7 && !claimedTypes.contains('streak_7d')) {
-      await _addAcCoins(db, 70, 'streak_7d', today.millisecondsSinceEpoch);
+    } else if (consecutive == 7) {
       _showRewardSnackBar(l10n.checkinStreak7);
-    }
-  }
-
-  Future<void> _addAcCoins(AppDatabase db, int amount, String type, int? relatedDate) async {
-    await db.into(db.acCoinTransactions).insert(AcCoinTransactionsCompanion.insert(
-      userId: const Value(1),
-      amount: amount,
-      type: type,
-      description: Value(type), // store type as l10nKey; resolved at display time
-      relatedDate: Value(relatedDate),
-    ));
-
-    final balances = await db.select(db.acCoinBalances).get();
-    if (balances.isNotEmpty) {
-      await (db.update(db.acCoinBalances)..where((t) => t.id.equals(balances.first.id)))
-          .write(AcCoinBalancesCompanion(balance: Value(balances.first.balance + amount)));
     }
   }
 

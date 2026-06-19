@@ -82,6 +82,25 @@ class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   @override
+  Future<bool> restore(int id) async {
+    final count = await (_db.update(_db.transactions)
+          ..where((t) => t.id.equals(id) & t.isDeleted.equals(true)))
+        .write(TransactionsCompanion(
+      isDeleted: const Value(false),
+      updatedAt: Value(DateTime.now()),
+    ));
+    return count > 0;
+  }
+
+  @override
+  Future<List<Transaction>> getDeleted(int bookId) async {
+    return (_db.select(_db.transactions)
+          ..where((t) => t.isDeleted.equals(true) & t.accountBookId.equals(bookId))
+          ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)]))
+        .get();
+  }
+
+  @override
   Stream<List<Transaction>> watchAll(int bookId) {
     return (_db.select(_db.transactions)
           ..where((t) => t.isDeleted.equals(false) & t.accountBookId.equals(bookId))
@@ -115,39 +134,38 @@ class TransactionRepositoryImpl implements TransactionRepository {
 
   @override
   Future<TransactionStats> getStats(int bookId, DateTime start, DateTime end) async {
-    // 通过 join Categories 区分收入/支出
-    final query = _db.select(_db.transactions).join([
-      innerJoin(
-        _db.categories,
-        _db.categories.id.equalsExp(_db.transactions.categoryId),
-      ),
-    ])
+    // 使用 SQL 聚合替代内存计算
+    final expenseQuery = _db.selectOnly(_db.transactions)
+      ..addColumns([_db.transactions.amount.sum(), _db.transactions.id.count()])
       ..where(
         _db.transactions.accountBookId.equals(bookId) &
             _db.transactions.transactionDate.isBetweenValues(start, end) &
-            _db.transactions.isDeleted.equals(false),
+            _db.transactions.isDeleted.equals(false) &
+            _db.transactions.type.equals('expense'),
       );
 
-    final results = await query.get();
+    final incomeQuery = _db.selectOnly(_db.transactions)
+      ..addColumns([_db.transactions.amount.sum(), _db.transactions.id.count()])
+      ..where(
+        _db.transactions.accountBookId.equals(bookId) &
+            _db.transactions.transactionDate.isBetweenValues(start, end) &
+            _db.transactions.isDeleted.equals(false) &
+            _db.transactions.type.equals('income'),
+      );
 
-    double totalExpense = 0;
-    double totalIncome = 0;
+    final expenseResult = await expenseQuery.getSingle();
+    final incomeResult = await incomeQuery.getSingle();
 
-    for (final row in results) {
-      final amount = row.readTable(_db.transactions).amount;
-      final isExpense = row.readTable(_db.categories).isExpense;
-      if (isExpense) {
-        totalExpense += amount;
-      } else {
-        totalIncome += amount;
-      }
-    }
+    final totalExpense = expenseResult.read(_db.transactions.amount.sum()) ?? 0;
+    final totalIncome = incomeResult.read(_db.transactions.amount.sum()) ?? 0;
+    final expenseCount = expenseResult.read(_db.transactions.id.count()) ?? 0;
+    final incomeCount = incomeResult.read(_db.transactions.id.count()) ?? 0;
 
     return TransactionStats(
       totalExpense: totalExpense,
       totalIncome: totalIncome,
       balance: totalIncome - totalExpense,
-      count: results.length,
+      count: expenseCount + incomeCount,
     );
   }
 

@@ -132,6 +132,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get chatInputVoiceHint => '손을 떼면 전송, 왼쪽으로 밀면 취소 ↖, 오른쪽으로 밀면 텍스트 변환 ↗';
 
   @override
+  String get voiceOverlaySwipeHint => '↑ 위로 밀어 취소 또는 텍스트 변환';
+
+  @override
+  String get voiceOverlayCancelLabel => '떼기 취소';
+
+  @override
+  String get voiceOverlayTranscribeLabel => '떼기 텍스트 변환만';
+
+  @override
   String get chatInputTextHint => '메시지를 입력하세요...';
 
   @override
@@ -639,10 +648,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get settingsClearConfirm => '이 작업은 되돌릴 수 없습니다. 모든 데이터를 삭제하시겠습니까?';
 
   @override
+  String get settingsClearDataSuccess => '데이터가 삭제되었습니다';
+
+  @override
   String get settingsDeleteAccount => '계정 삭제';
 
   @override
   String get settingsDeleteConfirm => '삭제 후 모든 데이터가 영구적으로 삭제됩니다. 계속하시겠습니까?';
+
+  @override
+  String get settingsDeleteAccountSuccess => '계정 데이터가 삭제되었습니다';
 
   @override
   String get budgetTitle => '예산 관리';
@@ -786,6 +801,18 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get bookRestored => '가계부가 복원되었습니다';
+
+  @override
+  String get txnRecycleBin => '거래 휴지통';
+
+  @override
+  String get txnRecycleBinEmpty => '휴지통이 비어 있습니다';
+
+  @override
+  String get txnRestore => '복원';
+
+  @override
+  String get txnRestored => '거래가 복원되었습니다';
 
   @override
   String get bookPermanentDelete => '영구 삭제';

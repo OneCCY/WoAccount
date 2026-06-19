@@ -32,20 +32,19 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
   }
 
   Future<void> _loadProfile() async {
-    final db = ref.read(appDatabaseProvider);
-    final profiles = await db.select(db.userProfiles).get();
+    final profileRepo = ref.read(userProfileRepositoryProvider);
+    final profile = await profileRepo.getProfile();
     if (mounted) {
       setState(() {
-        _profile = profiles.isNotEmpty ? profiles.first : null;
+        _profile = profile;
         _isLoading = false;
       });
     }
   }
 
   Future<void> _updateProfile(UserProfilesCompanion companion) async {
-    final db = ref.read(appDatabaseProvider);
-    await (db.update(db.userProfiles)..where((t) => t.id.equals(_profile!.id)))
-        .write(companion);
+    final profileRepo = ref.read(userProfileRepositoryProvider);
+    await profileRepo.updateProfile(companion);
     await _loadProfile();
   }
 

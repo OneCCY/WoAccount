@@ -318,6 +318,24 @@ abstract class AppLocalizations {
   /// **'松手发送，左滑取消 ↖，右滑转文字 ↗'**
   String get chatInputVoiceHint;
 
+  /// No description provided for @voiceOverlaySwipeHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'↑ 上滑取消或转文字'**
+  String get voiceOverlaySwipeHint;
+
+  /// No description provided for @voiceOverlayCancelLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'松手 取消'**
+  String get voiceOverlayCancelLabel;
+
+  /// No description provided for @voiceOverlayTranscribeLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'松手 仅转文字'**
+  String get voiceOverlayTranscribeLabel;
+
   /// No description provided for @chatInputTextHint.
   ///
   /// In zh, this message translates to:
@@ -1272,6 +1290,12 @@ abstract class AppLocalizations {
   /// **'此操作不可恢复，确定要清除所有数据吗？'**
   String get settingsClearConfirm;
 
+  /// No description provided for @settingsClearDataSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'数据已清除'**
+  String get settingsClearDataSuccess;
+
   /// No description provided for @settingsDeleteAccount.
   ///
   /// In zh, this message translates to:
@@ -1283,6 +1307,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'注销后所有数据将被永久删除，确定要继续吗？'**
   String get settingsDeleteConfirm;
+
+  /// No description provided for @settingsDeleteAccountSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'账户数据已删除'**
+  String get settingsDeleteAccountSuccess;
 
   /// No description provided for @budgetTitle.
   ///
@@ -1541,6 +1571,30 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'账本已恢复'**
   String get bookRestored;
+
+  /// No description provided for @txnRecycleBin.
+  ///
+  /// In zh, this message translates to:
+  /// **'交易回收站'**
+  String get txnRecycleBin;
+
+  /// No description provided for @txnRecycleBinEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'回收站为空'**
+  String get txnRecycleBinEmpty;
+
+  /// No description provided for @txnRestore.
+  ///
+  /// In zh, this message translates to:
+  /// **'恢复'**
+  String get txnRestore;
+
+  /// No description provided for @txnRestored.
+  ///
+  /// In zh, this message translates to:
+  /// **'交易已恢复'**
+  String get txnRestored;
 
   /// No description provided for @bookPermanentDelete.
   ///

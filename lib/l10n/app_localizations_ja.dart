@@ -131,6 +131,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get chatInputVoiceHint => '話すのをやめて送信、左にスライドでキャンセル ↖、右にスライドで文字変換 ↗';
 
   @override
+  String get voiceOverlaySwipeHint => '↑ スワイプでキャンセルまたは文字変換';
+
+  @override
+  String get voiceOverlayCancelLabel => '離して キャンセル';
+
+  @override
+  String get voiceOverlayTranscribeLabel => '離して 文字変換のみ';
+
+  @override
   String get chatInputTextHint => 'メッセージを入力...';
 
   @override
@@ -637,10 +646,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsClearConfirm => 'この操作は元に戻せません。全データを削除しますか？';
 
   @override
+  String get settingsClearDataSuccess => 'データを削除しました';
+
+  @override
   String get settingsDeleteAccount => 'アカウント削除';
 
   @override
   String get settingsDeleteConfirm => '削除後、全データが完全に消去されます。続行しますか？';
+
+  @override
+  String get settingsDeleteAccountSuccess => 'アカウントデータを削除しました';
 
   @override
   String get budgetTitle => '予算管理';
@@ -784,6 +799,18 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get bookRestored => '家計簿を復元しました';
+
+  @override
+  String get txnRecycleBin => '取引ゴミ箱';
+
+  @override
+  String get txnRecycleBinEmpty => 'ゴミ箱は空です';
+
+  @override
+  String get txnRestore => '復元';
+
+  @override
+  String get txnRestored => '取引を復元しました';
 
   @override
   String get bookPermanentDelete => '完全に削除';

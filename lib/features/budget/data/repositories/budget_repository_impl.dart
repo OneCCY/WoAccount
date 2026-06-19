@@ -35,6 +35,13 @@ class BudgetRepositoryImpl implements BudgetRepository {
   }
 
   @override
+  Future<Budget?> getById(int id) async {
+    return (_db.select(_db.budgets)
+          ..where((b) => b.id.equals(id)))
+        .getSingleOrNull();
+  }
+
+  @override
   Future<int> insert(BudgetsCompanion budget) async {
     return _db.into(_db.budgets).insert(budget);
   }

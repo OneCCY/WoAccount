@@ -11,6 +11,9 @@ abstract class BudgetRepository {
   /// 获取账本内指定分类的预算
   Future<Budget?> getByCategoryId(int bookId, int categoryId, int year, int month);
 
+  /// 根据 ID 获取预算
+  Future<Budget?> getById(int id);
+
   /// 插入预算
   Future<int> insert(BudgetsCompanion budget);
 

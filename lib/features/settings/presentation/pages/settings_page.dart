@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:drift/drift.dart' hide Column;
 import 'package:wo_account/l10n/app_localizations.dart';
+import '../../../../config/database/app_database.dart';
+import '../../../../config/di/providers.dart';
+import '../../../../core/widgets/toast.dart';
 import '../../../../core/locale/app_currency.dart';
 import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -79,6 +84,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 _buildInfoRow(l10n.settingsBackupFrequency, l10n.settingsBackupDaily),
                 _buildNavRow(l10n.settingsRestoreData, () {
                   // TODO: 恢复数据
+                }),
+                _buildNavRow(l10n.txnRecycleBin, () {
+                  context.push('/transactions/recycle-bin');
                 }),
               ],
             ),
@@ -296,6 +304,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   void _showConfirmDialog(String title, String content) {
+    final isClearData = title == AppLocalizations.of(context)!.settingsClearData;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -307,12 +316,62 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             child: Text(AppLocalizations.of(context)!.commonCancel),
           ),
           TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              if (isClearData) {
+                await _clearCurrentBookData();
+              } else {
+                await _deleteAccountData();
+              }
+            },
             child: Text(AppLocalizations.of(context)!.commonConfirm, style: TextStyle(color: context.colors.error)),
           ),
         ],
       ),
     );
+  }
+
+  /// 清空当前账本数据
+  Future<void> _clearCurrentBookData() async {
+    try {
+      final bookRepo = ref.read(accountBookRepositoryProvider);
+      final bookId = ref.read(currentBookProvider);
+      await bookRepo.clearData(bookId);
+      if (mounted) {
+        AppToast.show(context, AppLocalizations.of(context)!.settingsClearDataSuccess);
+      }
+    } catch (e) {
+      debugPrint('清空数据失败: $e');
+    }
+  }
+
+  /// 删除账户数据（清空所有账本 + 重置用户资料）
+  Future<void> _deleteAccountData() async {
+    try {
+      final bookRepo = ref.read(accountBookRepositoryProvider);
+      final profileRepo = ref.read(userProfileRepositoryProvider);
+
+      // 清空所有账本数据
+      final books = await bookRepo.getAll();
+      for (final book in books) {
+        await bookRepo.clearData(book.id);
+      }
+
+      // 重置用户资料
+      await profileRepo.updateProfile(const UserProfilesCompanion(
+        nickname: Value(''),
+        avatarPath: Value(null),
+        gender: Value(null),
+        email: Value(null),
+        phone: Value(null),
+      ));
+
+      if (mounted) {
+        AppToast.show(context, AppLocalizations.of(context)!.settingsDeleteAccountSuccess);
+      }
+    } catch (e) {
+      debugPrint('删除账户数据失败: $e');
+    }
   }
 }
 
