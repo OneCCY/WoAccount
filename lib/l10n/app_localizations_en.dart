@@ -681,6 +681,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get budgetTitle => 'Budget Management';
 
   @override
+  String get budgetViewMonth => 'Month';
+
+  @override
+  String get budgetViewYear => 'Year';
+
+  @override
+  String budgetYearLabel(String year) {
+    return '$year';
+  }
+
+  @override
+  String get budgetYearTotal => 'Annual Budget';
+
+  @override
+  String budgetMonthCount(String count) {
+    return '$count months budgeted';
+  }
+
+  @override
+  String budgetMonthShort(String month) {
+    return 'M$month';
+  }
+
+  @override
   String get budgetEmpty => 'No budget set yet';
 
   @override

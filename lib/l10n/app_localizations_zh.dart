@@ -666,6 +666,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get budgetTitle => '预算管理';
 
   @override
+  String get budgetViewMonth => '月';
+
+  @override
+  String get budgetViewYear => '年';
+
+  @override
+  String budgetYearLabel(String year) {
+    return '$year年';
+  }
+
+  @override
+  String get budgetYearTotal => '年度总预算';
+
+  @override
+  String budgetMonthCount(String count) {
+    return '$count 个月有预算';
+  }
+
+  @override
+  String budgetMonthShort(String month) {
+    return '$month月';
+  }
+
+  @override
   String get budgetEmpty => '暂未设置预算';
 
   @override
@@ -3170,6 +3194,30 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get budgetTitle => '預算管理';
+
+  @override
+  String get budgetViewMonth => '月';
+
+  @override
+  String get budgetViewYear => '年';
+
+  @override
+  String budgetYearLabel(String year) {
+    return '$year年';
+  }
+
+  @override
+  String get budgetYearTotal => '年度總預算';
+
+  @override
+  String budgetMonthCount(String count) {
+    return '$count 個月有預算';
+  }
+
+  @override
+  String budgetMonthShort(String month) {
+    return '$month月';
+  }
 
   @override
   String get budgetEmpty => '暫未設定預算';

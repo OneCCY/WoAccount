@@ -10,8 +10,11 @@ import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/repositories/budget_repository.dart';
 
+/// 预算视图模式
+enum _BudgetView { month, year }
+
 /// 预算管理页
-/// 总额卡片 + 分类预算列表
+/// 支持月/年视图切换 + 月份导航
 class BudgetPage extends ConsumerStatefulWidget {
   const BudgetPage({super.key});
 
@@ -20,7 +23,15 @@ class BudgetPage extends ConsumerStatefulWidget {
 }
 
 class _BudgetPageState extends ConsumerState<BudgetPage> {
-  final now = DateTime.now();
+  late DateTime _currentMonth;
+  _BudgetView _view = _BudgetView.month;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _currentMonth = DateTime(now.year, now.month);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,107 +44,359 @@ class _BudgetPageState extends ConsumerState<BudgetPage> {
       appBar: AppBar(
         title: Text(l10n.budgetTitle),
         actions: [
+          // 月/年切换
+          _buildViewToggle(l10n),
           IconButton(
             icon: const Icon(Icons.edit_outlined),
             onPressed: () async {
               await context.push('/budget/setting');
-              // 返回后自动刷新（StreamBuilder 自动处理）
             },
           ),
         ],
       ),
-      body: StreamBuilder<List<Budget>>(
-        stream: repo.watchByMonth(bookId, now.year, now.month),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
-            return Center(child: CircularProgressIndicator(color: context.colors.primary));
-          }
-
-          final budgets = snapshot.data ?? [];
-
-          if (budgets.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.account_balance_wallet_outlined, size: 48, color: context.colors.textTertiary),
-                  const SizedBox(height: 16),
-                  Text(l10n.budgetEmpty, style: context.textStyles.callout.copyWith(color: context.colors.textSecondary)),
-                  const SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: () => context.push('/budget/setting'),
-                    child: Text(l10n.budgetSetButton),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          // 有预算数据时，异步加载进度（含实际消费统计）
-          return FutureBuilder<List<BudgetProgress>>(
-            future: repo.getBudgetProgress(bookId, now.year, now.month),
-            builder: (context, progressSnap) {
-              if (progressSnap.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator(color: context.colors.primary));
-              }
-
-              final progresses = progressSnap.data ?? [];
-              final totalBudget = progresses
-                  .where((p) => p.budget.categoryId == null)
-                  .fold<double>(0, (sum, p) => sum + p.budget.amount);
-              final totalSpent = progresses
-                  .where((p) => p.budget.categoryId == null)
-                  .fold<double>(0, (sum, p) => sum + p.spent);
-              final categoryProgresses =
-                  progresses.where((p) => p.budget.categoryId != null).toList();
-
-              return RefreshIndicator(
-                onRefresh: () async {
-                  // 触发 StreamBuilder 重建
-                  setState(() {});
-                },
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 16),
-
-                      // 总预算卡片
-                      if (totalBudget > 0)
-                        _buildTotalCard(context, totalBudget, totalSpent),
-
-                      // 超支警告
-                      if (categoryProgresses.any((p) => p.isOverBudget))
-                        _buildOverBudgetWarning(context, categoryProgresses),
-
-                      const SizedBox(height: 16),
-
-                      // 分类预算列表
-                      if (categoryProgresses.isNotEmpty)
-                        ...categoryProgresses.map((p) => _buildCategoryItem(context, p))
-                      else if (totalBudget > 0)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 40),
-                          child: Text(
-                            l10n.budgetNoBudgets,
-                            style: context.textStyles.caption.copyWith(color: context.colors.textTertiary),
-                          ),
-                        ),
-
-                      const SizedBox(height: 24),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        },
+      body: Column(
+        children: [
+          // 月份导航栏
+          _buildMonthNav(l10n),
+          // 内容区
+          Expanded(
+            child: _view == _BudgetView.month
+                ? _buildMonthView(repo, bookId, l10n)
+                : _buildYearView(repo, bookId, l10n),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildTotalCard(BuildContext context, double total, double spent) {
-    final l10n = AppLocalizations.of(context)!;
+  /// 月/年视图切换
+  Widget _buildViewToggle(AppLocalizations l10n) {
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      decoration: BoxDecoration(
+        color: context.colors.surfaceSecondary,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildToggleItem(l10n.budgetViewMonth, _BudgetView.month),
+          _buildToggleItem(l10n.budgetViewYear, _BudgetView.year),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildToggleItem(String label, _BudgetView view) {
+    final isActive = _view == view;
+    return GestureDetector(
+      onTap: () => setState(() => _view = view),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isActive ? context.colors.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+        ),
+        child: Text(
+          label,
+          style: context.textStyles.caption.copyWith(
+            color: isActive ? context.colors.textOnPrimary : context.colors.textSecondary,
+            fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 月份导航栏
+  Widget _buildMonthNav(AppLocalizations l10n) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 8),
+      color: context.colors.surface,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.chevron_left, size: 24),
+            onPressed: () => setState(() {
+              _currentMonth = _view == _BudgetView.month
+                  ? DateTime(_currentMonth.year, _currentMonth.month - 1)
+                  : DateTime(_currentMonth.year - 1, _currentMonth.month);
+            }),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          ),
+          const SizedBox(width: 16),
+          Text(
+            _view == _BudgetView.month
+                ? l10n.reportMonthLabel(_currentMonth.year.toString(), _currentMonth.month.toString())
+                : l10n.budgetYearLabel(_currentMonth.year.toString()),
+            style: context.textStyles.h3.copyWith(fontSize: 16),
+          ),
+          const SizedBox(width: 16),
+          IconButton(
+            icon: const Icon(Icons.chevron_right, size: 24),
+            onPressed: () {
+              final now = DateTime.now();
+              final next = _view == _BudgetView.month
+                  ? DateTime(_currentMonth.year, _currentMonth.month + 1)
+                  : DateTime(_currentMonth.year + 1, _currentMonth.month);
+              // 不超过当前月/年
+              if (_view == _BudgetView.month) {
+                if (next.isAfter(DateTime(now.year, now.month))) return;
+              } else {
+                if (next.year > now.year) return;
+              }
+              setState(() => _currentMonth = next);
+            },
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ==================== 月视图 ====================
+
+  Widget _buildMonthView(BudgetRepository repo, int bookId, AppLocalizations l10n) {
+    return StreamBuilder<List<Budget>>(
+      stream: repo.watchByMonth(bookId, _currentMonth.year, _currentMonth.month),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+          return Center(child: CircularProgressIndicator(color: context.colors.primary));
+        }
+
+        final budgets = snapshot.data ?? [];
+
+        if (budgets.isEmpty) {
+          return _buildEmptyState(l10n);
+        }
+
+        return FutureBuilder<List<BudgetProgress>>(
+          future: repo.getBudgetProgress(bookId, _currentMonth.year, _currentMonth.month),
+          builder: (context, progressSnap) {
+            if (progressSnap.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator(color: context.colors.primary));
+            }
+
+            final progresses = progressSnap.data ?? [];
+            final totalBudget = progresses
+                .where((p) => p.budget.categoryId == null)
+                .fold<double>(0, (sum, p) => sum + p.budget.amount);
+            final totalSpent = progresses
+                .where((p) => p.budget.categoryId == null)
+                .fold<double>(0, (sum, p) => sum + p.spent);
+            final categoryProgresses =
+                progresses.where((p) => p.budget.categoryId != null).toList();
+
+            return RefreshIndicator(
+              onRefresh: () async => setState(() {}),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 16),
+                    if (totalBudget > 0)
+                      _buildTotalCard(context, totalBudget, totalSpent, l10n),
+                    if (categoryProgresses.any((p) => p.isOverBudget))
+                      _buildOverBudgetWarning(context, categoryProgresses, l10n),
+                    const SizedBox(height: 16),
+                    if (categoryProgresses.isNotEmpty)
+                      ...categoryProgresses.map((p) => _buildCategoryItem(context, p))
+                    else if (totalBudget > 0)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 40),
+                        child: Text(
+                          l10n.budgetNoBudgets,
+                          style: context.textStyles.caption.copyWith(color: context.colors.textTertiary),
+                        ),
+                      ),
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // ==================== 年视图 ====================
+
+  Widget _buildYearView(BudgetRepository repo, int bookId, AppLocalizations l10n) {
+    return FutureBuilder<List<Budget>>(
+      future: repo.getAll(bookId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator(color: context.colors.primary));
+        }
+
+        final allBudgets = snapshot.data ?? [];
+        final yearBudgets = allBudgets.where((b) => b.year == _currentMonth.year).toList();
+
+        if (yearBudgets.isEmpty) {
+          return _buildEmptyState(l10n);
+        }
+
+        // 按月分组并计算每月总预算
+        final monthlyData = <int, double>{};
+        for (final b in yearBudgets) {
+          monthlyData[b.month] = (monthlyData[b.month] ?? 0) + b.amount;
+        }
+
+        final now = DateTime.now();
+        final yearTotal = monthlyData.values.fold<double>(0, (s, v) => s + v);
+
+        return SingleChildScrollView(
+          child: Column(
+            children: [
+              const SizedBox(height: 16),
+              // 年度总预算卡片
+              _buildYearTotalCard(yearTotal, monthlyData.length, l10n),
+              const SizedBox(height: 16),
+              // 12 个月列表
+              ...List.generate(12, (i) {
+                final month = i + 1;
+                final budget = monthlyData[month];
+                final isCurrentOrPast = _currentMonth.year < now.year ||
+                    (_currentMonth.year == now.year && month <= now.month);
+                return _buildMonthRow(month, budget, isCurrentOrPast, l10n);
+              }),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// 年度总预算卡片
+  Widget _buildYearTotalCard(double yearTotal, int monthsCount, AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              context.colors.primary.withValues(alpha: 0.08),
+              context.colors.primary.withValues(alpha: 0.15),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+          border: Border.all(color: context.colors.primary.withValues(alpha: 0.2)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l10n.budgetYearTotal, style: context.textStyles.footnote.copyWith(color: context.colors.primary)),
+            const SizedBox(height: 8),
+            Text(
+              context.localeProvider.currency.formatAmount(yearTotal, decimals: 0),
+              style: context.textStyles.amountLarge.copyWith(color: context.colors.primaryDark),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              l10n.budgetMonthCount(monthsCount.toString()),
+              style: context.textStyles.caption.copyWith(color: context.colors.textTertiary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 月份行（年视图中的每月汇总）
+  Widget _buildMonthRow(int month, double? budget, bool isCurrentOrPast, AppLocalizations l10n) {
+    final hasBudget = budget != null && budget > 0;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 3),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: context.colors.surface,
+          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        ),
+        child: Row(
+          children: [
+            // 月份标签
+            SizedBox(
+              width: 48,
+              child: Text(
+                l10n.budgetMonthShort(month.toString()),
+                style: context.textStyles.body.copyWith(
+                  fontWeight: FontWeight.w500,
+                  color: isCurrentOrPast ? context.colors.textPrimary : context.colors.textTertiary,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // 预算进度条
+            Expanded(
+              child: hasBudget
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(3),
+                      child: LinearProgressIndicator(
+                        value: 0.5, // 年视图只显示预算额度，不计算实际消费
+                        minHeight: 6,
+                        backgroundColor: context.colors.surfaceSecondary,
+                        valueColor: AlwaysStoppedAnimation(context.colors.primary.withValues(alpha: 0.5)),
+                      ),
+                    )
+                  : Container(
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: context.colors.surfaceSecondary,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+            ),
+            const SizedBox(width: 12),
+            // 预算金额
+            SizedBox(
+              width: 80,
+              child: Text(
+                hasBudget
+                    ? context.localeProvider.currency.formatAmount(budget, decimals: 0)
+                    : '—',
+                style: context.textStyles.amountSmall.copyWith(
+                  color: hasBudget ? context.colors.textPrimary : context.colors.textHint,
+                ),
+                textAlign: TextAlign.right,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ==================== 通用组件 ====================
+
+  Widget _buildEmptyState(AppLocalizations l10n) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.account_balance_wallet_outlined, size: 48, color: context.colors.textTertiary),
+          const SizedBox(height: 16),
+          Text(l10n.budgetEmpty, style: context.textStyles.callout.copyWith(color: context.colors.textSecondary)),
+          const SizedBox(height: 8),
+          ElevatedButton(
+            onPressed: () => context.push('/budget/setting'),
+            child: Text(l10n.budgetSetButton),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTotalCard(BuildContext context, double total, double spent, AppLocalizations l10n) {
     final percentage = total > 0 ? (spent / total * 100) : 0.0;
     final remaining = total - spent;
 
@@ -159,7 +422,6 @@ class _BudgetPageState extends ConsumerState<BudgetPage> {
               style: context.textStyles.amountLarge.copyWith(color: const Color(0xFFE65100)),
             ),
             const SizedBox(height: 12),
-            // 进度条
             ClipRRect(
               borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(
@@ -185,8 +447,7 @@ class _BudgetPageState extends ConsumerState<BudgetPage> {
     );
   }
 
-  Widget _buildOverBudgetWarning(BuildContext context, List<BudgetProgress> progresses) {
-    final l10n = AppLocalizations.of(context)!;
+  Widget _buildOverBudgetWarning(BuildContext context, List<BudgetProgress> progresses, AppLocalizations l10n) {
     final overBudget = progresses.where((p) => p.isOverBudget).toList();
 
     return Padding(
@@ -242,67 +503,60 @@ class _BudgetPageState extends ConsumerState<BudgetPage> {
           color: context.colors.surface,
           borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
         ),
-        child: Column(
+        child: Row(
           children: [
-            Row(
-              children: [
-                // 图标
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-                  ),
-                  child: Center(
-                    child: Text(cat?.icon ?? '📦', style: const TextStyle(fontSize: 18)),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                // 名称 + 进度条
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+              ),
+              child: Center(
+                child: Text(cat?.icon ?? '📦', style: const TextStyle(fontSize: 18)),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(cat?.name ?? AppLocalizations.of(context)!.budgetUncategorized, style: context.textStyles.body),
-                          Text(
-                            '${percentage.toStringAsFixed(1)}%',
-                            style: context.textStyles.caption.copyWith(color: barColor),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: (percentage / 100).clamp(0, 1),
-                          minHeight: 6,
-                          backgroundColor: context.colors.surfaceSecondary,
-                          valueColor: AlwaysStoppedAnimation(barColor),
-                        ),
+                      Text(cat?.name ?? AppLocalizations.of(context)!.budgetUncategorized, style: context.textStyles.body),
+                      Text(
+                        '${percentage.toStringAsFixed(1)}%',
+                        style: context.textStyles.caption.copyWith(color: barColor),
                       ),
                     ],
                   ),
+                  const SizedBox(height: 6),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: (percentage / 100).clamp(0, 1),
+                      minHeight: 6,
+                      backgroundColor: context.colors.surfaceSecondary,
+                      valueColor: AlwaysStoppedAnimation(barColor),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  context.localeProvider.currency.formatAmount(progress.spent, decimals: 0),
+                  style: context.textStyles.amountSmall.copyWith(
+                    color: progress.isOverBudget ? context.colors.error : context.colors.textPrimary,
+                  ),
                 ),
-                const SizedBox(width: 12),
-                // 金额
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      context.localeProvider.currency.formatAmount(progress.spent, decimals: 0),
-                      style: context.textStyles.amountSmall.copyWith(
-                        color: progress.isOverBudget ? context.colors.error : context.colors.textPrimary,
-                      ),
-                    ),
-                    Text(
-                      '/ ${context.localeProvider.currency.formatAmount(progress.budget.amount, decimals: 0)}',
-                      style: context.textStyles.caption,
-                    ),
-                  ],
+                Text(
+                  '/ ${context.localeProvider.currency.formatAmount(progress.budget.amount, decimals: 0)}',
+                  style: context.textStyles.caption,
                 ),
               ],
             ),
@@ -313,8 +567,12 @@ class _BudgetPageState extends ConsumerState<BudgetPage> {
   }
 
   Color _parseColor(BuildContext context, String? hex) {
-    if (hex == null || hex.isEmpty) return context.colors.textTertiary;
-    final clean = hex.replaceFirst('#', '');
-    return Color(int.parse('FF$clean', radix: 16));
+    try {
+      if (hex == null || hex.isEmpty) return context.colors.textTertiary;
+      final clean = hex.replaceFirst('#', '');
+      return Color(int.parse('FF$clean', radix: 16));
+    } catch (_) {
+      return context.colors.textTertiary;
+    }
   }
 }

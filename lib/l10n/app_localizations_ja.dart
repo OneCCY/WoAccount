@@ -667,6 +667,30 @@ class AppLocalizationsJa extends AppLocalizations {
   String get budgetTitle => '予算管理';
 
   @override
+  String get budgetViewMonth => '月';
+
+  @override
+  String get budgetViewYear => '年';
+
+  @override
+  String budgetYearLabel(String year) {
+    return '$year年';
+  }
+
+  @override
+  String get budgetYearTotal => '年間予算合計';
+
+  @override
+  String budgetMonthCount(String count) {
+    return '$countヶ月分の予算';
+  }
+
+  @override
+  String budgetMonthShort(String month) {
+    return '$month月';
+  }
+
+  @override
   String get budgetEmpty => '予算が設定されていません';
 
   @override

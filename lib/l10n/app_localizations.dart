@@ -1332,6 +1332,42 @@ abstract class AppLocalizations {
   /// **'预算管理'**
   String get budgetTitle;
 
+  /// No description provided for @budgetViewMonth.
+  ///
+  /// In zh, this message translates to:
+  /// **'月'**
+  String get budgetViewMonth;
+
+  /// No description provided for @budgetViewYear.
+  ///
+  /// In zh, this message translates to:
+  /// **'年'**
+  String get budgetViewYear;
+
+  /// No description provided for @budgetYearLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'{year}年'**
+  String budgetYearLabel(String year);
+
+  /// No description provided for @budgetYearTotal.
+  ///
+  /// In zh, this message translates to:
+  /// **'年度总预算'**
+  String get budgetYearTotal;
+
+  /// No description provided for @budgetMonthCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 个月有预算'**
+  String budgetMonthCount(String count);
+
+  /// No description provided for @budgetMonthShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'{month}月'**
+  String budgetMonthShort(String month);
+
   /// No description provided for @budgetEmpty.
   ///
   /// In zh, this message translates to:

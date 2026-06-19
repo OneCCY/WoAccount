@@ -669,6 +669,30 @@ class AppLocalizationsKo extends AppLocalizations {
   String get budgetTitle => '예산 관리';
 
   @override
+  String get budgetViewMonth => '월';
+
+  @override
+  String get budgetViewYear => '년';
+
+  @override
+  String budgetYearLabel(String year) {
+    return '$year년';
+  }
+
+  @override
+  String get budgetYearTotal => '연간 예산 합계';
+
+  @override
+  String budgetMonthCount(String count) {
+    return '$count개월 예산';
+  }
+
+  @override
+  String budgetMonthShort(String month) {
+    return '$month월';
+  }
+
+  @override
   String get budgetEmpty => '설정된 예산이 없습니다';
 
   @override

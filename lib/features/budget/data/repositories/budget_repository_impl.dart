@@ -94,13 +94,14 @@ class BudgetRepositoryImpl implements BudgetRepository {
         final result = await query.getSingle();
         spent = result.read(_db.transactions.amount.sum()) ?? 0;
       } else {
-        // 总预算：查询该账本所有支出
+        // 总预算：SQL 聚合查询所有支出（join categories 过滤 isExpense）
         final start = DateTime(year, month, 1);
         final end = DateTime(year, month + 1, 1);
 
-        final query = _db.select(_db.transactions).join([
+        final query = _db.selectOnly(_db.transactions).join([
           innerJoin(_db.categories, _db.categories.id.equalsExp(_db.transactions.categoryId)),
         ])
+          ..addColumns([_db.transactions.amount.sum()])
           ..where(
             _db.transactions.accountBookId.equals(bookId) &
                 _db.transactions.transactionDate.isBetweenValues(start, end) &
@@ -108,10 +109,8 @@ class BudgetRepositoryImpl implements BudgetRepository {
                 _db.categories.isExpense.equals(true),
           );
 
-        final txnResults = await query.get();
-        for (final row in txnResults) {
-          spent += row.readTable(_db.transactions).amount;
-        }
+        final result = await query.getSingle();
+        spent = result.read(_db.transactions.amount.sum()) ?? 0;
       }
 
       final percentage = budget.amount > 0 ? (spent / budget.amount * 100) : 0.0;

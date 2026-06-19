@@ -7,7 +7,7 @@
 
 ## Phase 2: 死代码激活 — Tags 系统
 - [x] 4. 创建 TagRepository (interface + impl + provider)
-- [x] 5. 在交易详情页集成标签管理 UI — TagRepository 已创建并注册 Provider，UI 集成待后续迭代
+- [x] 5. 在交易详情页集成标签管理 UI — 完整实现：标签管理页 + 标签选择器 + 交易详情集成 + 列表展示 + 路由 + 入口
 
 ## Phase 3: 功能补全
 - [x] 6. 交易回收站 — 添加 restore/getDeleted 方法 + 回收站页面 + 路由 + 设置页入口

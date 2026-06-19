@@ -31,7 +31,7 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> with Page
   void onRefresh() => _loadData();
 
   late final BudgetRepository _budgetRepo;
-  final now = DateTime.now();
+  late DateTime _currentMonth;
   List<BudgetProgress> _progresses = [];
   bool _isLoading = true;
 
@@ -39,12 +39,14 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> with Page
   void initState() {
     super.initState();
     _budgetRepo = ref.read(budgetRepositoryProvider);
+    final now = DateTime.now();
+    _currentMonth = DateTime(now.year, now.month);
     _loadData();
   }
 
   Future<void> _loadData() async {
     final bookId = ref.read(currentBookProvider);
-    final progresses = await _budgetRepo.getBudgetProgress(bookId, now.year, now.month);
+    final progresses = await _budgetRepo.getBudgetProgress(bookId, _currentMonth.year, _currentMonth.month);
     if (!mounted) return;
     setState(() {
       _progresses = progresses;
@@ -69,8 +71,14 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> with Page
       appBar: AppBar(title: Text(l10n.budgetSettingTitle)),
       body: _isLoading
           ? Center(child: CircularProgressIndicator(color: context.colors.primary))
-          : SingleChildScrollView(
-              child: Column(
+          : Column(
+              children: [
+                // 月份导航栏
+                _buildMonthNav(l10n),
+                // 内容区
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
                 children: [
                   const SizedBox(height: 24),
 
@@ -132,6 +140,53 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> with Page
                 ],
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 月份导航栏
+  Widget _buildMonthNav(AppLocalizations l10n) {
+    final now = DateTime.now();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 8),
+      color: context.colors.surface,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.chevron_left, size: 24),
+            onPressed: () => setState(() {
+              _currentMonth = DateTime(_currentMonth.year, _currentMonth.month - 1);
+              _isLoading = true;
+              _loadData();
+            }),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          ),
+          const SizedBox(width: 16),
+          Text(
+            l10n.reportMonthLabel(_currentMonth.year.toString(), _currentMonth.month.toString()),
+            style: context.textStyles.h3.copyWith(fontSize: 16),
+          ),
+          const SizedBox(width: 16),
+          IconButton(
+            icon: const Icon(Icons.chevron_right, size: 24),
+            onPressed: () {
+              final next = DateTime(_currentMonth.year, _currentMonth.month + 1);
+              if (next.isAfter(DateTime(now.year, now.month))) return;
+              setState(() {
+                _currentMonth = next;
+                _isLoading = true;
+                _loadData();
+              });
+            },
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          ),
+        ],
+      ),
     );
   }
 
@@ -297,16 +352,16 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> with Page
                   id: drift.Value(existing.budget.id),
                   accountBookId: drift.Value(bookId),
                   amount: drift.Value(amount),
-                  year: drift.Value(now.year),
-                  month: drift.Value(now.month),
+                  year: drift.Value(_currentMonth.year),
+                  month: drift.Value(_currentMonth.month),
                   period: const drift.Value('monthly'),
                 ));
               } else {
                 await _budgetRepo.insert(BudgetsCompanion(
                   accountBookId: drift.Value(bookId),
                   amount: drift.Value(amount),
-                  year: drift.Value(now.year),
-                  month: drift.Value(now.month),
+                  year: drift.Value(_currentMonth.year),
+                  month: drift.Value(_currentMonth.month),
                   period: const drift.Value('monthly'),
                 ));
               }
@@ -364,8 +419,8 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> with Page
       accountBookId: drift.Value(bookId),
       categoryId: drift.Value(categoryId),
       amount: drift.Value(amount),
-      year: drift.Value(now.year),
-      month: drift.Value(now.month),
+      year: drift.Value(_currentMonth.year),
+      month: drift.Value(_currentMonth.month),
       period: const drift.Value('monthly'),
     ));
     _loadData();
@@ -515,8 +570,12 @@ class _BudgetSettingPageState extends ConsumerState<BudgetSettingPage> with Page
   }
 
   Color _parseColor(BuildContext context, String? hex) {
-    if (hex == null || hex.isEmpty) return context.colors.textTertiary;
-    final clean = hex.replaceFirst('#', '');
-    return Color(int.parse('FF$clean', radix: 16));
+    try {
+      if (hex == null || hex.isEmpty) return context.colors.textTertiary;
+      final clean = hex.replaceFirst('#', '');
+      return Color(int.parse('FF$clean', radix: 16));
+    } catch (_) {
+      return context.colors.textTertiary;
+    }
   }
 }
