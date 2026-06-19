@@ -2,72 +2,101 @@
 class PromptTemplates {
   PromptTemplates._();
 
+  /// 根据 locale 返回语言名称
+  static String _languageName(String locale) {
+    switch (locale) {
+      case 'zh': return '中文';
+      case 'en': return 'English';
+      case 'ja': return '日本語';
+      case 'ko': return '한국어';
+      default: return '中文';
+    }
+  }
+
+  /// 根据 locale 返回星期名
+  static String _weekdayName(int weekday, String locale) {
+    const zh = ['一', '二', '三', '四', '五', '六', '日'];
+    const en = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const ja = ['月', '火', '水', '木', '金', '土', '日'];
+    const ko = ['월', '화', '수', '목', '금', '토', '일'];
+    switch (locale) {
+      case 'en': return en[weekday - 1];
+      case 'ja': return ja[weekday - 1];
+      case 'ko': return ko[weekday - 1];
+      default: return zh[weekday - 1];
+    }
+  }
+
   /// 记账解析 System Prompt（动态分类版本）
   ///
   /// [categoryTaxonomy] 从数据库动态生成的分类体系文本
-  static String parseTransactionSystem(String categoryTaxonomy) {
+  /// [locale] 当前语言环境（zh/en/ja/ko），影响回复语言
+  static String parseTransactionSystem(String categoryTaxonomy, {String locale = 'zh'}) {
+    final lang = _languageName(locale);
     return '''
-你是一个专业的记账助手。你的任务是分析用户的消费描述，提取结构化信息。
+You are a professional bookkeeping assistant. Your task is to analyze the user's expense description and extract structured information.
+IMPORTANT: The category names and subcategory names below are in their original language. You MUST use these exact names in your response. Respond in $lang.
 
 ## 分类体系
 
 请从以下用户已配置的分类中选择最合适的一个。每个一级分类后面括号内列出了可选的二级分类。
+Please select the most appropriate category from the user's configured categories below.
 
 $categoryTaxonomy
 
-## 输出格式
+## 输出格式 / Output Format
 
 请严格按照以下JSON格式输出，不要输出其他内容。
+Output strictly in the following JSON format, no other content.
 如果用户描述了多笔消费，请输出JSON数组（包含多个对象）。
+If the user describes multiple transactions, output a JSON array.
 如果只有一笔，也用数组包裹。
+Even for a single transaction, wrap it in an array.
 
 [
   {
-    "type": "expense" 或 "income",
-    "amount": 数字（必填）,
-    "category": "一级分类名称"（必填，必须是上面列出的分类之一）,
-    "subcategory": "二级分类名称"（必填，必须从该一级分类的括号内子分类中选择最匹配的一个）,
-    "description": "精简描述"（必填）,
-    "date": "YYYY-MM-DD"（必填，根据今天日期计算，不要省略）,
-    "note": "备注"（可选）,
-    "payMethod": "支付方式"（可选，从上下文推断，见下方规则）,
-    "confidence": 0.0-1.0（必填）
+    "type": "expense" or "income",
+    "amount": number (required),
+    "category": "一级分类名称" (required, must be one of the listed categories above, use the EXACT name shown),
+    "subcategory": "二级分类名称" (required, must be from the parenthesized subcategories under the chosen category, use the EXACT name shown),
+    "description": "brief description" (required),
+    "date": "YYYY-MM-DD" (required, calculate from today's date),
+    "note": "note" (optional),
+    "payMethod": "payment method" (optional, infer from context, see rules below),
+    "confidence": 0.0-1.0 (required)
   }
 ]
 
-## 特殊规则
+## Special Rules / 特殊规则
 
-1. **AA制处理**：如果用户提到"AA"、"平摊"、"分摊"，只记录用户自己的份额
-2. **时间词解析**：
-   - "昨天" → 前一天日期
-   - "今天" → 今天日期
-   - "上周X" → 对应日期
-   - "X号" → 本月对应日期
-3. **金额提取**：
-   - "25" → 25
-   - "25元" → 25
-   - "25.5" → 25.5
-   - "1千" → 1000
-   - "1万" → 10000
-4. **分类推断**：根据关键词推断，category 和 subcategory 必须使用上面列出的分类名称。subcategory 必须从对应 category 括号内的子分类中选择，不要自创子分类名称
-5. **支付方式推断**：
-   - "微信付的"/"微信支付" → "wechat"
-   - "支付宝"/"花呗" → "alipay"
-   - "刷卡"/"信用卡"/"银行卡" → "card"
-   - "现金"/"现金付的" → "cash"
-   - 无法判断时不要输出此字段
-6. **置信度**：
-   - 明确匹配：0.9-1.0
-   - 推断匹配：0.7-0.9
-   - 不确定：0.5-0.7''';
+1. **AA制 / Split bills**: If user mentions "AA", "平摊", "split", only record the user's share
+2. **Relative date parsing / 时间词解析**:
+   - "昨天"/"yesterday" → previous day
+   - "今天"/"today" → today
+   - "上周X"/"last X" → corresponding day last week
+   - "X号"/"the Xth" → corresponding day in current month
+3. **Amount extraction / 金额提取**:
+   - "25" → 25, "25元"/"25 yuan" → 25, "25.5" → 25.5
+   - "1千"/"1 thousand" → 1000, "1万"/"10k" → 10000
+4. **Category matching / 分类推断**: category and subcategory MUST use the exact names listed above. subcategory must come from the parenthesized list under the chosen category
+5. **Payment method / 支付方式推断**:
+   - "微信"/"wechat" → "wechat"
+   - "支付宝"/"alipay"/"花呗" → "alipay"
+   - "刷卡"/"card"/"credit card" → "card"
+   - "现金"/"cash" → "cash"
+   - If uncertain, omit this field
+6. **Confidence / 置信度**:
+   - Exact match: 0.9-1.0
+   - Inferred: 0.7-0.9
+   - Uncertain: 0.5-0.7''';
   }
 
   /// 记账解析 User Prompt（注入今天的日期以计算相对日期）
-  static String parseTransactionUser(String input) {
+  static String parseTransactionUser(String input, {String locale = 'zh'}) {
     final now = DateTime.now();
     final today = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-    final weekday = ['一', '二', '三', '四', '五', '六', '日'][now.weekday - 1];
-    return '今天是 $today 星期$weekday。\n\n请分析以下消费描述：\n\n"$input"';
+    final weekday = _weekdayName(now.weekday, locale);
+    return 'Today is $today ($weekday). / 今天是 $today 星期$weekday。\n\nPlease analyze the following expense description / 请分析以下消费描述：\n\n"$input"';
   }
 
   /// 搜索查询解析 System Prompt

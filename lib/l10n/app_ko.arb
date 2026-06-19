@@ -108,7 +108,7 @@
   "txnSortByAmount": "금액순",
   "txnEmpty": "내역이 없습니다",
   "txnDayDetailEmpty": "해당 날짜의 내역이 없습니다",
-  "txnDayFormat": "M월 d일",
+  "txnDayFormat": "yyyy년 M월 d일",
   "txnMonthFormat": "yyyy년 M월",
   "txnGroupExpenseLabel": "지출 {amount}",
   "@txnGroupExpenseLabel": { "placeholders": { "amount": { "type": "String" } } },

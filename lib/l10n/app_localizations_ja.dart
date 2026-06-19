@@ -311,7 +311,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get txnDayDetailEmpty => 'この日の明細はありません';
 
   @override
-  String get txnDayFormat => 'M月d日';
+  String get txnDayFormat => 'yyyy年M月d日';
 
   @override
   String get txnMonthFormat => 'yyyy年M月';

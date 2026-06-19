@@ -320,7 +320,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get txnDayDetailEmpty => 'No transactions for this day';
 
   @override
-  String get txnDayFormat => 'MMM d';
+  String get txnDayFormat => 'MMM d, yyyy';
 
   @override
   String get txnMonthFormat => 'MMM yyyy';

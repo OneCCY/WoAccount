@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../config/di/ai_providers.dart';
-import '../../../config/di/providers.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../voice/voice_recording_overlay.dart';
@@ -30,7 +29,6 @@ class _MainShellState extends ConsumerState<MainShell> {
       bottomNavigationBar: _BottomBarWithFloatingButton(
         currentIndex: currentIndex,
         onNavTap: _onNavTap,
-        onNavDoubleTap: _onNavDoubleTap,
         onVoiceResult: _handleVoiceResult,
       ),
     );
@@ -84,27 +82,17 @@ class _MainShellState extends ConsumerState<MainShell> {
         context.go('/profile');
     }
   }
-
-  void _onNavDoubleTap(BuildContext context, int index) {
-    if (index == 0) {
-      // 双击账单：滚动到顶部并刷新
-      final callback = ref.read(scrollToTopProvider);
-      callback?.call();
-    }
-  }
 }
 
 /// 底部导航栏 + 浮动记账按钮
 class _BottomBarWithFloatingButton extends StatelessWidget {
   final int currentIndex;
   final void Function(BuildContext, int) onNavTap;
-  final void Function(BuildContext, int) onNavDoubleTap;
   final void Function(BuildContext, VoiceResult) onVoiceResult;
 
   const _BottomBarWithFloatingButton({
     required this.currentIndex,
     required this.onNavTap,
-    required this.onNavDoubleTap,
     required this.onVoiceResult,
   });
 
@@ -147,7 +135,6 @@ class _BottomBarWithFloatingButton extends StatelessWidget {
                         label: AppLocalizations.of(context)!.navTransactions,
                         isActive: currentIndex == 0,
                         onTap: () => onNavTap(context, 0),
-                        onDoubleTap: () => onNavDoubleTap(context, 0),
                       ),
                       // 中间留空给浮动按钮
                       const Expanded(child: SizedBox()),
@@ -251,7 +238,6 @@ class _NavItem extends StatelessWidget {
   final String label;
   final bool isActive;
   final VoidCallback onTap;
-  final VoidCallback? onDoubleTap;
 
   const _NavItem({
     required this.icon,
@@ -259,7 +245,6 @@ class _NavItem extends StatelessWidget {
     required this.label,
     required this.isActive,
     required this.onTap,
-    this.onDoubleTap,
   });
 
   @override
@@ -269,7 +254,6 @@ class _NavItem extends StatelessWidget {
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
-        onDoubleTap: onDoubleTap,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

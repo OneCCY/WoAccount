@@ -108,7 +108,7 @@
   "txnSortByAmount": "金額順",
   "txnEmpty": "明細がありません",
   "txnDayDetailEmpty": "この日の明細はありません",
-  "txnDayFormat": "M月d日",
+  "txnDayFormat": "yyyy年M月d日",
   "txnMonthFormat": "yyyy年M月",
   "txnGroupExpenseLabel": "支出 {amount}",
   "@txnGroupExpenseLabel": { "placeholders": { "amount": { "type": "String" } } },

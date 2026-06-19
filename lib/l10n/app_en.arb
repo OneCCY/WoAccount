@@ -108,7 +108,7 @@
   "txnSortByAmount": "By Amount",
   "txnEmpty": "No transaction records",
   "txnDayDetailEmpty": "No transactions for this day",
-  "txnDayFormat": "MMM d",
+  "txnDayFormat": "MMM d, yyyy",
   "txnMonthFormat": "MMM yyyy",
   "txnGroupExpenseLabel": "Expense {amount}",
   "@txnGroupExpenseLabel": { "placeholders": { "amount": { "type": "String" } } },

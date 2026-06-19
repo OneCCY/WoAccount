@@ -72,8 +72,8 @@ class TransactionPipeline {
   });
 
   /// 处理文本输入
-  Future<PipelineResult> processText(String text, {String? categoryTaxonomy}) async {
-    final results = await _llmRepo.parseTransaction(text, categoryTaxonomy: categoryTaxonomy);
+  Future<PipelineResult> processText(String text, {String? categoryTaxonomy, String locale = 'zh'}) async {
+    final results = await _llmRepo.parseTransaction(text, categoryTaxonomy: categoryTaxonomy, locale: locale);
     return PipelineResult(
       normalizedText: text,
       transactions: results,
@@ -109,6 +109,7 @@ class TransactionPipeline {
     required String audioTempPath,
     required LlmProvider provider,
     String? categoryTaxonomy,
+    String locale = 'zh',
   }) async {
     // 1. 保存音频到永久存储
     final savedPath = await _mediaStorage.saveAudio(audioTempPath);
@@ -121,7 +122,7 @@ class TransactionPipeline {
     }
 
     // 3. 用转写文本走 AI 记账解析
-    final results = await _llmRepo.parseTransaction(transcribedText, categoryTaxonomy: categoryTaxonomy);
+    final results = await _llmRepo.parseTransaction(transcribedText, categoryTaxonomy: categoryTaxonomy, locale: locale);
 
     return PipelineResult(
       normalizedText: transcribedText,
@@ -139,6 +140,7 @@ class TransactionPipeline {
     required String imageTempPath,
     required LlmProvider provider,
     String? categoryTaxonomy,
+    String locale = 'zh',
   }) async {
     // 1. 保存图片到永久存储
     final savedPath = await _mediaStorage.saveImageFile(imageTempPath);
@@ -154,7 +156,7 @@ class TransactionPipeline {
     }
 
     // 3. 用识别文本走 AI 记账解析
-    final results = await _llmRepo.parseTransaction(recognizedText, categoryTaxonomy: categoryTaxonomy);
+    final results = await _llmRepo.parseTransaction(recognizedText, categoryTaxonomy: categoryTaxonomy, locale: locale);
 
     return PipelineResult(
       normalizedText: recognizedText,

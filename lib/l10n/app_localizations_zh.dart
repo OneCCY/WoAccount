@@ -311,7 +311,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get txnDayDetailEmpty => '当日无账单记录';
 
   @override
-  String get txnDayFormat => 'M月d日';
+  String get txnDayFormat => 'yyyy年M月d日';
 
   @override
   String get txnMonthFormat => 'yyyy年M月';
@@ -2841,7 +2841,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get txnDayDetailEmpty => '當日無帳單記錄';
 
   @override
-  String get txnDayFormat => 'M月d日';
+  String get txnDayFormat => 'yyyy年M月d日';
 
   @override
   String get txnMonthFormat => 'yyyy年M月';

@@ -657,7 +657,7 @@ abstract class AppLocalizations {
   /// No description provided for @txnDayFormat.
   ///
   /// In zh, this message translates to:
-  /// **'M月d日'**
+  /// **'yyyy年M月d日'**
   String get txnDayFormat;
 
   /// No description provided for @txnMonthFormat.

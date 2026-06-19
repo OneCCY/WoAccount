@@ -150,7 +150,7 @@ class LlmRepositoryImpl implements LlmRepository {
   }
 
   @override
-  Future<List<TransactionParseResult>> parseTransaction(String input, {String? categoryTaxonomy}) async {
+  Future<List<TransactionParseResult>> parseTransaction(String input, {String? categoryTaxonomy, String locale = 'zh'}) async {
     // 降级策略：先尝试 LLM，失败后用规则引擎
     try {
       final provider = await LlmConfigManager.getActiveProvider();
@@ -163,14 +163,14 @@ class LlmRepositoryImpl implements LlmRepository {
 
       // 构建系统提示词（使用动态分类或默认分类）
       final systemPrompt = categoryTaxonomy != null
-          ? PromptTemplates.parseTransactionSystem(categoryTaxonomy)
-          : PromptTemplates.parseTransactionSystem(_defaultCategoryTaxonomy);
+          ? PromptTemplates.parseTransactionSystem(categoryTaxonomy, locale: locale)
+          : PromptTemplates.parseTransactionSystem(_defaultCategoryTaxonomy, locale: locale);
 
       // 调用 LLM（使用文本能力）
       final response = await chat(LlmRequest(
         messages: [
           ChatMessage(role: 'system', content: systemPrompt),
-          ChatMessage(role: 'user', content: PromptTemplates.parseTransactionUser(input)),
+          ChatMessage(role: 'user', content: PromptTemplates.parseTransactionUser(input, locale: locale)),
         ],
         temperature: 0.0,
         capability: ModelCapability.text,
@@ -279,7 +279,7 @@ class LlmRepositoryImpl implements LlmRepository {
   }
 
   @override
-  Future<Map<String, dynamic>> parseSearchQuery(String input, {String? categoryTaxonomy}) async {
+  Future<Map<String, dynamic>> parseSearchQuery(String input, {String? categoryTaxonomy, String locale = 'zh'}) async {
     try {
       final provider = await LlmConfigManager.getActiveProvider();
       if (provider == null || !provider.isComplete) {

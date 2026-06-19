@@ -312,7 +312,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get txnDayDetailEmpty => '해당 날짜의 내역이 없습니다';
 
   @override
-  String get txnDayFormat => 'M월 d일';
+  String get txnDayFormat => 'yyyy년 M월 d일';
 
   @override
   String get txnMonthFormat => 'yyyy년 M월';

@@ -185,7 +185,8 @@ class _HomePageState extends ConsumerState<HomePage> {
       final llmRepo = ref.read(llmRepositoryProvider);
       // 动态构建用户分类体系（包含最新分类和子分类）
       final categoryTaxonomy = await _buildCategoryTaxonomy();
-      final results = await llmRepo.parseTransaction(input, categoryTaxonomy: categoryTaxonomy);
+      final locale = Localizations.localeOf(context).languageCode;
+      final results = await llmRepo.parseTransaction(input, categoryTaxonomy: categoryTaxonomy, locale: locale);
       stopwatch.stop();
       if (!mounted) return;
 
