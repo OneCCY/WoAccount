@@ -377,6 +377,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get txnDetailPayMethod => '결제 수단';
 
   @override
+  String get txnDetailTags => '태그';
+
+  @override
+  String get txnDetailAddTagHint => '탭하여 태그 추가';
+
+  @override
   String get txnDetailAddNoteHint => '탭하여 메모 추가';
 
   @override
@@ -813,6 +819,44 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get txnRestored => '거래가 복원되었습니다';
+
+  @override
+  String get tagManage => '태그 관리';
+
+  @override
+  String get tagManageEmpty => '태그가 없습니다. 오른쪽 상단 버튼으로 추가하세요.';
+
+  @override
+  String get tagAdd => '새 태그';
+
+  @override
+  String get tagEdit => '태그 편집';
+
+  @override
+  String get tagDelete => '태그 삭제';
+
+  @override
+  String tagDeleteConfirm(String name) {
+    return '태그 \"$name\"을(를) 삭제하시겠습니까? 관련 거래는 삭제되지 않습니다.';
+  }
+
+  @override
+  String get tagPickerTitle => '태그 선택';
+
+  @override
+  String get tagPickerCreate => '새 태그';
+
+  @override
+  String get tagPickerNone => '태그 없음';
+
+  @override
+  String get tagCreated => '태그가 생성되었습니다';
+
+  @override
+  String get tagUpdated => '태그가 업데이트되었습니다';
+
+  @override
+  String get tagDeleted => '태그가 삭제되었습니다';
 
   @override
   String get bookPermanentDelete => '영구 삭제';

@@ -774,6 +774,18 @@ abstract class AppLocalizations {
   /// **'支付方式'**
   String get txnDetailPayMethod;
 
+  /// No description provided for @txnDetailTags.
+  ///
+  /// In zh, this message translates to:
+  /// **'标签'**
+  String get txnDetailTags;
+
+  /// No description provided for @txnDetailAddTagHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'点击添加标签'**
+  String get txnDetailAddTagHint;
+
   /// No description provided for @txnDetailAddNoteHint.
   ///
   /// In zh, this message translates to:
@@ -1595,6 +1607,78 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'交易已恢复'**
   String get txnRestored;
+
+  /// No description provided for @tagManage.
+  ///
+  /// In zh, this message translates to:
+  /// **'标签管理'**
+  String get tagManage;
+
+  /// No description provided for @tagManageEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有标签，点击右上角添加'**
+  String get tagManageEmpty;
+
+  /// No description provided for @tagAdd.
+  ///
+  /// In zh, this message translates to:
+  /// **'新建标签'**
+  String get tagAdd;
+
+  /// No description provided for @tagEdit.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑标签'**
+  String get tagEdit;
+
+  /// No description provided for @tagDelete.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除标签'**
+  String get tagDelete;
+
+  /// No description provided for @tagDeleteConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要删除标签「{name}」吗？关联的交易不会被删除。'**
+  String tagDeleteConfirm(String name);
+
+  /// No description provided for @tagPickerTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择标签'**
+  String get tagPickerTitle;
+
+  /// No description provided for @tagPickerCreate.
+  ///
+  /// In zh, this message translates to:
+  /// **'新建标签'**
+  String get tagPickerCreate;
+
+  /// No description provided for @tagPickerNone.
+  ///
+  /// In zh, this message translates to:
+  /// **'无标签'**
+  String get tagPickerNone;
+
+  /// No description provided for @tagCreated.
+  ///
+  /// In zh, this message translates to:
+  /// **'标签已创建'**
+  String get tagCreated;
+
+  /// No description provided for @tagUpdated.
+  ///
+  /// In zh, this message translates to:
+  /// **'标签已更新'**
+  String get tagUpdated;
+
+  /// No description provided for @tagDeleted.
+  ///
+  /// In zh, this message translates to:
+  /// **'标签已删除'**
+  String get tagDeleted;
 
   /// No description provided for @bookPermanentDelete.
   ///

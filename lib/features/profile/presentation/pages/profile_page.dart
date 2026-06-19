@@ -156,6 +156,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with PageRefreshMixin
                     items: [
                       _MenuItem(Icons.lock_outline, l10n.profileMenuPasswordLock),
                       _MenuItem(Icons.monetization_on_outlined, l10n.profileMenuAcCoins),
+                      _MenuItem(Icons.label_outline, l10n.tagManage),
                       _MenuItem(Icons.smart_toy_outlined, l10n.profileMenuAiConfig),
                       _MenuItem(Icons.cloud_outlined, l10n.profileMenuDataBackup),
                       _MenuItem(Icons.file_download_outlined, l10n.profileMenuImport),
@@ -500,6 +501,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with PageRefreshMixin
       context.push('/lock-settings');
     } else if (label == l10n.profileMenuAcCoins) {
       context.push('/ac-coins');
+    } else if (label == l10n.tagManage) {
+      context.push('/tags/manage');
     } else if (label == l10n.profileMenuAiConfig) {
       context.push('/settings/llm');
     } else if (label == l10n.profileMenuDataBackup ||

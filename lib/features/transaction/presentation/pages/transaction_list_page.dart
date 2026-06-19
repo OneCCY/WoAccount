@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:drift/drift.dart' hide Column;
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
@@ -43,6 +44,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
   final _dayScrollController = ScrollController();
   List<Transaction> _allTransactions = [];
   Map<int, Category> _dayCatMap = {};
+  Map<int, List<Tag>> _dayTagMap = {};
   static const _pageSize = 20;
   bool _isLoadingMore = false;
   bool _hasMore = true;
@@ -116,13 +118,17 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
     try {
       final repo = ref.read(transactionRepositoryProvider);
       final catRepo = ref.read(categoryRepositoryProvider);
+      final db = ref.read(appDatabaseProvider);
       final bookId = ref.read(currentBookProvider);
       final txns = await repo.getPaged(bookId, _pageSize, 0);
       final cats = await catRepo.getAll();
+      // 批量加载标签关联
+      final tagMap = await _loadTagsForTransactions(db, txns.map((t) => t.id).toList());
       if (!mounted) return;
       setState(() {
         _allTransactions = txns;
         _dayCatMap = {for (final c in cats) c.id: c};
+        _dayTagMap = tagMap;
         _hasMore = txns.length >= _pageSize;
         _isDayLoading = false;
       });
@@ -148,6 +154,25 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
     } catch (e) {
       if (mounted) setState(() => _isLoadingMore = false);
     }
+  }
+
+  /// 批量加载交易标签映射
+  Future<Map<int, List<Tag>>> _loadTagsForTransactions(AppDatabase db, List<int> txnIds) async {
+    if (txnIds.isEmpty) return {};
+    // 查询关联关系
+    final joinResults = await (db.select(db.transactionTags).join([
+      innerJoin(db.tags, db.tags.id.equalsExp(db.transactionTags.tagId)),
+    ])
+          ..where(db.transactionTags.transactionId.isIn(txnIds)))
+        .get();
+    // 构建映射
+    final map = <int, List<Tag>>{};
+    for (final row in joinResults) {
+      final txnId = row.readTable(db.transactionTags).transactionId;
+      final tag = row.readTable(db.tags);
+      map.putIfAbsent(txnId, () => []).add(tag);
+    }
+    return map;
   }
 
   /// 触发刷新
@@ -631,6 +656,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
             date: entry.key,
             transactions: entry.value,
             categoryMap: _dayCatMap,
+            tagMap: _dayTagMap,
             onDelete: (id) async {
               final result = await repo.delete(id);
               if (result) _loadTransactions();
@@ -817,27 +843,37 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
 
             if (filtered.isEmpty) return _buildEmptyState(AppLocalizations.of(context)!);
 
-            final grouped = _groupByDate(filtered);
-            final l10n = AppLocalizations.of(context)!;
-            return ListView.builder(
-              padding: EdgeInsets.only(bottom: Responsive.s(context, 16)),
-              itemCount: grouped.length,
-              itemBuilder: (context, index) {
-                final entry = grouped.entries.elementAt(index);
-                return TransactionGroup(
-                  date: entry.key,
-                  transactions: entry.value,
-                  categoryMap: categoryMap,
-                  sortLabel: _sortType == SortType.time ? l10n.txnSortByTime : l10n.txnSortByAmount,
-                  onSortToggle: () => setState(() {
-                    _sortType = _sortType == SortType.time ? SortType.amount : SortType.time;
-                  }),
-                  onDelete: (id) async {
-                    final result = await repo.delete(id);
-                    setState(() {});
-                    return result;
+            // 加载标签
+            final db = ref.read(appDatabaseProvider);
+            return FutureBuilder<Map<int, List<Tag>>>(
+              future: _loadTagsForTransactions(db, filtered.map((t) => t.id).toList()),
+              builder: (context, tagSnap) {
+                final tagMap = tagSnap.data ?? {};
+
+                final grouped = _groupByDate(filtered);
+                final l10n = AppLocalizations.of(context)!;
+                return ListView.builder(
+                  padding: EdgeInsets.only(bottom: Responsive.s(context, 16)),
+                  itemCount: grouped.length,
+                  itemBuilder: (context, index) {
+                    final entry = grouped.entries.elementAt(index);
+                    return TransactionGroup(
+                      date: entry.key,
+                      transactions: entry.value,
+                      categoryMap: categoryMap,
+                      tagMap: tagMap,
+                      sortLabel: _sortType == SortType.time ? l10n.txnSortByTime : l10n.txnSortByAmount,
+                      onSortToggle: () => setState(() {
+                        _sortType = _sortType == SortType.time ? SortType.amount : SortType.time;
+                      }),
+                      onDelete: (id) async {
+                        final result = await repo.delete(id);
+                        setState(() {});
+                        return result;
+                      },
+                      onTap: (t) => context.push('/transactions/${t.id}'),
+                    );
                   },
-                  onTap: (t) => context.push('/transactions/${t.id}'),
                 );
               },
             );
@@ -1122,19 +1158,43 @@ class _DayDetailPage extends ConsumerWidget {
                 final dk = DateTime(t.transactionDate.year, t.transactionDate.month, t.transactionDate.day);
                 grouped.putIfAbsent(dk, () => []).add(t);
               }
-              return ListView.builder(
-                padding: const EdgeInsets.only(bottom: 16),
-                itemCount: grouped.length,
-                itemBuilder: (context, index) {
-                  final entry = grouped.entries.elementAt(index);
-                  return TransactionGroup(
-                    date: entry.key,
-                    transactions: entry.value,
-                    categoryMap: catMap,
-                    onDelete: (id) async {
-                      return await repo.delete(id);
+              // 加载标签
+              final db = ref.read(appDatabaseProvider);
+              final txnIds = dayTxns.map((t) => t.id).toList();
+              return FutureBuilder<Map<int, List<Tag>>>(
+                future: txnIds.isEmpty
+                    ? Future.value(<int, List<Tag>>{})
+                    : (db.select(db.transactionTags).join([
+                        innerJoin(db.tags, db.tags.id.equalsExp(db.transactionTags.tagId)),
+                      ])..where(db.transactionTags.transactionId.isIn(txnIds)))
+                      .get()
+                      .then((rows) {
+                        final map = <int, List<Tag>>{};
+                        for (final row in rows) {
+                          final txnId = row.readTable(db.transactionTags).transactionId;
+                          final tag = row.readTable(db.tags);
+                          map.putIfAbsent(txnId, () => []).add(tag);
+                        }
+                        return map;
+                      }),
+                builder: (context, tagSnap) {
+                  final tagMap = tagSnap.data ?? {};
+                  return ListView.builder(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    itemCount: grouped.length,
+                    itemBuilder: (context, index) {
+                      final entry = grouped.entries.elementAt(index);
+                      return TransactionGroup(
+                        date: entry.key,
+                        transactions: entry.value,
+                        categoryMap: catMap,
+                        tagMap: tagMap,
+                        onDelete: (id) async {
+                          return await repo.delete(id);
+                        },
+                        onTap: (t) => context.push('/transactions/${t.id}'),
+                      );
                     },
-                    onTap: (t) => context.push('/transactions/${t.id}'),
                   );
                 },
               );

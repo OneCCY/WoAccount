@@ -8,6 +8,7 @@ import '../../features/transaction/presentation/pages/manual_entry_page.dart';
 import '../../features/transaction/presentation/pages/transaction_detail_page.dart';
 import '../../features/transaction/presentation/pages/transaction_search_page.dart';
 import '../../features/transaction/presentation/pages/transaction_recycle_bin_page.dart';
+import '../../features/transaction/presentation/pages/tag_manage_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/profile/presentation/pages/profile_edit_page.dart';
 import '../../features/profile/presentation/pages/checkin_calendar_page.dart';
@@ -157,6 +158,10 @@ class AppRouter {
       GoRoute(
         path: '/transactions/recycle-bin',
         builder: (context, state) => const TransactionRecycleBinPage(),
+      ),
+      GoRoute(
+        path: '/tags/manage',
+        builder: (context, state) => const TagManagePage(),
       ),
       // 报表分析
       GoRoute(

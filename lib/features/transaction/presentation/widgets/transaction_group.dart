@@ -15,6 +15,8 @@ class TransactionGroup extends StatelessWidget {
   final Future<bool> Function(int id) onDelete;
   final void Function(Transaction transaction)? onTap;
   final Map<int, Category> categoryMap;
+  /// 交易标签映射：transactionId -> 标签列表
+  final Map<int, List<Tag>> tagMap;
   /// 当前排序方式，null 表示不显示排序切换
   final String? sortLabel;
   final VoidCallback? onSortToggle;
@@ -26,6 +28,7 @@ class TransactionGroup extends StatelessWidget {
     required this.onDelete,
     this.onTap,
     this.categoryMap = const {},
+    this.tagMap = const {},
     this.sortLabel,
     this.onSortToggle,
   });
@@ -102,6 +105,7 @@ class TransactionGroup extends StatelessWidget {
               transaction: t,
               category: categoryMap[t.categoryId],
               subcategory: t.parentCategoryId != null ? categoryMap[t.parentCategoryId] : null,
+              tags: tagMap[t.id] ?? const [],
               onDelete: () => onDelete(t.id),
               onTap: onTap != null ? () => onTap!(t) : null,
             )),
@@ -123,6 +127,7 @@ class _TransactionItem extends StatefulWidget {
   final Transaction transaction;
   final Category? category;
   final Category? subcategory;
+  final List<Tag> tags;
   final VoidCallback onDelete;
   final VoidCallback? onTap;
 
@@ -130,6 +135,7 @@ class _TransactionItem extends StatefulWidget {
     required this.transaction,
     this.category,
     this.subcategory,
+    this.tags = const [],
     required this.onDelete,
     this.onTap,
   });
@@ -321,6 +327,30 @@ class _TransactionItemState extends State<_TransactionItem>
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
+                                  // 标签色点
+                                  if (widget.tags.isNotEmpty) ...[
+                                    const SizedBox(width: 4),
+                                    ...widget.tags.take(3).map((tag) {
+                                      final tagColor = _parseTagColor(tag.color);
+                                      return Container(
+                                        width: 8,
+                                        height: 8,
+                                        margin: const EdgeInsets.only(left: 2),
+                                        decoration: BoxDecoration(
+                                          color: tagColor,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      );
+                                    }),
+                                    if (widget.tags.length > 3)
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 2),
+                                        child: Text(
+                                          '+${widget.tags.length - 3}',
+                                          style: context.textStyles.caption.copyWith(fontSize: 9),
+                                        ),
+                                      ),
+                                  ],
                                 ],
                               ),
                             ],
@@ -373,6 +403,15 @@ class _TransactionItemState extends State<_TransactionItem>
       case 'card': return Icons.credit_card;
       case 'cash': return Icons.payments_outlined;
       default: return Icons.payment;
+    }
+  }
+
+  Color _parseTagColor(String hex) {
+    try {
+      final clean = hex.replaceFirst('#', '');
+      return Color(int.parse('FF$clean', radix: 16));
+    } catch (_) {
+      return const Color(0xFF607D8B);
     }
   }
 }

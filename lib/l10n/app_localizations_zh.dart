@@ -375,6 +375,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get txnDetailPayMethod => '支付方式';
 
   @override
+  String get txnDetailTags => '标签';
+
+  @override
+  String get txnDetailAddTagHint => '点击添加标签';
+
+  @override
   String get txnDetailAddNoteHint => '点击添加备注';
 
   @override
@@ -810,6 +816,44 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get txnRestored => '交易已恢复';
+
+  @override
+  String get tagManage => '标签管理';
+
+  @override
+  String get tagManageEmpty => '还没有标签，点击右上角添加';
+
+  @override
+  String get tagAdd => '新建标签';
+
+  @override
+  String get tagEdit => '编辑标签';
+
+  @override
+  String get tagDelete => '删除标签';
+
+  @override
+  String tagDeleteConfirm(String name) {
+    return '确定要删除标签「$name」吗？关联的交易不会被删除。';
+  }
+
+  @override
+  String get tagPickerTitle => '选择标签';
+
+  @override
+  String get tagPickerCreate => '新建标签';
+
+  @override
+  String get tagPickerNone => '无标签';
+
+  @override
+  String get tagCreated => '标签已创建';
+
+  @override
+  String get tagUpdated => '标签已更新';
+
+  @override
+  String get tagDeleted => '标签已删除';
 
   @override
   String get bookPermanentDelete => '永久删除';
@@ -2837,6 +2881,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get txnDetailPayMethod => '支付方式';
 
   @override
+  String get txnDetailTags => '標籤';
+
+  @override
+  String get txnDetailAddTagHint => '點擊添加標籤';
+
+  @override
   String get txnDetailAddNoteHint => '點擊新增備註';
 
   @override
@@ -3272,6 +3322,44 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get txnRestored => '交易已恢復';
+
+  @override
+  String get tagManage => '標籤管理';
+
+  @override
+  String get tagManageEmpty => '還沒有標籤，點擊右上角添加';
+
+  @override
+  String get tagAdd => '新建標籤';
+
+  @override
+  String get tagEdit => '編輯標籤';
+
+  @override
+  String get tagDelete => '刪除標籤';
+
+  @override
+  String tagDeleteConfirm(String name) {
+    return '確定要刪除標籤「$name」嗎？關聯的交易不會被刪除。';
+  }
+
+  @override
+  String get tagPickerTitle => '選擇標籤';
+
+  @override
+  String get tagPickerCreate => '新建標籤';
+
+  @override
+  String get tagPickerNone => '無標籤';
+
+  @override
+  String get tagCreated => '標籤已建立';
+
+  @override
+  String get tagUpdated => '標籤已更新';
+
+  @override
+  String get tagDeleted => '標籤已刪除';
 
   @override
   String get bookPermanentDelete => '永久刪除';
