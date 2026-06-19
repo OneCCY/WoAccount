@@ -125,4 +125,26 @@ class BudgetRepositoryImpl implements BudgetRepository {
 
     return results;
   }
+
+  @override
+  Future<Map<int, List<BudgetProgress>>> getGroupedBudgetProgress(int bookId, int year, int month) async {
+    final allProgress = await getBudgetProgress(bookId, year, month);
+
+    // 获取所有分类以确定父子关系
+    final allCats = await _db.select(_db.categories).get();
+    final catMap = {for (final c in allCats) c.id: c};
+
+    // 按父分类分组（categoryId 不为 null 的预算项）
+    final grouped = <int, List<BudgetProgress>>{};
+    for (final p in allProgress) {
+      if (p.budget.categoryId == null) continue; // 跳过总预算
+      final cat = p.category ?? catMap[p.budget.categoryId];
+      if (cat == null) continue;
+      // 确定父分类 ID：如果分类本身有 parentId，用 parentId；否则用自身 id
+      final parentId = cat.parentId ?? cat.id;
+      grouped.putIfAbsent(parentId, () => []).add(p);
+    }
+
+    return grouped;
+  }
 }

@@ -28,6 +28,11 @@ abstract class BudgetRepository {
 
   /// 获取账本内预算进度（含实际消费）
   Future<List<BudgetProgress>> getBudgetProgress(int bookId, int year, int month);
+
+  /// 获取按父分类分组的预算进度
+  /// 返回 Map：parentCategoryId -> 该父分类下的预算进度列表
+  /// categoryId==null 的总预算不在分组内，单独处理
+  Future<Map<int, List<BudgetProgress>>> getGroupedBudgetProgress(int bookId, int year, int month);
 }
 
 /// 预算进度数据

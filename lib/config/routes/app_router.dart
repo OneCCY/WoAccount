@@ -17,6 +17,8 @@ import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/settings/presentation/pages/llm_settings_page.dart';
 import '../../features/budget/presentation/pages/budget_page.dart';
 import '../../features/budget/presentation/pages/budget_setting_page.dart';
+import '../../features/budget/presentation/pages/budget_detail_page.dart';
+import '../../features/budget/presentation/pages/budget_transaction_page.dart';
 import '../../features/category/presentation/pages/category_manage_page.dart';
 import '../../features/security/presentation/pages/lock_settings_page.dart';
 import '../../features/security/presentation/pages/pin_lock_page.dart';
@@ -114,6 +116,30 @@ class AppRouter {
       GoRoute(
         path: '/budget/setting',
         builder: (context, state) => const BudgetSettingPage(),
+      ),
+      GoRoute(
+        path: '/budget/detail',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>;
+          return BudgetDetailPage(
+            parentCategoryId: extra['parentCategoryId'] as int,
+            parentCategoryName: extra['parentCategoryName'] as String,
+            parentCategoryIcon: extra['parentCategoryIcon'] as String,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/budget/transactions',
+        builder: (context, state) {
+          final params = state.uri.queryParameters;
+          return BudgetTransactionPage(
+            categoryId: int.parse(params['categoryId']!),
+            categoryName: Uri.decodeComponent(params['categoryName'] ?? ''),
+            categoryIcon: params['categoryIcon'] ?? '📦',
+            year: int.parse(params['year']!),
+            month: int.parse(params['month']!),
+          );
+        },
       ),
       GoRoute(
         path: '/categories/manage',

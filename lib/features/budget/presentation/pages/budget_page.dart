@@ -160,67 +160,191 @@ class _BudgetPageState extends ConsumerState<BudgetPage> {
   // ==================== 月视图 ====================
 
   Widget _buildMonthView(BudgetRepository repo, int bookId, AppLocalizations l10n) {
-    return StreamBuilder<List<Budget>>(
-      stream: repo.watchByMonth(bookId, _currentMonth.year, _currentMonth.month),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+    return FutureBuilder<List<BudgetProgress>>(
+      future: repo.getBudgetProgress(bookId, _currentMonth.year, _currentMonth.month),
+      builder: (context, progressSnap) {
+        if (progressSnap.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator(color: context.colors.primary));
         }
 
-        final budgets = snapshot.data ?? [];
+        final progresses = progressSnap.data ?? [];
+        if (progresses.isEmpty) return _buildEmptyState(l10n);
 
-        if (budgets.isEmpty) {
-          return _buildEmptyState(l10n);
-        }
+        // 总预算（categoryId == null）
+        final totalProgresses = progresses.where((p) => p.budget.categoryId == null).toList();
+        final totalBudget = totalProgresses.fold<double>(0, (s, p) => s + p.budget.amount);
+        final totalSpent = totalProgresses.fold<double>(0, (s, p) => s + p.spent);
 
-        return FutureBuilder<List<BudgetProgress>>(
-          future: repo.getBudgetProgress(bookId, _currentMonth.year, _currentMonth.month),
-          builder: (context, progressSnap) {
-            if (progressSnap.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator(color: context.colors.primary));
-            }
+        // 分类预算（categoryId != null）按父分类分组
+        final categoryProgresses = progresses.where((p) => p.budget.categoryId != null).toList();
+        final parentGroups = _groupByParent(categoryProgresses);
 
-            final progresses = progressSnap.data ?? [];
-            final totalBudget = progresses
-                .where((p) => p.budget.categoryId == null)
-                .fold<double>(0, (sum, p) => sum + p.budget.amount);
-            final totalSpent = progresses
-                .where((p) => p.budget.categoryId == null)
-                .fold<double>(0, (sum, p) => sum + p.spent);
-            final categoryProgresses =
-                progresses.where((p) => p.budget.categoryId != null).toList();
-
-            return RefreshIndicator(
-              onRefresh: () async => setState(() {}),
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 16),
-                    if (totalBudget > 0)
-                      _buildTotalCard(context, totalBudget, totalSpent, l10n),
-                    if (categoryProgresses.any((p) => p.isOverBudget))
-                      _buildOverBudgetWarning(context, categoryProgresses, l10n),
-                    const SizedBox(height: 16),
-                    if (categoryProgresses.isNotEmpty)
-                      ...categoryProgresses.map((p) => _buildCategoryItem(context, p))
-                    else if (totalBudget > 0)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 40),
-                        child: Text(
-                          l10n.budgetNoBudgets,
-                          style: context.textStyles.caption.copyWith(color: context.colors.textTertiary),
-                        ),
-                      ),
-                    const SizedBox(height: 24),
-                  ],
-                ),
-              ),
-            );
-          },
+        return RefreshIndicator(
+          onRefresh: () async => setState(() {}),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              children: [
+                const SizedBox(height: 16),
+                if (totalBudget > 0)
+                  _buildTotalCard(context, totalBudget, totalSpent, l10n),
+                if (categoryProgresses.any((p) => p.isOverBudget))
+                  _buildOverBudgetWarning(context, categoryProgresses, l10n),
+                const SizedBox(height: 16),
+                if (parentGroups.isNotEmpty)
+                  ...parentGroups.entries.map((e) => _buildParentGroupItem(context, e.key, e.value))
+                else if (totalBudget > 0)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 40),
+                    child: Text(l10n.budgetNoBudgets,
+                      style: context.textStyles.caption.copyWith(color: context.colors.textTertiary)),
+                  ),
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
         );
       },
     );
+  }
+
+  /// 按父分类分组：返回 Map<parentCategoryId, List<BudgetProgress>>
+  Map<int, List<BudgetProgress>> _groupByParent(List<BudgetProgress> progresses) {
+    final grouped = <int, List<BudgetProgress>>{};
+    for (final p in progresses) {
+      final cat = p.category;
+      if (cat == null) continue;
+      final parentId = cat.parentId ?? cat.id;
+      grouped.putIfAbsent(parentId, () => []).add(p);
+    }
+    return grouped;
+  }
+
+  /// 父分类预算卡片（聚合子分类）
+  Widget _buildParentGroupItem(BuildContext context, int parentId, List<BudgetProgress> children) {
+    final firstChild = children.first;
+    final parentCat = firstChild.category;
+    // 如果子分类有 parentId，需要找父分类信息；否则该分类本身就是一级
+    final isParentLevel = parentCat?.parentId == null;
+    final parentName = isParentLevel ? (parentCat?.name ?? '') : _resolveParentName(parentId, children);
+    final parentIcon = isParentLevel ? (parentCat?.icon ?? '📦') : _resolveParentIcon(parentId, children);
+
+    final groupBudget = children.fold<double>(0, (s, p) => s + p.budget.amount);
+    final groupSpent = children.fold<double>(0, (s, p) => s + p.spent);
+    final percentage = groupBudget > 0 ? (groupSpent / groupBudget * 100) : 0.0;
+    final barColor = percentage > 90 ? context.colors.error : percentage > 70 ? context.colors.warning : context.colors.success;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 4),
+      child: GestureDetector(
+        onTap: () => _navigateToDetail(parentId, parentName, parentIcon),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: context.colors.surface,
+            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 40, height: 40,
+                    decoration: BoxDecoration(
+                      color: _parseColor(context, parentCat?.color).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                    ),
+                    child: Center(child: Text(parentIcon, style: const TextStyle(fontSize: 20))),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(parentName, style: context.textStyles.body.copyWith(fontWeight: FontWeight.w500)),
+                            Text('${percentage.toStringAsFixed(1)}%',
+                              style: context.textStyles.caption.copyWith(color: barColor)),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: (percentage / 100).clamp(0, 1),
+                            minHeight: 6,
+                            backgroundColor: context.colors.surfaceSecondary,
+                            valueColor: AlwaysStoppedAnimation(barColor),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(context.localeProvider.currency.formatAmount(groupSpent, decimals: 0),
+                        style: context.textStyles.amountSmall.copyWith(
+                          color: groupSpent > groupBudget ? context.colors.error : context.colors.textPrimary,
+                        )),
+                      Text('/ ${context.localeProvider.currency.formatAmount(groupBudget, decimals: 0)}',
+                        style: context.textStyles.caption),
+                    ],
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(Icons.chevron_right, size: 18, color: context.colors.textTertiary),
+                ],
+              ),
+              // 子分类摘要
+              if (children.length > 1)
+                Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: children.map((c) {
+                      final cat = c.category;
+                      return Text(
+                        '${cat?.icon ?? ""} ${context.localeProvider.currency.formatAmount(c.spent, decimals: 0)}',
+                        style: context.textStyles.caption.copyWith(color: context.colors.textTertiary),
+                      );
+                    }).toList(),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _resolveParentName(int parentId, List<BudgetProgress> children) {
+    // 尝试从子分类的 parentCategoryId 推断父分类名
+    for (final c in children) {
+      if (c.category?.id == parentId) return c.category!.name;
+    }
+    // 如果子分类有 parentCategoryId，说明 parentId 就是父分类 ID
+    // 但我们没有直接查父分类，用第一个子分类的名称兜底
+    return children.first.category?.name ?? '';
+  }
+
+  String _resolveParentIcon(int parentId, List<BudgetProgress> children) {
+    for (final c in children) {
+      if (c.category?.id == parentId) return c.category!.icon ?? '📦';
+    }
+    return children.first.category?.icon ?? '📦';
+  }
+
+  /// 跳转到父分类预算详情
+  void _navigateToDetail(int parentId, String name, String icon) {
+    context.push('/budget/detail', extra: {
+      'parentCategoryId': parentId,
+      'parentCategoryName': name,
+      'parentCategoryIcon': icon,
+    });
   }
 
   // ==================== 年视图 ====================

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:drift/drift.dart' hide Column;
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
@@ -7,6 +8,7 @@ import '../../../../core/locale/category_l10n.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/toast.dart';
 
 /// 分类选择 BottomSheet
 class CategoryPickerSheet extends ConsumerStatefulWidget {
@@ -227,9 +229,6 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
 
   Widget _buildTopGrid(List<Category> allCategories, AppLocalizations l10n) {
     final cats = _filterTopLevel(allCategories);
-    if (cats.isEmpty) {
-      return Center(child: Text(l10n.txnCategoryEmpty, style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)));
-    }
     return GridView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -238,8 +237,17 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
         crossAxisSpacing: 12,
         childAspectRatio: 0.75,
       ),
-      itemCount: cats.length,
+      itemCount: cats.length + 1, // +1 for the add button
       itemBuilder: (context, index) {
+        if (index == cats.length) {
+          return _CategoryTile(
+            icon: '➕',
+            name: AppLocalizations.of(context)!.commonAdd,
+            color: context.colors.textTertiary,
+            isSelected: false,
+            onTap: () => _showAddCategoryDialog(null),
+          );
+        }
         final cat = cats[index];
         final children = _childrenOf(allCategories, cat.id);
         final isSelected = _selectedId == cat.id;
@@ -264,9 +272,6 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
 
   Widget _buildChildGrid(List<Category> allCategories, int parentId, AppLocalizations l10n) {
     final children = _childrenOf(allCategories, parentId);
-    if (children.isEmpty) {
-      return Center(child: Text(l10n.chatPageNoSubcategory, style: context.textStyles.footnote.copyWith(color: context.colors.textTertiary)));
-    }
     return GridView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -275,8 +280,17 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
         crossAxisSpacing: 12,
         childAspectRatio: 0.75,
       ),
-      itemCount: children.length,
+      itemCount: children.length + 1, // +1 for the add button
       itemBuilder: (context, index) {
+        if (index == children.length) {
+          return _CategoryTile(
+            icon: '➕',
+            name: AppLocalizations.of(context)!.commonAdd,
+            color: context.colors.textTertiary,
+            isSelected: false,
+            onTap: () => _showAddCategoryDialog(parentId),
+          );
+        }
         final cat = children[index];
         final isSelected = _selectedId == cat.id;
         return _CategoryTile(
@@ -288,6 +302,159 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
         );
       },
     );
+  }
+
+  /// 添加分类弹窗（一级或二级）
+  Future<void> _showAddCategoryDialog(int? parentId) async {
+    final l10n = AppLocalizations.of(context)!;
+    final catRepo = ref.read(categoryRepositoryProvider);
+    final isSub = parentId != null;
+
+    // 获取父分类名称（用于子分类标题）
+    String parentName = '';
+    if (isSub) {
+      final parentCat = await catRepo.getById(parentId);
+      parentName = parentCat != null ? getCategoryDisplayName(parentCat, l10n) : '';
+    }
+
+    final nameController = TextEditingController();
+    String selectedIcon = '📦';
+    String selectedColor = '#607D8B';
+
+    const emojiOptions = [
+      '🍔', '🍜', '🛒', '🚗', '🚌', '🏠', '💊', '📚', '🎮', '👗',
+      '💼', '💰', '🎁', '✈️', '🐾', '👶', '📱', '💡', '🏥', '🎓',
+      '🎉', '💼', '🔧', '📦', '💳', '🏦', '🎯', '⭐', '❤️', '🔥',
+    ];
+    const colorOptions = [
+      '#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5',
+      '#2196F3', '#00BCD4', '#009688', '#4CAF50', '#8BC34A',
+      '#FF9800', '#FF5722', '#795548', '#607D8B', '#9E9E9E',
+    ];
+
+    final result = await showDialog<(String, String, String)>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text(isSub ? l10n.catManageAddSubTitle(parentName) : l10n.catManageAddTitle(l10n.catManageCustom)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: nameController,
+                  autofocus: true,
+                  maxLength: 20,
+                  decoration: InputDecoration(
+                    hintText: isSub ? l10n.catManageSubNameHint : l10n.catManageNameHint,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusSm)),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(l10n.catManageSelectIcon, style: context.textStyles.caption.copyWith(color: context.colors.textTertiary)),
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 40,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: emojiOptions.length,
+                    separatorBuilder: (_, _) => const SizedBox(width: 6),
+                    itemBuilder: (_, i) {
+                      final emoji = emojiOptions[i];
+                      final isSelected = selectedIcon == emoji;
+                      return GestureDetector(
+                        onTap: () => setDialogState(() => selectedIcon = emoji),
+                        child: Container(
+                          width: 40, height: 40,
+                          decoration: BoxDecoration(
+                            color: isSelected ? context.colors.primarySurface : context.colors.surfaceSecondary,
+                            borderRadius: BorderRadius.circular(8),
+                            border: isSelected ? Border.all(color: context.colors.primary, width: 2) : null,
+                          ),
+                          child: Center(child: Text(emoji, style: const TextStyle(fontSize: 20))),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(l10n.catManageSelectColor, style: context.textStyles.caption.copyWith(color: context.colors.textTertiary)),
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 36,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: colorOptions.length,
+                    separatorBuilder: (_, _) => const SizedBox(width: 6),
+                    itemBuilder: (_, i) {
+                      final hex = colorOptions[i];
+                      final color = Color(int.parse('FF${hex.replaceFirst('#', '')}', radix: 16));
+                      final isSelected = selectedColor == hex;
+                      return GestureDetector(
+                        onTap: () => setDialogState(() => selectedColor = hex),
+                        child: Container(
+                          width: 36, height: 36,
+                          decoration: BoxDecoration(
+                            color: color.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                            border: isSelected ? Border.all(color: color, width: 2) : null,
+                          ),
+                          child: Center(
+                            child: Container(
+                              width: 16, height: 16,
+                              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.commonCancel)),
+            TextButton(
+              onPressed: () {
+                final name = nameController.text.trim();
+                if (name.isEmpty) return;
+                Navigator.pop(ctx, (name, selectedIcon, selectedColor));
+              },
+              child: Text(l10n.commonAdd),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result == null || !mounted) return;
+
+    // 检查名称是否重复
+    final existingCats = await catRepo.getAll();
+    final duplicate = existingCats.any((c) => c.name == result.$1 && (isSub ? c.parentId == parentId : c.parentId == null));
+    if (duplicate) {
+      if (mounted) AppToast.show(context, isSub ? l10n.catManageSubNameExists : l10n.catManageNameExists);
+      return;
+    }
+
+    // 确定 sortOrder 和 level
+    final level = isSub ? 2 : 1;
+    final siblings = existingCats.where((c) => isSub ? c.parentId == parentId : c.parentId == null).toList();
+    final maxOrder = siblings.isEmpty ? 0 : siblings.map((c) => c.sortOrder).reduce((a, b) => a > b ? a : b);
+
+    await catRepo.insert(CategoriesCompanion.insert(
+      name: result.$1,
+      icon: Value(result.$2),
+      color: Value(result.$3),
+      isExpense: Value(_isExpense),
+      level: Value(level),
+      sortOrder: Value(maxOrder + 1),
+      parentId: Value(parentId),
+    ));
+
+    if (mounted) AppToast.show(context, l10n.catManageAddTitle(l10n.catManageCustom));
   }
 }
 
