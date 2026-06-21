@@ -166,7 +166,7 @@ class FakeLlmRepository implements LlmRepository {
   int parseCallCount = 0;
 
   @override
-  Future<List<TransactionParseResult>> parseTransaction(String input) async {
+  Future<List<TransactionParseResult>> parseTransaction(String input, {String? categoryTaxonomy, String locale = 'zh'}) async {
     parseCallCount++;
     return parseResults;
   }

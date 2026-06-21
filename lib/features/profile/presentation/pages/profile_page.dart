@@ -351,7 +351,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with PageRefreshMixin
       _FuncItem(Icons.account_balance_wallet_outlined, l10n.profileFuncBudget),
       _FuncItem(Icons.category_outlined, l10n.profileFuncCategories),
       _FuncItem(Icons.bar_chart_outlined, l10n.profileFuncReports),
-      _FuncItem(Icons.label_outline, l10n.tagManage),
       _FuncItem(Icons.cloud_upload_outlined, l10n.profileMenuDataBackup),
       _FuncItem(Icons.file_download_outlined, l10n.profileMenuImport),
       _FuncItem(Icons.file_upload_outlined, l10n.profileMenuExport),
@@ -488,8 +487,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with PageRefreshMixin
       context.push('/categories/manage');
     } else if (label == l10n.profileFuncReports) {
       context.push('/reports');
-    } else if (label == l10n.tagManage) {
-      context.push('/tags/manage');
     } else if (label == l10n.profileMenuDataBackup) {
       _backupDatabase(l10n);
     } else if (label == l10n.profileMenuImport) {
@@ -613,8 +610,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with PageRefreshMixin
       context.push('/lock-settings');
     } else if (label == l10n.profileMenuAcCoins) {
       context.push('/ac-coins');
-    } else if (label == l10n.tagManage) {
-      context.push('/tags/manage');
     } else if (label == l10n.profileMenuAiConfig) {
       context.push('/settings/llm');
     } else if (label == l10n.profileMenuDataBackup ||

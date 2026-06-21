@@ -4,8 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../database/app_database.dart';
 import '../../features/transaction/domain/repositories/transaction_repository.dart';
 import '../../features/transaction/data/repositories/transaction_repository_impl.dart';
-import '../../features/transaction/domain/repositories/tag_repository.dart';
-import '../../features/transaction/data/repositories/tag_repository_impl.dart';
 import '../../features/category/domain/repositories/category_repository.dart';
 import '../../features/category/data/repositories/category_repository_impl.dart';
 import '../../features/budget/domain/repositories/budget_repository.dart';
@@ -38,12 +36,6 @@ TransactionRepository transactionRepository(Ref ref) {
   final db = ref.watch(appDatabaseProvider);
   return TransactionRepositoryImpl(db);
 }
-
-/// 标签 Repository Provider
-final tagRepositoryProvider = Provider<TagRepository>((ref) {
-  final db = ref.watch(appDatabaseProvider);
-  return TagRepositoryImpl(db);
-});
 
 /// 分类 Repository Provider
 @riverpod

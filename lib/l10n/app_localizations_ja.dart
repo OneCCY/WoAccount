@@ -388,12 +388,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get txnDetailPayMethod => '支払方法';
 
   @override
-  String get txnDetailTags => 'タグ';
-
-  @override
-  String get txnDetailAddTagHint => 'タップしてタグを追加';
-
-  @override
   String get txnDetailAddNoteHint => 'タップしてメモを追加';
 
   @override
@@ -892,44 +886,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get txnRestored => '取引を復元しました';
 
   @override
-  String get tagManage => 'タグ管理';
-
-  @override
-  String get tagManageEmpty => 'タグがありません。右上のボタンで追加してください。';
-
-  @override
-  String get tagAdd => '新しいタグ';
-
-  @override
-  String get tagEdit => 'タグを編集';
-
-  @override
-  String get tagDelete => 'タグを削除';
-
-  @override
-  String tagDeleteConfirm(String name) {
-    return 'タグ「$name」を削除しますか？関連する取引は削除されません。';
-  }
-
-  @override
-  String get tagPickerTitle => 'タグを選択';
-
-  @override
-  String get tagPickerCreate => '新しいタグ';
-
-  @override
-  String get tagPickerNone => 'タグなし';
-
-  @override
-  String get tagCreated => 'タグを作成しました';
-
-  @override
-  String get tagUpdated => 'タグを更新しました';
-
-  @override
-  String get tagDeleted => 'タグを削除しました';
-
-  @override
   String get bookPermanentDelete => '完全に削除';
 
   @override
@@ -1099,9 +1055,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get reportCategoryRanking => 'カテゴリ別ランキング';
-
-  @override
-  String get reportTagRanking => 'タグ別ランキング';
 
   @override
   String get reportNoData => 'データがありません';

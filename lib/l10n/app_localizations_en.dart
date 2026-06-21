@@ -398,12 +398,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get txnDetailPayMethod => 'Payment Method';
 
   @override
-  String get txnDetailTags => 'Tags';
-
-  @override
-  String get txnDetailAddTagHint => 'Tap to add tags';
-
-  @override
   String get txnDetailAddNoteHint => 'Tap to add a note';
 
   @override
@@ -913,44 +907,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get txnRestored => 'Transaction restored';
 
   @override
-  String get tagManage => 'Tag Management';
-
-  @override
-  String get tagManageEmpty => 'No tags yet. Tap the + button to create one.';
-
-  @override
-  String get tagAdd => 'New Tag';
-
-  @override
-  String get tagEdit => 'Edit Tag';
-
-  @override
-  String get tagDelete => 'Delete Tag';
-
-  @override
-  String tagDeleteConfirm(String name) {
-    return 'Delete tag \"$name\"? Associated transactions will not be deleted.';
-  }
-
-  @override
-  String get tagPickerTitle => 'Select Tags';
-
-  @override
-  String get tagPickerCreate => 'New Tag';
-
-  @override
-  String get tagPickerNone => 'No tags';
-
-  @override
-  String get tagCreated => 'Tag created';
-
-  @override
-  String get tagUpdated => 'Tag updated';
-
-  @override
-  String get tagDeleted => 'Tag deleted';
-
-  @override
   String get bookPermanentDelete => 'Permanently Delete';
 
   @override
@@ -1121,9 +1077,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportCategoryRanking => 'Category Ranking';
-
-  @override
-  String get reportTagRanking => 'Tag Ranking';
 
   @override
   String get reportNoData => 'No data available';

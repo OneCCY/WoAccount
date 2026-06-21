@@ -72,8 +72,8 @@ class TransactionPipeline {
   });
 
   /// 处理文本输入
-  Future<PipelineResult> processText(String text, {String? categoryTaxonomy, String locale = 'zh', String? tagTaxonomy}) async {
-    final results = await _llmRepo.parseTransaction(text, categoryTaxonomy: categoryTaxonomy, locale: locale, tagTaxonomy: tagTaxonomy);
+  Future<PipelineResult> processText(String text, {String? categoryTaxonomy, String locale = 'zh'}) async {
+    final results = await _llmRepo.parseTransaction(text, categoryTaxonomy: categoryTaxonomy, locale: locale);
     return PipelineResult(
       normalizedText: text,
       transactions: results,

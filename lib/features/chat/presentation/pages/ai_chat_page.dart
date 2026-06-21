@@ -44,7 +44,6 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
   @override
   void onRefresh() {
     _cachedTaxonomy = null;
-    _cachedTagTaxonomy = null;
     _loadInitialMessages();
     _loadUserProfile();
     _loadAiProviderIcon();
@@ -62,8 +61,6 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
 
   // 分类体系缓存
   String? _cachedTaxonomy;
-  // 标签体系缓存
-  String? _cachedTagTaxonomy;
 
   String? _userAvatarPath;
   String _aiIcon = '🤖';
@@ -306,15 +303,14 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
         throw LlmException(AppLocalizations.of(context)!.chatPageConfigAiError);
       }
 
-      // 动态构建用户分类体系和标签体系
+      // 动态构建用户分类体系
       final categoryTaxonomy = await _buildCategoryTaxonomy();
-      final tagTaxonomy = await _buildTagTaxonomy();
       final locale = Localizations.localeOf(context).languageCode;
 
       PipelineResult result;
       switch (source) {
         case InputSource.text:
-          result = await _pipeline.processText(displayText, categoryTaxonomy: categoryTaxonomy, locale: locale, tagTaxonomy: tagTaxonomy);
+          result = await _pipeline.processText(displayText, categoryTaxonomy: categoryTaxonomy, locale: locale);
           break;
         case InputSource.voice:
           result = await _pipeline.processVoice(
@@ -407,7 +403,6 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
           confidence: txn.confidence,
           mediaFilePath: result.mediaFilePath,
           mediaType: source == InputSource.text ? null : source.name,
-          tags: txn.tags,
         ));
       }
 
@@ -507,7 +502,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
 
   Future<void> _confirmSave(ConfirmData data) async {
     try {
-      final txnId = await _txnRepo.insert(TransactionsCompanion.insert(
+      await _txnRepo.insert(TransactionsCompanion.insert(
         amount: data.amount,
         type: Value(data.type),
         description: data.description,
@@ -523,18 +518,6 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
         mediaFilePath: Value(data.mediaFilePath),
         mediaType: Value(data.mediaType),
       ));
-
-      // 自动关联 AI 推断的标签
-      if (data.tags.isNotEmpty) {
-        final tagRepo = ref.read(tagRepositoryProvider);
-        final allTags = await tagRepo.getAll(_bookId);
-        for (final tagName in data.tags) {
-          final match = allTags.where((t) => t.name == tagName).firstOrNull;
-          if (match != null) {
-            await tagRepo.addTagToTransaction(txnId, match.id);
-          }
-        }
-      }
 
       if (!mounted) return;
 
@@ -660,21 +643,6 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
       return _cachedTaxonomy!;
     } catch (e) {
       debugPrint('[AiChatPage] _buildCategoryTaxonomy error: $e');
-      return '';
-    }
-  }
-
-  /// 构建标签体系文本（带缓存）
-  Future<String> _buildTagTaxonomy() async {
-    if (_cachedTagTaxonomy != null) return _cachedTagTaxonomy!;
-    try {
-      final tagRepo = ref.read(tagRepositoryProvider);
-      final tags = await tagRepo.getAll(_bookId);
-      if (tags.isEmpty) return '';
-      _cachedTagTaxonomy = tags.map((t) => '- ${t.name}').join('\n');
-      return _cachedTagTaxonomy!;
-    } catch (e) {
-      debugPrint('[AiChatPage] _buildTagTaxonomy error: $e');
       return '';
     }
   }
@@ -1194,7 +1162,6 @@ class ConfirmData {
   final double confidence;
   final String? mediaFilePath;
   final String? mediaType;
-  final List<String> tags;
 
   ConfirmData({
     required this.originalInput,
@@ -1211,7 +1178,6 @@ class ConfirmData {
     required this.confidence,
     this.mediaFilePath,
     this.mediaType,
-    this.tags = const [],
   });
 
   ConfirmData copyWith({

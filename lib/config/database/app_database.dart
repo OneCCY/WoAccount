@@ -43,24 +43,6 @@ class TransactionMedia extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
-/// 标签表
-@DataClassName('Tag')
-class Tags extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  TextColumn get name => text().withLength(min: 1, max: 30)();
-  TextColumn get color => text().withLength(max: 9).withDefault(const Constant('#607D8B'))();
-  IntColumn get accountBookId => integer().references(AccountBooks, #id)();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-}
-
-/// 交易-标签关联表
-@DataClassName('TransactionTag')
-class TransactionTags extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  IntColumn get transactionId => integer().references(Transactions, #id)();
-  IntColumn get tagId => integer().references(Tags, #id)();
-}
-
 /// 分类表
 @DataClassName('Category')
 class Categories extends Table {
@@ -193,8 +175,6 @@ class AcCoinTransactions extends Table {
   AccountBooks,
   Transactions,
   TransactionMedia,
-  Tags,
-  TransactionTags,
   Categories,
   Budgets,
   AiTrainingRecords,
@@ -324,8 +304,6 @@ class AppDatabase extends _$AppDatabase {
         );
         // 创建新表
         await m.createTable(transactionMedia);
-        await m.createTable(tags);
-        await m.createTable(transactionTags);
       }
       if (from < 10) {
         // 修复 v9 迁移数据：旧 schema 中 categoryId=父分类, subcategoryId=子分类

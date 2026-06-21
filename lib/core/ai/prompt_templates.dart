@@ -31,17 +31,8 @@ class PromptTemplates {
   ///
   /// [categoryTaxonomy] 从数据库动态生成的分类体系文本
   /// [locale] 当前语言环境（zh/en/ja/ko），影响回复语言
-  static String parseTransactionSystem(String categoryTaxonomy, {String locale = 'zh', String? tagTaxonomy}) {
+  static String parseTransactionSystem(String categoryTaxonomy, {String locale = 'zh'}) {
     final lang = _languageName(locale);
-    final tagSection = (tagTaxonomy != null && tagTaxonomy.isNotEmpty)
-        ? '''
-
-## 可用标签 / Available Tags
-
-以下标签可选（如果没有合适的标签，tags 输出空数组 []）：
-$tagTaxonomy
-'''
-        : '';
 
     return '''
 You are a professional bookkeeping assistant. Your task is to analyze the user's expense description and extract structured information.
@@ -53,7 +44,6 @@ IMPORTANT: The category names and subcategory names below are in their original 
 Please select the most appropriate category from the user's configured categories below.
 
 $categoryTaxonomy
-$tagSection
 
 ## 输出格式 / Output Format
 
@@ -74,8 +64,7 @@ Even for a single transaction, wrap it in an array.
     "date": "YYYY-MM-DD" (required, calculate from today's date),
     "note": "note" (optional),
     "payMethod": "payment method" (optional, infer from context, see rules below),
-    "confidence": 0.0-1.0 (required),
-    "tags": ["tag1", "tag2"] (optional, infer relevant tags from the description, empty array if none match)
+    "confidence": 0.0-1.0 (required)
   }
 ]
 

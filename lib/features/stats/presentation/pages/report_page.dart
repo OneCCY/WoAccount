@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:drift/drift.dart' as drift;
 import 'package:wo_account/l10n/app_localizations.dart';
-import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -11,7 +9,6 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/repositories/report_repository.dart';
 import '../widgets/category_pie_chart.dart';
 import '../widgets/category_ranking_list.dart';
-import '../widgets/tag_ranking_list.dart';
 import '../../../../core/widgets/page_refresh_mixin.dart';
 
 /// 时间维度
@@ -36,7 +33,6 @@ class _ReportPageState extends ConsumerState<ReportPage> with PageRefreshMixin {
   bool _isExpense = true;
   late DateTime _currentDate;
   ReportSummary? _summary;
-  List<TagStat> _tagStats = [];
   bool _isLoading = true;
 
   @override
@@ -67,13 +63,9 @@ class _ReportPageState extends ConsumerState<ReportPage> with PageRefreshMixin {
             : l10n.reportTrendDay('$period'),
       );
 
-      // 加载标签统计
-      final tagStats = await _loadTagStats(bookId, range.$1, range.$2);
-
       if (!mounted) return;
       setState(() {
         _summary = summary;
-        _tagStats = tagStats;
         _isLoading = false;
       });
     } catch (e) {
@@ -81,44 +73,6 @@ class _ReportPageState extends ConsumerState<ReportPage> with PageRefreshMixin {
       if (!mounted) return;
       setState(() => _isLoading = false);
     }
-  }
-
-  /// 加载标签统计数据
-  Future<List<TagStat>> _loadTagStats(int bookId, DateTime start, DateTime end) async {
-    final db = ref.read(appDatabaseProvider);
-
-    // 查询时间段内的交易-标签关联及金额
-    final query = db.select(db.transactionTags).join([
-      drift.innerJoin(db.transactions, db.transactions.id.equalsExp(db.transactionTags.transactionId)),
-      drift.innerJoin(db.tags, db.tags.id.equalsExp(db.transactionTags.tagId)),
-    ])
-      ..addColumns([db.tags.id, db.tags.name, db.tags.color, db.transactions.amount.sum(), db.transactionTags.tagId.count()])
-      ..where(
-        db.transactions.accountBookId.equals(bookId) &
-        db.transactions.transactionDate.isBetweenValues(start, end) &
-        db.transactions.isDeleted.equals(false) &
-        db.transactions.type.equals('expense'),
-      )
-      ..groupBy([db.tags.id])
-      ..orderBy([drift.OrderingTerm.desc(db.transactions.amount.sum())]);
-
-    final results = await query.get();
-    if (results.isEmpty) return [];
-
-    final totalAmount = results.fold<double>(0, (s, row) => s + (row.read(db.transactions.amount.sum()) ?? 0));
-
-    return results.map((row) {
-      final amount = row.read(db.transactions.amount.sum()) ?? 0.0;
-      final count = row.read(db.transactionTags.tagId.count()) ?? 0;
-      return TagStat(
-        tagId: row.read(db.tags.id)!,
-        tagName: row.read(db.tags.name)!,
-        tagColor: row.read(db.tags.color) ?? '#607D8B',
-        amount: amount,
-        count: count,
-        percentage: totalAmount > 0 ? (amount / totalAmount * 100) : 0,
-      );
-    }).toList();
   }
 
   (DateTime, DateTime) _getDateRange() {
@@ -255,14 +209,6 @@ class _ReportPageState extends ConsumerState<ReportPage> with PageRefreshMixin {
                       data: _summary?.categoryStats ?? [],
                       isExpense: _isExpense,
                     ),
-
-                    // 标签排行榜（仅在有标签数据时显示）
-                    if (_tagStats.isNotEmpty) ...[
-                      const SizedBox(height: 24),
-                      _buildSectionTitle(l10n.reportTagRanking),
-                      const SizedBox(height: 8),
-                      TagRankingList(data: _tagStats),
-                    ],
 
                     const SizedBox(height: 40),
                   ],
