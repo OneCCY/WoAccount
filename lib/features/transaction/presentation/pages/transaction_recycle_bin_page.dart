@@ -437,11 +437,11 @@ class _TransactionRecycleBinPageState extends ConsumerState<TransactionRecycleBi
         },
         onTap: _isSelectMode ? () => _toggleSelection(txn.id) : null,
         child: Container(
-          color: isSelected
-              ? context.colors.primary.withValues(alpha: 0.08)
-              : context.colors.surface,
           padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 12),
           decoration: BoxDecoration(
+            color: isSelected
+                ? context.colors.primary.withValues(alpha: 0.08)
+                : context.colors.surface,
             border: Border(bottom: BorderSide(color: context.colors.separatorOpaque, width: 0.5)),
           ),
           child: Row(
