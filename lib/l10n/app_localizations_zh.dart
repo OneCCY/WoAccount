@@ -179,6 +179,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatDeleteSuccess => '对话已清空';
 
   @override
+  String chatMultiSelectCount(String count) {
+    return '已选 $count 条';
+  }
+
+  @override
+  String get chatDeleteSelected => '删除选中';
+
+  @override
+  String chatDeleteSelectedConfirm(String count) {
+    return '确定要删除选中的 $count 条消息吗？';
+  }
+
+  @override
   String get chatActionCopy => '复制';
 
   @override
@@ -2707,6 +2720,19 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get chatDeleteSuccess => '對話已清空';
+
+  @override
+  String chatMultiSelectCount(String count) {
+    return '已選 $count 條';
+  }
+
+  @override
+  String get chatDeleteSelected => '刪除選取';
+
+  @override
+  String chatDeleteSelectedConfirm(String count) {
+    return '確定要刪除選取的 $count 條訊息嗎？';
+  }
 
   @override
   String get chatActionCopy => '複製';

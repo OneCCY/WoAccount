@@ -179,6 +179,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get chatDeleteSuccess => '会話履歴をクリアしました';
 
   @override
+  String chatMultiSelectCount(String count) {
+    return '$count件選択中';
+  }
+
+  @override
+  String get chatDeleteSelected => '選択を削除';
+
+  @override
+  String chatDeleteSelectedConfirm(String count) {
+    return '選択した$count件のメッセージを削除しますか？';
+  }
+
+  @override
   String get chatActionCopy => 'コピー';
 
   @override

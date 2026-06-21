@@ -185,6 +185,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatDeleteSuccess => 'Chat history cleared';
 
   @override
+  String chatMultiSelectCount(String count) {
+    return '$count selected';
+  }
+
+  @override
+  String get chatDeleteSelected => 'Delete selected';
+
+  @override
+  String chatDeleteSelectedConfirm(String count) {
+    return 'Delete $count selected messages?';
+  }
+
+  @override
   String get chatActionCopy => 'Copy';
 
   @override

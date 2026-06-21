@@ -180,6 +180,19 @@ class AppLocalizationsKo extends AppLocalizations {
   String get chatDeleteSuccess => '대화 기록이 지워졌습니다';
 
   @override
+  String chatMultiSelectCount(String count) {
+    return '$count개 선택됨';
+  }
+
+  @override
+  String get chatDeleteSelected => '선택 삭제';
+
+  @override
+  String chatDeleteSelectedConfirm(String count) {
+    return '선택한 $count개의 메시지를 삭제하시겠습니까?';
+  }
+
+  @override
   String get chatActionCopy => '복사';
 
   @override

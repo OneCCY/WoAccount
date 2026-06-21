@@ -414,6 +414,24 @@ abstract class AppLocalizations {
   /// **'对话已清空'**
   String get chatDeleteSuccess;
 
+  /// No description provided for @chatMultiSelectCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'已选 {count} 条'**
+  String chatMultiSelectCount(String count);
+
+  /// No description provided for @chatDeleteSelected.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除选中'**
+  String get chatDeleteSelected;
+
+  /// No description provided for @chatDeleteSelectedConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要删除选中的 {count} 条消息吗？'**
+  String chatDeleteSelectedConfirm(String count);
+
   /// No description provided for @chatActionCopy.
   ///
   /// In zh, this message translates to:

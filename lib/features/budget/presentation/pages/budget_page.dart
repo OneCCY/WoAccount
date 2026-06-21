@@ -10,6 +10,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/repositories/budget_repository.dart';
+import '../../../transaction/presentation/widgets/category_picker_sheet.dart';
 
 /// 预算视图模式
 enum _BudgetView { month, year }
@@ -124,10 +125,45 @@ class _BudgetPageState extends ConsumerState<BudgetPage> {
         ),
         actions: [_buildViewToggle(l10n)],
       ),
+      floatingActionButton: _view == _BudgetView.month
+          ? FloatingActionButton(
+              backgroundColor: context.colors.primary,
+              onPressed: () => _onAddBudget(l10n),
+              child: const Icon(Icons.add, color: Colors.white),
+            )
+          : null,
       body: _view == _BudgetView.month
           ? _buildMonthView(l10n)
           : _buildYearView(l10n),
     );
+  }
+
+  /// 从一级分类选择器进入详情页（用于 FAB）
+  Future<void> _onAddBudget(AppLocalizations l10n) async {
+    final selected = await CategoryPickerSheet.show(
+      context,
+      initialIsExpense: true,
+    );
+    if (selected == null || !mounted) return;
+
+    // 确定父分类：如果选中的是二级分类，取其 parentId；否则用自身 id
+    final catRepo = ref.read(categoryRepositoryProvider);
+    Category parent;
+    if (selected.parentId != null) {
+      final p = await catRepo.getById(selected.parentId!);
+      parent = p ?? selected;
+    } else {
+      parent = selected;
+    }
+
+    final name = getCategoryDisplayName(parent, l10n);
+    if (mounted) {
+      context.push('/budget/detail', extra: {
+        'parentCategoryId': parent.id,
+        'parentCategoryName': name,
+        'parentCategoryIcon': parent.icon ?? '📦',
+      });
+    }
   }
 
   /// 月/年切换

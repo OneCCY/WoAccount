@@ -5,12 +5,11 @@ import 'package:go_router/go_router.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
+import '../../../../core/locale/category_l10n.dart';
 import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/toast.dart';
-import '../../../transaction/presentation/widgets/category_picker_sheet.dart';
 import '../../domain/repositories/budget_repository.dart';
 
 /// 预算详情页 — 展示某一父分类下的所有子分类预算
@@ -65,22 +64,23 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
     }
   }
 
-  // 添加子分类预算
+  // 添加子分类预算（仅显示当前一级分类下的子分类）
   Future<void> _onAddBudget() async {
-    final l10n = AppLocalizations.of(context)!;
+    final catRepo = ref.read(categoryRepositoryProvider);
+    final children = await catRepo.getChildren(widget.parentCategoryId);
+
+    if (children.isEmpty || !mounted) return;
+
+    // 弹出子分类选择器（仅当前一级分类的子分类）
     final selected = await showModalBottomSheet<Category>(
       context: context,
-      isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => CategoryPickerSheet(initialIsExpense: true),
+      builder: (ctx) => _ChildCategoryPickerSheet(
+        categories: children,
+        existingIds: _childProgresses.map((p) => p.budget.categoryId).whereType<int>().toSet(),
+      ),
     );
     if (selected == null || !mounted) return;
-
-    // 检查是否已有该分类预算
-    if (_childProgresses.any((p) => p.budget.categoryId == selected.id)) {
-      AppToast.show(context, l10n.budgetCategoryAlreadyExists);
-      return;
-    }
 
     _showAmountDialog(
       title: '${selected.icon ?? ''} ${selected.name}',
@@ -500,6 +500,99 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
       if (hex == null || hex.isEmpty) return context.colors.textTertiary;
       final clean = hex.replaceFirst('#', '');
       return Color(int.parse('FF$clean', radix: 16));
+    } catch (_) {
+      return context.colors.textTertiary;
+    }
+  }
+}
+
+/// 子分类选择器（仅展示当前一级分类下的子分类，已有预算的灰显不可选）
+class _ChildCategoryPickerSheet extends StatelessWidget {
+  final List<Category> categories;
+  final Set<int> existingIds;
+
+  const _ChildCategoryPickerSheet({required this.categories, required this.existingIds});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      padding: EdgeInsets.fromLTRB(
+        AppDimensions.md, 8, AppDimensions.md,
+        MediaQuery.of(context).viewInsets.bottom + AppDimensions.md,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 36, height: 4,
+            decoration: BoxDecoration(
+              color: context.colors.textTertiary.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(l10n.budgetAddCategoryBudget, style: AppTextStyles.h3.copyWith(fontSize: 16)),
+          const SizedBox(height: 16),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 5,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 0.75,
+            ),
+            itemCount: categories.length,
+            itemBuilder: (ctx, i) {
+              final cat = categories[i];
+              final hasExisting = existingIds.contains(cat.id);
+              final color = _parseColorHex(cat.color, context);
+              return GestureDetector(
+                onTap: hasExisting ? null : () => Navigator.pop(context, cat),
+                child: Opacity(
+                  opacity: hasExisting ? 0.4 : 1.0,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 44, height: 44,
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                        ),
+                        child: Center(child: Text(cat.icon ?? '📦', style: const TextStyle(fontSize: 22))),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        getCategoryDisplayName(cat, l10n),
+                        style: context.textStyles.caption.copyWith(
+                          color: hasExisting ? context.colors.textHint : null,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  static Color _parseColorHex(String? hex, BuildContext context) {
+    try {
+      if (hex == null || hex.isEmpty) return context.colors.textTertiary;
+      return Color(int.parse('FF${hex.replaceFirst('#', '')}', radix: 16));
     } catch (_) {
       return context.colors.textTertiary;
     }

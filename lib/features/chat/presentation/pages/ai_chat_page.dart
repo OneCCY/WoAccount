@@ -54,6 +54,10 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
   bool _hasMore = true;
   bool _isAiResponding = false;
 
+  // 多选模式
+  bool _isMultiSelectMode = false;
+  final Set<int> _selectedIndices = {};
+
   String? _userAvatarPath;
   String _aiIcon = '🤖';
 
@@ -746,39 +750,76 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
       color: context.colors.surface,
       child: Row(
         children: [
-          GestureDetector(
-            onTap: () => context.go('/transactions'),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: context.colors.surfaceSecondary,
-                borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.receipt_long_outlined, size: 16, color: context.colors.textSecondary),
-                  const SizedBox(width: 4),
-                  Text(l10n.navTransactions, style: AppTextStyles.caption.copyWith(color: context.colors.textSecondary)),
-                ],
+          if (_isMultiSelectMode) ...[
+            // 多选模式：取消 + 已选数量
+            GestureDetector(
+              onTap: () => setState(() {
+                _isMultiSelectMode = false;
+                _selectedIndices.clear();
+              }),
+              child: Text(l10n.commonCancel, style: context.textStyles.body.copyWith(color: context.colors.primary)),
+            ),
+            const Spacer(),
+            Text(l10n.chatMultiSelectCount(_selectedIndices.length.toString()),
+              style: AppTextStyles.h3.copyWith(fontSize: 16)),
+            const Spacer(),
+            // 删除选中
+            GestureDetector(
+              onTap: _selectedIndices.isEmpty ? null : _deleteSelected,
+              child: Icon(Icons.delete_outline, size: 22,
+                color: _selectedIndices.isEmpty ? context.colors.textHint : context.colors.error),
+            ),
+          ] else ...[
+            GestureDetector(
+              onTap: () => context.go('/transactions'),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: context.colors.surfaceSecondary,
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.receipt_long_outlined, size: 16, color: context.colors.textSecondary),
+                    const SizedBox(width: 4),
+                    Text(l10n.navTransactions, style: AppTextStyles.caption.copyWith(color: context.colors.textSecondary)),
+                  ],
+                ),
               ),
             ),
-          ),
-          const Spacer(),
-          Text(l10n.chatPageTitle, style: AppTextStyles.h3.copyWith(fontSize: 16)),
-          const Spacer(),
-          // 清空对话按钮
-          GestureDetector(
-            onTap: _onDeleteConversation,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: context.colors.surfaceSecondary,
-                borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+            const Spacer(),
+            Text(l10n.chatPageTitle, style: AppTextStyles.h3.copyWith(fontSize: 16)),
+            const Spacer(),
+            // 多选按钮
+            GestureDetector(
+              onTap: () => setState(() {
+                _isMultiSelectMode = true;
+                _selectedIndices.clear();
+              }),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: context.colors.surfaceSecondary,
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+                ),
+                child: Icon(Icons.checklist, size: 16, color: context.colors.textSecondary),
               ),
-              child: Icon(Icons.delete_outline, size: 16, color: context.colors.textSecondary),
             ),
-          ),
+            const SizedBox(width: 8),
+            // 清空对话按钮
+            GestureDetector(
+              onTap: _onDeleteConversation,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: context.colors.surfaceSecondary,
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+                ),
+                child: Icon(Icons.delete_outline, size: 16, color: context.colors.textSecondary),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -814,6 +855,50 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
     );
   }
 
+  /// 删除多选的消息
+  Future<void> _deleteSelected() async {
+    final l10n = AppLocalizations.of(context)!;
+    final count = _selectedIndices.length;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.chatDeleteSelected),
+        content: Text(l10n.chatDeleteSelectedConfirm(count.toString())),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.commonCancel)),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.commonDelete, style: TextStyle(color: context.colors.error)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    // 收集要删除的消息 ID（DB 中存在的）
+    final idsToDelete = _selectedIndices
+        .map((i) => _items[i])
+        .where((item) => item.message != null)
+        .map((item) => item.message!.id)
+        .toList();
+
+    // 从 DB 删除
+    for (final id in idsToDelete) {
+      await _chatRepo.deleteMessage(id);
+    }
+
+    if (!mounted) return;
+    setState(() {
+      // 从后往前删除避免索引偏移
+      final sorted = _selectedIndices.toList()..sort((a, b) => b.compareTo(a));
+      for (final i in sorted) {
+        _items.removeAt(i);
+      }
+      _isMultiSelectMode = false;
+      _selectedIndices.clear();
+    });
+  }
+
   Widget _buildMessageList() {
     if (_isLoading) {
       return Center(child: CircularProgressIndicator(color: context.colors.primary));
@@ -838,21 +923,21 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
           if (itemIndex < 0 || itemIndex >= _items.length) return const SizedBox.shrink();
 
           final item = _items[itemIndex];
+          final isSelected = _selectedIndices.contains(itemIndex);
 
+          Widget card;
           if (item.isConfirm && item.confirmData != null) {
             final data = item.confirmData!;
-            return ConfirmCard(
+            card = ConfirmCard(
               data: data,
               onConfirm: () => _confirmSave(data),
               onCancel: () => _cancelConfirm(data),
               onEdit: (newData) => _updateConfirm(data, newData),
               aiIcon: _aiIcon,
             );
-          }
-
-          if (item.isSaved && item.savedData != null) {
+          } else if (item.isSaved && item.savedData != null) {
             final data = item.savedData!;
-            return SavedCard(
+            card = SavedCard(
               amount: data.amount,
               type: data.type,
               category: data.category,
@@ -863,16 +948,14 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
               payMethod: data.payMethod,
               aiIcon: _aiIcon,
             );
-          }
-
-          if (item.message != null) {
+          } else if (item.message != null) {
             final msg = item.message!;
 
             // 从数据库加载的保存成功卡片
             if (msg.functionName == 'saved_card') {
               try {
                 final map = jsonDecode(msg.content) as Map<String, dynamic>;
-                return SavedCard(
+                card = SavedCard(
                   amount: (map['amount'] as num).toDouble(),
                   type: map['type'] as String,
                   category: map['category'] as String,
@@ -884,23 +967,68 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
                   aiIcon: _aiIcon,
                 );
               } catch (_) {
-                // JSON 解析失败则降级为普通消息
+                card = ChatBubble(
+                  isUser: msg.role == 'user',
+                  content: msg.content,
+                  time: msg.createdAt,
+                  mediaType: _parseMediaType(msg.mediaType),
+                  mediaFilePath: msg.mediaFilePath,
+                  userAvatarPath: _userAvatarPath,
+                  aiIcon: _aiIcon,
+                  onLongPress: () => _showMessageActions(item),
+                );
               }
+            } else {
+              card = ChatBubble(
+                isUser: msg.role == 'user',
+                content: msg.content,
+                time: msg.createdAt,
+                mediaType: _parseMediaType(msg.mediaType),
+                mediaFilePath: msg.mediaFilePath,
+                userAvatarPath: _userAvatarPath,
+                aiIcon: _aiIcon,
+                onLongPress: () => _showMessageActions(item),
+              );
             }
-
-            return ChatBubble(
-              isUser: msg.role == 'user',
-              content: msg.content,
-              time: msg.createdAt,
-              mediaType: _parseMediaType(msg.mediaType),
-              mediaFilePath: msg.mediaFilePath,
-              userAvatarPath: _userAvatarPath,
-              aiIcon: _aiIcon,
-              onLongPress: () => _showMessageActions(item),
-            );
+          } else {
+            return const SizedBox.shrink();
           }
 
-          return const SizedBox.shrink();
+          // 多选模式：包裹点击 + 勾选指示器
+          if (_isMultiSelectMode) {
+            return GestureDetector(
+              onTap: () => setState(() {
+                if (isSelected) {
+                  _selectedIndices.remove(itemIndex);
+                } else {
+                  _selectedIndices.add(itemIndex);
+                }
+              }),
+              child: Stack(
+                children: [
+                  card,
+                  Positioned(
+                    top: 8, right: 8,
+                    child: Container(
+                      width: 22, height: 22,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isSelected ? context.colors.primary : context.colors.surfaceSecondary,
+                        border: Border.all(
+                          color: isSelected ? context.colors.primary : context.colors.textHint,
+                          width: 1.5,
+                        ),
+                      ),
+                      child: isSelected
+                          ? const Icon(Icons.check, size: 14, color: Colors.white)
+                          : null,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+          return card;
         },
       ),
     );
