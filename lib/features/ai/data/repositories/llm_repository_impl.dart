@@ -150,7 +150,7 @@ class LlmRepositoryImpl implements LlmRepository {
   }
 
   @override
-  Future<List<TransactionParseResult>> parseTransaction(String input, {String? categoryTaxonomy, String locale = 'zh'}) async {
+  Future<List<TransactionParseResult>> parseTransaction(String input, {String? categoryTaxonomy, String locale = 'zh', String? tagTaxonomy}) async {
     // 降级策略：先尝试 LLM，失败后用规则引擎
     try {
       final provider = await LlmConfigManager.getActiveProvider();
@@ -163,8 +163,8 @@ class LlmRepositoryImpl implements LlmRepository {
 
       // 构建系统提示词（使用动态分类或默认分类）
       final systemPrompt = categoryTaxonomy != null
-          ? PromptTemplates.parseTransactionSystem(categoryTaxonomy, locale: locale)
-          : PromptTemplates.parseTransactionSystem(_defaultCategoryTaxonomy, locale: locale);
+          ? PromptTemplates.parseTransactionSystem(categoryTaxonomy, locale: locale, tagTaxonomy: tagTaxonomy)
+          : PromptTemplates.parseTransactionSystem(_defaultCategoryTaxonomy, locale: locale, tagTaxonomy: tagTaxonomy);
 
       // 调用 LLM（使用文本能力）
       final response = await chat(LlmRequest(
@@ -454,6 +454,15 @@ class LlmRepositoryImpl implements LlmRepository {
   }
 
   TransactionParseResult _parseSingleTransaction(Map<String, dynamic> json) {
+    // 解析标签列表
+    final rawTags = json['tags'];
+    final tags = <String>[];
+    if (rawTags is List) {
+      for (final t in rawTags) {
+        if (t is String && t.isNotEmpty) tags.add(t);
+      }
+    }
+
     return TransactionParseResult(
       type: json['type'] as String? ?? 'expense',
       amount: (json['amount'] as num).toDouble(),
@@ -464,6 +473,7 @@ class LlmRepositoryImpl implements LlmRepository {
       date: json['date'] as String?,
       note: json['note'] as String?,
       payMethod: json['payMethod'] as String?,
+      tags: tags,
     );
   }
 

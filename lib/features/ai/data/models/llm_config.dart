@@ -370,6 +370,7 @@ class TransactionParseResult {
   final String? date;
   final String? note;
   final String? payMethod;
+  final List<String> tags;
 
   const TransactionParseResult({
     required this.type,
@@ -381,6 +382,7 @@ class TransactionParseResult {
     this.date,
     this.note,
     this.payMethod,
+    this.tags = const [],
   });
 }
 
