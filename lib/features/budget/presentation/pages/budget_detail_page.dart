@@ -65,18 +65,6 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
     }
   }
 
-  // 月份导航
-  void _changeMonth(int delta) {
-    final now = DateTime.now();
-    final next = DateTime(_currentMonth.year, _currentMonth.month + delta);
-    if (delta > 0 && next.isAfter(DateTime(now.year, now.month))) return;
-    setState(() {
-      _currentMonth = next;
-      _isLoading = true;
-    });
-    _loadData();
-  }
-
   // 添加子分类预算
   Future<void> _onAddBudget() async {
     final l10n = AppLocalizations.of(context)!;
@@ -239,28 +227,39 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
     final l10n = AppLocalizations.of(context)!;
     final totalBudget = _childProgresses.fold<double>(0, (s, p) => s + p.budget.amount);
     final totalSpent = _childProgresses.fold<double>(0, (s, p) => s + p.spent);
+    final monthLabel = l10n.reportMonthLabel(
+      _currentMonth.year.toString(), _currentMonth.month.toString(),
+    );
 
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: AppBar(
-        title: Row(
-          children: [
-            Text(widget.parentCategoryIcon, style: const TextStyle(fontSize: 20)),
-            const SizedBox(width: 8),
-            Text(widget.parentCategoryName),
-          ],
+        title: GestureDetector(
+          onTap: () => _showMonthPicker(l10n),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(widget.parentCategoryIcon, style: const TextStyle(fontSize: 20)),
+              const SizedBox(width: 6),
+              Flexible(child: Text(widget.parentCategoryName, overflow: TextOverflow.ellipsis)),
+              const SizedBox(width: 6),
+              Text(monthLabel, style: context.textStyles.footnote.copyWith(
+                color: context.colors.textSecondary, fontWeight: FontWeight.w400,
+              )),
+              Icon(Icons.arrow_drop_down, size: 20, color: context.colors.textSecondary),
+            ],
+          ),
         ),
+        actions: [
+          IconButton(icon: Icon(Icons.add, color: context.colors.primary), onPressed: _onAddBudget),
+        ],
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator(color: context.colors.primary))
           : Column(
               children: [
-                // 日期导航 + 添加按钮（同一行）
-                _buildHeaderBar(l10n),
-                // 总金额汇总
                 _buildSummaryCard(totalBudget, totalSpent, l10n),
                 const SizedBox(height: 8),
-                // 二级分类列表
                 Expanded(
                   child: _childProgresses.isEmpty
                       ? Center(
@@ -284,38 +283,67 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
     );
   }
 
-  /// 日期导航 + 添加按钮（同一行）
-  Widget _buildHeaderBar(AppLocalizations l10n) {
+  /// 弹出月份选择器
+  void _showMonthPicker(AppLocalizations l10n) {
     final now = DateTime.now();
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 6),
-      color: context.colors.surface,
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.chevron_left, size: 24),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-            onPressed: () => _changeMonth(-1),
-          ),
-          Text(
-            l10n.reportMonthLabel(_currentMonth.year.toString(), _currentMonth.month.toString()),
-            style: context.textStyles.h3.copyWith(fontSize: 15),
-          ),
-          IconButton(
-            icon: Icon(Icons.chevron_right, size: 24,
-              color: DateTime(_currentMonth.year, _currentMonth.month + 1).isAfter(DateTime(now.year, now.month))
-                  ? context.colors.textHint : null),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-            onPressed: () => _changeMonth(1),
-          ),
-          const Spacer(),
-          IconButton(
-            icon: Icon(Icons.add, color: context.colors.primary),
-            onPressed: _onAddBudget,
-          ),
-        ],
+    final months = <DateTime>[];
+    for (int y = now.year - 1; y <= now.year; y++) {
+      for (int m = 1; m <= 12; m++) {
+        final d = DateTime(y, m);
+        if (d.isAfter(DateTime(now.year, now.month))) break;
+        months.add(d);
+      }
+    }
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        height: 300,
+        decoration: BoxDecoration(
+          color: context.colors.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 36, height: 4,
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              decoration: BoxDecoration(
+                color: context.colors.textTertiary.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: months.length,
+                itemBuilder: (ctx, i) {
+                  final m = months[months.length - 1 - i];
+                  final isSelected = m.year == _currentMonth.year && m.month == _currentMonth.month;
+                  return ListTile(
+                    title: Center(
+                      child: Text(
+                        l10n.reportMonthLabel(m.year.toString(), m.month.toString()),
+                        style: context.textStyles.body.copyWith(
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                          color: isSelected ? context.colors.primary : context.colors.textPrimary,
+                        ),
+                      ),
+                    ),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      setState(() {
+                        _currentMonth = m;
+                        _isLoading = true;
+                      });
+                      _loadData();
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

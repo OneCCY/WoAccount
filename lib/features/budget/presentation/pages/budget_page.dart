@@ -10,14 +10,12 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/repositories/budget_repository.dart';
-import '../../../category/domain/repositories/category_repository.dart';
 
 /// 预算视图模式
 enum _BudgetView { month, year }
 
-/// 预算管理页 — 精简设计
-/// 月视图：纯净的一级分类预算列表（无二级图标、无总预算卡片、无添加按钮）
-/// 年视图：12 个月汇总
+/// 预算管理页
+/// 月视图：仅展示有二级预算的一级分类，月份在 AppBar 可滚动切换
 class BudgetPage extends ConsumerStatefulWidget {
   const BudgetPage({super.key});
 
@@ -36,26 +34,99 @@ class _BudgetPageState extends ConsumerState<BudgetPage> {
     _currentMonth = DateTime(now.year, now.month);
   }
 
+  /// 弹出月份选择器（可上下滚动）
+  void _showMonthPicker(AppLocalizations l10n) {
+    final now = DateTime.now();
+    // 生成可选月份列表：去年1月 ~ 当前月
+    final months = <DateTime>[];
+    for (int y = now.year - 1; y <= now.year; y++) {
+      for (int m = 1; m <= 12; m++) {
+        final d = DateTime(y, m);
+        if (d.isAfter(DateTime(now.year, now.month))) break;
+        months.add(d);
+      }
+    }
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        height: 300,
+        decoration: BoxDecoration(
+          color: context.colors.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 36, height: 4,
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              decoration: BoxDecoration(
+                color: context.colors.textTertiary.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: months.length,
+                itemBuilder: (ctx, i) {
+                  final m = months[months.length - 1 - i]; // 最新月份在前
+                  final isSelected = m.year == _currentMonth.year && m.month == _currentMonth.month;
+                  return ListTile(
+                    title: Center(
+                      child: Text(
+                        l10n.reportMonthLabel(m.year.toString(), m.month.toString()),
+                        style: context.textStyles.body.copyWith(
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                          color: isSelected ? context.colors.primary : context.colors.textPrimary,
+                        ),
+                      ),
+                    ),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      setState(() => _currentMonth = m);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final monthLabel = l10n.reportMonthLabel(
+      _currentMonth.year.toString(),
+      _currentMonth.month.toString(),
+    );
 
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: AppBar(
-        title: Text(l10n.budgetTitle),
+        title: GestureDetector(
+          onTap: () => _showMonthPicker(l10n),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(l10n.budgetTitle),
+              const SizedBox(width: 8),
+              Text(monthLabel, style: context.textStyles.footnote.copyWith(
+                color: context.colors.textSecondary,
+                fontWeight: FontWeight.w400,
+              )),
+              Icon(Icons.arrow_drop_down, size: 20, color: context.colors.textSecondary),
+            ],
+          ),
+        ),
         actions: [_buildViewToggle(l10n)],
       ),
-      body: Column(
-        children: [
-          _buildMonthNav(l10n),
-          Expanded(
-            child: _view == _BudgetView.month
-                ? _buildMonthView(l10n)
-                : _buildYearView(l10n),
-          ),
-        ],
-      ),
+      body: _view == _BudgetView.month
+          ? _buildMonthView(l10n)
+          : _buildYearView(l10n),
     );
   }
 
@@ -96,127 +167,70 @@ class _BudgetPageState extends ConsumerState<BudgetPage> {
     );
   }
 
-  /// 月份导航
-  Widget _buildMonthNav(AppLocalizations l10n) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 8),
-      color: context.colors.surface,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.chevron_left, size: 24),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-            onPressed: () => setState(() {
-              _currentMonth = _view == _BudgetView.month
-                  ? DateTime(_currentMonth.year, _currentMonth.month - 1)
-                  : DateTime(_currentMonth.year - 1, _currentMonth.month);
-            }),
-          ),
-          const SizedBox(width: 16),
-          Text(
-            _view == _BudgetView.month
-                ? l10n.reportMonthLabel(_currentMonth.year.toString(), _currentMonth.month.toString())
-                : l10n.budgetYearLabel(_currentMonth.year.toString()),
-            style: context.textStyles.h3.copyWith(fontSize: 16),
-          ),
-          const SizedBox(width: 16),
-          IconButton(
-            icon: const Icon(Icons.chevron_right, size: 24),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-            onPressed: () {
-              final now = DateTime.now();
-              final next = _view == _BudgetView.month
-                  ? DateTime(_currentMonth.year, _currentMonth.month + 1)
-                  : DateTime(_currentMonth.year + 1, _currentMonth.month);
-              if (_view == _BudgetView.month) {
-                if (next.isAfter(DateTime(now.year, now.month))) return;
-              } else {
-                if (next.year > now.year) return;
-              }
-              setState(() => _currentMonth = next);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ==================== 月视图：纯净一级分类列表 ====================
+  // ==================== 月视图：仅展示有预算的一级分类 ====================
 
   Widget _buildMonthView(AppLocalizations l10n) {
-    final catRepo = ref.read(categoryRepositoryProvider);
     final budgetRepo = ref.read(budgetRepositoryProvider);
     final bookId = ref.watch(currentBookProvider);
 
-    return FutureBuilder<(List<Category>, List<BudgetProgress>)>(
-      future: _loadMonthData(catRepo, budgetRepo, bookId),
+    return FutureBuilder<List<BudgetProgress>>(
+      future: budgetRepo.getBudgetProgress(bookId, _currentMonth.year, _currentMonth.month),
       builder: (context, snap) {
         if (snap.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator(color: context.colors.primary));
         }
 
-        final (parentCats, allProgress) = snap.data ?? (<Category>[], <BudgetProgress>[]);
+        final allProgress = snap.data ?? [];
+        // 过滤出有 categoryId 的预算（分类预算）
+        final categoryProgresses = allProgress.where((p) => p.budget.categoryId != null).toList();
 
-        if (parentCats.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.category_outlined, size: 48, color: context.colors.textTertiary),
-                const SizedBox(height: 16),
-                Text(l10n.budgetEmpty, style: context.textStyles.callout.copyWith(color: context.colors.textSecondary)),
-              ],
-            ),
-          );
+        if (categoryProgresses.isEmpty) {
+          return _buildEmptyState(l10n);
         }
 
-        // 按 parentId 分组预算进度
-        final progressByParent = <int, List<BudgetProgress>>{};
-        for (final p in allProgress) {
-          if (p.budget.categoryId == null) continue;
+        // 按父分类分组
+        final parentGroups = <int, List<BudgetProgress>>{};
+        for (final p in categoryProgresses) {
           final cat = p.category;
           if (cat == null) continue;
           final pid = cat.parentId ?? cat.id;
-          progressByParent.putIfAbsent(pid, () => []).add(p);
+          parentGroups.putIfAbsent(pid, () => []).add(p);
         }
 
-        return RefreshIndicator(
-          onRefresh: () async => setState(() {}),
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            itemCount: parentCats.length,
-            itemBuilder: (context, index) {
-              final parent = parentCats[index];
-              final children = progressByParent[parent.id] ?? [];
-              final groupBudget = children.fold<double>(0, (s, p) => s + p.budget.amount);
-              final groupSpent = children.fold<double>(0, (s, p) => s + p.spent);
-              return _buildParentItem(parent, groupBudget, groupSpent);
-            },
-          ),
+        // 为每个父分类查询真实分类信息
+        final catRepo = ref.read(categoryRepositoryProvider);
+        return FutureBuilder<List<Category>>(
+          future: catRepo.getTopLevel(),
+          builder: (context, catSnap) {
+            final allParents = catSnap.data ?? [];
+            final parentMap = {for (final c in allParents) c.id: c};
+
+            return RefreshIndicator(
+              onRefresh: () async => setState(() {}),
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemCount: parentGroups.length,
+                itemBuilder: (context, index) {
+                  final entry = parentGroups.entries.elementAt(index);
+                  final parent = parentMap[entry.key];
+                  if (parent == null) return const SizedBox.shrink();
+                  final children = entry.value;
+                  final groupBudget = children.fold<double>(0, (s, p) => s + p.budget.amount);
+                  final groupSpent = children.fold<double>(0, (s, p) => s + p.spent);
+                  return _buildParentItem(parent, groupBudget, groupSpent, l10n);
+                },
+              ),
+            );
+          },
         );
       },
     );
   }
 
-  /// 并行加载一级分类 + 当月预算进度
-  Future<(List<Category>, List<BudgetProgress>)> _loadMonthData(
-    CategoryRepository catRepo, BudgetRepository budgetRepo, int bookId,
-  ) async {
-    final cats = await catRepo.getTopLevel();
-    final expenseCats = cats.where((c) => c.isExpense).toList();
-    final progress = await budgetRepo.getBudgetProgress(bookId, _currentMonth.year, _currentMonth.month);
-    return (expenseCats, progress);
-  }
-
-  /// 一级分类行 — 纯净设计：图标 + 名称 + 进度条 + 金额
-  Widget _buildParentItem(Category parent, double budget, double spent) {
-    final l10n = AppLocalizations.of(context)!;
+  /// 一级分类行
+  Widget _buildParentItem(Category parent, double budget, double spent, AppLocalizations l10n) {
     final color = _parseColor(parent.color);
-    final hasBudget = budget > 0;
-    final percentage = hasBudget ? (spent / budget * 100) : 0.0;
+    final percentage = budget > 0 ? (spent / budget * 100) : 0.0;
     final barColor = percentage > 90 ? context.colors.error : percentage > 70 ? context.colors.warning : context.colors.success;
     final name = getCategoryDisplayName(parent, l10n);
 
@@ -236,7 +250,6 @@ class _BudgetPageState extends ConsumerState<BudgetPage> {
           ),
           child: Row(
             children: [
-              // 图标
               Container(
                 width: 40, height: 40,
                 decoration: BoxDecoration(
@@ -246,48 +259,34 @@ class _BudgetPageState extends ConsumerState<BudgetPage> {
                 child: Center(child: Text(parent.icon ?? '📦', style: const TextStyle(fontSize: 20))),
               ),
               const SizedBox(width: 12),
-              // 名称 + 进度条
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(name, style: context.textStyles.body.copyWith(fontWeight: FontWeight.w500)),
                     const SizedBox(height: 6),
-                    if (hasBudget) ...[
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(3),
-                        child: LinearProgressIndicator(
-                          value: (percentage / 100).clamp(0, 1),
-                          minHeight: 5,
-                          backgroundColor: context.colors.surfaceSecondary,
-                          valueColor: AlwaysStoppedAnimation(barColor),
-                        ),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(3),
+                      child: LinearProgressIndicator(
+                        value: (percentage / 100).clamp(0, 1),
+                        minHeight: 5,
+                        backgroundColor: context.colors.surfaceSecondary,
+                        valueColor: AlwaysStoppedAnimation(barColor),
                       ),
-                    ] else
-                      Container(
-                        height: 5,
-                        decoration: BoxDecoration(
-                          color: context.colors.surfaceSecondary,
-                          borderRadius: BorderRadius.circular(3),
-                        ),
-                      ),
+                    ),
                   ],
                 ),
               ),
               const SizedBox(width: 12),
-              // 金额
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(
-                    hasBudget ? context.localeProvider.currency.formatAmount(spent, decimals: 0) : '—',
+                  Text(context.localeProvider.currency.formatAmount(spent, decimals: 0),
                     style: context.textStyles.amountSmall.copyWith(
-                      color: hasBudget && spent > budget ? context.colors.error : context.colors.textPrimary,
-                    ),
-                  ),
-                  if (hasBudget)
-                    Text('/ ${context.localeProvider.currency.formatAmount(budget, decimals: 0)}',
-                      style: context.textStyles.caption),
+                      color: spent > budget ? context.colors.error : context.colors.textPrimary,
+                    )),
+                  Text('/ ${context.localeProvider.currency.formatAmount(budget, decimals: 0)}',
+                    style: context.textStyles.caption),
                 ],
               ),
               const SizedBox(width: 4),
