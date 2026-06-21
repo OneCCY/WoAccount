@@ -130,13 +130,13 @@ class AppRouter {
       GoRoute(
         path: '/budget/transactions',
         builder: (context, state) {
-          final params = state.uri.queryParameters;
+          final extra = state.extra as Map<String, dynamic>;
           return BudgetTransactionPage(
-            categoryId: int.parse(params['categoryId']!),
-            categoryName: Uri.decodeComponent(params['categoryName'] ?? ''),
-            categoryIcon: (params['categoryIcon']?.isNotEmpty == true) ? Uri.decodeComponent(params['categoryIcon']!) : '📦',
-            year: int.parse(params['year']!),
-            month: int.parse(params['month']!),
+            categoryId: extra['categoryId'] as int,
+            categoryName: extra['categoryName'] as String,
+            categoryIcon: extra['categoryIcon'] as String? ?? '📦',
+            year: extra['year'] as int,
+            month: extra['month'] as int,
           );
         },
       ),

@@ -492,7 +492,13 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
   void _navigateToTransactions(BudgetProgress progress) {
     final cat = progress.category;
     if (cat == null) return;
-    context.push('/budget/transactions?categoryId=${cat.id}&categoryName=${Uri.encodeComponent(cat.name)}&categoryIcon=${Uri.encodeComponent(cat.icon ?? "📦")}&year=${_currentMonth.year}&month=${_currentMonth.month}');
+    context.push('/budget/transactions', extra: {
+      'categoryId': cat.id,
+      'categoryName': cat.name,
+      'categoryIcon': cat.icon ?? '📦',
+      'year': _currentMonth.year,
+      'month': _currentMonth.month,
+    });
   }
 
   Color _parseColor(String? hex) {
