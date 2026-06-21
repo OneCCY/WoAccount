@@ -542,6 +542,39 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get profileBackupShareText => 'WoAccount 데이터 백업';
+
+  @override
+  String get profileBackupSuccess => '백업 성공';
+
+  @override
+  String profileBackupFailed(String error) {
+    return '백업 실패: $error';
+  }
+
+  @override
+  String get profileExportShareText => 'WoAccount 데이터 내보내기';
+
+  @override
+  String get profileExportSuccess => '내보내기 성공';
+
+  @override
+  String profileExportFailed(String error) {
+    return '내보내기 실패: $error';
+  }
+
+  @override
+  String get profileImportConfirm => '가져오면 현재 데이터를 덮어씁니다. 계속하시겠습니까?';
+
+  @override
+  String get profileImportSuccess => '가져오기 성공';
+
+  @override
+  String profileImportFailed(String error) {
+    return '가져오기 실패: $error';
+  }
+
+  @override
   String get profileAlreadyCheckedIn => '오늘 이미 출석했습니다';
 
   @override

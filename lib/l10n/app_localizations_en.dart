@@ -550,6 +550,40 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get profileBackupShareText => 'WoAccount backup file';
+
+  @override
+  String get profileBackupSuccess => 'Backup successful';
+
+  @override
+  String profileBackupFailed(String error) {
+    return 'Backup failed: $error';
+  }
+
+  @override
+  String get profileExportShareText => 'WoAccount data export';
+
+  @override
+  String get profileExportSuccess => 'Export successful';
+
+  @override
+  String profileExportFailed(String error) {
+    return 'Export failed: $error';
+  }
+
+  @override
+  String get profileImportConfirm =>
+      'Importing will overwrite all current data. Continue?';
+
+  @override
+  String get profileImportSuccess => 'Import successful';
+
+  @override
+  String profileImportFailed(String error) {
+    return 'Import failed: $error';
+  }
+
+  @override
   String get profileAlreadyCheckedIn => 'Already checked in today';
 
   @override

@@ -540,6 +540,39 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get profileBackupShareText => 'WoAccount データバックアップ';
+
+  @override
+  String get profileBackupSuccess => 'バックアップ成功';
+
+  @override
+  String profileBackupFailed(String error) {
+    return 'バックアップ失敗: $error';
+  }
+
+  @override
+  String get profileExportShareText => 'WoAccount データエクスポート';
+
+  @override
+  String get profileExportSuccess => 'エクスポート成功';
+
+  @override
+  String profileExportFailed(String error) {
+    return 'エクスポート失敗: $error';
+  }
+
+  @override
+  String get profileImportConfirm => 'インポートすると現在のデータが上書きされます。続行しますか？';
+
+  @override
+  String get profileImportSuccess => 'インポート成功';
+
+  @override
+  String profileImportFailed(String error) {
+    return 'インポート失敗: $error';
+  }
+
+  @override
   String get profileAlreadyCheckedIn => '本日はチェックイン済みです';
 
   @override

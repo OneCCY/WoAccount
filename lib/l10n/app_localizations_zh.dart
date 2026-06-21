@@ -540,6 +540,39 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get profileBackupShareText => 'WoAccount 数据备份文件';
+
+  @override
+  String get profileBackupSuccess => '备份成功';
+
+  @override
+  String profileBackupFailed(String error) {
+    return '备份失败: $error';
+  }
+
+  @override
+  String get profileExportShareText => 'WoAccount 数据导出文件';
+
+  @override
+  String get profileExportSuccess => '导出成功';
+
+  @override
+  String profileExportFailed(String error) {
+    return '导出失败: $error';
+  }
+
+  @override
+  String get profileImportConfirm => '导入将覆盖当前所有数据，确定继续吗？';
+
+  @override
+  String get profileImportSuccess => '导入成功';
+
+  @override
+  String profileImportFailed(String error) {
+    return '导入失败: $error';
+  }
+
+  @override
   String get profileAlreadyCheckedIn => '今天已经打过卡了';
 
   @override
@@ -3083,6 +3116,39 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   @override
   String profileFeatureComingSoon(String label) {
     return '$label功能即將推出';
+  }
+
+  @override
+  String get profileBackupShareText => 'WoAccount 資料備份檔案';
+
+  @override
+  String get profileBackupSuccess => '備份成功';
+
+  @override
+  String profileBackupFailed(String error) {
+    return '備份失敗: $error';
+  }
+
+  @override
+  String get profileExportShareText => 'WoAccount 資料匯出檔案';
+
+  @override
+  String get profileExportSuccess => '匯出成功';
+
+  @override
+  String profileExportFailed(String error) {
+    return '匯出失敗: $error';
+  }
+
+  @override
+  String get profileImportConfirm => '匯入將覆蓋所有現有資料，確定繼續嗎？';
+
+  @override
+  String get profileImportSuccess => '匯入成功';
+
+  @override
+  String profileImportFailed(String error) {
+    return '匯入失敗: $error';
   }
 
   @override

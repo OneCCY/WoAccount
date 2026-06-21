@@ -1080,6 +1080,60 @@ abstract class AppLocalizations {
   /// **'{label}功能即将推出'**
   String profileFeatureComingSoon(String label);
 
+  /// No description provided for @profileBackupShareText.
+  ///
+  /// In zh, this message translates to:
+  /// **'WoAccount 数据备份文件'**
+  String get profileBackupShareText;
+
+  /// No description provided for @profileBackupSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'备份成功'**
+  String get profileBackupSuccess;
+
+  /// No description provided for @profileBackupFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'备份失败: {error}'**
+  String profileBackupFailed(String error);
+
+  /// No description provided for @profileExportShareText.
+  ///
+  /// In zh, this message translates to:
+  /// **'WoAccount 数据导出文件'**
+  String get profileExportShareText;
+
+  /// No description provided for @profileExportSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'导出成功'**
+  String get profileExportSuccess;
+
+  /// No description provided for @profileExportFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'导出失败: {error}'**
+  String profileExportFailed(String error);
+
+  /// No description provided for @profileImportConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入将覆盖当前所有数据，确定继续吗？'**
+  String get profileImportConfirm;
+
+  /// No description provided for @profileImportSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入成功'**
+  String get profileImportSuccess;
+
+  /// No description provided for @profileImportFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入失败: {error}'**
+  String profileImportFailed(String error);
+
   /// No description provided for @profileAlreadyCheckedIn.
   ///
   /// In zh, this message translates to:

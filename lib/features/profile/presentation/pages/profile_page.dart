@@ -2,6 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
@@ -156,11 +160,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with PageRefreshMixin
                     items: [
                       _MenuItem(Icons.lock_outline, l10n.profileMenuPasswordLock),
                       _MenuItem(Icons.monetization_on_outlined, l10n.profileMenuAcCoins),
-                      _MenuItem(Icons.label_outline, l10n.tagManage),
                       _MenuItem(Icons.smart_toy_outlined, l10n.profileMenuAiConfig),
-                      _MenuItem(Icons.cloud_outlined, l10n.profileMenuDataBackup),
-                      _MenuItem(Icons.file_download_outlined, l10n.profileMenuImport),
-                      _MenuItem(Icons.file_upload_outlined, l10n.profileMenuExport),
                       _MenuItem(Icons.chat_bubble_outline, l10n.profileMenuFeedback),
                     ],
                   ),
@@ -344,7 +344,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with PageRefreshMixin
     );
   }
 
-  /// 功能网格（5列，无背景色图标）
+  /// 功能网格（横向按钮栏）
   Widget _buildFuncGrid(AppLocalizations l10n) {
     final items = [
       _FuncItem(Icons.palette_outlined, l10n.profileFuncTheme),
@@ -352,6 +352,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with PageRefreshMixin
       _FuncItem(Icons.account_balance_wallet_outlined, l10n.profileFuncBudget),
       _FuncItem(Icons.category_outlined, l10n.profileFuncCategories),
       _FuncItem(Icons.bar_chart_outlined, l10n.profileFuncReports),
+      _FuncItem(Icons.label_outline, l10n.tagManage),
+      _FuncItem(Icons.cloud_upload_outlined, l10n.profileMenuDataBackup),
+      _FuncItem(Icons.file_download_outlined, l10n.profileMenuImport),
+      _FuncItem(Icons.file_upload_outlined, l10n.profileMenuExport),
     ];
 
     return Container(
@@ -483,15 +487,106 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with PageRefreshMixin
       context.push('/budget');
     } else if (label == l10n.profileFuncCategories) {
       context.push('/categories/manage');
-    } else if (label == l10n.profileMenuAiConfig) {
-      context.push('/settings/llm');
     } else if (label == l10n.profileFuncReports) {
       context.push('/reports');
-    } else if (label == l10n.profileMenuDataBackup ||
-        label == l10n.profileMenuImport ||
-        label == l10n.profileMenuExport ||
-        label == l10n.profileMenuFeedback) {
-      AppToast.show(context, l10n.profileFeatureComingSoon(label), duration: const Duration(milliseconds: 500));
+    } else if (label == l10n.tagManage) {
+      context.push('/tags/manage');
+    } else if (label == l10n.profileMenuDataBackup) {
+      _backupDatabase(l10n);
+    } else if (label == l10n.profileMenuImport) {
+      _importDatabase(l10n);
+    } else if (label == l10n.profileMenuExport) {
+      _exportDatabase(l10n);
+    }
+  }
+
+  /// 获取数据库文件路径
+  Future<String> _getDbPath() async {
+    final dbFolder = await getApplicationDocumentsDirectory();
+    return p.join(dbFolder.path, 'wo_account.sqlite');
+  }
+
+  /// 备份数据库：复制到备份目录并分享
+  Future<void> _backupDatabase(AppLocalizations l10n) async {
+    try {
+      final dbPath = await _getDbPath();
+      final backupDir = await getApplicationDocumentsDirectory();
+      final timestamp = DateTime.now().toString().replaceAll(RegExp(r'[: .]'), '').substring(0, 14);
+      final backupPath = p.join(backupDir.path, 'wo_account_backup_$timestamp.sqlite');
+
+      await File(dbPath).copy(backupPath);
+
+      if (mounted) {
+        await Share.shareXFiles([XFile(backupPath)], text: l10n.profileBackupShareText);
+        AppToast.show(context, l10n.profileBackupSuccess);
+      }
+    } catch (e) {
+      if (mounted) AppToast.show(context, l10n.profileBackupFailed(e.toString()));
+    }
+  }
+
+  /// 导出数据库：复制到临时目录并分享
+  Future<void> _exportDatabase(AppLocalizations l10n) async {
+    try {
+      final dbPath = await _getDbPath();
+      final timestamp = DateTime.now().toString().replaceAll(RegExp(r'[: .]'), '').substring(0, 14);
+      final fileName = 'wo_account_$timestamp.sqlite';
+
+      final tempDir = await getTemporaryDirectory();
+      final tempPath = p.join(tempDir.path, fileName);
+      await File(dbPath).copy(tempPath);
+
+      if (mounted) {
+        await Share.shareXFiles([XFile(tempPath)], text: l10n.profileExportShareText);
+        AppToast.show(context, l10n.profileExportSuccess);
+      }
+    } catch (e) {
+      if (mounted) AppToast.show(context, l10n.profileExportFailed(e.toString()));
+    }
+  }
+
+  /// 导入数据库：从文件选择器选择备份文件并替换
+  Future<void> _importDatabase(AppLocalizations l10n) async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['sqlite', 'db'],
+      );
+      if (result == null || result.files.isEmpty) return;
+
+      final pickedFile = result.files.first;
+      final sourcePath = pickedFile.path;
+      if (sourcePath == null) {
+        if (mounted) AppToast.show(context, l10n.profileImportFailed(''));
+        return;
+      }
+
+      if (!mounted) return;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(l10n.profileMenuImport),
+          content: Text(l10n.profileImportConfirm),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.commonCancel)),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(l10n.commonConfirm, style: TextStyle(color: context.colors.primary)),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+
+      final dbPath = await _getDbPath();
+      await File(sourcePath).copy(dbPath);
+
+      if (mounted) {
+        AppToast.show(context, l10n.profileImportSuccess);
+        _loadData();
+      }
+    } catch (e) {
+      if (mounted) AppToast.show(context, l10n.profileImportFailed(e.toString()));
     }
   }
 
