@@ -1067,6 +1067,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get reportCategoryRanking => '카테고리 순위';
 
   @override
+  String get reportTagRanking => '태그 순위';
+
+  @override
   String get reportNoData => '데이터가 없습니다';
 
   @override

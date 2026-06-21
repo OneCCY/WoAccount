@@ -1065,6 +1065,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get reportCategoryRanking => 'カテゴリ別ランキング';
 
   @override
+  String get reportTagRanking => 'タグ別ランキング';
+
+  @override
   String get reportNoData => 'データがありません';
 
   @override

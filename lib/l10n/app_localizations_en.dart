@@ -1086,6 +1086,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportCategoryRanking => 'Category Ranking';
 
   @override
+  String get reportTagRanking => 'Tag Ranking';
+
+  @override
   String get reportNoData => 'No data available';
 
   @override

@@ -1064,6 +1064,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get reportCategoryRanking => '分类排行';
 
   @override
+  String get reportTagRanking => '标签排行';
+
+  @override
   String get reportNoData => '暂无数据';
 
   @override
@@ -3605,6 +3608,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get reportCategoryRanking => '分類排行';
+
+  @override
+  String get reportTagRanking => '標籤排行';
 
   @override
   String get reportNoData => '暫無資料';

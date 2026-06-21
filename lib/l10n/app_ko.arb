@@ -379,6 +379,7 @@
   "@reportCategoryCountUnit": { "placeholders": { "count": { "type": "String" } } },
   "reportCategoryDistribution": "카테고리 비율",
   "reportCategoryRanking": "카테고리 순위",
+  "reportTagRanking": "태그 순위",
   "reportNoData": "데이터가 없습니다",
   "reportMonthLabel": "{year}년 {month}월",
   "@reportMonthLabel": { "placeholders": { "year": { "type": "String" }, "month": { "type": "String" } } },

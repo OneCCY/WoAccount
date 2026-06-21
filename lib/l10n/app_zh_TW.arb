@@ -379,6 +379,7 @@
   "@reportCategoryCountUnit": { "placeholders": { "count": { "type": "String" } } },
   "reportCategoryDistribution": "分類佔比",
   "reportCategoryRanking": "分類排行",
+  "reportTagRanking": "標籤排行",
   "reportNoData": "暫無資料",
   "reportMonthLabel": "{year}年{month}月",
   "@reportMonthLabel": { "placeholders": { "year": { "type": "String" }, "month": { "type": "String" } } },

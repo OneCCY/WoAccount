@@ -379,6 +379,7 @@
   "@reportCategoryCountUnit": { "placeholders": { "count": { "type": "String" } } },
   "reportCategoryDistribution": "Category Distribution",
   "reportCategoryRanking": "Category Ranking",
+  "reportTagRanking": "Tag Ranking",
   "reportNoData": "No data available",
   "reportMonthLabel": "{month}/{year}",
   "@reportMonthLabel": { "placeholders": { "year": { "type": "String" }, "month": { "type": "String" } } },

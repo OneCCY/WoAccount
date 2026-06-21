@@ -2052,6 +2052,12 @@ abstract class AppLocalizations {
   /// **'分类排行'**
   String get reportCategoryRanking;
 
+  /// No description provided for @reportTagRanking.
+  ///
+  /// In zh, this message translates to:
+  /// **'标签排行'**
+  String get reportTagRanking;
+
   /// No description provided for @reportNoData.
   ///
   /// In zh, this message translates to:
