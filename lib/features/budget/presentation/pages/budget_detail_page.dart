@@ -250,20 +250,17 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
             Text(widget.parentCategoryName),
           ],
         ),
-        actions: [
-          IconButton(icon: const Icon(Icons.add), onPressed: _onAddBudget),
-        ],
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator(color: context.colors.primary))
           : Column(
               children: [
-                // 月份导航
-                _buildMonthNav(l10n),
-                // 顶部预算汇总卡片（可点击编辑）
+                // 日期导航 + 添加按钮（同一行）
+                _buildHeaderBar(l10n),
+                // 总金额汇总
                 _buildSummaryCard(totalBudget, totalSpent, l10n),
                 const SizedBox(height: 8),
-                // 子分类预算列表
+                // 二级分类列表
                 Expanded(
                   child: _childProgresses.isEmpty
                       ? Center(
@@ -287,33 +284,36 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
     );
   }
 
-  Widget _buildMonthNav(AppLocalizations l10n) {
+  /// 日期导航 + 添加按钮（同一行）
+  Widget _buildHeaderBar(AppLocalizations l10n) {
     final now = DateTime.now();
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 6),
       color: context.colors.surface,
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           IconButton(
             icon: const Icon(Icons.chevron_left, size: 24),
-            onPressed: () => _changeMonth(-1),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            onPressed: () => _changeMonth(-1),
           ),
-          const SizedBox(width: 16),
           Text(
             l10n.reportMonthLabel(_currentMonth.year.toString(), _currentMonth.month.toString()),
-            style: context.textStyles.h3.copyWith(fontSize: 16),
+            style: context.textStyles.h3.copyWith(fontSize: 15),
           ),
-          const SizedBox(width: 16),
           IconButton(
             icon: Icon(Icons.chevron_right, size: 24,
               color: DateTime(_currentMonth.year, _currentMonth.month + 1).isAfter(DateTime(now.year, now.month))
                   ? context.colors.textHint : null),
-            onPressed: () => _changeMonth(1),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+            onPressed: () => _changeMonth(1),
+          ),
+          const Spacer(),
+          IconButton(
+            icon: Icon(Icons.add, color: context.colors.primary),
+            onPressed: _onAddBudget,
           ),
         ],
       ),
