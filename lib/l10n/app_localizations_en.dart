@@ -945,6 +945,61 @@ class AppLocalizationsEn extends AppLocalizations {
   String get txnRestored => 'Transaction restored';
 
   @override
+  String get txnRecycleSelectAll => 'Select All';
+
+  @override
+  String get txnRecycleDeselectAll => 'Cancel';
+
+  @override
+  String txnRecycleSelected(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String get txnRecyclePermanentDelete => 'Delete Permanently';
+
+  @override
+  String get txnRecyclePermanentDeleteConfirm =>
+      'Permanently delete selected transactions? This cannot be undone.';
+
+  @override
+  String txnRecycleBatchRestored(int count) {
+    return '$count transactions restored';
+  }
+
+  @override
+  String txnRecycleBatchDeleted(int count) {
+    return '$count transactions permanently deleted';
+  }
+
+  @override
+  String get txnRecycleSortByDeleteTime => 'Delete Time';
+
+  @override
+  String get txnRecycleSortByAmount => 'Amount';
+
+  @override
+  String get txnRecycleSortByDate => 'Transaction Date';
+
+  @override
+  String get txnRecycleGroupToday => 'Today';
+
+  @override
+  String get txnRecycleGroupWeek => 'This Week';
+
+  @override
+  String get txnRecycleGroupEarlier => 'Earlier';
+
+  @override
+  String get txnRecycleFilterAll => 'All';
+
+  @override
+  String get txnRecycleFilterExpense => 'Expense';
+
+  @override
+  String get txnRecycleFilterIncome => 'Income';
+
+  @override
   String get bookPermanentDelete => 'Permanently Delete';
 
   @override

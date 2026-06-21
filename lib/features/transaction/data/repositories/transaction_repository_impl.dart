@@ -101,6 +101,33 @@ class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   @override
+  Future<bool> permanentDelete(int id) async {
+    final count = await (_db.delete(_db.transactions)
+          ..where((t) => t.id.equals(id) & t.isDeleted.equals(true)))
+        .go();
+    return count > 0;
+  }
+
+  @override
+  Future<int> restoreBatch(List<int> ids) async {
+    if (ids.isEmpty) return 0;
+    var count = 0;
+    for (final id in ids) {
+      if (await restore(id)) count++;
+    }
+    return count;
+  }
+
+  @override
+  Future<int> permanentDeleteBatch(List<int> ids) async {
+    if (ids.isEmpty) return 0;
+    final deleted = await (_db.delete(_db.transactions)
+          ..where((t) => t.id.isIn(ids) & t.isDeleted.equals(true)))
+        .go();
+    return deleted;
+  }
+
+  @override
   Stream<List<Transaction>> watchAll(int bookId) {
     return (_db.select(_db.transactions)
           ..where((t) => t.isDeleted.equals(false) & t.accountBookId.equals(bookId))

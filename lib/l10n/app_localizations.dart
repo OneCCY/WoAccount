@@ -1776,6 +1776,102 @@ abstract class AppLocalizations {
   /// **'交易已恢复'**
   String get txnRestored;
 
+  /// No description provided for @txnRecycleSelectAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'全选'**
+  String get txnRecycleSelectAll;
+
+  /// No description provided for @txnRecycleDeselectAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消'**
+  String get txnRecycleDeselectAll;
+
+  /// No description provided for @txnRecycleSelected.
+  ///
+  /// In zh, this message translates to:
+  /// **'已选 {count} 项'**
+  String txnRecycleSelected(int count);
+
+  /// No description provided for @txnRecyclePermanentDelete.
+  ///
+  /// In zh, this message translates to:
+  /// **'永久删除'**
+  String get txnRecyclePermanentDelete;
+
+  /// No description provided for @txnRecyclePermanentDeleteConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定永久删除所选交易？此操作不可恢复。'**
+  String get txnRecyclePermanentDeleteConfirm;
+
+  /// No description provided for @txnRecycleBatchRestored.
+  ///
+  /// In zh, this message translates to:
+  /// **'已恢复 {count} 条交易'**
+  String txnRecycleBatchRestored(int count);
+
+  /// No description provided for @txnRecycleBatchDeleted.
+  ///
+  /// In zh, this message translates to:
+  /// **'已永久删除 {count} 条交易'**
+  String txnRecycleBatchDeleted(int count);
+
+  /// No description provided for @txnRecycleSortByDeleteTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除时间'**
+  String get txnRecycleSortByDeleteTime;
+
+  /// No description provided for @txnRecycleSortByAmount.
+  ///
+  /// In zh, this message translates to:
+  /// **'金额'**
+  String get txnRecycleSortByAmount;
+
+  /// No description provided for @txnRecycleSortByDate.
+  ///
+  /// In zh, this message translates to:
+  /// **'交易日期'**
+  String get txnRecycleSortByDate;
+
+  /// No description provided for @txnRecycleGroupToday.
+  ///
+  /// In zh, this message translates to:
+  /// **'今天'**
+  String get txnRecycleGroupToday;
+
+  /// No description provided for @txnRecycleGroupWeek.
+  ///
+  /// In zh, this message translates to:
+  /// **'本周'**
+  String get txnRecycleGroupWeek;
+
+  /// No description provided for @txnRecycleGroupEarlier.
+  ///
+  /// In zh, this message translates to:
+  /// **'更早'**
+  String get txnRecycleGroupEarlier;
+
+  /// No description provided for @txnRecycleFilterAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部'**
+  String get txnRecycleFilterAll;
+
+  /// No description provided for @txnRecycleFilterExpense.
+  ///
+  /// In zh, this message translates to:
+  /// **'支出'**
+  String get txnRecycleFilterExpense;
+
+  /// No description provided for @txnRecycleFilterIncome.
+  ///
+  /// In zh, this message translates to:
+  /// **'收入'**
+  String get txnRecycleFilterIncome;
+
   /// No description provided for @bookPermanentDelete.
   ///
   /// In zh, this message translates to:

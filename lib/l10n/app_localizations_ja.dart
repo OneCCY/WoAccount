@@ -923,6 +923,61 @@ class AppLocalizationsJa extends AppLocalizations {
   String get txnRestored => '取引を復元しました';
 
   @override
+  String get txnRecycleSelectAll => 'すべて選択';
+
+  @override
+  String get txnRecycleDeselectAll => 'キャンセル';
+
+  @override
+  String txnRecycleSelected(int count) {
+    return '$count 件選択中';
+  }
+
+  @override
+  String get txnRecyclePermanentDelete => '完全に削除';
+
+  @override
+  String get txnRecyclePermanentDeleteConfirm =>
+      '選択した取引を完全に削除しますか？この操作は元に戻せません。';
+
+  @override
+  String txnRecycleBatchRestored(int count) {
+    return '$count 件の取引を復元しました';
+  }
+
+  @override
+  String txnRecycleBatchDeleted(int count) {
+    return '$count 件の取引を完全に削除しました';
+  }
+
+  @override
+  String get txnRecycleSortByDeleteTime => '削除日時';
+
+  @override
+  String get txnRecycleSortByAmount => '金額';
+
+  @override
+  String get txnRecycleSortByDate => '取引日';
+
+  @override
+  String get txnRecycleGroupToday => '今日';
+
+  @override
+  String get txnRecycleGroupWeek => '今週';
+
+  @override
+  String get txnRecycleGroupEarlier => 'それ以前';
+
+  @override
+  String get txnRecycleFilterAll => 'すべて';
+
+  @override
+  String get txnRecycleFilterExpense => '支出';
+
+  @override
+  String get txnRecycleFilterIncome => '収入';
+
+  @override
   String get bookPermanentDelete => '完全に削除';
 
   @override

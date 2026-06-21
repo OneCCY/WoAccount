@@ -922,6 +922,60 @@ class AppLocalizationsZh extends AppLocalizations {
   String get txnRestored => '交易已恢复';
 
   @override
+  String get txnRecycleSelectAll => '全选';
+
+  @override
+  String get txnRecycleDeselectAll => '取消';
+
+  @override
+  String txnRecycleSelected(int count) {
+    return '已选 $count 项';
+  }
+
+  @override
+  String get txnRecyclePermanentDelete => '永久删除';
+
+  @override
+  String get txnRecyclePermanentDeleteConfirm => '确定永久删除所选交易？此操作不可恢复。';
+
+  @override
+  String txnRecycleBatchRestored(int count) {
+    return '已恢复 $count 条交易';
+  }
+
+  @override
+  String txnRecycleBatchDeleted(int count) {
+    return '已永久删除 $count 条交易';
+  }
+
+  @override
+  String get txnRecycleSortByDeleteTime => '删除时间';
+
+  @override
+  String get txnRecycleSortByAmount => '金额';
+
+  @override
+  String get txnRecycleSortByDate => '交易日期';
+
+  @override
+  String get txnRecycleGroupToday => '今天';
+
+  @override
+  String get txnRecycleGroupWeek => '本周';
+
+  @override
+  String get txnRecycleGroupEarlier => '更早';
+
+  @override
+  String get txnRecycleFilterAll => '全部';
+
+  @override
+  String get txnRecycleFilterExpense => '支出';
+
+  @override
+  String get txnRecycleFilterIncome => '收入';
+
+  @override
   String get bookPermanentDelete => '永久删除';
 
   @override
@@ -3492,6 +3546,60 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get txnRestored => '交易已恢復';
+
+  @override
+  String get txnRecycleSelectAll => '全選';
+
+  @override
+  String get txnRecycleDeselectAll => '取消';
+
+  @override
+  String txnRecycleSelected(int count) {
+    return '已選 $count 項';
+  }
+
+  @override
+  String get txnRecyclePermanentDelete => '永久刪除';
+
+  @override
+  String get txnRecyclePermanentDeleteConfirm => '確定永久刪除所選交易？此操作不可恢復。';
+
+  @override
+  String txnRecycleBatchRestored(int count) {
+    return '已恢復 $count 條交易';
+  }
+
+  @override
+  String txnRecycleBatchDeleted(int count) {
+    return '已永久刪除 $count 條交易';
+  }
+
+  @override
+  String get txnRecycleSortByDeleteTime => '刪除時間';
+
+  @override
+  String get txnRecycleSortByAmount => '金額';
+
+  @override
+  String get txnRecycleSortByDate => '交易日期';
+
+  @override
+  String get txnRecycleGroupToday => '今天';
+
+  @override
+  String get txnRecycleGroupWeek => '本週';
+
+  @override
+  String get txnRecycleGroupEarlier => '更早';
+
+  @override
+  String get txnRecycleFilterAll => '全部';
+
+  @override
+  String get txnRecycleFilterExpense => '支出';
+
+  @override
+  String get txnRecycleFilterIncome => '收入';
 
   @override
   String get bookPermanentDelete => '永久刪除';

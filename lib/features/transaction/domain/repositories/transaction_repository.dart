@@ -128,6 +128,15 @@ abstract class TransactionRepository {
   /// 获取已软删除的交易列表
   Future<List<Transaction>> getDeleted(int bookId);
 
+  /// 永久删除交易（硬删除）
+  Future<bool> permanentDelete(int id);
+
+  /// 批量恢复
+  Future<int> restoreBatch(List<int> ids);
+
+  /// 批量永久删除
+  Future<int> permanentDeleteBatch(List<int> ids);
+
   /// 监听账本内所有交易变化（响应式）
   Stream<List<Transaction>> watchAll(int bookId);
 

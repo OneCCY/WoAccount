@@ -925,6 +925,61 @@ class AppLocalizationsKo extends AppLocalizations {
   String get txnRestored => '거래가 복원되었습니다';
 
   @override
+  String get txnRecycleSelectAll => '모두 선택';
+
+  @override
+  String get txnRecycleDeselectAll => '취소';
+
+  @override
+  String txnRecycleSelected(int count) {
+    return '$count개 선택됨';
+  }
+
+  @override
+  String get txnRecyclePermanentDelete => '영구 삭제';
+
+  @override
+  String get txnRecyclePermanentDeleteConfirm =>
+      '선택한 거래를 영구 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.';
+
+  @override
+  String txnRecycleBatchRestored(int count) {
+    return '$count개의 거래가 복원되었습니다';
+  }
+
+  @override
+  String txnRecycleBatchDeleted(int count) {
+    return '$count개의 거래가 영구 삭제되었습니다';
+  }
+
+  @override
+  String get txnRecycleSortByDeleteTime => '삭제 시간';
+
+  @override
+  String get txnRecycleSortByAmount => '금액';
+
+  @override
+  String get txnRecycleSortByDate => '거래 날짜';
+
+  @override
+  String get txnRecycleGroupToday => '오늘';
+
+  @override
+  String get txnRecycleGroupWeek => '이번 주';
+
+  @override
+  String get txnRecycleGroupEarlier => '이전';
+
+  @override
+  String get txnRecycleFilterAll => '전체';
+
+  @override
+  String get txnRecycleFilterExpense => '지출';
+
+  @override
+  String get txnRecycleFilterIncome => '수입';
+
+  @override
   String get bookPermanentDelete => '영구 삭제';
 
   @override
