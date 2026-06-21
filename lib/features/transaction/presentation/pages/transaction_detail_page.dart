@@ -19,7 +19,8 @@ import '../../../../core/widgets/page_refresh_mixin.dart';
 /// 账单详情页（重设计）
 class TransactionDetailPage extends ConsumerStatefulWidget {
   final int transactionId;
-  const TransactionDetailPage({super.key, required this.transactionId});
+  final bool readOnly;
+  const TransactionDetailPage({super.key, required this.transactionId, this.readOnly = false});
 
   @override
   ConsumerState<TransactionDetailPage> createState() => _TransactionDetailPageState();
@@ -299,7 +300,7 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
         title: Text(l10n.txnDetailTitle),
         backgroundColor: context.colors.surface,
         actions: [
-          if (_isDirty)
+          if (_isDirty && !widget.readOnly)
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: TextButton(
@@ -312,7 +313,7 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
             ),
         ],
       ),
-      bottomNavigationBar: _isLoading || _transaction == null
+      bottomNavigationBar: _isLoading || _transaction == null || widget.readOnly
           ? null
           : _buildBottomBar(l10n),
       body: _isLoading
@@ -540,11 +541,12 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
     required String label,
     required String value,
     Color? valueColor,
-    required VoidCallback onTap,
+    VoidCallback? onTap,
     bool showDivider = true,
   }) {
+    final effectiveOnTap = widget.readOnly ? null : onTap;
     return InkWell(
-      onTap: onTap,
+      onTap: effectiveOnTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: showDivider
@@ -567,8 +569,10 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            const SizedBox(width: 4),
-            Icon(Icons.chevron_right, size: 18, color: context.colors.textTertiary),
+            if (!widget.readOnly) ...[
+              const SizedBox(width: 4),
+              Icon(Icons.chevron_right, size: 18, color: context.colors.textTertiary),
+            ],
           ],
         ),
       ),

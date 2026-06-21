@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' as drift;
-import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
@@ -10,6 +9,7 @@ import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../transaction/presentation/widgets/transaction_group.dart';
 
 /// 预算关联账单页 — 展示某子分类当月账单，顶部预算金额可直接编辑
 class BudgetTransactionPage extends ConsumerStatefulWidget {
@@ -36,6 +36,7 @@ class _BudgetTransactionPageState extends ConsumerState<BudgetTransactionPage> {
   Budget? _budget;
   double _spent = 0;
   List<Transaction> _transactions = [];
+  Map<int, Category> _categoryMap = {};
   bool _isLoading = true;
 
   @override
@@ -47,6 +48,7 @@ class _BudgetTransactionPageState extends ConsumerState<BudgetTransactionPage> {
   Future<void> _loadData() async {
     final budgetRepo = ref.read(budgetRepositoryProvider);
     final txnRepo = ref.read(transactionRepositoryProvider);
+    final catRepo = ref.read(categoryRepositoryProvider);
     final bookId = ref.read(currentBookProvider);
 
     // 查预算
@@ -61,11 +63,24 @@ class _BudgetTransactionPageState extends ConsumerState<BudgetTransactionPage> {
 
     final spent = categoryTxns.fold<double>(0, (s, t) => s + (t.type == 'expense' ? t.amount : 0));
 
+    // 构建分类映射（用于 TransactionGroup 展示）
+    final catIds = <int>{};
+    for (final t in categoryTxns) {
+      catIds.add(t.categoryId);
+      if (t.parentCategoryId != null) catIds.add(t.parentCategoryId!);
+    }
+    final catMap = <int, Category>{};
+    for (final id in catIds) {
+      final cat = await catRepo.getById(id);
+      if (cat != null) catMap[id] = cat;
+    }
+
     if (mounted) {
       setState(() {
         _budget = budget;
         _spent = spent;
         _transactions = categoryTxns..sort((a, b) => b.transactionDate.compareTo(a.transactionDate));
+        _categoryMap = catMap;
         _isLoading = false;
       });
     }
@@ -117,7 +132,6 @@ class _BudgetTransactionPageState extends ConsumerState<BudgetTransactionPage> {
 
     if (result == null || !mounted) return;
     if (result == 0) {
-      // 删除了预算
       _loadData();
       return;
     }
@@ -173,21 +187,42 @@ class _BudgetTransactionPageState extends ConsumerState<BudgetTransactionPage> {
                   onTap: _editBudgetAmount,
                   child: _buildBudgetHeader(budgetAmount, percentage, l10n),
                 ),
-                // 账单列表
+                // 账单列表（按日期分组，只读模式）
                 Expanded(
                   child: _transactions.isEmpty
                       ? Center(
                           child: Text(l10n.txnDayDetailEmpty,
                             style: context.textStyles.callout.copyWith(color: context.colors.textSecondary)),
                         )
-                      : ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
-                          itemCount: _transactions.length,
-                          itemBuilder: (context, index) => _buildTransactionItem(_transactions[index]),
-                        ),
+                      : _buildGroupedList(),
                 ),
               ],
             ),
+    );
+  }
+
+  /// 按日期分组的账单列表
+  Widget _buildGroupedList() {
+    final grouped = <DateTime, List<Transaction>>{};
+    for (final t in _transactions) {
+      final dateKey = DateTime(t.transactionDate.year, t.transactionDate.month, t.transactionDate.day);
+      grouped.putIfAbsent(dateKey, () => []).add(t);
+    }
+    final dates = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
+
+    return ListView.builder(
+      itemCount: dates.length,
+      itemBuilder: (context, index) {
+        final date = dates[index];
+        final txns = grouped[date]!;
+        return TransactionGroup(
+          date: date,
+          transactions: txns,
+          categoryMap: _categoryMap,
+          onDelete: null, // 只读，不支持滑动删除
+          onTap: (t) => context.push('/budget/transactions/detail/${t.id}'),
+        );
+      },
     );
   }
 
@@ -262,48 +297,6 @@ class _BudgetTransactionPageState extends ConsumerState<BudgetTransactionPage> {
             ),
           ],
         ],
-      ),
-    );
-  }
-
-  Widget _buildTransactionItem(Transaction txn) {
-    final isExpense = txn.type == 'expense';
-    final amountColor = isExpense ? context.colors.expense : context.colors.income;
-    final amountSign = isExpense ? '-' : '+';
-    final dateStr = DateFormat('MM/dd HH:mm').format(txn.transactionDate);
-
-    return GestureDetector(
-      onTap: () => context.push('/transactions/${txn.id}'),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: context.colors.separatorOpaque, width: 0.5)),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    txn.note?.isNotEmpty == true ? txn.note! : txn.description,
-                    style: context.textStyles.body.copyWith(
-                      fontWeight: txn.note?.isNotEmpty == true ? FontWeight.w500 : FontWeight.w400,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(dateStr, style: context.textStyles.caption.copyWith(color: context.colors.textTertiary)),
-                ],
-              ),
-            ),
-            Text(
-              '$amountSign${context.localeProvider.currency.formatAmount(txn.amount)}',
-              style: context.textStyles.amountList.copyWith(color: amountColor),
-            ),
-          ],
-        ),
       ),
     );
   }

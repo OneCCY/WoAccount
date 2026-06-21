@@ -12,7 +12,7 @@ import '../../../../core/theme/app_text_styles.dart';
 class TransactionGroup extends StatelessWidget {
   final DateTime date;
   final List<Transaction> transactions;
-  final Future<bool> Function(int id) onDelete;
+  final Future<bool> Function(int id)? onDelete;
   final void Function(Transaction transaction)? onTap;
   final Map<int, Category> categoryMap;
   /// 当前排序方式，null 表示不显示排序切换
@@ -23,7 +23,7 @@ class TransactionGroup extends StatelessWidget {
     super.key,
     required this.date,
     required this.transactions,
-    required this.onDelete,
+    this.onDelete,
     this.onTap,
     this.categoryMap = const {},
     this.sortLabel,
@@ -102,7 +102,7 @@ class TransactionGroup extends StatelessWidget {
               transaction: t,
               category: categoryMap[t.categoryId],
               subcategory: t.parentCategoryId != null ? categoryMap[t.parentCategoryId] : null,
-              onDelete: () => onDelete(t.id),
+              onDelete: onDelete != null ? () => onDelete!(t.id) : null,
               onTap: onTap != null ? () => onTap!(t) : null,
             )),
       ],
@@ -123,14 +123,14 @@ class _TransactionItem extends StatefulWidget {
   final Transaction transaction;
   final Category? category;
   final Category? subcategory;
-  final VoidCallback onDelete;
+  final VoidCallback? onDelete;
   final VoidCallback? onTap;
 
   const _TransactionItem({
     required this.transaction,
     this.category,
     this.subcategory,
-    required this.onDelete,
+    this.onDelete,
     this.onTap,
   });
 
@@ -222,8 +222,87 @@ class _TransactionItemState extends State<_TransactionItem>
     final (icon, bgColor) = _getCategoryStyle(categoryKey);
     final isExpense = widget.transaction.type == 'expense';
     final amountColor = isExpense ? context.colors.expense : context.colors.income;
-    final screenWidth = MediaQuery.of(context).size.width;
 
+    final content = GestureDetector(
+      onTap: widget.onTap,
+      child: Container(
+        color: context.colors.surface,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 10),
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: context.colors.separatorOpaque, width: 0.5)),
+          ),
+          child: Row(
+            children: [
+              // 分类图标
+              Container(
+                width: AppDimensions.categoryIconSize,
+                height: AppDimensions.categoryIconSize,
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                ),
+                child: Center(
+                  child: widget.category?.icon != null
+                      ? Text(widget.category!.icon!, style: const TextStyle(fontSize: 20))
+                      : Icon(icon, size: 20, color: context.colors.textPrimary),
+                ),
+              ),
+              const SizedBox(width: 12),
+              // 信息（分类 + 备注 + 时间）
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      widget.transaction.note?.isNotEmpty == true
+                          ? widget.transaction.note!
+                          : widget.transaction.description,
+                      style: context.textStyles.body.copyWith(
+                        fontWeight: widget.transaction.note?.isNotEmpty == true
+                            ? FontWeight.w500
+                            : FontWeight.w400,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        // 支付方式图标
+                        if (widget.transaction.payMethod != null) ...[
+                          Icon(_getPayMethodIcon(widget.transaction.payMethod), size: 11, color: context.colors.textTertiary),
+                          const SizedBox(width: 3),
+                        ],
+                        Expanded(
+                          child: Text(
+                            '${DateFormat('HH:mm').format(widget.transaction.transactionDate)} · $catDisplay',
+                            style: context.textStyles.caption,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // 金额
+              Text(
+                context.localeProvider.currency.formatWithSign(widget.transaction.amount, isExpense),
+                style: context.textStyles.amountList.copyWith(color: amountColor),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    // 无删除回调时直接返回内容
+    if (widget.onDelete == null) return content;
+
+    final screenWidth = MediaQuery.of(context).size.width;
     return GestureDetector(
       onHorizontalDragStart: _handleDragStart,
       onHorizontalDragUpdate: _handleDragUpdate,
@@ -241,7 +320,7 @@ class _TransactionItemState extends State<_TransactionItem>
               child: GestureDetector(
                 onTap: () {
                   _resetPosition();
-                  widget.onDelete();
+                  widget.onDelete!();
                 },
                 child: Container(
                   color: context.colors.error,
@@ -263,78 +342,7 @@ class _TransactionItemState extends State<_TransactionItem>
               offset: Offset(_dragExtent, 0),
               child: GestureDetector(
                 onTap: _dragExtent.abs() > 1 ? _resetPosition : widget.onTap,
-                child: Container(
-                  color: context.colors.surface,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 10),
-                    decoration: BoxDecoration(
-                      border: Border(bottom: BorderSide(color: context.colors.separatorOpaque, width: 0.5)),
-                    ),
-                    child: Row(
-                      children: [
-                        // 分类图标
-                        Container(
-                          width: AppDimensions.categoryIconSize,
-                          height: AppDimensions.categoryIconSize,
-                          decoration: BoxDecoration(
-                            color: bgColor,
-                            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                          ),
-                          child: Center(
-                            child: widget.category?.icon != null
-                                ? Text(widget.category!.icon!, style: const TextStyle(fontSize: 20))
-                                : Icon(icon, size: 20, color: context.colors.textPrimary),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        // 信息（分类 + 备注 + 时间）
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                widget.transaction.note?.isNotEmpty == true
-                                    ? widget.transaction.note!
-                                    : widget.transaction.description,
-                                style: context.textStyles.body.copyWith(
-                                  fontWeight: widget.transaction.note?.isNotEmpty == true
-                                      ? FontWeight.w500
-                                      : FontWeight.w400,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 2),
-                              Row(
-                                children: [
-                                  // 支付方式图标
-                                  if (widget.transaction.payMethod != null) ...[
-                                    Icon(_getPayMethodIcon(widget.transaction.payMethod), size: 11, color: context.colors.textTertiary),
-                                    const SizedBox(width: 3),
-                                  ],
-                                  Expanded(
-                                    child: Text(
-                                      '${DateFormat('HH:mm').format(widget.transaction.transactionDate)} · $catDisplay',
-                                      style: context.textStyles.caption,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        // 金额
-                        Text(
-                          context.localeProvider.currency.formatWithSign(widget.transaction.amount, isExpense),
-                          style: context.textStyles.amountList.copyWith(color: amountColor),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                child: SizedBox(height: 68, child: content),
               ),
             ),
           ],

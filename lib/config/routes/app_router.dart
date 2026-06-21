@@ -139,6 +139,15 @@ class AppRouter {
             month: extra['month'] as int,
           );
         },
+        routes: [
+          GoRoute(
+            path: 'detail/:id',
+            builder: (context, state) => TransactionDetailPage(
+              transactionId: int.parse(state.pathParameters['id']!),
+              readOnly: true,
+            ),
+          ),
+        ],
       ),
       GoRoute(
         path: '/categories/manage',
