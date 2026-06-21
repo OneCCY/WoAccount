@@ -229,73 +229,84 @@ class _BudgetTransactionPageState extends ConsumerState<BudgetTransactionPage> {
   Widget _buildBudgetHeader(double budgetAmount, double percentage, AppLocalizations l10n) {
     final barColor = percentage > 90 ? context.colors.error : percentage > 70 ? context.colors.warning : context.colors.success;
     final currency = context.localeProvider.currency;
+    final remaining = budgetAmount - _spent;
+    final hasBudget = budgetAmount > 0;
+    // 根据消费比例使用对应颜色的淡色背景，与下方白色列表形成对比
+    final statusColor = percentage > 90 ? context.colors.error : percentage > 70 ? context.colors.warning : context.colors.expense;
+    final bgTint = statusColor.withValues(alpha: 0.06);
 
     return Container(
-      margin: const EdgeInsets.all(AppDimensions.md),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.fromLTRB(AppDimensions.md, 0, AppDimensions.md, 8),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
-        color: context.colors.surface,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-        border: Border.all(color: context.colors.primary.withValues(alpha: 0.15)),
+        color: bgTint,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        border: Border.all(color: statusColor.withValues(alpha: 0.12)),
       ),
       child: Column(
         children: [
-          // 预算金额 + 实际消费
+          // 分类图标 + 已消费标签 + 编辑按钮
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(l10n.budgetMonthlyTotal, style: context.textStyles.caption.copyWith(color: context.colors.textTertiary)),
-                  const SizedBox(height: 2),
-                  Text(
-                    budgetAmount > 0 ? currency.formatAmount(budgetAmount, decimals: 0) : l10n.budgetSetButton,
-                    style: context.textStyles.h3.copyWith(
-                      color: budgetAmount > 0 ? context.colors.textPrimary : context.colors.textHint,
-                    ),
-                  ),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(l10n.budgetSpent(''), style: context.textStyles.caption.copyWith(color: context.colors.textTertiary)),
-                  const SizedBox(height: 2),
-                  Text(
-                    currency.formatAmount(_spent, decimals: 0),
-                    style: context.textStyles.h3.copyWith(
-                      color: percentage > 100 ? context.colors.error : context.colors.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-              Icon(Icons.edit_outlined, size: 18, color: context.colors.textTertiary),
+              Text(widget.categoryIcon, style: const TextStyle(fontSize: 22)),
+              const SizedBox(width: 8),
+              Text(l10n.budgetSpent(''), style: context.textStyles.footnote.copyWith(
+                color: context.colors.textSecondary, fontWeight: FontWeight.w500,
+              )),
+              const Spacer(),
+              Icon(Icons.edit_outlined, size: 16, color: context.colors.textTertiary),
             ],
           ),
-          if (budgetAmount > 0) ...[
-            const SizedBox(height: 12),
+          const SizedBox(height: 8),
+          // 已消费金额（主视觉焦点）
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              currency.formatAmount(_spent, decimals: 0),
+              style: AppTextStyles.amountLarge.copyWith(
+                color: percentage > 100 ? context.colors.error : context.colors.textPrimary,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // 进度条
+          if (hasBudget) ...[
             ClipRRect(
               borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(
                 value: (percentage / 100).clamp(0, 1),
-                minHeight: 8,
+                minHeight: 6,
                 backgroundColor: context.colors.surfaceSecondary,
                 valueColor: AlwaysStoppedAnimation(barColor),
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
+            // 预算总额 / 剩余 / 百分比
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('${percentage.toStringAsFixed(1)}%', style: context.textStyles.caption.copyWith(color: barColor)),
                 Text(
-                  l10n.budgetRemaining(currency.formatAmount(budgetAmount - _spent, decimals: 0)),
-                  style: context.textStyles.caption,
+                  '${l10n.budgetMonthlyTotal} ${currency.formatAmount(budgetAmount, decimals: 0)}',
+                  style: context.textStyles.caption.copyWith(color: context.colors.textTertiary),
+                ),
+                const SizedBox(width: 6),
+                Text('${percentage.toStringAsFixed(1)}%', style: context.textStyles.caption.copyWith(
+                  color: barColor, fontWeight: FontWeight.w600,
+                )),
+                const Spacer(),
+                Text(
+                  l10n.budgetRemaining(currency.formatAmount(remaining, decimals: 0)),
+                  style: context.textStyles.caption.copyWith(
+                    color: remaining < 0 ? context.colors.error : context.colors.textTertiary,
+                    fontWeight: remaining < 0 ? FontWeight.w600 : FontWeight.w400,
+                  ),
                 ),
               ],
             ),
-          ],
+          ] else
+            Text(
+              l10n.budgetSetButton,
+              style: context.textStyles.footnote.copyWith(color: context.colors.textHint),
+            ),
         ],
       ),
     );
