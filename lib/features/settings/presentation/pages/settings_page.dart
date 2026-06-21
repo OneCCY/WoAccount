@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:drift/drift.dart' hide Column;
+import 'package:intl/intl.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
@@ -13,6 +13,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../main.dart';
+import '../../../profile/data/services/backup_service.dart';
 
 /// 系统设置页
 /// 通用/数据/AI设置 + 关于 + 危险区
@@ -25,6 +26,7 @@ class SettingsPage extends ConsumerStatefulWidget {
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
   bool _autoBackup = true;
+  BackupFrequency _backupFrequency = BackupFrequency.daily;
 
   @override
   void initState() {
@@ -33,15 +35,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   Future<void> _loadSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _autoBackup = prefs.getBool('autoBackup') ?? true;
-    });
-  }
-
-  Future<void> _saveBool(String key, bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(key, value);
+    final backupService = ref.read(backupServiceProvider);
+    final autoBackup = await backupService.isAutoBackupEnabled();
+    final frequency = await backupService.getBackupFrequency();
+    if (mounted) {
+      setState(() {
+        _autoBackup = autoBackup;
+        _backupFrequency = frequency;
+      });
+    }
   }
 
   @override
@@ -79,13 +81,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               children: [
                 _buildSwitchRow(l10n.settingsAutoBackup, _autoBackup, (v) {
                   setState(() => _autoBackup = v);
-                  _saveBool('autoBackup', v);
+                  ref.read(backupServiceProvider).setAutoBackup(v);
                 }),
-                _buildInfoRow(l10n.settingsBackupFrequency, l10n.settingsBackupDaily),
-                _buildNavRow(l10n.settingsRestoreData, () {
-                  // TODO: 恢复数据
+                _buildNavRow(
+                  l10n.settingsBackupFrequency,
+                  _frequencyLabel(l10n),
+                  () => _showFrequencyPicker(l10n),
+                ),
+                _buildNavRow(l10n.settingsRestoreData, null, () {
+                  _showRestoreDialog(l10n);
                 }),
-                _buildNavRow(l10n.txnRecycleBin, () {
+                _buildNavRow(l10n.txnRecycleBin, null, () {
                   context.push('/transactions/recycle-bin');
                 }),
               ],
@@ -147,8 +153,126 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
+  String _frequencyLabel(AppLocalizations l10n) {
+    switch (_backupFrequency) {
+      case BackupFrequency.daily:
+        return l10n.settingsBackupDaily;
+      case BackupFrequency.weekly:
+        return l10n.settingsBackupWeekly;
+      case BackupFrequency.monthly:
+        return l10n.settingsBackupMonthly;
+      case BackupFrequency.manual:
+        return l10n.settingsBackupManual;
+    }
+  }
+
+  void _showFrequencyPicker(AppLocalizations l10n) {
+    final options = <(BackupFrequency, String)>[
+      (BackupFrequency.daily, l10n.settingsBackupDaily),
+      (BackupFrequency.weekly, l10n.settingsBackupWeekly),
+      (BackupFrequency.monthly, l10n.settingsBackupMonthly),
+      (BackupFrequency.manual, l10n.settingsBackupManual),
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: context.colors.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(width: 36, height: 4, margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(color: context.colors.textTertiary.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2))),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Text(l10n.settingsBackupFrequency, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              ),
+              ...options.map((opt) => ListTile(
+                title: Text(opt.$2),
+                trailing: _backupFrequency == opt.$1
+                    ? Icon(Icons.check, color: context.colors.primary)
+                    : null,
+                onTap: () {
+                  Navigator.pop(ctx);
+                  setState(() => _backupFrequency = opt.$1);
+                  ref.read(backupServiceProvider).setBackupFrequency(opt.$1);
+                },
+              )),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showRestoreDialog(AppLocalizations l10n) async {
+    final backupService = ref.read(backupServiceProvider);
+    final backups = await backupService.listBackups();
+
+    if (!mounted) return;
+
+    if (backups.isEmpty) {
+      AppToast.show(context, l10n.settingsNoBackupFound);
+      return;
+    }
+
+    final selected = await showDialog<String>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: Text(l10n.settingsRestoreData),
+        children: backups.take(10).map((f) {
+          final name = f.path.split('/').last.split('\\').last;
+          final size = (f.statSync().size / 1024).toStringAsFixed(1);
+          final date = DateFormat('yyyy-MM-dd HH:mm').format(f.statSync().modified);
+          return SimpleDialogOption(
+            onPressed: () => Navigator.pop(ctx, f.path),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: const TextStyle(fontWeight: FontWeight.w500)),
+                const SizedBox(height: 2),
+                Text('$date · ${size}KB', style: context.textStyles.caption),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+    if (selected == null || !mounted) return;
+
+    // 确认恢复
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.settingsRestoreData),
+        content: Text(l10n.settingsRestoreConfirm),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.commonCancel)),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.commonConfirm, style: TextStyle(color: context.colors.warning)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    try {
+      await backupService.restoreFromBackup(selected);
+      if (mounted) AppToast.show(context, l10n.settingsRestoreSuccess);
+    } catch (e) {
+      if (mounted) AppToast.show(context, l10n.settingsRestoreFailed(e.toString()));
+    }
+  }
+
   Widget _buildGroup({required String title, required List<Widget> children}) {
-    
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md),
       child: Column(
@@ -182,17 +306,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildNavRow(String label, String? value, VoidCallback onTap) {
     return _SettingRow(
       label: label,
-      trailing: Text(value, style: AppTextStyles.footnote),
-    );
-  }
-
-  Widget _buildNavRow(String label, VoidCallback onTap) {
-    return _SettingRow(
-      label: label,
-      trailing: Icon(Icons.chevron_right, size: 20, color: context.colors.textTertiary),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (value != null)
+            Text(value, style: AppTextStyles.footnote),
+          Icon(Icons.chevron_right, size: 20, color: context.colors.textTertiary),
+        ],
+      ),
       onTap: onTap,
     );
   }
@@ -390,7 +514,6 @@ class _SettingRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    
     return Material(
       color: Colors.transparent,
       child: InkWell(

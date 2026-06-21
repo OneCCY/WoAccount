@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'package:file_picker/file_picker.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
@@ -14,6 +15,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/page_refresh_mixin.dart';
 import '../../../../core/widgets/toast.dart';
 import '../../../../main.dart';
+import '../../data/services/excel_service.dart';
 
 /// 我的页面
 class ProfilePage extends ConsumerStatefulWidget {
@@ -352,8 +354,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with PageRefreshMixin
       _FuncItem(Icons.category_outlined, l10n.profileFuncCategories),
       _FuncItem(Icons.bar_chart_outlined, l10n.profileFuncReports),
       _FuncItem(Icons.cloud_upload_outlined, l10n.profileMenuDataBackup),
-      _FuncItem(Icons.file_download_outlined, l10n.profileMenuImport),
-      _FuncItem(Icons.file_upload_outlined, l10n.profileMenuExport),
+      _FuncItem(Icons.table_chart_outlined, l10n.profileExportExcel),
+      _FuncItem(Icons.upload_file_outlined, l10n.profileImportExcel),
     ];
 
     return Container(
@@ -489,10 +491,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with PageRefreshMixin
       context.push('/reports');
     } else if (label == l10n.profileMenuDataBackup) {
       _backupDatabase(l10n);
-    } else if (label == l10n.profileMenuImport) {
-      _importDatabase(l10n);
-    } else if (label == l10n.profileMenuExport) {
-      _exportDatabase(l10n);
+    } else if (label == l10n.profileExportExcel) {
+      _exportExcel(l10n);
+    } else if (label == l10n.profileImportExcel) {
+      _importExcel(l10n);
     }
   }
 
@@ -521,19 +523,15 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with PageRefreshMixin
     }
   }
 
-  /// 导出数据库：复制到临时目录并分享
-  Future<void> _exportDatabase(AppLocalizations l10n) async {
+  /// 导出交易为 Excel 并分享
+  Future<void> _exportExcel(AppLocalizations l10n) async {
     try {
-      final dbPath = await _getDbPath();
-      final timestamp = DateTime.now().toString().replaceAll(RegExp(r'[: .]'), '').substring(0, 14);
-      final fileName = 'wo_account_$timestamp.sqlite';
-
-      final tempDir = await getTemporaryDirectory();
-      final tempPath = p.join(tempDir.path, fileName);
-      await File(dbPath).copy(tempPath);
+      final bookId = ref.read(currentBookProvider);
+      final excelService = ref.read(excelServiceProvider);
+      final filePath = await excelService.exportToExcel(bookId);
 
       if (mounted) {
-        await Share.shareXFiles([XFile(tempPath)], text: l10n.profileExportShareText);
+        await Share.shareXFiles([XFile(filePath)], text: l10n.profileExportShareText);
         AppToast.show(context, l10n.profileExportSuccess);
       }
     } catch (e) {
@@ -541,62 +539,43 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with PageRefreshMixin
     }
   }
 
-  /// 导入数据库：从备份目录选择备份文件并替换
-  Future<void> _importDatabase(AppLocalizations l10n) async {
+  /// 从 Excel 文件导入交易
+  Future<void> _importExcel(AppLocalizations l10n) async {
     try {
-      final docDir = await getApplicationDocumentsDirectory();
-      final backupFiles = docDir.listSync()
-          .whereType<File>()
-          .where((f) => f.path.endsWith('.sqlite') && f.path.contains('backup'))
-          .toList()
-        ..sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
-
-      if (backupFiles.isEmpty || !mounted) {
-        if (mounted) AppToast.show(context, l10n.profileImportNoBackup);
-        return;
-      }
-
-      // 弹出备份文件选择列表
+      // 先显示格式说明
       if (!mounted) return;
-      final selected = await showDialog<File>(
-        context: context,
-        builder: (ctx) => SimpleDialog(
-          title: Text(l10n.profileMenuImport),
-          children: backupFiles.take(10).map((f) {
-            final name = p.basename(f.path);
-            final size = (f.lengthSync() / 1024).toStringAsFixed(1);
-            return SimpleDialogOption(
-              onPressed: () => Navigator.pop(ctx, f),
-              child: Text('$name ($size KB)'),
-            );
-          }).toList(),
-        ),
-      );
-      if (selected == null) return;
-
-      // 确认导入
-      if (!mounted) return;
-      final confirmed = await showDialog<bool>(
+      final proceed = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: Text(l10n.profileMenuImport),
-          content: Text(l10n.profileImportConfirm),
+          title: Text(l10n.profileExcelFormatTitle),
+          content: SingleChildScrollView(
+            child: Text(ExcelService.getFormatDescription(), style: context.textStyles.footnote),
+          ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.commonCancel)),
             TextButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: Text(l10n.commonConfirm, style: TextStyle(color: context.colors.primary)),
+              child: Text(l10n.profileImportExcel),
             ),
           ],
         ),
       );
-      if (confirmed != true) return;
+      if (proceed != true) return;
 
-      final dbPath = await _getDbPath();
-      await selected.copy(dbPath);
+      // 选择 Excel 文件
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['xlsx', 'xls'],
+      );
+      if (result == null || result.files.single.path == null) return;
+
+      if (!mounted) return;
+      final bookId = ref.read(currentBookProvider);
+      final excelService = ref.read(excelServiceProvider);
+      final count = await excelService.importFromExcel(bookId, result.files.single.path!);
 
       if (mounted) {
-        AppToast.show(context, l10n.profileImportSuccess);
+        AppToast.show(context, l10n.profileImportExcelSuccess(count));
         _loadData();
       }
     } catch (e) {

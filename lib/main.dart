@@ -10,6 +10,7 @@ import 'core/theme/theme_provider.dart';
 import 'config/routes/app_router.dart';
 import 'config/di/providers.dart';
 import 'features/security/presentation/widgets/auth_wrapper.dart';
+import 'features/profile/data/services/backup_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,6 +32,9 @@ void main() async {
   // 加载上次选中的账本
   final prefs = await SharedPreferences.getInstance();
   final savedBookId = prefs.getInt('current_book_id') ?? 1;
+
+  // 自动备份检查（后台执行，不阻塞启动）
+  BackupService().autoBackup().catchError((_) => null);
 
   runApp(
     ProviderScope(

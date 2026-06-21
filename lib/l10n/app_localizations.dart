@@ -1128,6 +1128,30 @@ abstract class AppLocalizations {
   /// **'导入失败: {error}'**
   String profileImportFailed(String error);
 
+  /// No description provided for @profileExportExcel.
+  ///
+  /// In zh, this message translates to:
+  /// **'导出 Excel'**
+  String get profileExportExcel;
+
+  /// No description provided for @profileImportExcel.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入 Excel'**
+  String get profileImportExcel;
+
+  /// No description provided for @profileExcelFormatTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'Excel 格式说明'**
+  String get profileExcelFormatTitle;
+
+  /// No description provided for @profileImportExcelSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'成功导入 {count} 条记录'**
+  String profileImportExcelSuccess(int count);
+
   /// No description provided for @profileAlreadyCheckedIn.
   ///
   /// In zh, this message translates to:
@@ -1338,11 +1362,53 @@ abstract class AppLocalizations {
   /// **'每天'**
   String get settingsBackupDaily;
 
+  /// No description provided for @settingsBackupWeekly.
+  ///
+  /// In zh, this message translates to:
+  /// **'每周'**
+  String get settingsBackupWeekly;
+
+  /// No description provided for @settingsBackupMonthly.
+  ///
+  /// In zh, this message translates to:
+  /// **'每月'**
+  String get settingsBackupMonthly;
+
+  /// No description provided for @settingsBackupManual.
+  ///
+  /// In zh, this message translates to:
+  /// **'仅手动'**
+  String get settingsBackupManual;
+
+  /// No description provided for @settingsNoBackupFound.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有找到备份文件'**
+  String get settingsNoBackupFound;
+
   /// No description provided for @settingsRestoreData.
   ///
   /// In zh, this message translates to:
   /// **'恢复数据'**
   String get settingsRestoreData;
+
+  /// No description provided for @settingsRestoreConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'恢复将覆盖当前所有数据，确定继续吗？'**
+  String get settingsRestoreConfirm;
+
+  /// No description provided for @settingsRestoreSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'数据恢复成功'**
+  String get settingsRestoreSuccess;
+
+  /// No description provided for @settingsRestoreFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'恢复失败: {error}'**
+  String settingsRestoreFailed(String error);
 
   /// No description provided for @settingsAbout.
   ///

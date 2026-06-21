@@ -581,6 +581,20 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get profileExportExcel => 'Export Excel';
+
+  @override
+  String get profileImportExcel => 'Import Excel';
+
+  @override
+  String get profileExcelFormatTitle => 'Excel Format';
+
+  @override
+  String profileImportExcelSuccess(int count) {
+    return 'Successfully imported $count records';
+  }
+
+  @override
   String get profileAlreadyCheckedIn => 'Already checked in today';
 
   @override
@@ -693,7 +707,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsBackupDaily => 'Daily';
 
   @override
+  String get settingsBackupWeekly => 'Weekly';
+
+  @override
+  String get settingsBackupMonthly => 'Monthly';
+
+  @override
+  String get settingsBackupManual => 'Manual Only';
+
+  @override
+  String get settingsNoBackupFound => 'No backup files found';
+
+  @override
   String get settingsRestoreData => 'Restore Data';
+
+  @override
+  String get settingsRestoreConfirm =>
+      'Restoring will overwrite all current data. Continue?';
+
+  @override
+  String get settingsRestoreSuccess => 'Data restored successfully';
+
+  @override
+  String settingsRestoreFailed(String error) {
+    return 'Restore failed: $error';
+  }
 
   @override
   String get settingsAbout => 'About';

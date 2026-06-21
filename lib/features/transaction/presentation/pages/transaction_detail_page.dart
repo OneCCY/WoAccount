@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
@@ -122,7 +123,7 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
     final success = await repo.update(companion);
     if (success && mounted) {
       AppToast.show(context, AppLocalizations.of(context)!.txnDetailSaved, duration: const Duration(seconds: 1));
-      Navigator.of(context).pop(true);
+      if (mounted) context.pop(true);
     }
   }
 
@@ -146,7 +147,7 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
     if (confirmed == true && mounted) {
       final repo = ref.read(transactionRepositoryProvider);
       await repo.delete(widget.transactionId);
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) context.pop();
     }
   }
 

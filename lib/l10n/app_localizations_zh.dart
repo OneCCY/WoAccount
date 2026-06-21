@@ -570,6 +570,20 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get profileExportExcel => '导出 Excel';
+
+  @override
+  String get profileImportExcel => '导入 Excel';
+
+  @override
+  String get profileExcelFormatTitle => 'Excel 格式说明';
+
+  @override
+  String profileImportExcelSuccess(int count) {
+    return '成功导入 $count 条记录';
+  }
+
+  @override
   String get profileAlreadyCheckedIn => '今天已经打过卡了';
 
   @override
@@ -679,7 +693,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsBackupDaily => '每天';
 
   @override
+  String get settingsBackupWeekly => '每周';
+
+  @override
+  String get settingsBackupMonthly => '每月';
+
+  @override
+  String get settingsBackupManual => '仅手动';
+
+  @override
+  String get settingsNoBackupFound => '没有找到备份文件';
+
+  @override
   String get settingsRestoreData => '恢复数据';
+
+  @override
+  String get settingsRestoreConfirm => '恢复将覆盖当前所有数据，确定继续吗？';
+
+  @override
+  String get settingsRestoreSuccess => '数据恢复成功';
+
+  @override
+  String settingsRestoreFailed(String error) {
+    return '恢复失败: $error';
+  }
 
   @override
   String get settingsAbout => '关于';
@@ -3105,6 +3142,20 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   }
 
   @override
+  String get profileExportExcel => '匯出 Excel';
+
+  @override
+  String get profileImportExcel => '匯入 Excel';
+
+  @override
+  String get profileExcelFormatTitle => 'Excel 格式說明';
+
+  @override
+  String profileImportExcelSuccess(int count) {
+    return '成功匯入 $count 筆記錄';
+  }
+
+  @override
   String get profileAlreadyCheckedIn => '今天已經打過卡了';
 
   @override
@@ -3214,7 +3265,30 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get settingsBackupDaily => '每天';
 
   @override
+  String get settingsBackupWeekly => '每週';
+
+  @override
+  String get settingsBackupMonthly => '每月';
+
+  @override
+  String get settingsBackupManual => '僅手動';
+
+  @override
+  String get settingsNoBackupFound => '沒有找到備份檔案';
+
+  @override
   String get settingsRestoreData => '還原資料';
+
+  @override
+  String get settingsRestoreConfirm => '還原將覆蓋當前所有資料，確定繼續嗎？';
+
+  @override
+  String get settingsRestoreSuccess => '資料還原成功';
+
+  @override
+  String settingsRestoreFailed(String error) {
+    return '還原失敗: $error';
+  }
 
   @override
   String get settingsAbout => '關於';

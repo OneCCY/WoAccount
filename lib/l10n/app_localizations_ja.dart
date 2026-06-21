@@ -570,6 +570,20 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get profileExportExcel => 'Excel エクスポート';
+
+  @override
+  String get profileImportExcel => 'Excel インポート';
+
+  @override
+  String get profileExcelFormatTitle => 'Excel 形式';
+
+  @override
+  String profileImportExcelSuccess(int count) {
+    return '$count 件のレコードをインポートしました';
+  }
+
+  @override
   String get profileAlreadyCheckedIn => '本日はチェックイン済みです';
 
   @override
@@ -680,7 +694,30 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsBackupDaily => '毎日';
 
   @override
+  String get settingsBackupWeekly => '毎週';
+
+  @override
+  String get settingsBackupMonthly => '毎月';
+
+  @override
+  String get settingsBackupManual => '手動のみ';
+
+  @override
+  String get settingsNoBackupFound => 'バックアップファイルが見つかりません';
+
+  @override
   String get settingsRestoreData => 'データ復元';
+
+  @override
+  String get settingsRestoreConfirm => '復元すると現在のデータが上書きされます。続行しますか？';
+
+  @override
+  String get settingsRestoreSuccess => 'データの復元に成功しました';
+
+  @override
+  String settingsRestoreFailed(String error) {
+    return '復元失敗: $error';
+  }
 
   @override
   String get settingsAbout => 'アプリについて';

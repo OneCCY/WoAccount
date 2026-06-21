@@ -20,6 +20,8 @@ import '../../features/profile/domain/repositories/checkin_repository.dart';
 import '../../features/profile/data/repositories/checkin_repository_impl.dart';
 import '../../features/profile/domain/repositories/ac_coin_repository.dart';
 import '../../features/profile/data/repositories/ac_coin_repository_impl.dart';
+import '../../features/profile/data/services/excel_service.dart';
+import '../../features/profile/data/services/backup_service.dart';
 
 part 'providers.g.dart';
 
@@ -103,3 +105,15 @@ Future<void> switchCurrentBook(WidgetRef ref, int bookId) async {
 
 /// 账单页面滚动到顶部并刷新的回调（由 TransactionListPage 注册，MainShell 调用）
 final scrollToTopProvider = StateProvider<void Function()?>((ref) => null);
+
+/// Excel 导入导出服务 Provider
+final excelServiceProvider = Provider<ExcelService>((ref) {
+  final txnRepo = ref.watch(transactionRepositoryProvider);
+  final catRepo = ref.watch(categoryRepositoryProvider);
+  return ExcelService(txnRepo, catRepo);
+});
+
+/// 数据备份服务 Provider（单例）
+final backupServiceProvider = Provider<BackupService>((ref) {
+  return BackupService();
+});

@@ -572,6 +572,20 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get profileExportExcel => 'Excel 내보내기';
+
+  @override
+  String get profileImportExcel => 'Excel 가져오기';
+
+  @override
+  String get profileExcelFormatTitle => 'Excel 형식';
+
+  @override
+  String profileImportExcelSuccess(int count) {
+    return '$count개의 레코드를 가져왔습니다';
+  }
+
+  @override
   String get profileAlreadyCheckedIn => '오늘 이미 출석했습니다';
 
   @override
@@ -682,7 +696,30 @@ class AppLocalizationsKo extends AppLocalizations {
   String get settingsBackupDaily => '매일';
 
   @override
+  String get settingsBackupWeekly => '매주';
+
+  @override
+  String get settingsBackupMonthly => '매월';
+
+  @override
+  String get settingsBackupManual => '수동만';
+
+  @override
+  String get settingsNoBackupFound => '백업 파일을 찾을 수 없습니다';
+
+  @override
   String get settingsRestoreData => '데이터 복원';
+
+  @override
+  String get settingsRestoreConfirm => '복원하면 현재 데이터를 덮어씁니다. 계속하시겠습니까?';
+
+  @override
+  String get settingsRestoreSuccess => '데이터 복원 성공';
+
+  @override
+  String settingsRestoreFailed(String error) {
+    return '복원 실패: $error';
+  }
 
   @override
   String get settingsAbout => '정보';

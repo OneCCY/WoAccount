@@ -36,6 +36,7 @@ dependencies:
   fl_chart: ^0.70.2
   flutter_slidable: ^3.1.1
   image_picker: ^1.1.2
+  file_picker: ^8.1.7
 
   # === 媒体 ===
   record: ^7.0.0
@@ -49,6 +50,7 @@ dependencies:
   shared_preferences: ^2.5.3
   share_plus: ^10.1.4
   collection: ^1.19.1
+  excel: ^4.0.6
 
   # === 安全 ===
   local_auth: ^2.3.0
