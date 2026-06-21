@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
-import 'package:file_picker/file_picker.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
@@ -562,17 +561,40 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with PageRefreshMixin
       );
       if (proceed != true) return;
 
-      // 选择 Excel 文件
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['xlsx', 'xls'],
+      // 扫描文档目录中的 Excel 文件
+      final docDir = await getApplicationDocumentsDirectory();
+      final excelFiles = docDir.listSync(recursive: true)
+          .whereType<File>()
+          .where((f) => f.path.endsWith('.xlsx'))
+          .toList()
+        ..sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+
+      if (excelFiles.isEmpty || !mounted) {
+        if (mounted) AppToast.show(context, l10n.profileImportNoBackup);
+        return;
+      }
+
+      if (!mounted) return;
+      final selected = await showDialog<File>(
+        context: context,
+        builder: (ctx) => SimpleDialog(
+          title: Text(l10n.profileImportExcel),
+          children: excelFiles.take(10).map((f) {
+            final name = p.basename(f.path);
+            final size = (f.lengthSync() / 1024).toStringAsFixed(1);
+            return SimpleDialogOption(
+              onPressed: () => Navigator.pop(ctx, f),
+              child: Text('$name ($size KB)'),
+            );
+          }).toList(),
+        ),
       );
-      if (result == null || result.files.single.path == null) return;
+      if (selected == null) return;
 
       if (!mounted) return;
       final bookId = ref.read(currentBookProvider);
       final excelService = ref.read(excelServiceProvider);
-      final count = await excelService.importFromExcel(bookId, result.files.single.path!);
+      final count = await excelService.importFromExcel(bookId, selected.path);
 
       if (mounted) {
         AppToast.show(context, l10n.profileImportExcelSuccess(count));
