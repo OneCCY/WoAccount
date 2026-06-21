@@ -15,7 +15,6 @@ class TransactionGroup extends StatelessWidget {
   final Future<bool> Function(int id) onDelete;
   final void Function(Transaction transaction)? onTap;
   final Map<int, Category> categoryMap;
-  /// 交易标签映射：transactionId -> 标签列表
   final Map<int, List<Tag>> tagMap;
   /// 当前排序方式，null 表示不显示排序切换
   final String? sortLabel;
@@ -105,7 +104,6 @@ class TransactionGroup extends StatelessWidget {
               transaction: t,
               category: categoryMap[t.categoryId],
               subcategory: t.parentCategoryId != null ? categoryMap[t.parentCategoryId] : null,
-              tags: tagMap[t.id] ?? const [],
               onDelete: () => onDelete(t.id),
               onTap: onTap != null ? () => onTap!(t) : null,
             )),
@@ -127,7 +125,6 @@ class _TransactionItem extends StatefulWidget {
   final Transaction transaction;
   final Category? category;
   final Category? subcategory;
-  final List<Tag> tags;
   final VoidCallback onDelete;
   final VoidCallback? onTap;
 
@@ -135,7 +132,6 @@ class _TransactionItem extends StatefulWidget {
     required this.transaction,
     this.category,
     this.subcategory,
-    this.tags = const [],
     required this.onDelete,
     this.onTap,
   });

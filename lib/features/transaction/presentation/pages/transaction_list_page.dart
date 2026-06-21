@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:drift/drift.dart' hide Column;
 import 'package:wo_account/l10n/app_localizations.dart';
-import '../../../../core/widgets/toast.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../core/locale/locale_provider.dart';
@@ -118,17 +116,13 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
     try {
       final repo = ref.read(transactionRepositoryProvider);
       final catRepo = ref.read(categoryRepositoryProvider);
-      final db = ref.read(appDatabaseProvider);
       final bookId = ref.read(currentBookProvider);
       final txns = await repo.getPaged(bookId, _pageSize, 0);
       final cats = await catRepo.getAll();
-      // 批量加载标签关联
-      final tagMap = await _loadTagsForTransactions(db, txns.map((t) => t.id).toList());
       if (!mounted) return;
       setState(() {
         _allTransactions = txns;
         _dayCatMap = {for (final c in cats) c.id: c};
-        _dayTagMap = tagMap;
         _hasMore = txns.length >= _pageSize;
         _isDayLoading = false;
       });
@@ -156,118 +150,15 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
     }
   }
 
-  /// 批量加载交易标签映射
-  Future<Map<int, List<Tag>>> _loadTagsForTransactions(AppDatabase db, List<int> txnIds) async {
-    if (txnIds.isEmpty) return {};
-    // 查询关联关系
-    final joinResults = await (db.select(db.transactionTags).join([
-      innerJoin(db.tags, db.tags.id.equalsExp(db.transactionTags.tagId)),
-    ])
-          ..where(db.transactionTags.transactionId.isIn(txnIds)))
-        .get();
-    // 构建映射
-    final map = <int, List<Tag>>{};
-    for (final row in joinResults) {
-      final txnId = row.readTable(db.transactionTags).transactionId;
-      final tag = row.readTable(db.tags);
-      map.putIfAbsent(txnId, () => []).add(tag);
-    }
-    return map;
-  }
-
   /// 触发刷新
   void _triggerRefresh() {
     setState(() {
       _refreshKey++;
       _filterType = null;
       _sortType = SortType.time;
-      _filterTagId = null;
     });
     if (_currentView == ViewType.day) {
       _loadTransactions();
-    }
-  }
-
-  /// 标签筛选弹窗
-  Future<void> _showTagFilter() async {
-    final tagRepo = ref.read(tagRepositoryProvider);
-    final bookId = ref.read(currentBookProvider);
-    final tags = await tagRepo.getAll(bookId);
-
-    if (tags.isEmpty || !mounted) {
-      if (mounted) AppToast.show(context, AppLocalizations.of(context)!.tagManageEmpty);
-      return;
-    }
-
-    final selected = await showModalBottomSheet<int?>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        final l10n = AppLocalizations.of(context)!;
-        return Container(
-          decoration: BoxDecoration(
-            color: context.colors.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-          ),
-          padding: EdgeInsets.fromLTRB(
-            AppDimensions.md, 8, AppDimensions.md,
-            MediaQuery.of(ctx).viewInsets.bottom + AppDimensions.md,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 36, height: 4,
-                decoration: BoxDecoration(
-                  color: context.colors.textTertiary.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(l10n.tagPickerTitle, style: AppTextStyles.h3.copyWith(fontSize: 16)),
-              const SizedBox(height: 16),
-              // "全部" 选项
-              ListTile(
-                leading: Icon(Icons.clear_all, color: context.colors.textSecondary),
-                title: Text(l10n.searchFilterAll),
-                trailing: _filterTagId == null ? Icon(Icons.check, color: context.colors.primary) : null,
-                onTap: () => Navigator.pop(ctx, null),
-              ),
-              ...tags.map((tag) {
-                final color = _parseTagColor(tag.color);
-                final isActive = _filterTagId == tag.id;
-                return ListTile(
-                  leading: Container(
-                    width: 12, height: 12,
-                    decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-                  ),
-                  title: Text(tag.name),
-                  trailing: isActive ? Icon(Icons.check, color: context.colors.primary) : null,
-                  onTap: () => Navigator.pop(ctx, tag.id),
-                );
-              }),
-              const SizedBox(height: 8),
-            ],
-          ),
-        );
-      },
-    );
-
-    if (selected != _filterTagId && mounted) {
-      setState(() {
-        _filterTagId = selected;
-        _refreshKey++;
-      });
-      if (_currentView == ViewType.day) _loadTransactions();
-    }
-  }
-
-  Color _parseTagColor(String hex) {
-    try {
-      final clean = hex.replaceFirst('#', '');
-      return Color(int.parse('FF$clean', radix: 16));
-    } catch (_) {
-      return const Color(0xFF607D8B);
     }
   }
 
@@ -483,25 +374,6 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
             ),
           ),
           SizedBox(width: Responsive.s(context, 8)),
-          // 标签筛选按钮
-          GestureDetector(
-            onTap: _showTagFilter,
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: Responsive.s(context, 10), vertical: Responsive.s(context, 8)),
-              decoration: BoxDecoration(
-                color: _filterTagId != null
-                    ? context.colors.primary.withValues(alpha: 0.12)
-                    : context.colors.surfaceSecondary,
-                borderRadius: BorderRadius.circular(Responsive.s(context, 8)),
-              ),
-              child: Icon(
-                Icons.label_outline,
-                size: 17,
-                color: _filterTagId != null ? context.colors.primary : context.colors.textSecondary,
-              ),
-            ),
-          ),
-          SizedBox(width: Responsive.s(context, 8)),
           // 右侧：预算管理按钮
           GestureDetector(
             onTap: () => context.push('/budget'),
@@ -699,7 +571,7 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
   }
 
   /// 应用筛选和排序
-  List<Transaction> _applyFilterAndSort(List<Transaction> txns, Map<int, Category> catMap, Map<int, List<Tag>> tagMap) {
+  List<Transaction> _applyFilterAndSort(List<Transaction> txns, Map<int, Category> catMap) {
     var filtered = txns;
 
     // 按类型筛选
@@ -708,14 +580,6 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
         if (_filterType == 'expense') return t.type == 'expense';
         if (_filterType == 'income') return t.type == 'income';
         return true;
-      }).toList();
-    }
-
-    // 按标签筛选
-    if (_filterTagId != null) {
-      filtered = filtered.where((t) {
-        final tags = tagMap[t.id] ?? [];
-        return tags.any((tag) => tag.id == _filterTagId);
       }).toList();
     }
 
@@ -767,7 +631,6 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
             date: entry.key,
             transactions: entry.value,
             categoryMap: _dayCatMap,
-            tagMap: _dayTagMap,
             onDelete: (id) async {
               final result = await repo.delete(id);
               if (result) _loadTransactions();
@@ -951,40 +814,31 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
           builder: (context, catSnap) {
             final categoryMap = <int, Category>{for (final c in (catSnap.data ?? [])) c.id: c};
 
-            // 先加载标签（用于筛选和显示）
-            final db = ref.read(appDatabaseProvider);
-            return FutureBuilder<Map<int, List<Tag>>>(
-              future: _loadTagsForTransactions(db, dayTxns.map((t) => t.id).toList()),
-              builder: (context, tagSnap) {
-                final tagMap = tagSnap.data ?? {};
-                final filtered = _applyFilterAndSort(dayTxns, categoryMap, tagMap);
+            final filtered = _applyFilterAndSort(dayTxns, categoryMap);
 
-                if (filtered.isEmpty) return _buildEmptyState(AppLocalizations.of(context)!);
+            if (filtered.isEmpty) return _buildEmptyState(AppLocalizations.of(context)!);
 
-                final grouped = _groupByDate(filtered);
-                final l10n = AppLocalizations.of(context)!;
-                return ListView.builder(
-                  padding: EdgeInsets.only(bottom: Responsive.s(context, 16)),
-                  itemCount: grouped.length,
-                  itemBuilder: (context, index) {
-                    final entry = grouped.entries.elementAt(index);
-                    return TransactionGroup(
-                      date: entry.key,
-                      transactions: entry.value,
-                      categoryMap: categoryMap,
-                      tagMap: tagMap,
-                      sortLabel: _sortType == SortType.time ? l10n.txnSortByTime : l10n.txnSortByAmount,
-                      onSortToggle: () => setState(() {
-                        _sortType = _sortType == SortType.time ? SortType.amount : SortType.time;
-                      }),
-                      onDelete: (id) async {
-                        final result = await repo.delete(id);
-                        setState(() {});
-                        return result;
-                      },
-                      onTap: (t) => context.push('/transactions/${t.id}'),
-                    );
+            final grouped = _groupByDate(filtered);
+            final l10n = AppLocalizations.of(context)!;
+            return ListView.builder(
+              padding: EdgeInsets.only(bottom: Responsive.s(context, 16)),
+              itemCount: grouped.length,
+              itemBuilder: (context, index) {
+                final entry = grouped.entries.elementAt(index);
+                return TransactionGroup(
+                  date: entry.key,
+                  transactions: entry.value,
+                  categoryMap: categoryMap,
+                  sortLabel: _sortType == SortType.time ? l10n.txnSortByTime : l10n.txnSortByAmount,
+                  onSortToggle: () => setState(() {
+                    _sortType = _sortType == SortType.time ? SortType.amount : SortType.time;
+                  }),
+                  onDelete: (id) async {
+                    final result = await repo.delete(id);
+                    setState(() {});
+                    return result;
                   },
+                  onTap: (t) => context.push('/transactions/${t.id}'),
                 );
               },
             );
@@ -1269,43 +1123,19 @@ class _DayDetailPage extends ConsumerWidget {
                 final dk = DateTime(t.transactionDate.year, t.transactionDate.month, t.transactionDate.day);
                 grouped.putIfAbsent(dk, () => []).add(t);
               }
-              // 加载标签
-              final db = ref.read(appDatabaseProvider);
-              final txnIds = dayTxns.map((t) => t.id).toList();
-              return FutureBuilder<Map<int, List<Tag>>>(
-                future: txnIds.isEmpty
-                    ? Future.value(<int, List<Tag>>{})
-                    : (db.select(db.transactionTags).join([
-                        innerJoin(db.tags, db.tags.id.equalsExp(db.transactionTags.tagId)),
-                      ])..where(db.transactionTags.transactionId.isIn(txnIds)))
-                      .get()
-                      .then((rows) {
-                        final map = <int, List<Tag>>{};
-                        for (final row in rows) {
-                          final txnId = row.readTable(db.transactionTags).transactionId;
-                          final tag = row.readTable(db.tags);
-                          map.putIfAbsent(txnId, () => []).add(tag);
-                        }
-                        return map;
-                      }),
-                builder: (context, tagSnap) {
-                  final tagMap = tagSnap.data ?? {};
-                  return ListView.builder(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    itemCount: grouped.length,
-                    itemBuilder: (context, index) {
-                      final entry = grouped.entries.elementAt(index);
-                      return TransactionGroup(
-                        date: entry.key,
-                        transactions: entry.value,
-                        categoryMap: catMap,
-                        tagMap: tagMap,
-                        onDelete: (id) async {
-                          return await repo.delete(id);
-                        },
-                        onTap: (t) => context.push('/transactions/${t.id}'),
-                      );
+              return ListView.builder(
+                padding: const EdgeInsets.only(bottom: 16),
+                itemCount: grouped.length,
+                itemBuilder: (context, index) {
+                  final entry = grouped.entries.elementAt(index);
+                  return TransactionGroup(
+                    date: entry.key,
+                    transactions: entry.value,
+                    categoryMap: catMap,
+                    onDelete: (id) async {
+                      return await repo.delete(id);
                     },
+                    onTap: (t) => context.push('/transactions/${t.id}'),
                   );
                 },
               );
