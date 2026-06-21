@@ -43,6 +43,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
 
   @override
   void onRefresh() {
+    _cachedTaxonomy = null;
     _loadInitialMessages();
     _loadUserProfile();
     _loadAiProviderIcon();
@@ -57,6 +58,9 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
   // 多选模式
   bool _isMultiSelectMode = false;
   final Set<int> _selectedIndices = {};
+
+  // 分类体系缓存
+  String? _cachedTaxonomy;
 
   String? _userAvatarPath;
   String _aiIcon = '🤖';
@@ -586,21 +590,32 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
     _persistPendingCards();
   }
 
-  /// 从数据库动态构建分类体系文本（用于 LLM 提示词）
+  /// 从数据库动态构建分类体系文本（带缓存 + 批量查询，避免 N+1）
   Future<String> _buildCategoryTaxonomy() async {
-    try {
-      final categories = await _catRepo.getTopLevel();
-      if (categories.isEmpty) return '';
+    if (_cachedTaxonomy != null) return _cachedTaxonomy!;
 
-      final expenseCats = categories.where((c) => c.isExpense).toList();
-      final incomeCats = categories.where((c) => !c.isExpense).toList();
+    try {
+      // 一次性加载所有分类，在内存中按 parentId 分组
+      final allCats = await _catRepo.getAll();
+      final childrenMap = <int, List<Category>>{};
+      for (final c in allCats) {
+        if (c.parentId != null) {
+          childrenMap.putIfAbsent(c.parentId!, () => []).add(c);
+        }
+      }
+
+      final parents = allCats.where((c) => c.parentId == null).toList();
+      if (parents.isEmpty) return '';
+
+      final expenseCats = parents.where((c) => c.isExpense).toList();
+      final incomeCats = parents.where((c) => !c.isExpense).toList();
 
       final buffer = StringBuffer();
 
       if (expenseCats.isNotEmpty) {
         buffer.writeln('### 支出分类');
         for (final cat in expenseCats) {
-          final children = await _catRepo.getChildren(cat.id);
+          final children = childrenMap[cat.id] ?? [];
           if (children.isNotEmpty) {
             final subNames = children.map((c) => c.name).join('、');
             buffer.writeln('- ${cat.name}（$subNames）');
@@ -614,7 +629,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
       if (incomeCats.isNotEmpty) {
         buffer.writeln('### 收入分类');
         for (final cat in incomeCats) {
-          final children = await _catRepo.getChildren(cat.id);
+          final children = childrenMap[cat.id] ?? [];
           if (children.isNotEmpty) {
             final subNames = children.map((c) => c.name).join('、');
             buffer.writeln('- ${cat.name}（$subNames）');
@@ -624,7 +639,8 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
         }
       }
 
-      return buffer.toString().trim();
+      _cachedTaxonomy = buffer.toString().trim();
+      return _cachedTaxonomy!;
     } catch (e) {
       debugPrint('[AiChatPage] _buildCategoryTaxonomy error: $e');
       return '';
@@ -994,7 +1010,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
             return const SizedBox.shrink();
           }
 
-          // 多选模式：包裹点击 + 勾选指示器
+          // 多选模式：勾选框在左侧，避免与头像重叠
           if (_isMultiSelectMode) {
             return GestureDetector(
               onTap: () => setState(() {
@@ -1004,11 +1020,11 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
                   _selectedIndices.add(itemIndex);
                 }
               }),
-              child: Stack(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  card,
-                  Positioned(
-                    top: 8, right: 8,
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12, left: 4, right: 4),
                     child: Container(
                       width: 22, height: 22,
                       decoration: BoxDecoration(
@@ -1024,6 +1040,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
                           : null,
                     ),
                   ),
+                  Expanded(child: card),
                 ],
               ),
             );

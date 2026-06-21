@@ -10,7 +10,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/repositories/budget_repository.dart';
-import '../../../transaction/presentation/widgets/category_picker_sheet.dart';
 
 /// 预算视图模式
 enum _BudgetView { month, year }
@@ -138,32 +137,27 @@ class _BudgetPageState extends ConsumerState<BudgetPage> {
     );
   }
 
-  /// 从一级分类选择器进入详情页（用于 FAB）
+  /// 从一级分类选择器进入详情页（仅显示一级分类）
   Future<void> _onAddBudget(AppLocalizations l10n) async {
-    final selected = await CategoryPickerSheet.show(
-      context,
-      initialIsExpense: true,
+    final catRepo = ref.read(categoryRepositoryProvider);
+    final allCats = await catRepo.getTopLevel();
+    final expenseParents = allCats.where((c) => c.isExpense).toList();
+
+    if (expenseParents.isEmpty || !mounted) return;
+
+    final selected = await showModalBottomSheet<Category>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _ParentCategoryPickerSheet(categories: expenseParents),
     );
     if (selected == null || !mounted) return;
 
-    // 确定父分类：如果选中的是二级分类，取其 parentId；否则用自身 id
-    final catRepo = ref.read(categoryRepositoryProvider);
-    Category parent;
-    if (selected.parentId != null) {
-      final p = await catRepo.getById(selected.parentId!);
-      parent = p ?? selected;
-    } else {
-      parent = selected;
-    }
-
-    final name = getCategoryDisplayName(parent, l10n);
-    if (mounted) {
-      context.push('/budget/detail', extra: {
-        'parentCategoryId': parent.id,
-        'parentCategoryName': name,
-        'parentCategoryIcon': parent.icon ?? '📦',
-      });
-    }
+    final name = getCategoryDisplayName(selected, l10n);
+    context.push('/budget/detail', extra: {
+      'parentCategoryId': selected.id,
+      'parentCategoryName': name,
+      'parentCategoryIcon': selected.icon ?? '📦',
+    });
   }
 
   /// 月/年切换
@@ -469,6 +463,90 @@ class _BudgetPageState extends ConsumerState<BudgetPage> {
   }
 
   Color _parseColor(String? hex) {
+    try {
+      if (hex == null || hex.isEmpty) return context.colors.textTertiary;
+      return Color(int.parse('FF${hex.replaceFirst('#', '')}', radix: 16));
+    } catch (_) {
+      return context.colors.textTertiary;
+    }
+  }
+}
+
+/// 一级分类选择器（仅展示一级分类）
+class _ParentCategoryPickerSheet extends StatelessWidget {
+  final List<Category> categories;
+
+  const _ParentCategoryPickerSheet({required this.categories});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      padding: EdgeInsets.fromLTRB(
+        AppDimensions.md, 8, AppDimensions.md,
+        MediaQuery.of(context).viewInsets.bottom + AppDimensions.md,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 36, height: 4,
+            decoration: BoxDecoration(
+              color: context.colors.textTertiary.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(AppLocalizations.of(context)!.budgetAddCategoryBudget,
+            style: AppTextStyles.h3.copyWith(fontSize: 16)),
+          const SizedBox(height: 16),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 5,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 0.75,
+            ),
+            itemCount: categories.length,
+            itemBuilder: (ctx, i) {
+              final cat = categories[i];
+              final color = _parsePickerColor(cat.color, context);
+              return GestureDetector(
+                onTap: () => Navigator.pop(context, cat),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 44, height: 44,
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                      ),
+                      child: Center(child: Text(cat.icon ?? '📦', style: const TextStyle(fontSize: 22))),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      getCategoryDisplayName(cat, AppLocalizations.of(context)!),
+                      style: context.textStyles.caption,
+                      maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  static Color _parsePickerColor(String? hex, BuildContext context) {
     try {
       if (hex == null || hex.isEmpty) return context.colors.textTertiary;
       return Color(int.parse('FF${hex.replaceFirst('#', '')}', radix: 16));
