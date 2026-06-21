@@ -56,10 +56,6 @@ class AppRouter {
                   transactionId: int.parse(state.pathParameters['id']!),
                 ),
               ),
-              GoRoute(
-                path: 'recycle-bin',
-                builder: (context, state) => const TransactionRecycleBinPage(),
-              ),
             ],
           ),
           // 记账首页（中 Tab）- AI 对话记账
@@ -192,6 +188,10 @@ class AppRouter {
       GoRoute(
         path: '/account-books/recycle-bin',
         builder: (context, state) => const BookRecycleBinPage(),
+      ),
+      GoRoute(
+        path: '/recycle-bin',
+        builder: (context, state) => const TransactionRecycleBinPage(),
       ),
       // 报表分析
       GoRoute(

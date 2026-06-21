@@ -92,7 +92,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   _showRestoreDialog(l10n);
                 }),
                 _buildNavRow(l10n.txnRecycleBin, null, () {
-                  context.push('/transactions/recycle-bin');
+                  context.push('/recycle-bin');
                 }),
               ],
             ),
