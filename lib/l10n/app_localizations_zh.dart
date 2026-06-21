@@ -910,7 +910,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get bookRestored => '账本已恢复';
 
   @override
-  String get txnRecycleBin => '交易回收站';
+  String get txnRecycleBin => '账单回收站';
 
   @override
   String get txnRecycleBinEmpty => '回收站为空';

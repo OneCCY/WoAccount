@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
@@ -9,6 +8,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/toast.dart';
+import '../../../transaction/presentation/widgets/transaction_group.dart';
 
 /// 排序方式
 enum RecycleSortBy { deleteTime, amount, date }
@@ -16,7 +16,7 @@ enum RecycleSortBy { deleteTime, amount, date }
 /// 类型筛选
 enum RecycleFilterType { all, expense, income }
 
-/// 交易回收站 — 支持排序、筛选、多选批量操作
+/// 账单回收站 — 参考日账单列表设计，支持排序、筛选、多选批量操作
 class TransactionRecycleBinPage extends ConsumerStatefulWidget {
   const TransactionRecycleBinPage({super.key});
 
@@ -26,7 +26,7 @@ class TransactionRecycleBinPage extends ConsumerStatefulWidget {
 
 class _TransactionRecycleBinPageState extends ConsumerState<TransactionRecycleBinPage> {
   List<Transaction> _allTxns = [];
-  Map<int, Category?> _categories = {};
+  Map<int, Category> _categoryMap = {};
   bool _isLoading = true;
 
   // 筛选与排序
@@ -49,17 +49,22 @@ class _TransactionRecycleBinPageState extends ConsumerState<TransactionRecycleBi
     final bookId = ref.read(currentBookProvider);
 
     final txns = await txnRepo.getDeleted(bookId);
-    final cats = <int, Category?>{};
+    final cats = <int, Category>{};
     for (final txn in txns) {
       if (!cats.containsKey(txn.categoryId)) {
-        cats[txn.categoryId] = await catRepo.getById(txn.categoryId);
+        final cat = await catRepo.getById(txn.categoryId);
+        if (cat != null) cats[txn.categoryId] = cat;
+      }
+      if (txn.parentCategoryId != null && !cats.containsKey(txn.parentCategoryId!)) {
+        final parent = await catRepo.getById(txn.parentCategoryId!);
+        if (parent != null) cats[txn.parentCategoryId!] = parent;
       }
     }
 
     if (mounted) {
       setState(() {
         _allTxns = txns;
-        _categories = cats;
+        _categoryMap = cats;
         _isLoading = false;
       });
     }
@@ -89,46 +94,95 @@ class _TransactionRecycleBinPageState extends ConsumerState<TransactionRecycleBi
     return list;
   }
 
-  /// 按时间分组（今天 / 本周 / 更早）
-  Map<String, List<Transaction>> _groupByTime(List<Transaction> txns) {
-    final now = DateTime.now();
-    final todayStart = DateTime(now.year, now.month, now.day);
-    final weekStart = todayStart.subtract(Duration(days: now.weekday - 1));
-
-    final groups = <String, List<Transaction>>{};
+  /// 按删除日期分组
+  Map<DateTime, List<Transaction>> _groupByDate(List<Transaction> txns) {
+    final map = <DateTime, List<Transaction>>{};
     for (final t in txns) {
-      final key = t.updatedAt.isAfter(todayStart)
-          ? 'today'
-          : t.updatedAt.isAfter(weekStart)
-              ? 'week'
-              : 'earlier';
-      groups.putIfAbsent(key, () => []).add(t);
+      final d = t.updatedAt;
+      final dateKey = DateTime(d.year, d.month, d.day);
+      map.putIfAbsent(dateKey, () => []).add(t);
     }
-    return groups;
+    return map;
   }
 
   // ==================== 操作 ====================
 
-  Future<void> _restoreSingle(int id) async {
+  Future<bool> _restoreSingle(int id) async {
     final txnRepo = ref.read(transactionRepositoryProvider);
     final success = await txnRepo.restore(id);
     if (success && mounted) {
       AppToast.show(context, AppLocalizations.of(context)!.txnRestored);
+      _selectedIds.remove(id);
       await _loadData();
     }
+    return success;
   }
 
-  Future<void> _permanentDeleteSingle(int id) async {
+  Future<void> _permanentDeleteSingle(Transaction txn) async {
     final l10n = AppLocalizations.of(context)!;
     final confirmed = await _confirmPermanentDelete(l10n);
     if (confirmed != true) return;
 
     final txnRepo = ref.read(transactionRepositoryProvider);
-    final success = await txnRepo.permanentDelete(id);
+    final success = await txnRepo.permanentDelete(txn.id);
     if (success && mounted) {
       AppToast.show(context, l10n.txnRecycleBatchDeleted(1));
+      _selectedIds.remove(txn.id);
       await _loadData();
     }
+  }
+
+  void _showItemActions(Transaction txn) {
+    final l10n = AppLocalizations.of(context)!;
+    final currency = ref.read(localeProviderOverrideProvider).currency;
+    final isExpense = txn.type == 'expense';
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: context.colors.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(width: 36, height: 4, margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(color: context.colors.textTertiary.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2))),
+              // 交易信息
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Text(
+                  '${txn.description}  ${isExpense ? "-" : "+"}${currency.formatAmount(txn.amount)}',
+                  style: context.textStyles.body.copyWith(fontWeight: FontWeight.w500),
+                ),
+              ),
+              const Divider(height: 1),
+              ListTile(
+                leading: Icon(Icons.restore, color: context.colors.success),
+                title: Text(l10n.txnRestore),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _restoreSingle(txn.id);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.delete_forever, color: context.colors.error),
+                title: Text(l10n.txnRecyclePermanentDelete, style: TextStyle(color: context.colors.error)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _permanentDeleteSingle(txn);
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _batchRestore() async {
@@ -234,7 +288,6 @@ class _TransactionRecycleBinPageState extends ConsumerState<TransactionRecycleBi
     return AppBar(
       title: Text(l10n.txnRecycleBin),
       actions: [
-        // 排序菜单
         PopupMenuButton<RecycleSortBy>(
           icon: Icon(Icons.sort, color: context.colors.textSecondary),
           onSelected: (v) => setState(() => _sortBy = v),
@@ -244,7 +297,6 @@ class _TransactionRecycleBinPageState extends ConsumerState<TransactionRecycleBi
             PopupMenuItem(value: RecycleSortBy.date, child: Text(l10n.txnRecycleSortByDate)),
           ],
         ),
-        // 进入多选模式
         IconButton(
           icon: Icon(Icons.checklist, color: context.colors.textSecondary),
           onPressed: _filteredTxns.isNotEmpty ? _toggleSelectMode : null,
@@ -330,176 +382,43 @@ class _TransactionRecycleBinPageState extends ConsumerState<TransactionRecycleBi
   }
 
   Widget _buildGroupedList(List<Transaction> txns, AppLocalizations l10n) {
-    final groups = _groupByTime(txns);
-    final groupOrder = ['today', 'week', 'earlier'];
-    final groupLabels = {
-      'today': l10n.txnRecycleGroupToday,
-      'week': l10n.txnRecycleGroupWeek,
-      'earlier': l10n.txnRecycleGroupEarlier,
-    };
+    final grouped = _groupByDate(txns);
+    final dates = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
 
-    return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 80),
-      itemCount: groupOrder.fold<int>(0, (sum, key) => sum + (groups[key]?.length ?? 0) + (groups.containsKey(key) ? 1 : 0)),
-      itemBuilder: (context, index) {
-        var offset = 0;
-        for (final key in groupOrder) {
-          final items = groups[key];
-          if (items == null || items.isEmpty) continue;
-
-          if (index == offset) {
-            return _buildGroupHeader(groupLabels[key]!, items.length);
-          }
-          offset++;
-
-          final itemIndex = index - offset;
-          if (itemIndex < items.length) {
-            return _buildItem(items[itemIndex], l10n);
-          }
-          offset += items.length;
-        }
-        return const SizedBox.shrink();
-      },
-    );
-  }
-
-  Widget _buildGroupHeader(String label, int count) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 10),
-      color: context.colors.surfaceSecondary,
-      child: Row(
-        children: [
-          Text(label, style: context.textStyles.footnote.copyWith(
-            fontWeight: FontWeight.w600,
-            color: context.colors.textPrimary,
-          )),
-          const SizedBox(width: 8),
-          Text('$count', style: context.textStyles.caption.copyWith(color: context.colors.textTertiary)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildItem(Transaction txn, AppLocalizations l10n) {
-    final cat = _categories[txn.categoryId];
-    final isExpense = txn.type == 'expense';
-    final amountColor = isExpense ? context.colors.expense : context.colors.income;
-    final amountSign = isExpense ? '-' : '+';
-    final currency = ref.read(localeProviderOverrideProvider).currency;
-    final dateStr = DateFormat('MM/dd HH:mm').format(txn.transactionDate);
-    final isSelected = _selectedIds.contains(txn.id);
-
-    return Dismissible(
-      key: ValueKey(txn.id),
-      // 左滑 → 恢复
-      background: Container(
-        alignment: Alignment.centerLeft,
-        padding: const EdgeInsets.only(left: 24),
-        color: context.colors.success,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.restore, color: Colors.white, size: 20),
-            const SizedBox(width: 6),
-            Text(l10n.txnRestore, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
-          ],
-        ),
-      ),
-      // 右滑 → 永久删除
-      secondaryBackground: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 24),
-        color: context.colors.error,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(l10n.txnRecyclePermanentDelete, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
-            const SizedBox(width: 6),
-            const Icon(Icons.delete_forever, color: Colors.white, size: 20),
-          ],
-        ),
-      ),
-      confirmDismiss: (direction) async {
-        if (direction == DismissDirection.startToEnd) {
-          await _restoreSingle(txn.id);
-          return false;
-        } else {
-          await _permanentDeleteSingle(txn.id);
-          return false;
-        }
-      },
-      child: GestureDetector(
-        onLongPress: () {
-          if (!_isSelectMode) {
-            setState(() => _isSelectMode = true);
-            _selectedIds.add(txn.id);
-          }
+    return GestureDetector(
+      onLongPress: _isSelectMode ? null : _toggleSelectMode,
+      child: ListView.builder(
+        padding: const EdgeInsets.only(bottom: 80),
+        itemCount: dates.length,
+        itemBuilder: (context, index) {
+          final date = dates[index];
+          final dayTxns = grouped[date]!;
+          return _buildGroup(date, dayTxns);
         },
-        onTap: _isSelectMode ? () => _toggleSelection(txn.id) : null,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 12),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? context.colors.primary.withValues(alpha: 0.08)
-                : context.colors.surface,
-            border: Border(bottom: BorderSide(color: context.colors.separatorOpaque, width: 0.5)),
-          ),
-          child: Row(
-            children: [
-              // 多选勾选框 / 分类图标
-              if (_isSelectMode)
-                Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: Icon(
-                    isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
-                    size: 22,
-                    color: isSelected ? context.colors.primary : context.colors.textTertiary,
-                  ),
-                )
-              else ...[
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: context.colors.primarySurface,
-                    borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-                  ),
-                  child: Center(
-                    child: Text(cat?.icon ?? '📝', style: const TextStyle(fontSize: 20)),
-                  ),
-                ),
-                const SizedBox(width: 12),
-              ],
-              // 信息
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      txn.description.isNotEmpty ? txn.description : (cat?.name ?? ''),
-                      style: context.textStyles.body.copyWith(
-                        fontWeight: FontWeight.w400,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${cat?.name ?? ''} · $dateStr',
-                      style: context.textStyles.caption.copyWith(color: context.colors.textTertiary),
-                    ),
-                  ],
-                ),
-              ),
-              // 金额
-              Text(
-                '$amountSign${currency.formatAmount(txn.amount)}',
-                style: context.textStyles.amountList.copyWith(color: amountColor, fontSize: 16),
-              ),
-            ],
-          ),
-        ),
       ),
+    );
+  }
+
+  Widget _buildGroup(DateTime date, List<Transaction> txns) {
+    // 包装 TransactionGroup，支持多选高亮和长按操作
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 复用 TransactionGroup 的日期头和交易列表
+        TransactionGroup(
+          date: date,
+          transactions: txns,
+          categoryMap: _categoryMap,
+          onDelete: _restoreSingle,
+          onTap: (t) {
+            if (_isSelectMode) {
+              _toggleSelection(t.id);
+            } else {
+              _showItemActions(t);
+            }
+          },
+        ),
+      ],
     );
   }
 
@@ -515,7 +434,6 @@ class _TransactionRecycleBinPageState extends ConsumerState<TransactionRecycleBi
       ),
       child: Row(
         children: [
-          // 恢复按钮
           Expanded(
             child: OutlinedButton.icon(
               onPressed: _batchRestore,
@@ -531,7 +449,6 @@ class _TransactionRecycleBinPageState extends ConsumerState<TransactionRecycleBi
             ),
           ),
           const SizedBox(width: 12),
-          // 永久删除按钮
           Expanded(
             flex: 2,
             child: ElevatedButton.icon(

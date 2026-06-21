@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:intl/intl.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
@@ -90,9 +89,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ),
                 _buildNavRow(l10n.settingsRestoreData, null, () {
                   _showRestoreDialog(l10n);
-                }),
-                _buildNavRow(l10n.txnRecycleBin, null, () {
-                  context.push('/recycle-bin');
                 }),
               ],
             ),

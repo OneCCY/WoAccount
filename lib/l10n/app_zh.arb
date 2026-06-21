@@ -324,7 +324,7 @@
   "bookRecycleBinEmpty": "回收站为空",
   "bookRestore": "恢复",
   "bookRestored": "账本已恢复",
-  "txnRecycleBin": "交易回收站",
+  "txnRecycleBin": "账单回收站",
   "txnRecycleBinEmpty": "回收站为空",
   "txnRestore": "恢复",
   "txnRestored": "交易已恢复",

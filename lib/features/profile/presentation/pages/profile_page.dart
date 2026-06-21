@@ -161,6 +161,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with PageRefreshMixin
                       _MenuItem(Icons.lock_outline, l10n.profileMenuPasswordLock),
                       _MenuItem(Icons.monetization_on_outlined, l10n.profileMenuAcCoins),
                       _MenuItem(Icons.smart_toy_outlined, l10n.profileMenuAiConfig),
+                      _MenuItem(Icons.delete_outline, l10n.txnRecycleBin),
                       _MenuItem(Icons.chat_bubble_outline, l10n.profileMenuFeedback),
                     ],
                   ),
@@ -613,6 +614,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with PageRefreshMixin
       context.push('/ac-coins');
     } else if (label == l10n.profileMenuAiConfig) {
       context.push('/settings/llm');
+    } else if (label == l10n.txnRecycleBin) {
+      context.push('/recycle-bin');
     } else if (label == l10n.profileMenuDataBackup ||
         label == l10n.profileMenuImport ||
         label == l10n.profileMenuExport ||

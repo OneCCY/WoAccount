@@ -1755,7 +1755,7 @@ abstract class AppLocalizations {
   /// No description provided for @txnRecycleBin.
   ///
   /// In zh, this message translates to:
-  /// **'交易回收站'**
+  /// **'账单回收站'**
   String get txnRecycleBin;
 
   /// No description provided for @txnRecycleBinEmpty.
