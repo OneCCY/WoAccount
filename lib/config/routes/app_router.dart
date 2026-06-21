@@ -134,7 +134,7 @@ class AppRouter {
           return BudgetTransactionPage(
             categoryId: int.parse(params['categoryId']!),
             categoryName: Uri.decodeComponent(params['categoryName'] ?? ''),
-            categoryIcon: params['categoryIcon'] ?? '📦',
+            categoryIcon: (params['categoryIcon']?.isNotEmpty == true) ? Uri.decodeComponent(params['categoryIcon']!) : '📦',
             year: int.parse(params['year']!),
             month: int.parse(params['month']!),
           );
