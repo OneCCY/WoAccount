@@ -1122,6 +1122,12 @@ abstract class AppLocalizations {
   /// **'导入将覆盖当前所有数据，确定继续吗？'**
   String get profileImportConfirm;
 
+  /// No description provided for @profileImportNoBackup.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有找到备份文件'**
+  String get profileImportNoBackup;
+
   /// No description provided for @profileImportSuccess.
   ///
   /// In zh, this message translates to:

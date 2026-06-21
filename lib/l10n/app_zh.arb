@@ -199,6 +199,7 @@
   "profileExportFailed": "导出失败: {error}",
   "@profileExportFailed": { "placeholders": { "error": { "type": "String" } } },
   "profileImportConfirm": "导入将覆盖当前所有数据，确定继续吗？",
+  "profileImportNoBackup": "没有找到备份文件",
   "profileImportSuccess": "导入成功",
   "profileImportFailed": "导入失败: {error}",
   "@profileImportFailed": { "placeholders": { "error": { "type": "String" } } },

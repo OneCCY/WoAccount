@@ -199,6 +199,7 @@
   "profileExportFailed": "Export failed: {error}",
   "@profileExportFailed": { "placeholders": { "error": { "type": "String" } } },
   "profileImportConfirm": "Importing will overwrite all current data. Continue?",
+  "profileImportNoBackup": "No backup files found",
   "profileImportSuccess": "Import successful",
   "profileImportFailed": "Import failed: {error}",
   "@profileImportFailed": { "placeholders": { "error": { "type": "String" } } },

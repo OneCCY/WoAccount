@@ -13,7 +13,6 @@ import '../widgets/amount_edit_sheet.dart';
 import '../widgets/datetime_edit_sheet.dart';
 import '../widgets/category_picker_sheet.dart';
 import '../widgets/note_edit_sheet.dart';
-import '../widgets/tag_picker_sheet.dart';
 import '../../../../core/widgets/toast.dart';
 import '../../../../core/widgets/page_refresh_mixin.dart';
 
@@ -51,10 +50,6 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
   late String _description;
   String? _originalInput;
 
-  // 标签状态
-  List<int> _selectedTagIds = [];
-  List<Tag> _allTags = [];
-
   @override
   void initState() {
     super.initState();
@@ -64,7 +59,6 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
   Future<void> _loadData() async {
     final txnRepo = ref.read(transactionRepositoryProvider);
     final catRepo = ref.read(categoryRepositoryProvider);
-    final tagRepo = ref.read(tagRepositoryProvider);
 
     final txn = await txnRepo.getById(widget.transactionId);
     if (txn == null) {
@@ -77,10 +71,6 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
     if (cat?.parentId != null) {
       parent = await catRepo.getById(cat!.parentId!);
     }
-
-    // 加载标签数据
-    final txnTags = await tagRepo.getTagsForTransaction(widget.transactionId);
-    final allTags = await tagRepo.getAll(txn.accountBookId);
 
     if (mounted) {
       setState(() {
@@ -96,8 +86,6 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
         _transactionDate = txn.transactionDate;
         _description = txn.description;
         _originalInput = txn.originalInput;
-        _selectedTagIds = txnTags.map((t) => t.id).toList();
-        _allTags = allTags;
         _isLoading = false;
       });
     }
@@ -132,10 +120,6 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
 
     final success = await repo.update(companion);
     if (success && mounted) {
-      // 保存标签关联
-      final tagRepo = ref.read(tagRepositoryProvider);
-      await tagRepo.setTransactionTags(widget.transactionId, _selectedTagIds);
-
       AppToast.show(context, AppLocalizations.of(context)!.txnDetailSaved, duration: const Duration(seconds: 1));
       Navigator.of(context).pop(true);
     }
@@ -233,23 +217,6 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
         _note = result.isNotEmpty ? result : null;
         _isDirty = true;
       });
-    }
-  }
-
-  Future<void> _editTags() async {
-    final result = await TagPickerSheet.show(context, selectedTagIds: _selectedTagIds);
-    if (result != null && mounted) {
-      setState(() {
-        _selectedTagIds = result;
-        _isDirty = true;
-      });
-      // 刷新标签列表（可能有新建的标签）
-      final tagRepo = ref.read(tagRepositoryProvider);
-      final txn = _transaction;
-      if (txn != null) {
-        final allTags = await tagRepo.getAll(txn.accountBookId);
-        if (mounted) setState(() => _allTags = allTags);
-      }
     }
   }
 
@@ -554,7 +521,6 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
             valueColor: (_note == null || _note!.isEmpty) ? context.colors.textHint : null,
             onTap: _editNote,
           ),
-          _buildTagRow(l10n),
           _buildFormRow(
             icon: _getPayMethodIcon(_payMethod),
             iconColor: context.colors.textSecondary,
@@ -601,60 +567,6 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            const SizedBox(width: 4),
-            Icon(Icons.chevron_right, size: 18, color: context.colors.textTertiary),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// 标签行（特殊布局：显示标签色块列表）
-  Widget _buildTagRow(AppLocalizations l10n) {
-    final selectedTags = _allTags.where((t) => _selectedTagIds.contains(t.id)).toList();
-    final hasNoTags = selectedTags.isEmpty;
-
-    return InkWell(
-      onTap: _editTags,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: context.colors.separatorOpaque, width: 0.5)),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.label_outline, size: 20, color: context.colors.primary),
-            const SizedBox(width: 12),
-            Text(l10n.txnDetailTags, style: context.textStyles.body),
-            const Spacer(),
-            if (hasNoTags)
-              Text(
-                l10n.txnDetailAddTagHint,
-                style: context.textStyles.footnote.copyWith(color: context.colors.textHint),
-              )
-            else
-              Flexible(
-                child: Wrap(
-                  spacing: 4,
-                  runSpacing: 4,
-                  alignment: WrapAlignment.end,
-                  children: selectedTags.map((tag) {
-                    final color = _parseColor(tag.color);
-                    return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(AppDimensions.radiusRound),
-                        border: Border.all(color: color.withValues(alpha: 0.3), width: 0.5),
-                      ),
-                      child: Text(
-                        tag.name,
-                        style: context.textStyles.caption.copyWith(color: color, fontWeight: FontWeight.w500),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
             const SizedBox(width: 4),
             Icon(Icons.chevron_right, size: 18, color: context.colors.textTertiary),
           ],

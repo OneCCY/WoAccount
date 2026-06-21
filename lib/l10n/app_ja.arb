@@ -199,6 +199,7 @@
   "profileExportFailed": "エクスポート失敗: {error}",
   "@profileExportFailed": { "placeholders": { "error": { "type": "String" } } },
   "profileImportConfirm": "インポートすると現在のデータが上書きされます。続行しますか？",
+  "profileImportNoBackup": "バックアップファイルが見つかりません",
   "profileImportSuccess": "インポート成功",
   "profileImportFailed": "インポート失敗: {error}",
   "@profileImportFailed": { "placeholders": { "error": { "type": "String" } } },

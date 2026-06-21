@@ -567,6 +567,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get profileImportConfirm => '가져오면 현재 데이터를 덮어씁니다. 계속하시겠습니까?';
 
   @override
+  String get profileImportNoBackup => '백업 파일을 찾을 수 없습니다';
+
+  @override
   String get profileImportSuccess => '가져오기 성공';
 
   @override

@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.woaccount.wo_account"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

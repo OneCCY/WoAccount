@@ -576,6 +576,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Importing will overwrite all current data. Continue?';
 
   @override
+  String get profileImportNoBackup => 'No backup files found';
+
+  @override
   String get profileImportSuccess => 'Import successful';
 
   @override

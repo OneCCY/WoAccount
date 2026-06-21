@@ -565,6 +565,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get profileImportConfirm => 'インポートすると現在のデータが上書きされます。続行しますか？';
 
   @override
+  String get profileImportNoBackup => 'バックアップファイルが見つかりません';
+
+  @override
   String get profileImportSuccess => 'インポート成功';
 
   @override

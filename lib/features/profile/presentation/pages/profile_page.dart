@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:wo_account/l10n/app_localizations.dart';
@@ -545,22 +544,40 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with PageRefreshMixin
     }
   }
 
-  /// 导入数据库：从文件选择器选择备份文件并替换
+  /// 导入数据库：从备份目录选择备份文件并替换
   Future<void> _importDatabase(AppLocalizations l10n) async {
     try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['sqlite', 'db'],
-      );
-      if (result == null || result.files.isEmpty) return;
+      final docDir = await getApplicationDocumentsDirectory();
+      final backupFiles = docDir.listSync()
+          .whereType<File>()
+          .where((f) => f.path.endsWith('.sqlite') && f.path.contains('backup'))
+          .toList()
+        ..sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
 
-      final pickedFile = result.files.first;
-      final sourcePath = pickedFile.path;
-      if (sourcePath == null) {
-        if (mounted) AppToast.show(context, l10n.profileImportFailed(''));
+      if (backupFiles.isEmpty || !mounted) {
+        if (mounted) AppToast.show(context, l10n.profileImportNoBackup);
         return;
       }
 
+      // 弹出备份文件选择列表
+      if (!mounted) return;
+      final selected = await showDialog<File>(
+        context: context,
+        builder: (ctx) => SimpleDialog(
+          title: Text(l10n.profileMenuImport),
+          children: backupFiles.take(10).map((f) {
+            final name = p.basename(f.path);
+            final size = (f.lengthSync() / 1024).toStringAsFixed(1);
+            return SimpleDialogOption(
+              onPressed: () => Navigator.pop(ctx, f),
+              child: Text('$name ($size KB)'),
+            );
+          }).toList(),
+        ),
+      );
+      if (selected == null) return;
+
+      // 确认导入
       if (!mounted) return;
       final confirmed = await showDialog<bool>(
         context: context,
@@ -579,7 +596,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with PageRefreshMixin
       if (confirmed != true) return;
 
       final dbPath = await _getDbPath();
-      await File(sourcePath).copy(dbPath);
+      await selected.copy(dbPath);
 
       if (mounted) {
         AppToast.show(context, l10n.profileImportSuccess);

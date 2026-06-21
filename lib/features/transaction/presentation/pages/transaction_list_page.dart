@@ -37,7 +37,6 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
   // 筛选和排序
   String? _filterType; // null=全部, 'expense', 'income'
   SortType _sortType = SortType.time;
-  int? _filterTagId; // null=不按标签筛选
 
   // 刷新key
   int _refreshKey = 0;
@@ -46,7 +45,6 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
   final _dayScrollController = ScrollController();
   List<Transaction> _allTransactions = [];
   Map<int, Category> _dayCatMap = {};
-  Map<int, List<Tag>> _dayTagMap = {};
   static const _pageSize = 20;
   bool _isLoadingMore = false;
   bool _hasMore = true;

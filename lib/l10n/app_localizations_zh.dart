@@ -565,6 +565,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get profileImportConfirm => '导入将覆盖当前所有数据，确定继续吗？';
 
   @override
+  String get profileImportNoBackup => '没有找到备份文件';
+
+  @override
   String get profileImportSuccess => '导入成功';
 
   @override
@@ -3142,6 +3145,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get profileImportConfirm => '匯入將覆蓋所有現有資料，確定繼續嗎？';
+
+  @override
+  String get profileImportNoBackup => '沒有找到備份檔案';
 
   @override
   String get profileImportSuccess => '匯入成功';

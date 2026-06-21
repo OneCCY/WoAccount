@@ -199,6 +199,7 @@
   "profileExportFailed": "匯出失敗: {error}",
   "@profileExportFailed": { "placeholders": { "error": { "type": "String" } } },
   "profileImportConfirm": "匯入將覆蓋所有現有資料，確定繼續嗎？",
+  "profileImportNoBackup": "沒有找到備份檔案",
   "profileImportSuccess": "匯入成功",
   "profileImportFailed": "匯入失敗: {error}",
   "@profileImportFailed": { "placeholders": { "error": { "type": "String" } } },
