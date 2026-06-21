@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../core/locale/locale_provider.dart';
+import '../../../../core/locale/category_l10n.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/toast.dart';
-import '../../../transaction/presentation/widgets/transaction_group.dart';
 
 /// 排序方式
-enum RecycleSortBy { deleteTime, amount, date }
+enum RecycleSortBy { date, amount, deleteTime }
 
 /// 类型筛选
 enum RecycleFilterType { all, expense, income }
@@ -29,11 +31,9 @@ class _TransactionRecycleBinPageState extends ConsumerState<TransactionRecycleBi
   Map<int, Category> _categoryMap = {};
   bool _isLoading = true;
 
-  // 筛选与排序
-  RecycleSortBy _sortBy = RecycleSortBy.deleteTime;
+  RecycleSortBy _sortBy = RecycleSortBy.date;
   RecycleFilterType _filterType = RecycleFilterType.all;
 
-  // 多选模式
   bool _isSelectMode = false;
   final Set<int> _selectedIds = {};
 
@@ -70,7 +70,6 @@ class _TransactionRecycleBinPageState extends ConsumerState<TransactionRecycleBi
     }
   }
 
-  /// 筛选 + 排序后的交易列表
   List<Transaction> get _filteredTxns {
     var list = _allTxns.where((t) {
       switch (_filterType) {
@@ -84,30 +83,38 @@ class _TransactionRecycleBinPageState extends ConsumerState<TransactionRecycleBi
     }).toList();
 
     switch (_sortBy) {
-      case RecycleSortBy.deleteTime:
-        list.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-      case RecycleSortBy.amount:
-        list.sort((a, b) => b.amount.compareTo(a.amount));
       case RecycleSortBy.date:
         list.sort((a, b) => b.transactionDate.compareTo(a.transactionDate));
+      case RecycleSortBy.amount:
+        list.sort((a, b) => b.amount.compareTo(a.amount));
+      case RecycleSortBy.deleteTime:
+        list.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
     }
     return list;
   }
 
-  /// 按删除日期分组
+  /// 按交易日期分组
   Map<DateTime, List<Transaction>> _groupByDate(List<Transaction> txns) {
     final map = <DateTime, List<Transaction>>{};
     for (final t in txns) {
-      final d = t.updatedAt;
+      final d = t.transactionDate;
       final dateKey = DateTime(d.year, d.month, d.day);
       map.putIfAbsent(dateKey, () => []).add(t);
     }
     return map;
   }
 
+  String _getWeekday(DateTime date, AppLocalizations l10n) {
+    final weekdays = [
+      l10n.weekMonFull, l10n.weekTueFull, l10n.weekWedFull,
+      l10n.weekThuFull, l10n.weekFriFull, l10n.weekSatFull, l10n.weekSunFull,
+    ];
+    return weekdays[date.weekday - 1];
+  }
+
   // ==================== 操作 ====================
 
-  Future<bool> _restoreSingle(int id) async {
+  Future<void> _restoreSingle(int id) async {
     final txnRepo = ref.read(transactionRepositoryProvider);
     final success = await txnRepo.restore(id);
     if (success && mounted) {
@@ -115,79 +122,26 @@ class _TransactionRecycleBinPageState extends ConsumerState<TransactionRecycleBi
       _selectedIds.remove(id);
       await _loadData();
     }
-    return success;
   }
 
-  Future<void> _permanentDeleteSingle(Transaction txn) async {
+  Future<void> _permanentDeleteSingle(int id) async {
     final l10n = AppLocalizations.of(context)!;
-    final confirmed = await _confirmPermanentDelete(l10n);
+    final confirmed = await _confirmDialog(l10n);
     if (confirmed != true) return;
 
     final txnRepo = ref.read(transactionRepositoryProvider);
-    final success = await txnRepo.permanentDelete(txn.id);
+    final success = await txnRepo.permanentDelete(id);
     if (success && mounted) {
       AppToast.show(context, l10n.txnRecycleBatchDeleted(1));
-      _selectedIds.remove(txn.id);
+      _selectedIds.remove(id);
       await _loadData();
     }
   }
 
-  void _showItemActions(Transaction txn) {
-    final l10n = AppLocalizations.of(context)!;
-    final currency = ref.read(localeProviderOverrideProvider).currency;
-    final isExpense = txn.type == 'expense';
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        decoration: BoxDecoration(
-          color: context.colors.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-        ),
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(width: 36, height: 4, margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(color: context.colors.textTertiary.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2))),
-              // 交易信息
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Text(
-                  '${txn.description}  ${isExpense ? "-" : "+"}${currency.formatAmount(txn.amount)}',
-                  style: context.textStyles.body.copyWith(fontWeight: FontWeight.w500),
-                ),
-              ),
-              const Divider(height: 1),
-              ListTile(
-                leading: Icon(Icons.restore, color: context.colors.success),
-                title: Text(l10n.txnRestore),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _restoreSingle(txn.id);
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.delete_forever, color: context.colors.error),
-                title: Text(l10n.txnRecyclePermanentDelete, style: TextStyle(color: context.colors.error)),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _permanentDeleteSingle(txn);
-                },
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Future<void> _batchRestore() async {
+    final ids = _selectedIds.toList();
     final txnRepo = ref.read(transactionRepositoryProvider);
-    final count = await txnRepo.restoreBatch(_selectedIds.toList());
+    final count = await txnRepo.restoreBatch(ids);
     if (mounted) {
       AppToast.show(context, AppLocalizations.of(context)!.txnRecycleBatchRestored(count));
       _exitSelectMode();
@@ -197,11 +151,12 @@ class _TransactionRecycleBinPageState extends ConsumerState<TransactionRecycleBi
 
   Future<void> _batchPermanentDelete() async {
     final l10n = AppLocalizations.of(context)!;
-    final confirmed = await _confirmPermanentDelete(l10n);
+    final confirmed = await _confirmDialog(l10n);
     if (confirmed != true) return;
 
+    final ids = _selectedIds.toList();
     final txnRepo = ref.read(transactionRepositoryProvider);
-    final count = await txnRepo.permanentDeleteBatch(_selectedIds.toList());
+    final count = await txnRepo.permanentDeleteBatch(ids);
     if (mounted) {
       AppToast.show(context, l10n.txnRecycleBatchDeleted(count));
       _exitSelectMode();
@@ -209,7 +164,7 @@ class _TransactionRecycleBinPageState extends ConsumerState<TransactionRecycleBi
     }
   }
 
-  Future<bool?> _confirmPermanentDelete(AppLocalizations l10n) {
+  Future<bool?> _confirmDialog(AppLocalizations l10n) {
     return showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -292,9 +247,9 @@ class _TransactionRecycleBinPageState extends ConsumerState<TransactionRecycleBi
           icon: Icon(Icons.sort, color: context.colors.textSecondary),
           onSelected: (v) => setState(() => _sortBy = v),
           itemBuilder: (_) => [
-            PopupMenuItem(value: RecycleSortBy.deleteTime, child: Text(l10n.txnRecycleSortByDeleteTime)),
-            PopupMenuItem(value: RecycleSortBy.amount, child: Text(l10n.txnRecycleSortByAmount)),
             PopupMenuItem(value: RecycleSortBy.date, child: Text(l10n.txnRecycleSortByDate)),
+            PopupMenuItem(value: RecycleSortBy.amount, child: Text(l10n.txnRecycleSortByAmount)),
+            PopupMenuItem(value: RecycleSortBy.deleteTime, child: Text(l10n.txnRecycleSortByDeleteTime)),
           ],
         ),
         IconButton(
@@ -311,10 +266,7 @@ class _TransactionRecycleBinPageState extends ConsumerState<TransactionRecycleBi
 
   PreferredSizeWidget _buildSelectAppBar(AppLocalizations l10n) {
     return AppBar(
-      leading: IconButton(
-        icon: const Icon(Icons.close),
-        onPressed: _exitSelectMode,
-      ),
+      leading: IconButton(icon: const Icon(Icons.close), onPressed: _exitSelectMode),
       title: Text(l10n.txnRecycleSelected(_selectedIds.length)),
       actions: [
         TextButton(
@@ -343,20 +295,20 @@ class _TransactionRecycleBinPageState extends ConsumerState<TransactionRecycleBi
       color: context.colors.surface,
       child: Row(
         children: options.map((opt) {
-          final isSelected = _filterType == opt.$1;
+          final selected = _filterType == opt.$1;
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: FilterChip(
               label: Text(opt.$2, style: TextStyle(
                 fontSize: 13,
-                color: isSelected ? context.colors.primary : context.colors.textSecondary,
+                color: selected ? context.colors.primary : context.colors.textSecondary,
               )),
-              selected: isSelected,
+              selected: selected,
               onSelected: (_) => setState(() => _filterType = opt.$1),
               selectedColor: context.colors.primarySurface,
               backgroundColor: context.colors.surface,
               side: BorderSide(
-                color: isSelected ? context.colors.primary.withValues(alpha: 0.3) : context.colors.separatorOpaque,
+                color: selected ? context.colors.primary.withValues(alpha: 0.3) : context.colors.separatorOpaque,
               ),
               showCheckmark: false,
               padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -381,44 +333,202 @@ class _TransactionRecycleBinPageState extends ConsumerState<TransactionRecycleBi
     );
   }
 
+  // ==================== 列表 ====================
+
   Widget _buildGroupedList(List<Transaction> txns, AppLocalizations l10n) {
     final grouped = _groupByDate(txns);
     final dates = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
 
-    return GestureDetector(
-      onLongPress: _isSelectMode ? null : _toggleSelectMode,
-      child: ListView.builder(
-        padding: const EdgeInsets.only(bottom: 80),
-        itemCount: dates.length,
-        itemBuilder: (context, index) {
-          final date = dates[index];
-          final dayTxns = grouped[date]!;
-          return _buildGroup(date, dayTxns);
-        },
-      ),
+    return ListView.builder(
+      padding: const EdgeInsets.only(bottom: 80),
+      itemCount: dates.length,
+      itemBuilder: (context, index) {
+        final date = dates[index];
+        final dayTxns = grouped[date]!;
+        return _buildDayGroup(date, dayTxns, l10n);
+      },
     );
   }
 
-  Widget _buildGroup(DateTime date, List<Transaction> txns) {
-    // 包装 TransactionGroup，支持多选高亮和长按操作
+  Widget _buildDayGroup(DateTime date, List<Transaction> txns, AppLocalizations l10n) {
+    final currency = ref.read(localeProviderOverrideProvider).currency;
+    double totalExpense = 0;
+    double totalIncome = 0;
+    for (final t in txns) {
+      if (t.type == 'expense') totalExpense += t.amount;
+      else totalIncome += t.amount;
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 复用 TransactionGroup 的日期头和交易列表
-        TransactionGroup(
-          date: date,
-          transactions: txns,
-          categoryMap: _categoryMap,
-          onDelete: _restoreSingle,
-          onTap: (t) {
-            if (_isSelectMode) {
-              _toggleSelection(t.id);
-            } else {
-              _showItemActions(t);
-            }
-          },
+        // 日期头 — 与 TransactionGroup 一致
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 10),
+          color: context.colors.surfaceSecondary,
+          child: Row(
+            children: [
+              Text(
+                '${DateFormat(l10n.txnDayFormat).format(date)} ${_getWeekday(date, l10n)}',
+                style: context.textStyles.footnote.copyWith(
+                  fontWeight: FontWeight.w600, color: context.colors.textPrimary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              if (totalExpense > 0)
+                Text(l10n.txnGroupExpenseLabel(currency.formatAmount(totalExpense)),
+                  style: context.textStyles.caption.copyWith(color: context.colors.expense)),
+              if (totalExpense > 0 && totalIncome > 0) const SizedBox(width: 8),
+              if (totalIncome > 0)
+                Text(l10n.txnGroupIncomeLabel(currency.formatAmount(totalIncome)),
+                  style: context.textStyles.caption.copyWith(color: context.colors.income)),
+            ],
+          ),
         ),
+        // 交易列表
+        ...txns.map((t) => _buildItem(t, l10n)),
       ],
+    );
+  }
+
+  Widget _buildItem(Transaction txn, AppLocalizations l10n) {
+    final cat = _categoryMap[txn.categoryId];
+    final parentCat = txn.parentCategoryId != null ? _categoryMap[txn.parentCategoryId] : null;
+    final catName = cat != null ? getCategoryDisplayName(cat, l10n) : l10n.txnGroupUncategorized;
+    final parentCatName = parentCat != null ? getCategoryDisplayName(parentCat, l10n) : null;
+    final catDisplay = parentCatName != null ? '$parentCatName > $catName' : catName;
+
+    final isExpense = txn.type == 'expense';
+    final amountColor = isExpense ? context.colors.expense : context.colors.income;
+    final currency = ref.read(localeProviderOverrideProvider).currency;
+    final timeStr = DateFormat('HH:mm').format(txn.transactionDate);
+    final deleteTimeStr = DateFormat('MM/dd HH:mm').format(txn.updatedAt);
+    final isSelected = _selectedIds.contains(txn.id);
+
+    return Dismissible(
+      key: ValueKey(txn.id),
+      // 左滑 → 恢复
+      background: Container(
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.only(left: 24),
+        color: context.colors.success,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.restore, color: Colors.white, size: 20),
+            const SizedBox(width: 6),
+            Text(l10n.txnRestore, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+          ],
+        ),
+      ),
+      // 右滑 → 永久删除
+      secondaryBackground: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 24),
+        color: context.colors.error,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(l10n.txnRecyclePermanentDelete, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+            const SizedBox(width: 6),
+            const Icon(Icons.delete_forever, color: Colors.white, size: 20),
+          ],
+        ),
+      ),
+      confirmDismiss: (direction) async {
+        if (direction == DismissDirection.startToEnd) {
+          await _restoreSingle(txn.id);
+        } else {
+          await _permanentDeleteSingle(txn.id);
+        }
+        return false;
+      },
+      child: GestureDetector(
+        onTap: () {
+          if (_isSelectMode) {
+            _toggleSelection(txn.id);
+          } else {
+            context.push('/recycle-bin/detail/${txn.id}');
+          }
+        },
+        onLongPress: _isSelectMode ? null : _toggleSelectMode,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 10),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? context.colors.primary.withValues(alpha: 0.08)
+                : context.colors.surface,
+            border: Border(bottom: BorderSide(color: context.colors.separatorOpaque, width: 0.5)),
+          ),
+          child: Row(
+            children: [
+              // 多选勾选框 / 分类图标
+              if (_isSelectMode)
+                Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: Icon(
+                    isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
+                    size: 22,
+                    color: isSelected ? context.colors.primary : context.colors.textTertiary,
+                  ),
+                )
+              else ...[
+                Container(
+                  width: AppDimensions.categoryIconSize,
+                  height: AppDimensions.categoryIconSize,
+                  decoration: BoxDecoration(
+                    color: (cat != null ? _parseColor(cat.color) : context.colors.textTertiary).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                  ),
+                  child: Center(
+                    child: cat?.icon != null
+                        ? Text(cat!.icon!, style: const TextStyle(fontSize: 20))
+                        : Icon(Icons.more_horiz, size: 20, color: context.colors.textPrimary),
+                  ),
+                ),
+                const SizedBox(width: 12),
+              ],
+              // 信息
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      txn.note?.isNotEmpty == true ? txn.note! : txn.description,
+                      style: context.textStyles.body.copyWith(
+                        fontWeight: txn.note?.isNotEmpty == true ? FontWeight.w500 : FontWeight.w400,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '$timeStr · $catDisplay',
+                      style: context.textStyles.caption,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      '${l10n.txnRecycleSortByDeleteTime} $deleteTimeStr',
+                      style: context.textStyles.caption.copyWith(
+                        color: context.colors.textTertiary,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // 金额
+              Text(
+                currency.formatWithSign(txn.amount, isExpense),
+                style: context.textStyles.amountList.copyWith(color: amountColor),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -442,9 +552,7 @@ class _TransactionRecycleBinPageState extends ConsumerState<TransactionRecycleBi
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 side: BorderSide(color: context.colors.success.withValues(alpha: 0.3)),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
               ),
             ),
           ),
@@ -458,14 +566,18 @@ class _TransactionRecycleBinPageState extends ConsumerState<TransactionRecycleBi
               style: ElevatedButton.styleFrom(
                 backgroundColor: context.colors.error,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
               ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  Color _parseColor(String? hex) {
+    if (hex == null || hex.isEmpty) return context.colors.textTertiary;
+    final clean = hex.replaceFirst('#', '');
+    return Color(int.parse('FF$clean', radix: 16));
   }
 }

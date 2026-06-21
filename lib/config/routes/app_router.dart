@@ -192,6 +192,15 @@ class AppRouter {
       GoRoute(
         path: '/recycle-bin',
         builder: (context, state) => const TransactionRecycleBinPage(),
+        routes: [
+          GoRoute(
+            path: 'detail/:id',
+            builder: (context, state) => TransactionDetailPage(
+              transactionId: int.parse(state.pathParameters['id']!),
+              readOnly: true,
+            ),
+          ),
+        ],
       ),
       // 报表分析
       GoRoute(
