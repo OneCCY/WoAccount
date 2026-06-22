@@ -714,18 +714,29 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
 
     final updated = provider.copyWith(models: newModels);
     await LlmConfigManager.updateProvider(updated);
-    // 设为当前使用中的服务商
-    await LlmConfigManager.setActiveProviderId(provider.id);
 
     if (mounted) {
       setState(() {
         _entries[provider.id]!.selectedModel = model;
-        _activeId = provider.id;
         // 更新本地 provider 列表
         final idx = _providers.indexWhere((p) => p.id == provider.id);
         if (idx != -1) _providers[idx] = updated;
       });
       AppToast.show(context, AppLocalizations.of(context)!.llmModelSet(widget.capability.label, provider.name, model));
+    }
+  }
+
+  Future<void> _activateProvider(LlmProvider provider) async {
+    await LlmConfigManager.setActiveProviderId(provider.id);
+    if (mounted) {
+      setState(() {
+        _activeId = provider.id;
+      });
+      AppToast.show(context, AppLocalizations.of(context)!.llmModelSet(
+        widget.capability.getLocalizedLabel(AppLocalizations.of(context)!),
+        provider.name,
+        provider.getModelForCapability(widget.capability) ?? '',
+      ));
     }
   }
 
@@ -935,74 +946,77 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
     final entry = _entries[provider.id];
     final hasModels = entry != null && entry.fetchedModels.isNotEmpty;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: context.colors.surface,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-        border: isActive ? Border.all(color: context.colors.primary, width: 1.5) : null,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 服务商名称行 + 连接状态
-            Row(
-              children: [
-                Text(preset?.icon ?? '🤖', style: const TextStyle(fontSize: 20)),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    provider.name.isEmpty ? AppLocalizations.of(context)!.llmUnnamedProvider : provider.name,
-                    style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600, fontSize: 15),
-                  ),
-                ),
-                if (entry != null) _buildConnectionStatusIndicator(entry),
-                if (isActive) ...[
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: context.colors.primarySurface,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(AppLocalizations.of(context)!.llmInUse, style: AppTextStyles.caption.copyWith(color: context.colors.primary, fontSize: 11)),
-                  ),
-                ],
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // 模型选择下拉 + 获取按钮
-            if (entry != null) ...[
+    return GestureDetector(
+      onTap: () => _activateProvider(provider),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: context.colors.surface,
+          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+          border: isActive ? Border.all(color: context.colors.primary, width: 1.5) : null,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 服务商名称行 + 连接状态
               Row(
                 children: [
-                  Expanded(child: _buildModelDropdown(provider, entry, hasModels)),
+                  Text(preset?.icon ?? '🤖', style: const TextStyle(fontSize: 20)),
                   const SizedBox(width: 8),
-                  SizedBox(
-                    height: 44,
-                    child: ElevatedButton.icon(
-                      onPressed: entry.isLoading ? null : () => _fetchModelsForProvider(provider),
-                      icon: entry.isLoading
-                          ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                          : const Icon(Icons.sync, size: 16),
-                      label: Text(AppLocalizations.of(context)!.llmFetch, style: TextStyle(fontSize: 13)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: context.colors.primary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                      ),
+                  Expanded(
+                    child: Text(
+                      provider.name.isEmpty ? AppLocalizations.of(context)!.llmUnnamedProvider : provider.name,
+                      style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600, fontSize: 15),
                     ),
                   ),
+                  if (entry != null) _buildConnectionStatusIndicator(entry),
+                  if (isActive) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: context.colors.primarySurface,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(AppLocalizations.of(context)!.llmInUse, style: AppTextStyles.caption.copyWith(color: context.colors.primary, fontSize: 11)),
+                    ),
+                  ],
                 ],
               ),
-              const SizedBox(height: 10),
-              // 检测连接 + 自动检测间隔
-              _buildConnectionCheckRow(provider, entry),
+              const SizedBox(height: 12),
+
+              // 模型选择下拉 + 获取按钮
+              if (entry != null) ...[
+                Row(
+                  children: [
+                    Expanded(child: _buildModelDropdown(provider, entry, hasModels)),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      height: 44,
+                      child: ElevatedButton.icon(
+                        onPressed: entry.isLoading ? null : () => _fetchModelsForProvider(provider),
+                        icon: entry.isLoading
+                            ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                            : const Icon(Icons.sync, size: 16),
+                        label: Text(AppLocalizations.of(context)!.llmFetch, style: TextStyle(fontSize: 13)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: context.colors.primary,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                // 检测连接 + 自动检测间隔
+                _buildConnectionCheckRow(provider, entry),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
