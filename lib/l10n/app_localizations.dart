@@ -5033,6 +5033,18 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'AI 解析失败'**
   String get searchParsingFailed;
+
+  /// No description provided for @llmSupplierManagement.
+  ///
+  /// In zh, this message translates to:
+  /// **'服务商管理'**
+  String get llmSupplierManagement;
+
+  /// No description provided for @llmModelManagement.
+  ///
+  /// In zh, this message translates to:
+  /// **'模型管理'**
+  String get llmModelManagement;
 }
 
 class _AppLocalizationsDelegate

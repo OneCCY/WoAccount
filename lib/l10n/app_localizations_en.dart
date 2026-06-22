@@ -2684,4 +2684,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchParsingFailed => 'AI parsing failed';
+
+  @override
+  String get llmSupplierManagement => 'Supplier Management';
+
+  @override
+  String get llmModelManagement => 'Model Management';
 }

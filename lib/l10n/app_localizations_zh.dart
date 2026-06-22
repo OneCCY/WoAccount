@@ -2628,6 +2628,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get searchParsingFailed => 'AI 解析失败';
+
+  @override
+  String get llmSupplierManagement => '服务商管理';
+
+  @override
+  String get llmModelManagement => '模型管理';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -5254,4 +5260,10 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get searchParsingFailed => 'AI 解析失敗';
+
+  @override
+  String get llmSupplierManagement => '服務商管理';
+
+  @override
+  String get llmModelManagement => '模型管理';
 }

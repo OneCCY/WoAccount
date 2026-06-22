@@ -930,5 +930,7 @@
   "searchModeKeyword": "Keyword",
   "searchModeAi": "AI Search",
   "searchKeywordPlaceholder": "Search description, notes, amount...",
-  "searchParsingFailed": "AI parsing failed"
+  "searchParsingFailed": "AI parsing failed",
+  "llmSupplierManagement": "Supplier Management",
+  "llmModelManagement": "Model Management"
 }

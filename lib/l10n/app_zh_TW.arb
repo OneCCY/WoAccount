@@ -925,5 +925,7 @@
   "searchModeKeyword": "關鍵詞",
   "searchModeAi": "AI 搜尋",
   "searchKeywordPlaceholder": "搜尋描述、備註、金額...",
-  "searchParsingFailed": "AI 解析失敗"
+  "searchParsingFailed": "AI 解析失敗",
+  "llmSupplierManagement": "服務商管理",
+  "llmModelManagement": "模型管理"
 }

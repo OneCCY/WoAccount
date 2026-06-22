@@ -925,5 +925,7 @@
   "searchModeKeyword": "キーワード",
   "searchModeAi": "AI検索",
   "searchKeywordPlaceholder": "説明・メモ・金額を検索...",
-  "searchParsingFailed": "AI解析失敗"
+  "searchParsingFailed": "AI解析失敗",
+  "llmSupplierManagement": "サプライヤー管理",
+  "llmModelManagement": "モデル管理"
 }

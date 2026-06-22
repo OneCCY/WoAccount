@@ -931,5 +931,7 @@
   "searchModeKeyword": "关键词",
   "searchModeAi": "AI 搜索",
   "searchKeywordPlaceholder": "搜索描述、备注、金额...",
-  "searchParsingFailed": "AI 解析失败"
+  "searchParsingFailed": "AI 解析失败",
+  "llmSupplierManagement": "服务商管理",
+  "llmModelManagement": "模型管理"
 }

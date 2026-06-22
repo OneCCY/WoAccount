@@ -2641,4 +2641,10 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get searchParsingFailed => 'AI 분석 실패';
+
+  @override
+  String get llmSupplierManagement => '공급업체 관리';
+
+  @override
+  String get llmModelManagement => '모델 관리';
 }

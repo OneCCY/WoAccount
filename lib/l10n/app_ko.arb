@@ -925,5 +925,7 @@
   "searchModeKeyword": "키워드",
   "searchModeAi": "AI 검색",
   "searchKeywordPlaceholder": "설명, 메모, 금액 검색...",
-  "searchParsingFailed": "AI 분석 실패"
+  "searchParsingFailed": "AI 분석 실패",
+  "llmSupplierManagement": "공급업체 관리",
+  "llmModelManagement": "모델 관리"
 }
