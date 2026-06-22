@@ -192,13 +192,8 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1. 模型管理入口
-                  _buildEntryCard(
-                    icon: Icons.smart_toy_outlined,
-                    label: l10n.llmModelManagement,
-                    subtitle: _buildModelSubtitle(l10n),
-                    onTap: _openModelManagement,
-                  ),
+                  // 1. 模型管理入口（多行展示各能力配置）
+                  _buildModelEntryCard(l10n),
                   const SizedBox(height: 12),
 
                   // 2. 服务商管理入口
@@ -214,24 +209,70 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
     );
   }
 
-  /// 模型管理副标题：列出各能力的配置状态
-  String _buildModelSubtitle(AppLocalizations l10n) {
+  /// 模型管理入口卡片 — 逐行展示各能力的配置状态
+  Widget _buildModelEntryCard(AppLocalizations l10n) {
     final active = _activeProvider;
-    if (active == null) return l10n.llmNotConfigured;
 
-    final configured = ModelCapability.values
-        .where((cap) {
-          final model = active.getModelForCapability(cap);
-          return model != null && model.isNotEmpty;
-        })
-        .toList();
-
-    if (configured.isEmpty) return l10n.llmNotConfigured;
-
-    return configured.map((cap) {
-      final model = active.getModelForCapability(cap) ?? '';
-      return '${cap.getLocalizedLabel(l10n)}: $model';
-    }).join(' · ');
+    return Container(
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+      ),
+      child: InkWell(
+        onTap: _openModelManagement,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 44, height: 44,
+                decoration: BoxDecoration(
+                  color: context.colors.primarySurface,
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+                ),
+                child: Center(child: Icon(Icons.smart_toy_outlined, size: 22, color: context.colors.primary)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.llmModelManagement, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 6),
+                    ...ModelCapability.values.map((cap) {
+                      final model = active?.getModelForCapability(cap);
+                      final hasModel = model != null && model.isNotEmpty;
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: Row(
+                          children: [
+                            Text(cap.emoji, style: const TextStyle(fontSize: 12)),
+                            const SizedBox(width: 4),
+                            Text('${cap.getLocalizedLabel(l10n)}：',
+                              style: AppTextStyles.caption.copyWith(color: context.colors.textTertiary)),
+                            Expanded(
+                              child: Text(
+                                hasModel ? model : l10n.llmNotConfigured,
+                                style: AppTextStyles.caption.copyWith(
+                                  color: hasModel ? context.colors.textSecondary : context.colors.textHint,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right, color: context.colors.textTertiary, size: 20),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   /// 服务商管理副标题
