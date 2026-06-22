@@ -132,6 +132,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get chatInputVoiceHint => '손을 떼면 전송, 왼쪽으로 밀면 취소 ↖, 오른쪽으로 밀면 텍스트 변환 ↗';
 
   @override
+  String get chatInputListening => '正在聆听...';
+
+  @override
+  String get chatInputRecording => '正在录音...';
+
+  @override
+  String get chatInputVoiceCancel => '← 松手取消';
+
+  @override
   String get voiceOverlaySwipeHint => '↑ 위로 밀어 취소 또는 텍스트 변환';
 
   @override
@@ -670,6 +679,21 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get settingsTitle => '시스템 설정';
+
+  @override
+  String get settingsVoiceMode => '语音输入方式';
+
+  @override
+  String get settingsVoiceModePlatform => '平台原生';
+
+  @override
+  String get settingsVoiceModeWhisper => 'Whisper API';
+
+  @override
+  String get settingsVoiceModePlatformDesc => '使用系统内置语音识别，免费、无需配置';
+
+  @override
+  String get settingsVoiceModeWhisperDesc => '使用 Whisper API，需要配置 audio 模型';
 
   @override
   String get settingsGeneral => '일반';

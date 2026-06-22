@@ -24,6 +24,7 @@ import '../widgets/confirm_card.dart';
 import '../widgets/saved_card.dart';
 import '../../../../core/widgets/page_refresh_mixin.dart';
 import '../../../../core/widgets/toast.dart';
+import '../../../settings/data/services/voice_mode_setting.dart';
 
 /// AI 记账对话页
 class AiChatPage extends ConsumerStatefulWidget {
@@ -47,6 +48,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
     _loadInitialMessages();
     _loadUserProfile();
     _loadAiProviderIcon();
+    _loadVoiceMode();
   }
 
   List<_ChatItem> _items = [];
@@ -64,6 +66,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
 
   String? _userAvatarPath;
   String _aiIcon = '🤖';
+  VoiceInputMode _voiceMode = VoiceInputMode.platform;
 
   late final ChatRepository _chatRepo;
   late final TransactionRepository _txnRepo;
@@ -89,6 +92,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
     });
     _loadUserProfile();
     _loadAiProviderIcon();
+    _loadVoiceMode();
   }
 
   /// 从 provider 恢复未保存的确认卡片
@@ -142,6 +146,14 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
     } catch (e) {
       debugPrint('[AiChatPage] _loadAiProviderIcon error: $e');
     }
+  }
+
+  /// 加载语音输入模式设置
+  Future<void> _loadVoiceMode() async {
+    try {
+      final mode = await VoiceModeSetting.getMode();
+      if (mounted) setState(() => _voiceMode = mode);
+    } catch (_) {}
   }
 
   /// 处理从外部传入的输入（如浮动按钮录音结果）
@@ -775,7 +787,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
             onImageCaptured: (path) => _processInput(imagePath: path),
             isLoading: _isAiResponding,
             onManualEntry: () => context.push('/manual-entry'),
-            voiceMode: VoiceInputMode.platform,
+            voiceMode: _voiceMode,
             sttService: ref.read(platformSttServiceProvider),
           ),
         ],

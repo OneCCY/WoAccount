@@ -131,6 +131,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get chatInputVoiceHint => '話すのをやめて送信、左にスライドでキャンセル ↖、右にスライドで文字変換 ↗';
 
   @override
+  String get chatInputListening => '正在聆听...';
+
+  @override
+  String get chatInputRecording => '正在录音...';
+
+  @override
+  String get chatInputVoiceCancel => '← 松手取消';
+
+  @override
   String get voiceOverlaySwipeHint => '↑ スワイプでキャンセルまたは文字変換';
 
   @override
@@ -668,6 +677,21 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsTitle => 'システム設定';
+
+  @override
+  String get settingsVoiceMode => '语音输入方式';
+
+  @override
+  String get settingsVoiceModePlatform => '平台原生';
+
+  @override
+  String get settingsVoiceModeWhisper => 'Whisper API';
+
+  @override
+  String get settingsVoiceModePlatformDesc => '使用系统内置语音识别，免费、无需配置';
+
+  @override
+  String get settingsVoiceModeWhisperDesc => '使用 Whisper API，需要配置 audio 模型';
 
   @override
   String get settingsGeneral => '一般';

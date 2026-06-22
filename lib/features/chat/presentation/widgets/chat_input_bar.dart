@@ -95,23 +95,22 @@ class _ChatInputBarState extends State<ChatInputBar> {
     });
 
     if (widget.voiceMode == VoiceInputMode.platform && widget.sttService != null) {
-      await _startPlatformStt();
+      final ok = await _startPlatformStt();
+      // 平台 STT 启动失败时，降级到 Whisper 录音
+      if (!ok && mounted) {
+        await _startWhisperRecording();
+      }
     } else {
       await _startWhisperRecording();
     }
   }
 
   /// 平台原生 STT：实时语音转文字
-  Future<void> _startPlatformStt() async {
+  /// 返回 true 表示成功启动，false 表示失败
+  Future<bool> _startPlatformStt() async {
     final stt = widget.sttService!;
     final ok = await stt.startListening();
-    if (!ok) {
-      if (mounted) {
-        setState(() => _isRecording = false);
-        AppToast.show(context, AppLocalizations.of(context)!.chatInputMicPermission);
-      }
-      return;
-    }
+    if (!ok) return false;
 
     // 监听实时转写结果
     _partialSub?.cancel();
@@ -120,6 +119,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
         setState(() => _partialText = text);
       }
     });
+    return true;
   }
 
   /// Whisper 模式：录音保存文件
@@ -162,9 +162,13 @@ class _ChatInputBarState extends State<ChatInputBar> {
   }
 
   void _onVoiceUpdate(LongPressMoveUpdateDetails details) {
+    final dx = details.offsetFromOrigin.dx;
+    final dy = details.offsetFromOrigin.dy;
+
     setState(() => _dragOffset = details.offsetFromOrigin);
 
-    if (_dragOffset.dx < -50 && _dragOffset.dy < -20) {
+    // 左滑取消（水平滑动超过阈值）
+    if (dx < -60) {
       if (!_isCancelled) {
         HapticFeedback.heavyImpact();
         setState(() => _isCancelled = true);
@@ -177,12 +181,30 @@ class _ChatInputBarState extends State<ChatInputBar> {
   Future<void> _onVoiceEnd(LongPressEndDetails details) async {
     if (!_isRecording) return;
 
+    // 先保存取消状态，再重置 UI 状态
+    final wasCancelled = _isCancelled;
+
     setState(() {
       _isRecording = false;
       _isCancelled = false;
       _dragOffset = Offset.zero;
     });
 
+    if (wasCancelled) {
+      // 取消：停止录音/识别，不提交
+      _partialSub?.cancel();
+      _partialSub = null;
+      setState(() => _partialText = '');
+      try {
+        if (widget.voiceMode == VoiceInputMode.platform && widget.sttService != null) {
+          await widget.sttService!.cancel();
+        }
+        await _audioRecorder.stop();
+      } catch (_) {}
+      return;
+    }
+
+    // 正常结束
     if (widget.voiceMode == VoiceInputMode.platform && widget.sttService != null) {
       await _stopPlatformStt();
     } else {
@@ -197,11 +219,6 @@ class _ChatInputBarState extends State<ChatInputBar> {
 
     final stt = widget.sttService!;
     final finalText = await stt.stopListening();
-
-    if (_isCancelled) {
-      setState(() => _partialText = '');
-      return;
-    }
 
     final text = (finalText ?? _partialText).trim();
     setState(() => _partialText = '');
@@ -222,7 +239,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
   Future<void> _stopWhisperRecording() async {
     final path = await _audioRecorder.stop();
 
-    if (_isCancelled || path == null || path.isEmpty) return;
+    if (path == null || path.isEmpty) return;
 
     final duration = _recordStartTime != null
         ? DateTime.now().difference(_recordStartTime!)
@@ -340,6 +357,32 @@ class _ChatInputBarState extends State<ChatInputBar> {
                 ],
               ),
             ),
+          // 录音状态提示条
+          if (_isRecording)
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.s(context, 12),
+                vertical: Responsive.s(context, 6),
+              ),
+              margin: EdgeInsets.only(bottom: Responsive.s(context, 6)),
+              decoration: BoxDecoration(
+                color: _isCancelled
+                    ? context.colors.error.withValues(alpha: 0.1)
+                    : context.colors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(Responsive.s(context, 6)),
+              ),
+              child: Text(
+                _isCancelled
+                    ? l10n.chatInputVoiceCancel
+                    : (isPlatformStt ? l10n.chatInputListening : l10n.chatInputRecording),
+                style: context.textStyles.caption.copyWith(
+                  color: _isCancelled ? context.colors.error : context.colors.primary,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
           Row(
             children: [
               // 左侧：记账按钮（长按语音）
@@ -387,9 +430,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
                           focusNode: _focusNode,
                           style: context.textStyles.body.copyWith(fontSize: Responsive.fs(context, 14)),
                           decoration: InputDecoration(
-                            hintText: _isRecording
-                                ? (isPlatformStt ? l10n.chatInputListening : l10n.chatInputRecording)
-                                : l10n.chatInputTextHint,
+                            hintText: l10n.chatInputTextHint,
                             hintStyle: context.textStyles.footnote.copyWith(
                               color: context.colors.textTertiary,
                             ),

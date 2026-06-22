@@ -136,6 +136,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Release to send, swipe left to cancel ↖, swipe right to transcribe ↗';
 
   @override
+  String get chatInputListening => 'Listening...';
+
+  @override
+  String get chatInputRecording => 'Recording...';
+
+  @override
+  String get chatInputVoiceCancel => '← Release to cancel';
+
+  @override
   String get voiceOverlaySwipeHint => '↑ Swipe up to cancel or transcribe';
 
   @override
@@ -681,6 +690,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsTitle => 'Settings';
+
+  @override
+  String get settingsVoiceMode => 'Voice Input Method';
+
+  @override
+  String get settingsVoiceModePlatform => 'Platform Native';
+
+  @override
+  String get settingsVoiceModeWhisper => 'Whisper API';
+
+  @override
+  String get settingsVoiceModePlatformDesc =>
+      'Uses built-in speech recognition, free and offline';
+
+  @override
+  String get settingsVoiceModeWhisperDesc =>
+      'Uses Whisper API, requires audio model config';
 
   @override
   String get settingsGeneral => 'General';

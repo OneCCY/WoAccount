@@ -8,6 +8,8 @@ import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../ai/data/models/llm_config.dart';
 import '../../../ai/data/repositories/llm_repository_impl.dart';
+import '../../../chat/presentation/widgets/chat_input_bar.dart';
+import '../../data/services/voice_mode_setting.dart';
 import '../../../../core/ai/llm_error_resolver.dart';
 import '../../../../core/widgets/toast.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
@@ -135,6 +137,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
   List<LlmProvider> _providers = [];
   String? _activeId;
   bool _isLoading = true;
+  VoiceInputMode _voiceMode = VoiceInputMode.platform;
 
   @override
   void initState() {
@@ -145,10 +148,12 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
   Future<void> _load() async {
     final providers = await LlmConfigManager.loadProviders();
     final activeId = await LlmConfigManager.getActiveProviderId();
+    final voiceMode = await VoiceModeSetting.getMode();
     if (mounted) {
       setState(() {
         _providers = providers;
         _activeId = activeId;
+        _voiceMode = voiceMode;
         _isLoading = false;
       });
     }
@@ -198,6 +203,10 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
 
                   // 2. 服务商管理入口
                   _buildSupplierEntryCard(l10n),
+                  const SizedBox(height: 12),
+
+                  // 3. 语音输入模式
+                  _buildVoiceModeCard(l10n),
                 ],
               ),
             ),
@@ -349,6 +358,113 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
               Icon(Icons.chevron_right, color: context.colors.textTertiary, size: 20),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  /// 语音输入模式切换卡片
+  Widget _buildVoiceModeCard(AppLocalizations l10n) {
+    final isPlatform = _voiceMode == VoiceInputMode.platform;
+    return Container(
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 44, height: 44,
+                decoration: BoxDecoration(
+                  color: context.colors.primarySurface,
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+                ),
+                child: Center(child: Icon(Icons.mic, size: 22, color: context.colors.primary)),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.settingsVoiceMode, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w500)),
+                    const SizedBox(height: 2),
+                    Text(
+                      isPlatform ? l10n.settingsVoiceModePlatformDesc : l10n.settingsVoiceModeWhisperDesc,
+                      style: AppTextStyles.caption.copyWith(color: context.colors.textTertiary),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // 切换按钮组
+          Row(
+            children: [
+              Expanded(
+                child: _buildVoiceModeOption(
+                  label: l10n.settingsVoiceModePlatform,
+                  icon: Icons.phone_android,
+                  isSelected: isPlatform,
+                  onTap: () async {
+                    await VoiceModeSetting.setMode(VoiceInputMode.platform);
+                    setState(() => _voiceMode = VoiceInputMode.platform);
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildVoiceModeOption(
+                  label: l10n.settingsVoiceModeWhisper,
+                  icon: Icons.cloud_outlined,
+                  isSelected: !isPlatform,
+                  onTap: () async {
+                    await VoiceModeSetting.setMode(VoiceInputMode.whisper);
+                    setState(() => _voiceMode = VoiceInputMode.whisper);
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVoiceModeOption({
+    required String label,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? context.colors.primary.withValues(alpha: 0.1) : context.colors.surfaceSecondary,
+          borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+          border: isSelected
+              ? Border.all(color: context.colors.primary.withValues(alpha: 0.4), width: 1)
+              : null,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 16, color: isSelected ? context.colors.primary : context.colors.textSecondary),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: AppTextStyles.caption.copyWith(
+                color: isSelected ? context.colors.primary : context.colors.textSecondary,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+              ),
+            ),
+          ],
         ),
       ),
     );
