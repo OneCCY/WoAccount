@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' as drift;
@@ -299,66 +300,20 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
 
   /// 弹出月份选择器
   void _showMonthPicker(AppLocalizations l10n) {
-    final months = <DateTime>[];
-    for (int y = 2020; y <= 2100; y++) {
-      for (int m = 1; m <= 12; m++) {
-        final d = DateTime(y, m);
-        if (d.isAfter(DateTime(2100, 12))) break;
-        months.add(d);
-      }
-    }
-
-    showModalBottomSheet(
+    showModalBottomSheet<DateTime>(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        height: 300,
-        decoration: BoxDecoration(
-          color: context.colors.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-        ),
-        child: Column(
-          children: [
-            Container(
-              width: 36, height: 4,
-              margin: const EdgeInsets.only(top: 12, bottom: 8),
-              decoration: BoxDecoration(
-                color: context.colors.textTertiary.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: months.length,
-                itemBuilder: (ctx, i) {
-                  final m = months[months.length - 1 - i];
-                  final isSelected = m.year == _currentMonth.year && m.month == _currentMonth.month;
-                  return ListTile(
-                    title: Center(
-                      child: Text(
-                        l10n.reportMonthLabel(m.year.toString(), m.month.toString()),
-                        style: context.textStyles.body.copyWith(
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                          color: isSelected ? context.colors.primary : context.colors.textPrimary,
-                        ),
-                      ),
-                    ),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      setState(() {
-                        _currentMonth = m;
-                        _isLoading = true;
-                      });
-                      _loadData();
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+      builder: (_) => _DetailMonthPickerSheet(initialMonth: _currentMonth),
+    ).then((result) {
+      if (result != null && mounted) {
+        setState(() {
+          _currentMonth = result;
+          _isLoading = true;
+        });
+        _loadData();
+      }
+    });
   }
 
   /// 汇总卡片 — 渐变绿背景，参考一级分类总预算卡片设计
@@ -777,5 +732,111 @@ class _ChildCategoryPickerSheet extends StatelessWidget {
     } catch (_) {
       return context.colors.textTertiary;
     }
+  }
+}
+
+/// 月份选择器 — Cupertino 滚轮样式（2020-2100）
+class _DetailMonthPickerSheet extends StatefulWidget {
+  final DateTime initialMonth;
+  const _DetailMonthPickerSheet({required this.initialMonth});
+
+  @override
+  State<_DetailMonthPickerSheet> createState() => _DetailMonthPickerSheetState();
+}
+
+class _DetailMonthPickerSheetState extends State<_DetailMonthPickerSheet> {
+  static const int _minYear = 2020;
+  static const int _maxYear = 2100;
+
+  late int _selectedYear;
+  late int _selectedMonth;
+  late final FixedExtentScrollController _yearCtrl;
+  late final FixedExtentScrollController _monthCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedYear = widget.initialMonth.year;
+    _selectedMonth = widget.initialMonth.month;
+    _yearCtrl = FixedExtentScrollController(initialItem: _selectedYear - _minYear);
+    _monthCtrl = FixedExtentScrollController(initialItem: _selectedMonth - 1);
+  }
+
+  @override
+  void dispose() {
+    _yearCtrl.dispose();
+    _monthCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.4,
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 40, height: 4,
+            margin: const EdgeInsets.only(top: 12, bottom: 8),
+            decoration: BoxDecoration(
+              color: context.colors.textTertiary,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(l10n.commonCancel, style: context.textStyles.body.copyWith(color: context.colors.textSecondary)),
+                ),
+                Text(l10n.reportMonthLabel(_selectedYear.toString(), _selectedMonth.toString()),
+                  style: context.textStyles.footnote.copyWith(fontWeight: FontWeight.w600)),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, DateTime(_selectedYear, _selectedMonth)),
+                  child: Text(l10n.commonConfirm, style: context.textStyles.body.copyWith(
+                    color: context.colors.primary, fontWeight: FontWeight.w600)),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  child: CupertinoPicker(
+                    scrollController: _yearCtrl,
+                    itemExtent: 40,
+                    onSelectedItemChanged: (i) => setState(() => _selectedYear = _minYear + i),
+                    children: List.generate(_maxYear - _minYear + 1, (i) {
+                      return Center(child: Text('${_minYear + i}', style: context.textStyles.body));
+                    }),
+                  ),
+                ),
+                Expanded(
+                  child: CupertinoPicker(
+                    scrollController: _monthCtrl,
+                    itemExtent: 40,
+                    onSelectedItemChanged: (i) => setState(() => _selectedMonth = i + 1),
+                    children: List.generate(12, (i) {
+                      return Center(child: Text(l10n.budgetMonthShort((i + 1).toString()),
+                        style: context.textStyles.body));
+                    }),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
