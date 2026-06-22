@@ -31,10 +31,18 @@ class PromptTemplates {
   ///
   /// [categoryTaxonomy] 从数据库动态生成的分类体系文本
   /// [locale] 当前语言环境（zh/en/ja/ko），影响回复语言
-  static String parseTransactionSystem(String categoryTaxonomy, {String locale = 'zh'}) {
+  /// [fewShotExamples] 用户历史修正记录（Episodic Memory）
+  /// [similarTransactions] 相似历史交易（RAG 检索结果）
+  static String parseTransactionSystem(
+    String categoryTaxonomy, {
+    String locale = 'zh',
+    String? fewShotExamples,
+    String? similarTransactions,
+  }) {
     final lang = _languageName(locale);
 
-    return '''
+    final buffer = StringBuffer();
+    buffer.writeln('''
 You are a professional bookkeeping assistant. Your task is to analyze the user's expense description and extract structured information.
 IMPORTANT: The category names and subcategory names below are in their original language. You MUST use these exact names in your response. Respond in $lang.
 
@@ -43,8 +51,27 @@ IMPORTANT: The category names and subcategory names below are in their original 
 请从以下用户已配置的分类中选择最合适的一个。每个一级分类后面括号内列出了可选的二级分类。
 Please select the most appropriate category from the user's configured categories below.
 
-$categoryTaxonomy
+$categoryTaxonomy''');
 
+    // [RAG] 注入相似历史交易作为分类参考
+    if (similarTransactions != null && similarTransactions.isNotEmpty) {
+      buffer.writeln('''
+## 用户历史记录参考
+
+以下是用户最近的类似消费记录，反映了他们的分类偏好。请参考这些记录的分类方式，保持一致性：
+$similarTransactions''');
+    }
+
+    // [Episodic Memory] 注入用户修正过的分类示例
+    if (fewShotExamples != null && fewShotExamples.isNotEmpty) {
+      buffer.writeln('''
+## 用户分类偏好（重要）
+
+以下记录反映了用户的个人分类习惯，请优先遵循：
+$fewShotExamples''');
+    }
+
+    buffer.writeln('''
 ## 输出格式 / Output Format
 
 请严格按照以下JSON格式输出，不要输出其他内容。
@@ -89,7 +116,9 @@ Even for a single transaction, wrap it in an array.
 6. **Confidence / 置信度**:
    - Exact match: 0.9-1.0
    - Inferred: 0.7-0.9
-   - Uncertain: 0.5-0.7''';
+   - Uncertain: 0.5-0.7''');
+
+    return buffer.toString();
   }
 
   /// 记账解析 User Prompt（注入今天的日期以计算相对日期）

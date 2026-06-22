@@ -6,6 +6,7 @@ import '../../features/ai/data/repositories/llm_repository_impl.dart';
 import '../../features/ai/domain/repositories/llm_repository.dart';
 import '../../features/text_ai/data/services/voice_recognition_service.dart';
 import '../../features/vision_ai/data/services/image_recognition_service.dart';
+import 'providers.dart';
 
 /// Dio HTTP 客户端 Provider
 final dioProvider = Provider<Dio>((ref) {
@@ -42,6 +43,7 @@ final transactionPipelineProvider = Provider<TransactionPipeline>((ref) {
     voiceService: ref.watch(voiceRecognitionServiceProvider),
     imageService: ref.watch(imageRecognitionServiceProvider),
     mediaStorage: ref.watch(mediaStorageServiceProvider),
+    db: ref.watch(appDatabaseProvider),
   );
 });
 

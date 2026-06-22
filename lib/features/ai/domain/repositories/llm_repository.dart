@@ -12,7 +12,15 @@ abstract class LlmRepository {
   /// 返回列表支持多笔交易（如 "吃饭24，洗衣服34"）
   /// [categoryTaxonomy] 可选的动态分类体系文本，用于替换默认硬编码分类
   /// [locale] 语言环境（zh/en/ja/ko），影响 LLM 回复语言
-  Future<List<TransactionParseResult>> parseTransaction(String input, {String? categoryTaxonomy, String locale = 'zh'});
+  /// [fewShotExamples] 用户历史修正记录（Episodic Memory，Phase 2）
+  /// [similarTransactions] 相似历史交易文本（RAG 检索结果）
+  Future<List<TransactionParseResult>> parseTransaction(
+    String input, {
+    String? categoryTaxonomy,
+    String locale = 'zh',
+    String? fewShotExamples,
+    String? similarTransactions,
+  });
 
   /// 测试指定服务商的连接
   Future<bool> testConnection(LlmProvider provider);

@@ -186,7 +186,13 @@ class LlmRepositoryImpl implements LlmRepository {
   }
 
   @override
-  Future<List<TransactionParseResult>> parseTransaction(String input, {String? categoryTaxonomy, String locale = 'zh'}) async {
+  Future<List<TransactionParseResult>> parseTransaction(
+    String input, {
+    String? categoryTaxonomy,
+    String locale = 'zh',
+    String? fewShotExamples,
+    String? similarTransactions,
+  }) async {
     // [Guardrails] 输入预处理 + 合理性校验
     final sanitizedInput = _validateInput(input);
 
@@ -200,10 +206,13 @@ class LlmRepositoryImpl implements LlmRepository {
         throw const LlmException('请先在设置中添加 AI 服务商，或输入更明确的描述（如"午饭拉面25"）', errorCode: 'llmErrorNoProviderOrInput');
       }
 
-      // 构建系统提示词（使用动态分类或默认分类）
-      final systemPrompt = categoryTaxonomy != null
-          ? PromptTemplates.parseTransactionSystem(categoryTaxonomy, locale: locale)
-          : PromptTemplates.parseTransactionSystem(_defaultCategoryTaxonomy, locale: locale);
+      // 构建系统提示词（使用动态分类或默认分类，注入 RAG + Episodic Memory 上下文）
+      final systemPrompt = PromptTemplates.parseTransactionSystem(
+        categoryTaxonomy ?? _defaultCategoryTaxonomy,
+        locale: locale,
+        fewShotExamples: fewShotExamples,
+        similarTransactions: similarTransactions,
+      );
 
       // 调用 LLM（启用 Structured Output）
       final response = await chat(LlmRequest(

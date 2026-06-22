@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wo_account/config/database/app_database.dart';
 import 'package:wo_account/core/ai/transaction_pipeline.dart';
 import 'package:wo_account/core/media/media_storage_service.dart';
 import 'package:wo_account/features/ai/data/models/llm_config.dart';
@@ -7,6 +8,16 @@ import 'package:wo_account/features/text_ai/data/services/voice_recognition_serv
 import 'package:wo_account/features/vision_ai/data/services/image_recognition_service.dart';
 
 void main() {
+  late AppDatabase testDb;
+
+  setUpAll(() {
+    testDb = AppDatabase();
+  });
+
+  tearDownAll(() async {
+    await testDb.close();
+  });
+
   group('TransactionPipeline', () {
     late FakeLlmRepository fakeLlmRepo;
     late FakeVoiceRecognitionService fakeVoiceService;
@@ -25,6 +36,7 @@ void main() {
         voiceService: fakeVoiceService,
         imageService: fakeImageService,
         mediaStorage: fakeMediaStorage,
+        db: testDb,
       );
     });
 
@@ -166,7 +178,13 @@ class FakeLlmRepository implements LlmRepository {
   int parseCallCount = 0;
 
   @override
-  Future<List<TransactionParseResult>> parseTransaction(String input, {String? categoryTaxonomy, String locale = 'zh'}) async {
+  Future<List<TransactionParseResult>> parseTransaction(
+    String input, {
+    String? categoryTaxonomy,
+    String locale = 'zh',
+    String? fewShotExamples,
+    String? similarTransactions,
+  }) async {
     parseCallCount++;
     return parseResults;
   }

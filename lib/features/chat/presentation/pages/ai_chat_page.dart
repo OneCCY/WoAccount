@@ -310,7 +310,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
       PipelineResult result;
       switch (source) {
         case InputSource.text:
-          result = await _pipeline.processText(displayText, categoryTaxonomy: categoryTaxonomy, locale: locale);
+          result = await _pipeline.processText(displayText, categoryTaxonomy: categoryTaxonomy, locale: locale, bookId: _bookId);
           break;
         case InputSource.voice:
           result = await _pipeline.processVoice(
@@ -318,6 +318,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
             provider: provider,
             categoryTaxonomy: categoryTaxonomy,
             locale: locale,
+            bookId: _bookId,
           );
           if (!mounted) return;
           // 更新用户消息为转写文本
@@ -346,6 +347,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
             provider: provider,
             categoryTaxonomy: categoryTaxonomy,
             locale: locale,
+            bookId: _bookId,
           );
           if (!mounted) return;
           // 显示图片识别结果
