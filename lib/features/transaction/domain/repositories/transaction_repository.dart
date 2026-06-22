@@ -93,6 +93,13 @@ class SearchResultStats {
   });
 }
 
+/// 搜索结果 + 统计的复合返回（避免重复查询）
+class SearchResultWithResults {
+  final List<Transaction> transactions;
+  final SearchResultStats stats;
+  const SearchResultWithResults(this.transactions, this.stats);
+}
+
 /// 交易记录 Repository 接口（Domain 层）
 abstract class TransactionRepository {
   /// 获取账本内所有交易（排除软删除）
@@ -154,6 +161,9 @@ abstract class TransactionRepository {
 
   /// 搜索交易记录并返回聚合统计
   Future<SearchResultStats> searchWithStats(int bookId, SearchQuery query);
+
+  /// 搜索交易记录，同时返回结果列表和聚合统计（避免重复查询）
+  Future<SearchResultWithResults> searchWithResults(int bookId, SearchQuery query);
 }
 
 /// 交易统计数据

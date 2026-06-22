@@ -32,5 +32,6 @@ abstract class LlmRepository {
   Future<Map<String, dynamic>> parseSearchQuery(String input, {String? categoryTaxonomy, String locale = 'zh'});
 
   /// 根据搜索结果数据生成自然语言摘要
-  Future<String> generateSearchSummary(String userQuery, Map<String, dynamic> stats);
+  /// [categoryTaxonomy] 可选的分类体系，用于更精准的分类分析
+  Future<String> generateSearchSummary(String userQuery, Map<String, dynamic> stats, {String? categoryTaxonomy});
 }

@@ -12,6 +12,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/responsive.dart';
+import '../../../../core/widgets/toast.dart';
 import '../../domain/repositories/transaction_repository.dart';
 
 /// 搜索模式
@@ -165,21 +166,18 @@ class _TransactionSearchPageState extends ConsumerState<TransactionSearchPage> {
       // 2. 将 LLM 解析结果转换为 SearchQuery
       final searchQuery = _buildSearchQueryFromParsed(parsed);
 
-      // 3. 本地搜索
-      final results = await repo.search(bookId, searchQuery);
+      // 3. 一次查询同时获取结果和统计（避免重复查询）
+      final combined = await repo.searchWithResults(bookId, searchQuery);
       if (!mounted) return;
       setState(() {
-        _results = results;
+        _results = combined.transactions;
+        _resultStats = combined.stats;
         _isSearching = false;
       });
 
-      // 4. 统计聚合
-      final stats = await repo.searchWithStats(bookId, searchQuery);
-      if (!mounted) return;
-
-      // 5. 计算分类分布
+      // 4. 计算分类分布
       final categoryTotals = <String, double>{};
-      for (final t in results) {
+      for (final t in combined.transactions) {
         final cat = _categoryMap[t.parentCategoryId ?? t.categoryId];
         final catName = cat?.name ?? '未分类';
         categoryTotals[catName] = (categoryTotals[catName] ?? 0) + t.amount;
@@ -189,21 +187,26 @@ class _TransactionSearchPageState extends ConsumerState<TransactionSearchPage> {
         ..sort((a, b) => b.value.compareTo(a.value));
 
       final statsMap = <String, dynamic>{
-        'count': stats.count,
-        'totalExpense': stats.totalExpense,
-        'totalIncome': stats.totalIncome,
-        'average': stats.average,
-        'maxAmount': stats.maxAmount,
-        'maxDescription': stats.maxTransaction?.description,
+        'count': combined.stats.count,
+        'totalExpense': combined.stats.totalExpense,
+        'totalIncome': combined.stats.totalIncome,
+        'average': combined.stats.average,
+        'maxAmount': combined.stats.maxAmount,
+        'maxDescription': combined.stats.maxTransaction?.description,
         'topCategories': sortedCategories.take(5).toList(),
       };
 
-      setState(() => _resultStats = stats);
-
-      // 6. 如果有聚合需求或结果较多，生成 AI 摘要
+      // 5. 如果有聚合需求或结果较多，生成 AI 摘要（传入分类体系）
       final aggregation = parsed['aggregation'] as String? ?? 'none';
-      if (aggregation != 'none' || results.length > 5) {
-        final summary = await llmRepo.generateSearchSummary(query, statsMap);
+      if (aggregation != 'none' || combined.transactions.length > 5) {
+        final catRepo = ref.read(categoryRepositoryProvider);
+        final allCats = await catRepo.getAll();
+        final taxonomy = _buildTaxonomyText(allCats);
+
+        final summary = await llmRepo.generateSearchSummary(
+          query, statsMap,
+          categoryTaxonomy: taxonomy.isNotEmpty ? taxonomy : null,
+        );
         if (mounted) {
           setState(() => _aiSummary = summary);
         }
@@ -214,8 +217,11 @@ class _TransactionSearchPageState extends ConsumerState<TransactionSearchPage> {
         _isAiParsing = false;
         _isSearching = false;
       });
-      // AI 失败时降级为关键词搜索
+      // AI 失败时降级为关键词搜索，通知用户
       _searchMode = SearchMode.keyword;
+      if (mounted) {
+        AppToast.show(context, AppLocalizations.of(context)!.searchLlmError);
+      }
       _executeKeywordSearch();
     }
   }
@@ -235,25 +241,45 @@ class _TransactionSearchPageState extends ConsumerState<TransactionSearchPage> {
       try { endDate = DateTime.parse(endStr).add(const Duration(days: 1)); } catch (_) {}
     }
 
-    // 解析分类
+    // 解析分类（精确匹配 → 包含匹配）
     int? parentCategoryId;
     int? categoryId;
     final parentCatName = parsed['parentCategory'] as String?;
     final subCatName = parsed['subcategory'] as String?;
 
     if (subCatName != null) {
+      // 精确匹配
       for (final c in _categoryMap.values) {
         if (c.name == subCatName && c.level == 2) {
           categoryId = c.id;
           break;
         }
       }
+      // 包含匹配 fallback
+      if (categoryId == null) {
+        for (final c in _categoryMap.values) {
+          if (c.level == 2 && (c.name.contains(subCatName) || subCatName.contains(c.name))) {
+            categoryId = c.id;
+            break;
+          }
+        }
+      }
     }
     if (parentCatName != null && categoryId == null) {
+      // 精确匹配
       for (final c in _categoryMap.values) {
         if (c.name == parentCatName && c.level == 1) {
           parentCategoryId = c.id;
           break;
+        }
+      }
+      // 包含匹配 fallback
+      if (parentCategoryId == null) {
+        for (final c in _categoryMap.values) {
+          if (c.level == 1 && (c.name.contains(parentCatName) || parentCatName.contains(c.name))) {
+            parentCategoryId = c.id;
+            break;
+          }
         }
       }
     }
@@ -276,6 +302,29 @@ class _TransactionSearchPageState extends ConsumerState<TransactionSearchPage> {
       sortBy: sortBy,
       intent: parsed['intent'] as String?,
     );
+  }
+
+  /// 从分类列表构建分类体系文本（用于 AI 摘要 prompt）
+  String _buildTaxonomyText(List<Category> allCats) {
+    final childrenMap = <int, List<Category>>{};
+    for (final c in allCats) {
+      if (c.parentId != null) {
+        childrenMap.putIfAbsent(c.parentId!, () => []).add(c);
+      }
+    }
+    final parents = allCats.where((c) => c.parentId == null).toList();
+    if (parents.isEmpty) return '';
+
+    final buffer = StringBuffer();
+    for (final cat in parents) {
+      final children = childrenMap[cat.id] ?? [];
+      if (children.isNotEmpty) {
+        buffer.writeln('- ${cat.name}（${children.map((c) => c.name).join('、')}）');
+      } else {
+        buffer.writeln('- ${cat.name}');
+      }
+    }
+    return buffer.toString().trim();
   }
 
   void _onSearchSubmitted(String value) {

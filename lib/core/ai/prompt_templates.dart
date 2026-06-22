@@ -136,6 +136,11 @@ Even for a single transaction, wrap it in an array.
     return '''
 你是一个账单搜索助手。用户会用自然语言描述想查找的账单，你需要将其解析为结构化查询条件。
 
+## 今天的日期
+
+今天日期会在 user message 中以"今天是 YYYY-MM-DD 星期X"的形式提供。请以此为基准计算所有相对日期。
+Today's date is provided in the user message as "今天是 YYYY-MM-DD 星期X". Use it as the reference for ALL relative date calculations.
+
 ## 分类体系
 
 $categoryTaxonomy
@@ -146,7 +151,7 @@ $categoryTaxonomy
 
 {
   "keyword": "模糊搜索关键词，可为null",
-  "keywordSynonyms": ["同义词扩展列表，如搜\"奶茶\"时包含\"喜茶\"、\"蜜雪冰城\"等"],
+  "keywordSynonyms": ["同义词扩展，最多5个，如搜\"奶茶\"时包含\"喜茶\"、\"蜜雪冰城\"等"],
   "type": "expense/income/null",
   "minAmount": 数字或null,
   "maxAmount": 数字或null,
@@ -162,7 +167,7 @@ $categoryTaxonomy
 
 ## 时间解析规则
 
-以今天的日期为基准计算：
+以 user message 中提供的今天日期为基准计算：
 - "今天" → 今天日期
 - "昨天" → 前一天
 - "上周" → 上周一到周日
@@ -174,11 +179,12 @@ $categoryTaxonomy
 
 ## 关键词扩展规则
 
-当用户搜索品牌或品类时，主动扩展同义词：
-- "奶茶" → ["喜茶", "奈雪", "蜜雪冰城", "coco", "一点点", "霸王茶姬", "茶百道"]
-- "外卖" → ["美团", "饿了么", "配送费"]
-- "打车" → ["滴滴", "高德打车", "曹操出行", "T3出行"]
-- "咖啡" → ["星巴克", "瑞幸", "Manner", "库迪"]
+当用户搜索品牌或品类时，可扩展同义词，但限制在5个以内。优先使用常见品牌：
+- "奶茶" → ["喜茶", "奈雪", "蜜雪冰城", "coco", "一点点"]
+- "外卖" → ["美团", "饿了么"]
+- "打车" → ["滴滴", "高德打车"]
+- "咖啡" → ["星巴克", "瑞幸", "Manner"]
+注意：不要过度扩展，只添加最相关的同义词。
 
 ## 聚合规则
 
@@ -201,8 +207,10 @@ $categoryTaxonomy
   /// AI 搜索摘要 System Prompt
   ///
   /// 根据搜索结果数据生成自然语言摘要
-  static String searchSummarySystem() {
-    return '''
+  /// [categoryTaxonomy] 可选的分类体系，用于更精准的分类分析
+  static String searchSummarySystem({String? categoryTaxonomy}) {
+    final buffer = StringBuffer();
+    buffer.writeln('''
 你是一个账单分析助手。根据用户查询和提供的交易数据，生成简洁的分析摘要。
 
 ## 回复风格
@@ -211,7 +219,19 @@ $categoryTaxonomy
 - 数据准确，有具体数字
 - 适当使用emoji，增加亲和力
 - 中文回复
-- 如果有统计数据，给出直观的结论''';
+- 如果有统计数据，给出直观的结论
+- 如果有分类分布数据，分析消费结构是否合理''');
+
+    if (categoryTaxonomy != null && categoryTaxonomy.isNotEmpty) {
+      buffer.writeln('''
+## 用户分类体系
+
+$categoryTaxonomy
+
+请结合分类体系分析消费结构。''');
+    }
+
+    return buffer.toString();
   }
 
   /// AI 对话助手 System Prompt

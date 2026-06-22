@@ -207,7 +207,8 @@ class TransactionRepositoryImpl implements TransactionRepository {
 
         // 关键词模糊搜索（匹配 description / note / originalInput）
         if (query.keyword != null && query.keyword!.isNotEmpty) {
-          final allKeywords = [query.keyword!, ...query.keywordSynonyms]
+          // 限制总关键词数为 6 个（1 原始 + 最多 5 同义词），避免 LIKE 条件爆炸
+          final allKeywords = [query.keyword!, ...query.keywordSynonyms.take(5)]
               .where((k) => k.isNotEmpty)
               .toList();
           if (allKeywords.isNotEmpty) {
@@ -279,7 +280,17 @@ class TransactionRepositoryImpl implements TransactionRepository {
   @override
   Future<SearchResultStats> searchWithStats(int bookId, SearchQuery query) async {
     final results = await search(bookId, query);
+    return _computeStats(results);
+  }
 
+  @override
+  Future<SearchResultWithResults> searchWithResults(int bookId, SearchQuery query) async {
+    final results = await search(bookId, query);
+    return SearchResultWithResults(results, _computeStats(results));
+  }
+
+  /// 从交易列表计算统计数据（单次遍历）
+  SearchResultStats _computeStats(List<Transaction> results) {
     double totalExpense = 0;
     double totalIncome = 0;
     double? maxAmount;

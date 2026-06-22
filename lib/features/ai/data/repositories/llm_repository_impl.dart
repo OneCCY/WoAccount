@@ -417,7 +417,7 @@ class LlmRepositoryImpl implements LlmRepository {
   }
 
   @override
-  Future<String> generateSearchSummary(String userQuery, Map<String, dynamic> stats) async {
+  Future<String> generateSearchSummary(String userQuery, Map<String, dynamic> stats, {String? categoryTaxonomy}) async {
     try {
       final provider = await LlmConfigManager.getActiveProvider();
       if (provider == null || !provider.isComplete) {
@@ -444,7 +444,7 @@ class LlmRepositoryImpl implements LlmRepository {
 
       final response = await chat(LlmRequest(
         messages: [
-          ChatMessage(role: 'system', content: PromptTemplates.searchSummarySystem()),
+          ChatMessage(role: 'system', content: PromptTemplates.searchSummarySystem(categoryTaxonomy: categoryTaxonomy)),
           ChatMessage(role: 'user', content: statsText.toString()),
         ],
         temperature: 0.3,
