@@ -299,12 +299,14 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1. 能力配置卡片
+                  // 1. 模型管理
+                  _sectionLabel(l10n.llmModelManagement),
+                  const SizedBox(height: 8),
                   ...ModelCapability.values.map((cap) => _buildCapabilityCard(cap)),
                   const SizedBox(height: 24),
 
                   // 2. 服务商管理
-                  _sectionLabel(l10n.llmProviderManagement),
+                  _sectionLabel(l10n.llmSupplierManagement),
                   const SizedBox(height: 8),
                   _providers.isEmpty ? _buildEmptyProviderHint() : _buildProviderList(),
                   const SizedBox(height: 16),
