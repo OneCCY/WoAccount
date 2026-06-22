@@ -114,6 +114,7 @@ class _TransactionSearchPageState extends ConsumerState<TransactionSearchPage> {
         type: _filterType,
         startDate: _filterStartDate,
         endDate: _filterEndDate,
+        limit: 50,  // 每次最多加载 50 条
       );
 
       final results = await repo.search(bookId, searchQuery);

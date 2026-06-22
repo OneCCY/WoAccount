@@ -139,35 +139,42 @@ class AccountBookRepositoryImpl implements AccountBookRepository {
     final start = DateTime(year, month, 1);
     final end = DateTime(year, month + 1, 1);
 
-    // join Transactions + Categories 获取收支统计
-    final query = _db.select(_db.transactions).join([
-      innerJoin(_db.categories, _db.categories.id.equalsExp(_db.transactions.categoryId)),
+    // 使用 SQL 聚合替代内存遍历（高效处理大数据量）
+    final t = _db.transactions;
+    final c = _db.categories;
+    final baseCondition = t.accountBookId.equals(bookId) &
+        t.transactionDate.isBetweenValues(start, end) &
+        t.isDeleted.equals(false);
+
+    // 总笔数
+    final countQuery = _db.selectOnly(t)
+      ..addColumns([t.id.count()])
+      ..where(baseCondition);
+    final countResult = await countQuery.getSingle();
+    final count = countResult.read(t.id.count()) ?? 0;
+
+    // 总支出（通过 join categories 判断 isExpense）
+    final expenseQuery = _db.selectOnly(t).join([
+      innerJoin(c, c.id.equalsExp(t.categoryId)),
     ])
-      ..where(
-        _db.transactions.accountBookId.equals(bookId) &
-            _db.transactions.transactionDate.isBetweenValues(start, end) &
-            _db.transactions.isDeleted.equals(false),
-      );
+      ..addColumns([t.amount.sum()])
+      ..where(baseCondition & c.isExpense.equals(true));
+    final expenseResult = await expenseQuery.getSingle();
+    final totalExpense = expenseResult.read(t.amount.sum()) ?? 0.0;
 
-    final results = await query.get();
-
-    double totalExpense = 0;
-    double totalIncome = 0;
-
-    for (final row in results) {
-      final amount = row.readTable(_db.transactions).amount;
-      final isExpense = row.readTable(_db.categories).isExpense;
-      if (isExpense) {
-        totalExpense += amount;
-      } else {
-        totalIncome += amount;
-      }
-    }
+    // 总收入
+    final incomeQuery = _db.selectOnly(t).join([
+      innerJoin(c, c.id.equalsExp(t.categoryId)),
+    ])
+      ..addColumns([t.amount.sum()])
+      ..where(baseCondition & c.isExpense.equals(false));
+    final incomeResult = await incomeQuery.getSingle();
+    final totalIncome = incomeResult.read(t.amount.sum()) ?? 0.0;
 
     return AccountBookStats(
       totalExpense: totalExpense,
       totalIncome: totalIncome,
-      count: results.length,
+      count: count,
     );
   }
 }

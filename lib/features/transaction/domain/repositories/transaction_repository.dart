@@ -41,6 +41,12 @@ class SearchQuery {
   /// LLM 意图描述
   final String? intent;
 
+  /// 分页：每页条数（0 = 不分页，返回全部）
+  final int limit;
+
+  /// 分页：偏移量
+  final int offset;
+
   const SearchQuery({
     this.keyword,
     this.keywordSynonyms = const [],
@@ -55,6 +61,8 @@ class SearchQuery {
     this.aggregation = SearchAggregation.none,
     this.sortBy = SearchSortBy.time,
     this.intent,
+    this.limit = 0,
+    this.offset = 0,
   });
 }
 

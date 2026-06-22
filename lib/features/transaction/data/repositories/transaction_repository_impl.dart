@@ -286,19 +286,120 @@ class TransactionRepositoryImpl implements TransactionRepository {
         q.orderBy([(t) => OrderingTerm.desc(t.amount)]);
     }
 
+    // 分页（limit > 0 时生效）
+    if (query.limit > 0) {
+      q.limit(query.limit, offset: query.offset);
+    }
+
     return q.get();
   }
 
   @override
   Future<SearchResultStats> searchWithStats(int bookId, SearchQuery query) async {
-    final results = await search(bookId, query);
-    return _computeStats(results);
+    // 使用 SQL 聚合计算统计（不加载全部结果到内存）
+    final t = _db.transactions;
+    final baseCondition = t.isDeleted.equals(false) & t.accountBookId.equals(bookId);
+
+    // 复用 search 的 WHERE 条件构建
+    Expression<bool> condition = baseCondition;
+    condition = _applySearchConditions(t, condition, query);
+
+    // 聚合查询
+    final aggQuery = _db.selectOnly(t)
+      ..addColumns([
+        t.id.count(),
+        t.amount.sum(),
+        t.amount.avg(),
+        t.amount.max(),
+      ])
+      ..where(condition);
+
+    final aggResult = await aggQuery.getSingle();
+    final count = aggResult.read(t.id.count()) ?? 0;
+    final totalAmount = aggResult.read(t.amount.sum()) ?? 0.0;
+    final average = aggResult.read(t.amount.avg());
+    final maxAmount = aggResult.read(t.amount.max());
+
+    // 分别统计支出和收入
+    final expenseQuery = _db.selectOnly(t)
+      ..addColumns([t.amount.sum()])
+      ..where(condition & t.type.equals('expense'));
+    final expenseResult = await expenseQuery.getSingle();
+    final totalExpense = expenseResult.read(t.amount.sum()) ?? 0.0;
+
+    final incomeQuery = _db.selectOnly(t)
+      ..addColumns([t.amount.sum()])
+      ..where(condition & t.type.equals('income'));
+    final incomeResult = await incomeQuery.getSingle();
+    final totalIncome = incomeResult.read(t.amount.sum()) ?? 0.0;
+
+    return SearchResultStats(
+      count: count,
+      totalExpense: totalExpense,
+      totalIncome: totalIncome,
+      average: count > 0 ? totalAmount / count : null,
+      maxAmount: maxAmount,
+      maxTransaction: null,  // SQL 聚合不返回具体记录
+    );
   }
 
   @override
   Future<SearchResultWithResults> searchWithResults(int bookId, SearchQuery query) async {
     final results = await search(bookId, query);
-    return SearchResultWithResults(results, _computeStats(results));
+    // 对于分页查询，统计基于完整结果集（不限分页）
+    final statsQuery = SearchQuery(
+      keyword: query.keyword,
+      keywordSynonyms: query.keywordSynonyms,
+      type: query.type,
+      minAmount: query.minAmount,
+      maxAmount: query.maxAmount,
+      startDate: query.startDate,
+      endDate: query.endDate,
+      parentCategoryId: query.parentCategoryId,
+      categoryId: query.categoryId,
+      payMethod: query.payMethod,
+    );
+    final stats = await searchWithStats(bookId, statsQuery);
+    return SearchResultWithResults(results, stats);
+  }
+
+  /// 复用搜索条件构建（避免 search 和 searchWithStats 之间的逻辑重复）
+  Expression<bool> _applySearchConditions(
+    $TransactionsTable t,
+    Expression<bool> baseCondition,
+    SearchQuery query,
+  ) {
+    Expression<bool> condition = baseCondition;
+
+    // 关键词
+    if (query.keyword != null && query.keyword!.isNotEmpty) {
+      final allKeywords = [query.keyword!, ...query.keywordSynonyms.take(5)]
+          .where((k) => k.isNotEmpty)
+          .toList();
+      if (allKeywords.isNotEmpty) {
+        Expression<bool>? textCondition;
+        for (final kw in allKeywords) {
+          final kwCondition = t.description.like('%$kw%') |
+              t.note.like('%$kw%') |
+              t.originalInput.like('%$kw%');
+          textCondition = textCondition == null
+              ? kwCondition
+              : textCondition | kwCondition;
+        }
+        if (textCondition != null) condition = condition & textCondition;
+      }
+    }
+
+    if (query.type != null) condition = condition & t.type.equals(query.type!);
+    if (query.minAmount != null) condition = condition & t.amount.isBiggerOrEqualValue(query.minAmount!);
+    if (query.maxAmount != null) condition = condition & t.amount.isSmallerOrEqualValue(query.maxAmount!);
+    if (query.startDate != null) condition = condition & t.transactionDate.isBiggerOrEqualValue(query.startDate!);
+    if (query.endDate != null) condition = condition & t.transactionDate.isSmallerOrEqualValue(query.endDate!);
+    if (query.parentCategoryId != null) condition = condition & t.parentCategoryId.equals(query.parentCategoryId!);
+    if (query.categoryId != null) condition = condition & t.categoryId.equals(query.categoryId!);
+    if (query.payMethod != null) condition = condition & t.payMethod.equals(query.payMethod!);
+
+    return condition;
   }
 
   /// 从交易列表计算统计数据（单次遍历）

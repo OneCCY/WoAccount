@@ -67,54 +67,67 @@ class BudgetRepositoryImpl implements BudgetRepository {
   @override
   Future<List<BudgetProgress>> getBudgetProgress(int bookId, int year, int month) async {
     final budgets = await getByMonth(bookId, year, month);
-    final results = <BudgetProgress>[];
+    if (budgets.isEmpty) return [];
 
+    final start = DateTime(year, month, 1);
+    final end = DateTime(year, month + 1, 1);
+    final t = _db.transactions;
+    final baseCondition = t.accountBookId.equals(bookId) &
+        t.transactionDate.isBetweenValues(start, end) &
+        t.isDeleted.equals(false);
+
+    // 批量加载所有相关分类（避免 N+1）
+    final catIds = budgets
+        .where((b) => b.categoryId != null)
+        .map((b) => b.categoryId!)
+        .toSet();
+    final allCats = catIds.isNotEmpty
+        ? await (_db.select(_db.categories)..where((c) => c.id.isIn(catIds))).get()
+        : <Category>[];
+    final catMap = {for (final c in allCats) c.id: c};
+
+    // 一次性查询所有分类预算的消费总额（避免每个预算单独查询）
+    final spentMap = <int, double>{};
+    if (catIds.isNotEmpty) {
+      final spentQuery = _db.selectOnly(t)
+        ..addColumns([t.categoryId, t.amount.sum()])
+        ..where(baseCondition & t.categoryId.isIn(catIds) & t.type.equals('expense'))
+        ..groupBy([t.categoryId]);
+      final spentResults = await spentQuery.get();
+      for (final row in spentResults) {
+        final catId = row.read(t.categoryId)!;
+        final spent = row.read(t.amount.sum()) ?? 0.0;
+        spentMap[catId] = spent;
+      }
+    }
+
+    // 查询总预算的消费金额（所有支出）
+    double totalSpent = 0;
+    final hasTotalBudget = budgets.any((b) => b.categoryId == null);
+    if (hasTotalBudget) {
+      final totalQuery = _db.selectOnly(t).join([
+        innerJoin(_db.categories, _db.categories.id.equalsExp(t.categoryId)),
+      ])
+        ..addColumns([t.amount.sum()])
+        ..where(baseCondition & _db.categories.isExpense.equals(true));
+      final totalResult = await totalQuery.getSingle();
+      totalSpent = totalResult.read(t.amount.sum()) ?? 0.0;
+    }
+
+    // 组装结果
+    final results = <BudgetProgress>[];
     for (final budget in budgets) {
-      double spent = 0;
+      double spent;
       Category? category;
 
       if (budget.categoryId != null) {
-        // 查询该分类本月的实际消费
-        category = await (_db.select(_db.categories)
-              ..where((c) => c.id.equals(budget.categoryId!)))
-            .getSingleOrNull();
-
-        final start = DateTime(year, month, 1);
-        final end = DateTime(year, month + 1, 1);
-
-        final query = _db.selectOnly(_db.transactions)
-          ..addColumns([_db.transactions.amount.sum()])
-          ..where(
-            _db.transactions.accountBookId.equals(bookId) &
-                _db.transactions.categoryId.equals(budget.categoryId!) &
-                _db.transactions.transactionDate.isBetweenValues(start, end) &
-                _db.transactions.isDeleted.equals(false),
-          );
-
-        final result = await query.getSingle();
-        spent = result.read(_db.transactions.amount.sum()) ?? 0;
+        category = catMap[budget.categoryId];
+        spent = spentMap[budget.categoryId!] ?? 0;
       } else {
-        // 总预算：SQL 聚合查询所有支出（join categories 过滤 isExpense）
-        final start = DateTime(year, month, 1);
-        final end = DateTime(year, month + 1, 1);
-
-        final query = _db.selectOnly(_db.transactions).join([
-          innerJoin(_db.categories, _db.categories.id.equalsExp(_db.transactions.categoryId)),
-        ])
-          ..addColumns([_db.transactions.amount.sum()])
-          ..where(
-            _db.transactions.accountBookId.equals(bookId) &
-                _db.transactions.transactionDate.isBetweenValues(start, end) &
-                _db.transactions.isDeleted.equals(false) &
-                _db.categories.isExpense.equals(true),
-          );
-
-        final result = await query.getSingle();
-        spent = result.read(_db.transactions.amount.sum()) ?? 0;
+        spent = totalSpent;
       }
 
       final percentage = budget.amount > 0 ? (spent / budget.amount * 100) : 0.0;
-
       results.add(BudgetProgress(
         budget: budget,
         category: category,
