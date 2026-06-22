@@ -58,6 +58,17 @@ class LlmRepositoryImpl implements LlmRepository {
 
   /// OpenAI 兼容格式调用
   Future<LlmResponse> _chatOpenAI(LlmProvider provider, LlmRequest request, String model) async {
+    final body = <String, dynamic>{
+      'model': model,
+      'messages': request.messages.map((m) => m.toJson()).toList(),
+      'temperature': request.temperature ?? provider.temperature,
+      'max_tokens': request.maxTokens ?? provider.maxTokens,
+    };
+    // Structured Output: 强制 JSON 格式返回
+    if (request.structuredOutput) {
+      body['response_format'] = {'type': 'json_object'};
+    }
+
     final response = await _dio.post(
       '${provider.baseUrl}/chat/completions',
       options: Options(
@@ -68,12 +79,7 @@ class LlmRepositoryImpl implements LlmRepository {
         sendTimeout: Duration(seconds: provider.timeoutSeconds),
         receiveTimeout: Duration(seconds: provider.timeoutSeconds),
       ),
-      data: {
-        'model': model,
-        'messages': request.messages.map((m) => m.toJson()).toList(),
-        'temperature': request.temperature ?? provider.temperature,
-        'max_tokens': request.maxTokens ?? provider.maxTokens,
-      },
+      data: body,
     );
 
     final data = response.data as Map<String, dynamic>;
@@ -95,7 +101,7 @@ class LlmRepositoryImpl implements LlmRepository {
   Future<LlmResponse> _chatAnthropic(LlmProvider provider, LlmRequest request, String model) async {
     // 分离 system 消息和 user/assistant 消息
     String? systemPrompt;
-    final messages = <Map<String, String>>[];
+    final messages = <Map<String, dynamic>>[];
     for (final msg in request.messages) {
       if (msg.role == 'system') {
         systemPrompt = msg.content;
@@ -114,11 +120,32 @@ class LlmRepositoryImpl implements LlmRepository {
       'messages': messages,
       'max_tokens': request.maxTokens ?? provider.maxTokens,
     };
+
+    // System prompt with context caching (缓存长 prompt 减少重复计算)
     if (systemPrompt != null) {
-      requestBody['system'] = systemPrompt;
+      requestBody['system'] = [
+        {
+          'type': 'text',
+          'text': systemPrompt,
+          'cache_control': {'type': 'ephemeral'},
+        }
+      ];
     }
+
     if (request.temperature != null || provider.temperature > 0) {
       requestBody['temperature'] = request.temperature ?? provider.temperature;
+    }
+
+    // Structured Output: 通过 tool_use 强制结构化 JSON 返回
+    if (request.structuredOutput && request.jsonSchema != null) {
+      requestBody['tools'] = [
+        {
+          'name': 'output_transaction',
+          'description': 'Output the parsed transaction data',
+          'input_schema': request.jsonSchema,
+        }
+      ];
+      requestBody['tool_choice'] = {'type': 'tool', 'name': 'output_transaction'};
     }
 
     final response = await _dio.post(
@@ -138,7 +165,16 @@ class LlmRepositoryImpl implements LlmRepository {
     final data = response.data as Map<String, dynamic>;
     final usage = data['usage'] as Map<String, dynamic>? ?? {};
     final content = data['content'] as List<dynamic>;
-    final textContent = (content[0] as Map<String, dynamic>)['text'] as String;
+
+    // 解析响应：优先从 tool_use 提取结构化数据，fallback 到 text
+    String textContent;
+    final toolUseBlock = content.where((b) => (b as Map<String, dynamic>)['type'] == 'tool_use').toList();
+    if (toolUseBlock.isNotEmpty) {
+      // tool_use 模式：input 就是结构化 JSON
+      textContent = jsonEncode((toolUseBlock[0] as Map<String, dynamic>)['input']);
+    } else {
+      textContent = (content[0] as Map<String, dynamic>)['text'] as String;
+    }
 
     return LlmResponse(
       content: textContent,
@@ -151,12 +187,15 @@ class LlmRepositoryImpl implements LlmRepository {
 
   @override
   Future<List<TransactionParseResult>> parseTransaction(String input, {String? categoryTaxonomy, String locale = 'zh'}) async {
+    // [Guardrails] 输入预处理 + 合理性校验
+    final sanitizedInput = _validateInput(input);
+
     // 降级策略：先尝试 LLM，失败后用规则引擎
     try {
       final provider = await LlmConfigManager.getActiveProvider();
       if (provider == null || !provider.isComplete) {
         // 未配置 LLM，直接用规则引擎
-        final ruleResult = RuleEngine.parse(input);
+        final ruleResult = RuleEngine.parse(sanitizedInput);
         if (ruleResult != null) return [ruleResult];
         throw const LlmException('请先在设置中添加 AI 服务商，或输入更明确的描述（如"午饭拉面25"）', errorCode: 'llmErrorNoProviderOrInput');
       }
@@ -166,20 +205,25 @@ class LlmRepositoryImpl implements LlmRepository {
           ? PromptTemplates.parseTransactionSystem(categoryTaxonomy, locale: locale)
           : PromptTemplates.parseTransactionSystem(_defaultCategoryTaxonomy, locale: locale);
 
-      // 调用 LLM（使用文本能力）
+      // 调用 LLM（启用 Structured Output）
       final response = await chat(LlmRequest(
         messages: [
           ChatMessage(role: 'system', content: systemPrompt),
-          ChatMessage(role: 'user', content: PromptTemplates.parseTransactionUser(input, locale: locale)),
+          ChatMessage(role: 'user', content: PromptTemplates.parseTransactionUser(sanitizedInput, locale: locale)),
         ],
         temperature: 0.0,
         capability: ModelCapability.text,
+        structuredOutput: true,
+        jsonSchema: _transactionJsonSchema,
       ));
 
-      return _parseTransactionResponse(response.content);
+      final results = _parseTransactionResponse(response.content);
+
+      // [Reflection] 输出合理性自检
+      return _validateAndReflect(results, sanitizedInput);
     } on LlmException {
       // LLM 失败，降级到规则引擎
-      final ruleResult = RuleEngine.parse(input);
+      final ruleResult = RuleEngine.parse(sanitizedInput);
       if (ruleResult != null) return [ruleResult];
       rethrow;
     }
@@ -425,16 +469,67 @@ class LlmRepositoryImpl implements LlmRepository {
     return buffer.toString();
   }
 
+  /// 从 LLM 响应中提取 JSON 字符串（括号计数器算法）
+  ///
+  /// 替代贪婪正则，正确处理嵌套括号和前后附带文字的情况。
+  String? _extractJson(String content) {
+    final start = content.indexOf(RegExp(r'[\[{]'));
+    if (start == -1) return null;
+    final opener = content[start];
+    final closer = opener == '[' ? ']' : '}';
+    int depth = 0;
+    bool inString = false;
+    bool escaped = false;
+    for (int i = start; i < content.length; i++) {
+      final ch = content[i];
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+      if (ch == '\\') {
+        escaped = true;
+        continue;
+      }
+      if (ch == '"') {
+        inString = !inString;
+        continue;
+      }
+      if (inString) continue;
+      if (ch == opener) depth++;
+      if (ch == closer) depth--;
+      if (depth == 0) return content.substring(start, i + 1);
+    }
+    // 括号未闭合，返回从 start 到末尾（让 jsonDecode 报错）
+    return content.substring(start);
+  }
+
   /// 解析 LLM 返回的交易 JSON（支持单笔和多笔）
   List<TransactionParseResult> _parseTransactionResponse(String content) {
     try {
-      // 提取 JSON（可能是对象或数组）
-      final jsonMatch = RegExp(r'(\[[\s\S]*\]|\{[\s\S]*\})').firstMatch(content);
-      if (jsonMatch == null) {
+      // 优先尝试直接解析（Structured Output 模式下 content 就是纯 JSON）
+      final directParse = _tryParseTransactionJson(content);
+      if (directParse != null) return directParse;
+
+      // Fallback: 用括号计数器提取 JSON 片段
+      final jsonStr = _extractJson(content);
+      if (jsonStr == null) {
         throw const LlmException('无法解析 AI 响应', errorCode: 'llmErrorCannotParseResponse');
       }
 
-      final raw = jsonDecode(jsonMatch.group(0)!);
+      final extractParse = _tryParseTransactionJson(jsonStr);
+      if (extractParse != null) return extractParse;
+
+      throw const LlmException('AI 响应格式不正确', errorCode: 'llmErrorInvalidResponseFormat');
+    } catch (e) {
+      if (e is LlmException) rethrow;
+      throw LlmException('解析 AI 响应失败: $e', errorCode: 'llmErrorParseFailed');
+    }
+  }
+
+  /// 尝试将 JSON 字符串解析为交易结果列表
+  List<TransactionParseResult>? _tryParseTransactionJson(String jsonStr) {
+    try {
+      final raw = jsonDecode(jsonStr);
 
       // 处理数组格式（多笔交易）
       if (raw is List) {
@@ -446,18 +541,24 @@ class LlmRepositoryImpl implements LlmRepository {
         return [_parseSingleTransaction(raw)];
       }
 
-      throw const LlmException('AI 响应格式不正确', errorCode: 'llmErrorInvalidResponseFormat');
-    } catch (e) {
-      if (e is LlmException) rethrow;
-      throw LlmException('解析 AI 响应失败: $e', errorCode: 'llmErrorParseFailed');
+      return null;
+    } catch (_) {
+      return null;
     }
   }
 
   TransactionParseResult _parseSingleTransaction(Map<String, dynamic> json) {
+    // 类型宽容处理：amount 可能是 String "25" 或 num 25
+    double parseAmount(dynamic value) {
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value) ?? 0;
+      return 0;
+    }
+
     return TransactionParseResult(
       type: json['type'] as String? ?? 'expense',
-      amount: (json['amount'] as num).toDouble(),
-      category: json['category'] as String,
+      amount: parseAmount(json['amount']),
+      category: json['category'] as String? ?? '',
       subcategory: json['subcategory'] as String?,
       description: json['description'] as String? ?? '',
       confidence: (json['confidence'] as num?)?.toDouble() ?? 0.8,
@@ -466,6 +567,143 @@ class LlmRepositoryImpl implements LlmRepository {
       payMethod: json['payMethod'] as String?,
     );
   }
+
+  // ==================== Guardrails：输入校验 ====================
+
+  /// 输入预处理 + 安全过滤
+  String _validateInput(String input) {
+    final trimmed = input.trim();
+
+    // 最小有效长度
+    if (trimmed.length < 2) {
+      throw const LlmException('输入内容太短，请输入消费描述', errorCode: 'inputTooShort');
+    }
+
+    // 截断过长输入（>500 字符可能是误粘贴）
+    final sanitized = trimmed.length > 500 ? trimmed.substring(0, 500) : trimmed;
+
+    // 过滤纯标点/纯空白
+    if (RegExp(r'^[\s\p{P}]*$', unicode: true).hasMatch(sanitized)) {
+      throw const LlmException('请输入有效的消费描述', errorCode: 'inputInvalid');
+    }
+
+    return sanitized;
+  }
+
+  // ==================== Reflection：输出合理性自检 ====================
+
+  /// 对 LLM 解析结果进行合理性自检
+  ///
+  /// 检查金额、类型、日期的合理性，标记异常但不阻断流程。
+  List<TransactionParseResult> _validateAndReflect(
+    List<TransactionParseResult> results,
+    String originalInput,
+  ) {
+    return results.map((r) {
+      String? warningNote = r.note;
+      double adjustedConfidence = r.confidence;
+      String adjustedType = r.type;
+
+      // 1. 金额合理性
+      if (r.amount <= 0) {
+        warningNote = _appendNote(warningNote, '⚠️ 金额异常（≤0），请修改');
+        adjustedConfidence *= 0.3;
+      } else if (r.amount > 100000) {
+        warningNote = _appendNote(warningNote, '⚠️ 金额较大（¥${r.amount.toStringAsFixed(0)}），请确认');
+        adjustedConfidence *= 0.8;
+      }
+
+      // 2. 类型一致性：含明确支出关键词但识别为收入
+      if (r.type == 'income' && _hasExpenseKeywords(originalInput)) {
+        adjustedType = 'expense';
+        warningNote = _appendNote(warningNote, '已自动修正为支出');
+        adjustedConfidence *= 0.7;
+      }
+
+      // 3. 日期合理性：不应是未来日期（除非明确提到"明天"、"下周"等）
+      if (r.date != null && !_hasFutureDateKeywords(originalInput)) {
+        final parsed = DateTime.tryParse(r.date!);
+        if (parsed != null && parsed.isAfter(DateTime.now().add(const Duration(days: 1)))) {
+          warningNote = _appendNote(warningNote, '⚠️ 日期是未来日期，请确认');
+          adjustedConfidence *= 0.7;
+        }
+      }
+
+      // 4. 分类-金额一致性：早餐超 200、奶茶超 100 等异常
+      final sub = r.subcategory ?? '';
+      if (sub == '早餐' && r.amount > 200) {
+        warningNote = _appendNote(warningNote, '⚠️ 早餐金额偏高，请确认');
+        adjustedConfidence *= 0.8;
+      }
+
+      // 5. 空分类检查
+      if (r.category.isEmpty) {
+        warningNote = _appendNote(warningNote, '⚠️ 未能识别分类，请手动选择');
+        adjustedConfidence *= 0.5;
+      }
+
+      return TransactionParseResult(
+        type: adjustedType,
+        amount: r.amount,
+        category: r.category,
+        subcategory: r.subcategory,
+        description: r.description,
+        confidence: adjustedConfidence.clamp(0.0, 1.0),
+        date: r.date,
+        note: warningNote,
+        payMethod: r.payMethod,
+      );
+    }).toList();
+  }
+
+  /// 追加警告信息到 note 字段
+  String? _appendNote(String? existing, String warning) {
+    if (existing == null || existing.isEmpty) return warning;
+    return '$existing；$warning';
+  }
+
+  /// 检查输入是否包含支出关键词（用于类型修正）
+  static bool _hasExpenseKeywords(String input) {
+    const keywords = ['买', '吃', '喝', '花', '付', '充值', '消费', '打车', '地铁', '公交',
+        '房租', '水电', '药', '课', '票', '费', '税', '加油', '停车', '理发', '剪发',
+        'bought', 'paid', 'spent', 'ride', 'rent', 'fee'];
+    return keywords.any((k) => input.contains(k));
+  }
+
+  /// 检查输入是否包含未来日期关键词
+  static bool _hasFutureDateKeywords(String input) {
+    const keywords = ['明天', '后天', '下周', '下月', '下个', '明天的',
+        'tomorrow', 'next week', 'next month'];
+    return keywords.any((k) => input.contains(k));
+  }
+
+  // ==================== Structured Output JSON Schema ====================
+
+  /// 记账解析的 JSON Schema（用于 Anthropic tool_use）
+  static const _transactionJsonSchema = {
+    'type': 'object',
+    'properties': {
+      'transactions': {
+        'type': 'array',
+        'items': {
+          'type': 'object',
+          'properties': {
+            'type': {'type': 'string', 'enum': ['expense', 'income']},
+            'amount': {'type': 'number'},
+            'category': {'type': 'string'},
+            'subcategory': {'type': 'string'},
+            'description': {'type': 'string'},
+            'date': {'type': 'string', 'pattern': r'^\d{4}-\d{2}-\d{2}$'},
+            'note': {'type': 'string'},
+            'payMethod': {'type': 'string'},
+            'confidence': {'type': 'number', 'minimum': 0, 'maximum': 1},
+          },
+          'required': ['type', 'amount', 'category', 'description', 'date', 'confidence'],
+        },
+      },
+    },
+    'required': ['transactions'],
+  };
 
   /// 解析 Dio 错误
   String _parseDioError(DioException e) {

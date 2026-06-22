@@ -403,6 +403,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
           confidence: txn.confidence,
           mediaFilePath: result.mediaFilePath,
           mediaType: source == InputSource.text ? null : source.name,
+          aiPredictedCategoryId: matchedSub?.id ?? matchedCategory.id,  // 记录 AI 预测
         ));
       }
 
@@ -518,6 +519,25 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
         mediaFilePath: Value(data.mediaFilePath),
         mediaType: Value(data.mediaType),
       ));
+
+      // [Episodic Memory] 记录用户修正：AI 预测 vs 用户最终选择
+      if (data.aiPredictedCategoryId != null &&
+          data.aiPredictedCategoryId != data.categoryId) {
+        try {
+          final db = ref.read(appDatabaseProvider);
+          await db.into(db.aiTrainingRecords).insert(
+            AiTrainingRecordsCompanion.insert(
+              inputText: data.originalInput,
+              predictedCategoryId: Value(data.aiPredictedCategoryId),
+              actualCategoryId: Value(data.categoryId),
+              wasCorrect: const Value(false),
+              accountBookId: _bookId,
+            ),
+          );
+        } catch (_) {
+          // 训练数据写入失败不影响主流程
+        }
+      }
 
       if (!mounted) return;
 
@@ -1163,6 +1183,9 @@ class ConfirmData {
   final String? mediaFilePath;
   final String? mediaType;
 
+  /// AI 最初预测的分类 ID（用于 Episodic Memory 记录用户修正）
+  final int? aiPredictedCategoryId;
+
   ConfirmData({
     required this.originalInput,
     required this.amount,
@@ -1178,6 +1201,7 @@ class ConfirmData {
     required this.confidence,
     this.mediaFilePath,
     this.mediaType,
+    this.aiPredictedCategoryId,
   });
 
   ConfirmData copyWith({
@@ -1207,6 +1231,7 @@ class ConfirmData {
       confidence: confidence,
       mediaFilePath: mediaFilePath,
       mediaType: mediaType,
+      aiPredictedCategoryId: aiPredictedCategoryId,
     );
   }
 }

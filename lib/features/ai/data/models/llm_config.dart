@@ -335,12 +335,23 @@ class LlmRequest {
   final int? maxTokens;
   final ModelCapability? capability;
 
+  /// 是否启用结构化输出（强制 JSON 格式）
+  ///
+  /// OpenAI: response_format: { type: "json_object" }
+  /// Anthropic: tool_use 模式
+  final bool structuredOutput;
+
+  /// structuredOutput 时的 JSON Schema 描述（用于 Anthropic tool_use）
+  final Map<String, dynamic>? jsonSchema;
+
   const LlmRequest({
     required this.messages,
     this.model,
     this.temperature,
     this.maxTokens,
     this.capability,
+    this.structuredOutput = false,
+    this.jsonSchema,
   });
 }
 
