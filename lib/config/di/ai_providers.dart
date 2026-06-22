@@ -5,6 +5,7 @@ import '../../core/media/media_storage_service.dart';
 import '../../features/ai/data/repositories/llm_repository_impl.dart';
 import '../../features/ai/domain/repositories/llm_repository.dart';
 import '../../features/text_ai/data/services/voice_recognition_service.dart';
+import '../../features/text_ai/data/services/platform_stt_service.dart';
 import '../../features/vision_ai/data/services/image_recognition_service.dart';
 import 'providers.dart';
 
@@ -29,6 +30,13 @@ final voiceRecognitionServiceProvider = Provider<VoiceRecognitionService>((ref) 
 final imageRecognitionServiceProvider = Provider<ImageRecognitionService>((ref) {
   final dio = ref.watch(dioProvider);
   return ImageRecognitionService(dio);
+});
+
+/// 平台原生语音识别服务 Provider（免费、离线可用）
+final platformSttServiceProvider = Provider<PlatformSttService>((ref) {
+  final service = PlatformSttService();
+  ref.onDispose(() => service.dispose());
+  return service;
 });
 
 /// 媒体存储服务 Provider

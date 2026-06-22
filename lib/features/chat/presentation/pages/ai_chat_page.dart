@@ -775,6 +775,8 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
             onImageCaptured: (path) => _processInput(imagePath: path),
             isLoading: _isAiResponding,
             onManualEntry: () => context.push('/manual-entry'),
+            voiceMode: VoiceInputMode.platform,
+            sttService: ref.read(platformSttServiceProvider),
           ),
         ],
       ),

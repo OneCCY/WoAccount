@@ -43,6 +43,8 @@
   "chatInputCamera": "Take Photo",
   "chatInputGallery": "Choose from Gallery",
   "chatInputVoiceHint": "Release to send, swipe left to cancel ↖, swipe right to transcribe ↗",
+  "chatInputListening": "Listening...",
+  "chatInputRecording": "Recording...",
   "voiceOverlaySwipeHint": "↑ Swipe up to cancel or transcribe",
   "voiceOverlayCancelLabel": "Release to cancel",
   "voiceOverlayTranscribeLabel": "Release to transcribe only",

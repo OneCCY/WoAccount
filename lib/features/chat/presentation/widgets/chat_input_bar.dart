@@ -5,10 +5,20 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
-import '../../../../core/ai/llm_error_resolver.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/toast.dart';
+import '../../../text_ai/data/services/platform_stt_service.dart';
+import '../../../../core/utils/responsive.dart';
+
+/// 语音识别模式
+enum VoiceInputMode {
+  /// 平台原生 STT（实时转文字，无需 API key）
+  platform,
+
+  /// Whisper API（录音后发送到云端转写）
+  whisper,
+}
 
 /// 聊天底部输入栏
 /// 左: 记账按钮（醒目，长按语音）  |  中: 文本输入  |  右: 拍照
@@ -19,6 +29,12 @@ class ChatInputBar extends StatefulWidget {
   final Function(String filePath) onImageCaptured;
   final bool isLoading;
 
+  /// 语音识别模式（默认平台原生）
+  final VoiceInputMode voiceMode;
+
+  /// 平台 STT 服务（voiceMode 为 platform 时必传）
+  final PlatformSttService? sttService;
+
   const ChatInputBar({
     super.key,
     required this.onSubmit,
@@ -26,6 +42,8 @@ class ChatInputBar extends StatefulWidget {
     required this.onVoiceRecorded,
     required this.onImageCaptured,
     this.isLoading = false,
+    this.voiceMode = VoiceInputMode.platform,
+    this.sttService,
   });
 
   @override
@@ -43,11 +61,16 @@ class _ChatInputBarState extends State<ChatInputBar> {
   Offset _dragOffset = Offset.zero;
   DateTime? _recordStartTime;
 
+  // 平台 STT 实时转写文本
+  String _partialText = '';
+  StreamSubscription<String>? _partialSub;
+
   @override
   void dispose() {
     _controller.dispose();
     _focusNode.dispose();
     _audioRecorder.dispose();
+    _partialSub?.cancel();
     super.dispose();
   }
 
@@ -59,19 +82,48 @@ class _ChatInputBarState extends State<ChatInputBar> {
     _focusNode.unfocus();
   }
 
-  // ==================== 语音交互（真实录音） ====================
+  // ==================== 语音交互 ====================
 
   Future<void> _onVoiceStart(LongPressStartDetails details) async {
     HapticFeedback.heavyImpact();
 
-    // 先设置录音状态（给用户视觉反馈）
     setState(() {
       _isRecording = true;
       _isCancelled = false;
       _dragOffset = Offset.zero;
+      _partialText = '';
     });
 
-    // 检查录音权限（带超时，防止 hasPermission 挂起）
+    if (widget.voiceMode == VoiceInputMode.platform && widget.sttService != null) {
+      await _startPlatformStt();
+    } else {
+      await _startWhisperRecording();
+    }
+  }
+
+  /// 平台原生 STT：实时语音转文字
+  Future<void> _startPlatformStt() async {
+    final stt = widget.sttService!;
+    final ok = await stt.startListening();
+    if (!ok) {
+      if (mounted) {
+        setState(() => _isRecording = false);
+        AppToast.show(context, AppLocalizations.of(context)!.chatInputMicPermission);
+      }
+      return;
+    }
+
+    // 监听实时转写结果
+    _partialSub?.cancel();
+    _partialSub = stt.partialTextStream.listen((text) {
+      if (mounted && _isRecording && !_isCancelled) {
+        setState(() => _partialText = text);
+      }
+    });
+  }
+
+  /// Whisper 模式：录音保存文件
+  Future<void> _startWhisperRecording() async {
     bool hasPermission = false;
     try {
       hasPermission = await _audioRecorder.hasPermission()
@@ -90,9 +142,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
 
     _recordStartTime = DateTime.now();
 
-    // 开始录音
     try {
-      // 生成明确的临时文件路径（Android 16 不支持空路径）
       final tempDir = await getTemporaryDirectory();
       final tempPath = '${tempDir.path}/recording_${DateTime.now().millisecondsSinceEpoch}.m4a';
       await _audioRecorder.start(
@@ -127,20 +177,53 @@ class _ChatInputBarState extends State<ChatInputBar> {
   Future<void> _onVoiceEnd(LongPressEndDetails details) async {
     if (!_isRecording) return;
 
-    final path = await _audioRecorder.stop();
-
     setState(() {
       _isRecording = false;
       _isCancelled = false;
       _dragOffset = Offset.zero;
     });
 
-    if (_isCancelled || path == null || path.isEmpty) {
-      // 取消或录音失败
+    if (widget.voiceMode == VoiceInputMode.platform && widget.sttService != null) {
+      await _stopPlatformStt();
+    } else {
+      await _stopWhisperRecording();
+    }
+  }
+
+  /// 平台 STT：停止识别，获取最终文本
+  Future<void> _stopPlatformStt() async {
+    _partialSub?.cancel();
+    _partialSub = null;
+
+    final stt = widget.sttService!;
+    final finalText = await stt.stopListening();
+
+    if (_isCancelled) {
+      setState(() => _partialText = '');
       return;
     }
 
-    // 检查录音时长（太短则忽略）
+    final text = (finalText ?? _partialText).trim();
+    setState(() => _partialText = '');
+
+    if (text.isEmpty) {
+      if (mounted) {
+        AppToast.show(context, AppLocalizations.of(context)!.chatInputRecordShort, duration: const Duration(milliseconds: 800));
+      }
+      return;
+    }
+
+    // 直接作为文本提交到记账管线（不经过 Whisper）
+    HapticFeedback.lightImpact();
+    widget.onSubmit(text);
+  }
+
+  /// Whisper 模式：停止录音，发送文件路径
+  Future<void> _stopWhisperRecording() async {
+    final path = await _audioRecorder.stop();
+
+    if (_isCancelled || path == null || path.isEmpty) return;
+
     final duration = _recordStartTime != null
         ? DateTime.now().difference(_recordStartTime!)
         : Duration.zero;
@@ -159,23 +242,24 @@ class _ChatInputBarState extends State<ChatInputBar> {
 
   Future<void> _pickImage(ImageSource source) async {
     try {
-      final XFile? image = await _imagePicker.pickImage(
+      final picked = await _imagePicker.pickImage(
         source: source,
-        maxWidth: 1920,
-        maxHeight: 1920,
+        maxWidth: 2048,
+        maxHeight: 2048,
         imageQuality: 85,
       );
-      if (image != null) {
-        widget.onImageCaptured(image.path);
+      if (picked != null) {
+        widget.onImageCaptured(picked.path);
       }
     } catch (e) {
       if (mounted) {
-        AppToast.show(context, AppLocalizations.of(context)!.chatInputImageFailed(resolveLlmError(e, AppLocalizations.of(context)!)));
+        AppToast.show(context, AppLocalizations.of(context)!.chatInputImageFailed(''));
       }
     }
   }
 
-  void _showImageSourceDialog() {
+  void _showImageSourceSheet() {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       builder: (ctx) => SafeArea(
@@ -184,7 +268,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: Text(AppLocalizations.of(context)!.chatInputCamera),
+              title: Text(l10n.chatInputCamera),
               onTap: () {
                 Navigator.pop(ctx);
                 _pickImage(ImageSource.camera);
@@ -192,7 +276,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
             ),
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: Text(AppLocalizations.of(context)!.chatInputGallery),
+              title: Text(l10n.chatInputGallery),
               onTap: () {
                 Navigator.pop(ctx);
                 _pickImage(ImageSource.gallery);
@@ -204,156 +288,155 @@ class _ChatInputBarState extends State<ChatInputBar> {
     );
   }
 
+  // ==================== UI 构建 ====================
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final isPlatformStt = widget.voiceMode == VoiceInputMode.platform;
+
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+      padding: EdgeInsets.fromLTRB(
+        Responsive.s(context, 12),
+        Responsive.s(context, 8),
+        Responsive.s(context, 12),
+        MediaQuery.of(context).padding.bottom + Responsive.s(context, 8),
+      ),
       decoration: BoxDecoration(
         color: context.colors.surface,
-        border: Border(
-          top: BorderSide(color: context.colors.separatorOpaque, width: 0.5),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0x0A000000),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
+        border: Border(top: BorderSide(color: context.colors.separatorOpaque, width: 0.5)),
       ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            _buildRecordButton(),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Container(
-                constraints: const BoxConstraints(minHeight: 40, maxHeight: 120),
-                decoration: BoxDecoration(
-                  color: context.colors.surfaceSecondary,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: TextField(
-                  controller: _controller,
-                  focusNode: _focusNode,
-                  enabled: !widget.isLoading && !_isRecording,
-                  textInputAction: TextInputAction.send,
-                  onSubmitted: (_) => _handleSubmit(),
-                  onChanged: (_) => setState(() {}),
-                  maxLines: null,
-                  style: context.textStyles.body.copyWith(fontSize: 15),
-                  decoration: InputDecoration(
-                    hintText: _isRecording ? AppLocalizations.of(context)!.chatInputVoiceHint : AppLocalizations.of(context)!.chatInputTextHint,
-                    hintStyle: context.textStyles.body.copyWith(
-                      color: _isRecording ? context.colors.primary : context.colors.textHint,
-                      fontSize: 15,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 平台 STT 实时转写显示区
+          if (isPlatformStt && _isRecording && _partialText.isNotEmpty)
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.s(context, 12),
+                vertical: Responsive.s(context, 8),
+              ),
+              margin: EdgeInsets.only(bottom: Responsive.s(context, 6)),
+              decoration: BoxDecoration(
+                color: context.colors.primarySurface,
+                borderRadius: BorderRadius.circular(Responsive.s(context, 8)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.mic, size: 16, color: context.colors.primary),
+                  SizedBox(width: Responsive.s(context, 8)),
+                  Expanded(
+                    child: Text(
+                      _partialText,
+                      style: context.textStyles.body.copyWith(
+                        fontSize: Responsive.fs(context, 14),
+                        color: context.colors.primary,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  ),
+                ],
+              ),
+            ),
+          Row(
+            children: [
+              // 左侧：记账按钮（长按语音）
+              GestureDetector(
+                onLongPressStart: _onVoiceStart,
+                onLongPressMoveUpdate: _onVoiceUpdate,
+                onLongPressEnd: _onVoiceEnd,
+                onTap: widget.onManualEntry,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: Responsive.s(context, 40),
+                  height: Responsive.s(context, 40),
+                  decoration: BoxDecoration(
+                    color: _isRecording
+                        ? (_isCancelled ? context.colors.error : context.colors.primary)
+                        : context.colors.primarySurface,
+                    borderRadius: BorderRadius.circular(Responsive.s(context, 20)),
+                  ),
+                  child: Center(
+                    child: _isRecording
+                        ? Icon(
+                            _isCancelled ? Icons.close : Icons.mic,
+                            color: Colors.white,
+                            size: 20,
+                          )
+                        : Text('📝', style: TextStyle(fontSize: Responsive.fs(context, 18))),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: 8),
-            _buildRightButton(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRecordButton() {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: widget.onManualEntry,
-      onLongPressStart: _onVoiceStart,
-      onLongPressMoveUpdate: _onVoiceUpdate,
-      onLongPressEnd: _onVoiceEnd,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: _isRecording ? 52 : 48,
-        height: _isRecording ? 52 : 48,
-        decoration: BoxDecoration(
-          gradient: _isRecording
-              ? LinearGradient(
-                  colors: _isCancelled
-                      ? [context.colors.error, context.colors.error.withValues(alpha: 0.8)]
-                      : [context.colors.primary, context.colors.primary.withValues(alpha: 0.7)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                )
-              : LinearGradient(
-                  colors: [Color(0xFF4CAF50), Color(0xFF2E7D32)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+              SizedBox(width: Responsive.s(context, 8)),
+              // 中间：文本输入框
+              Expanded(
+                child: Container(
+                  height: Responsive.s(context, 40),
+                  decoration: BoxDecoration(
+                    color: context.colors.surfaceSecondary,
+                    borderRadius: BorderRadius.circular(Responsive.s(context, 20)),
+                  ),
+                  child: Row(
+                    children: [
+                      SizedBox(width: Responsive.s(context, 14)),
+                      Expanded(
+                        child: TextField(
+                          controller: _controller,
+                          focusNode: _focusNode,
+                          style: context.textStyles.body.copyWith(fontSize: Responsive.fs(context, 14)),
+                          decoration: InputDecoration(
+                            hintText: _isRecording
+                                ? (isPlatformStt ? l10n.chatInputListening : l10n.chatInputRecording)
+                                : l10n.chatInputTextHint,
+                            hintStyle: context.textStyles.footnote.copyWith(
+                              color: context.colors.textTertiary,
+                            ),
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: EdgeInsets.symmetric(
+                              vertical: Responsive.s(context, 10),
+                            ),
+                          ),
+                          textInputAction: TextInputAction.send,
+                          onSubmitted: (_) => _handleSubmit(),
+                        ),
+                      ),
+                      if (_controller.text.isNotEmpty)
+                        GestureDetector(
+                          onTap: () {
+                            _controller.clear();
+                            setState(() {});
+                          },
+                          child: Padding(
+                            padding: EdgeInsets.only(right: Responsive.s(context, 8)),
+                            child: Icon(Icons.cancel, size: 16, color: context.colors.textTertiary),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-          borderRadius: BorderRadius.circular(_isRecording ? 26 : 16),
-          boxShadow: [
-            BoxShadow(
-              color: (_isRecording
-                      ? (_isCancelled ? context.colors.error : context.colors.primary)
-                      : context.colors.primary)
-                  .withValues(alpha: 0.3),
-              blurRadius: _isRecording ? 12 : 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Center(
-          child: _isRecording
-              ? Icon(
-                  _isCancelled ? Icons.close : Icons.mic,
-                  size: 24,
-                  color: context.colors.textOnPrimary,
-                )
-              : Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.edit_note, size: 22, color: context.colors.textOnPrimary),
-                    Text(AppLocalizations.of(context)!.navRecord, style: TextStyle(fontSize: 9, color: context.colors.textOnPrimary, fontWeight: FontWeight.w600)),
-                  ],
+              ),
+              SizedBox(width: Responsive.s(context, 8)),
+              // 右侧：拍照按钮
+              GestureDetector(
+                onTap: _showImageSourceSheet,
+                child: Container(
+                  width: Responsive.s(context, 40),
+                  height: Responsive.s(context, 40),
+                  decoration: BoxDecoration(
+                    color: context.colors.surfaceSecondary,
+                    borderRadius: BorderRadius.circular(Responsive.s(context, 20)),
+                  ),
+                  child: Center(
+                    child: Icon(Icons.camera_alt, size: 20, color: context.colors.textSecondary),
+                  ),
                 ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRightButton() {
-    final hasText = _controller.text.trim().isNotEmpty;
-
-    if (hasText) {
-      return GestureDetector(
-        onTap: widget.isLoading ? null : _handleSubmit,
-        child: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: widget.isLoading ? context.colors.surfaceSecondary : context.colors.primary,
-            borderRadius: BorderRadius.circular(20),
+              ),
+            ],
           ),
-          child: widget.isLoading
-              ? Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: CircularProgressIndicator(strokeWidth: 2, color: context.colors.textOnPrimary),
-                )
-              : Icon(Icons.arrow_upward, size: 22, color: context.colors.textOnPrimary),
-        ),
-      );
-    }
-
-    return GestureDetector(
-      onTap: _showImageSourceDialog,
-      child: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: context.colors.surfaceSecondary,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: context.colors.separator, width: 1),
-        ),
-        child: Icon(Icons.camera_alt_outlined, size: 20, color: context.colors.textSecondary),
+        ],
       ),
     );
   }
