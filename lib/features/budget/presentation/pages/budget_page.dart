@@ -9,6 +9,7 @@ import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/toast.dart';
 import '../../domain/repositories/budget_repository.dart';
 
 /// 预算视图模式
@@ -155,10 +156,27 @@ class _BudgetPageState extends ConsumerState<BudgetPage> {
 
     if (expenseParents.isEmpty || !mounted) return;
 
+    // 查询已有预算的父分类 ID
+    final budgetRepo = ref.read(budgetRepositoryProvider);
+    final bookId = ref.read(currentBookProvider);
+    final allProgress = await budgetRepo.getBudgetProgress(bookId, _currentMonth.year, _currentMonth.month);
+    final categoryProgresses = allProgress.where((p) => p.budget.categoryId != null).toList();
+    final existingParentIds = <int>{};
+    for (final p in categoryProgresses) {
+      final cat = p.category;
+      if (cat == null) continue;
+      existingParentIds.add(cat.parentId ?? cat.id);
+    }
+
+    if (!mounted) return;
+
     final selected = await showModalBottomSheet<Category>(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => _ParentCategoryPickerSheet(categories: expenseParents),
+      builder: (ctx) => _ParentCategoryPickerSheet(
+        categories: expenseParents,
+        existingIds: existingParentIds,
+      ),
     );
     if (selected == null || !mounted) return;
 
@@ -337,34 +355,38 @@ class _BudgetPageState extends ConsumerState<BudgetPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 14),
-            // 已花费金额（大字）
-            Text(
-              context.localeProvider.currency.formatAmount(totalSpent, decimals: 0),
-              style: context.textStyles.amountLarge.copyWith(
-                color: Colors.white,
-                fontSize: 36,
-                fontWeight: FontWeight.w700,
-              ),
+            const SizedBox(height: 12),
+            // 金额行：已花费 / 总预算（同一行）
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  context.localeProvider.currency.formatAmount(totalSpent, decimals: 0),
+                  style: context.textStyles.amountLarge.copyWith(
+                    color: Colors.white,
+                    fontSize: 30,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  ' / ${context.localeProvider.currency.formatAmount(effectiveBudget, decimals: 0)}',
+                  style: context.textStyles.body.copyWith(color: Colors.white.withValues(alpha: 0.65)),
+                ),
+              ],
             ),
-            const SizedBox(height: 4),
-            // 总预算
-            Text(
-              '/ ${context.localeProvider.currency.formatAmount(effectiveBudget, decimals: 0)}',
-              style: context.textStyles.body.copyWith(color: Colors.white.withValues(alpha: 0.65)),
-            ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
             // 进度条
             ClipRRect(
               borderRadius: BorderRadius.circular(5),
               child: LinearProgressIndicator(
                 value: (percentage / 100).clamp(0, 1),
-                minHeight: 10,
+                minHeight: 8,
                 backgroundColor: Colors.white.withValues(alpha: 0.2),
                 valueColor: AlwaysStoppedAnimation(Colors.white),
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             // 底部信息行
             Row(
               children: [
@@ -730,11 +752,12 @@ class _ScaleOnTapState extends State<_ScaleOnTap> with SingleTickerProviderState
   }
 }
 
-/// 一级分类选择器（仅展示一级分类）
+/// 一级分类选择器（已有预算的灰显不可选）
 class _ParentCategoryPickerSheet extends StatelessWidget {
   final List<Category> categories;
+  final Set<int> existingIds;
 
-  const _ParentCategoryPickerSheet({required this.categories});
+  const _ParentCategoryPickerSheet({required this.categories, required this.existingIds});
 
   @override
   Widget build(BuildContext context) {
@@ -773,27 +796,33 @@ class _ParentCategoryPickerSheet extends StatelessWidget {
             itemCount: categories.length,
             itemBuilder: (ctx, i) {
               final cat = categories[i];
+              final hasExisting = existingIds.contains(cat.id);
               final color = _parsePickerColor(cat.color, context);
               return GestureDetector(
-                onTap: () => Navigator.pop(context, cat),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 44, height: 44,
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                onTap: hasExisting
+                    ? () => AppToast.show(context, AppLocalizations.of(context)!.budgetCategoryAlreadyExists)
+                    : () => Navigator.pop(context, cat),
+                child: Opacity(
+                  opacity: hasExisting ? 0.4 : 1.0,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 44, height: 44,
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                        ),
+                        child: Center(child: Text(cat.icon ?? '📦', style: const TextStyle(fontSize: 22))),
                       ),
-                      child: Center(child: Text(cat.icon ?? '📦', style: const TextStyle(fontSize: 22))),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      getCategoryDisplayName(cat, AppLocalizations.of(context)!),
-                      style: context.textStyles.caption,
-                      maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center,
-                    ),
-                  ],
+                      const SizedBox(height: 4),
+                      Text(
+                        getCategoryDisplayName(cat, AppLocalizations.of(context)!),
+                        style: context.textStyles.caption,
+                        maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
                 ),
               );
             },

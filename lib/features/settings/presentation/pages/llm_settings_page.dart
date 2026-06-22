@@ -121,7 +121,7 @@ List<_FetchedModel> filterModelsByCapability(List<_FetchedModel> models, ModelCa
 }
 
 // ============================================================
-// LLM 服务配置页 — 能力入口模式
+// LLM 服务配置页 — 模型管理入口
 // ============================================================
 
 class LlmSettingsPage extends StatefulWidget {
@@ -168,7 +168,206 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
       context,
       MaterialPageRoute(builder: (_) => _CapabilityConfigPage(capability: cap)),
     );
-    _load(); // 返回时刷新状态
+    _load();
+  }
+
+  void _openSupplierManagement() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const _SupplierManagementPage()),
+    );
+    _load();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Scaffold(
+      backgroundColor: context.colors.background,
+      appBar: AppBar(title: Text(l10n.llmSettingsTitle)),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(AppDimensions.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 1. 模型管理
+                  _sectionLabel(l10n.llmModelManagement),
+                  const SizedBox(height: 8),
+                  ...ModelCapability.values.map((cap) => _buildCapabilityCard(cap)),
+                  const SizedBox(height: 24),
+
+                  // 2. 服务商管理入口
+                  _sectionLabel(l10n.llmSupplierManagement),
+                  const SizedBox(height: 8),
+                  _buildSupplierEntryCard(l10n),
+                  const SizedBox(height: 40),
+                ],
+              ),
+            ),
+    );
+  }
+
+  Widget _buildCapabilityCard(ModelCapability cap) {
+    final l10n = AppLocalizations.of(context)!;
+    final active = _activeProvider;
+    final modelName = active?.getModelForCapability(cap);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+      ),
+      child: InkWell(
+        onTap: () => _openCapabilityConfig(cap),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 44, height: 44,
+                decoration: BoxDecoration(
+                  color: context.colors.primarySurface,
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+                ),
+                child: Center(child: Text(cap.emoji, style: const TextStyle(fontSize: 22))),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(cap.getLocalizedLabel(l10n), style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 2),
+                    if (modelName != null && modelName.isNotEmpty)
+                      Text('${active!.name} · $modelName',
+                        style: AppTextStyles.caption.copyWith(color: context.colors.primary),
+                        overflow: TextOverflow.ellipsis,
+                      )
+                    else
+                      Text(l10n.llmNotConfigured,
+                        style: AppTextStyles.caption.copyWith(color: context.colors.textTertiary)),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: (modelName != null && modelName.isNotEmpty)
+                      ? context.colors.success.withValues(alpha: 0.1)
+                      : context.colors.warning.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  (modelName != null && modelName.isNotEmpty) ? l10n.llmConfigured : l10n.llmNotConfigured,
+                  style: AppTextStyles.caption.copyWith(
+                    color: (modelName != null && modelName.isNotEmpty) ? context.colors.success : context.colors.warning,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(Icons.chevron_right, color: context.colors.textTertiary, size: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 服务商管理入口卡片
+  Widget _buildSupplierEntryCard(AppLocalizations l10n) {
+    final count = _providers.length;
+    final activeName = _activeProvider?.name;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+      ),
+      child: InkWell(
+        onTap: _openSupplierManagement,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 44, height: 44,
+                decoration: BoxDecoration(
+                  color: context.colors.primarySurface,
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+                ),
+                child: Center(child: Icon(Icons.cloud_outlined, size: 22, color: context.colors.primary)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.llmSupplierManagement, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 2),
+                    if (count > 0)
+                      Text(
+                        activeName != null
+                            ? '$count ${l10n.llmConfigured} · ${l10n.llmInUse}: $activeName'
+                            : '$count ${l10n.llmConfigured}',
+                        style: AppTextStyles.caption.copyWith(color: context.colors.textSecondary),
+                        overflow: TextOverflow.ellipsis,
+                      )
+                    else
+                      Text(l10n.llmNoProviders, style: AppTextStyles.caption.copyWith(color: context.colors.textTertiary)),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right, color: context.colors.textTertiary, size: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionLabel(String text) {
+    return Text(text, style: AppTextStyles.footnote.copyWith(color: context.colors.textSecondary));
+  }
+}
+
+// ============================================================
+// 服务商管理页 — 独立页面，管理所有服务商
+// ============================================================
+
+class _SupplierManagementPage extends StatefulWidget {
+  const _SupplierManagementPage();
+
+  @override
+  State<_SupplierManagementPage> createState() => _SupplierManagementPageState();
+}
+
+class _SupplierManagementPageState extends State<_SupplierManagementPage> {
+  List<LlmProvider> _providers = [];
+  String? _activeId;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final providers = await LlmConfigManager.loadProviders();
+    final activeId = await LlmConfigManager.getActiveProviderId();
+    if (mounted) {
+      setState(() {
+        _providers = providers;
+        _activeId = activeId;
+        _isLoading = false;
+      });
+    }
   }
 
   void _addProvider() async {
@@ -277,7 +476,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: AppBar(
-        title: Text(l10n.llmSettingsTitle),
+        title: Text(l10n.llmSupplierManagement),
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
@@ -299,16 +498,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1. 模型管理
-                  _sectionLabel(l10n.llmModelManagement),
-                  const SizedBox(height: 8),
-                  ...ModelCapability.values.map((cap) => _buildCapabilityCard(cap)),
-                  const SizedBox(height: 24),
-
-                  // 2. 服务商管理
-                  _sectionLabel(l10n.llmSupplierManagement),
-                  const SizedBox(height: 8),
-                  _providers.isEmpty ? _buildEmptyProviderHint() : _buildProviderList(),
+                  _providers.isEmpty ? _buildEmptyHint(l10n) : _buildProviderList(l10n),
                   const SizedBox(height: 16),
                   Center(
                     child: OutlinedButton.icon(
@@ -332,90 +522,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
     );
   }
 
-  // ============================================================
-  // 能力配置卡片
-  // ============================================================
-
-  Widget _buildCapabilityCard(ModelCapability cap) {
-    final l10n = AppLocalizations.of(context)!;
-    final active = _activeProvider;
-    final modelName = active?.getModelForCapability(cap);
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: context.colors.surface,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-      ),
-      child: InkWell(
-        onTap: () => _openCapabilityConfig(cap),
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: context.colors.primarySurface,
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-                ),
-                child: Center(
-                  child: Text(cap.emoji, style: const TextStyle(fontSize: 22)),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(cap.getLocalizedLabel(l10n), style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 2),
-                    if (modelName != null && modelName.isNotEmpty)
-                      Text(
-                        '${active!.name} · $modelName',
-                        style: AppTextStyles.caption.copyWith(color: context.colors.primary),
-                        overflow: TextOverflow.ellipsis,
-                      )
-                    else
-                      Text(
-                        AppLocalizations.of(context)!.llmNotConfigured,
-                        style: AppTextStyles.caption.copyWith(color: context.colors.textTertiary),
-                      ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: (modelName != null && modelName.isNotEmpty)
-                      ? context.colors.success.withValues(alpha: 0.1)
-                      : context.colors.warning.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  (modelName != null && modelName.isNotEmpty) ? AppLocalizations.of(context)!.llmConfigured : AppLocalizations.of(context)!.llmNotConfigured,
-                  style: AppTextStyles.caption.copyWith(
-                    color: (modelName != null && modelName.isNotEmpty) ? context.colors.success : context.colors.warning,
-                    fontSize: 11,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Icon(Icons.chevron_right, color: context.colors.textTertiary, size: 20),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ============================================================
-  // 服务商列表
-  // ============================================================
-
-  Widget _buildEmptyProviderHint() {
+  Widget _buildEmptyHint(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -427,14 +534,14 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
           children: [
             Icon(Icons.cloud_off_outlined, size: 40, color: context.colors.textTertiary),
             const SizedBox(height: 8),
-            Text(AppLocalizations.of(context)!.llmNoProviders, style: AppTextStyles.body.copyWith(color: context.colors.textSecondary)),
+            Text(l10n.llmNoProviders, style: AppTextStyles.body.copyWith(color: context.colors.textSecondary)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildProviderList() {
+  Widget _buildProviderList(AppLocalizations l10n) {
     return Column(
       children: _providers.map((p) {
         final isActive = p.id == _activeId;
@@ -457,7 +564,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        p.name.isEmpty ? AppLocalizations.of(context)!.llmUnnamedProvider : p.name,
+                        p.name.isEmpty ? l10n.llmUnnamedProvider : p.name,
                         style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
                       ),
                     ),
@@ -468,7 +575,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
                           color: context.colors.primarySurface,
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: Text(AppLocalizations.of(context)!.llmInUse, style: AppTextStyles.caption.copyWith(color: context.colors.primary, fontSize: 11)),
+                        child: Text(l10n.llmInUse, style: AppTextStyles.caption.copyWith(color: context.colors.primary, fontSize: 11)),
                       ),
                     if (!p.isComplete)
                       Padding(
@@ -479,7 +586,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
                             color: context.colors.warning.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: Text(AppLocalizations.of(context)!.llmIncomplete, style: AppTextStyles.caption.copyWith(color: context.colors.warning, fontSize: 11)),
+                          child: Text(l10n.llmIncomplete, style: AppTextStyles.caption.copyWith(color: context.colors.warning, fontSize: 11)),
                         ),
                       ),
                   ],
@@ -488,19 +595,16 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    _providerActionButton(
-                      icon: Icons.wifi_tethering,
-                      label: AppLocalizations.of(context)!.llmTest,
+                    _actionButton(
+                      icon: Icons.wifi_tethering, label: l10n.llmTest,
                       onTap: () => _testProvider(p),
                     ),
-                    _providerActionButton(
-                      icon: Icons.edit_outlined,
-                      label: AppLocalizations.of(context)!.commonEdit,
+                    _actionButton(
+                      icon: Icons.edit_outlined, label: l10n.commonEdit,
                       onTap: () => _editProvider(p),
                     ),
-                    _providerActionButton(
-                      icon: Icons.delete_outline,
-                      label: AppLocalizations.of(context)!.commonDelete,
+                    _actionButton(
+                      icon: Icons.delete_outline, label: l10n.commonDelete,
                       color: context.colors.error,
                       onTap: () => _deleteProvider(p),
                     ),
@@ -514,7 +618,7 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
     );
   }
 
-  Widget _providerActionButton({
+  Widget _actionButton({
     required IconData icon,
     required String label,
     required VoidCallback onTap,
@@ -535,10 +639,6 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
         ),
       ),
     );
-  }
-
-  Widget _sectionLabel(String text) {
-    return Text(text, style: AppTextStyles.footnote.copyWith(color: context.colors.textSecondary));
   }
 }
 

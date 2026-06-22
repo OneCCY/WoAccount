@@ -10,6 +10,7 @@ import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/toast.dart';
 import '../../domain/repositories/budget_repository.dart';
 
 /// 预算详情页 — 展示某一父分类下的所有子分类预算
@@ -416,33 +417,38 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 14),
-            // 已花费金额（大字）
-            Text(
-              context.localeProvider.currency.formatAmount(totalSpent, decimals: 0),
-              style: context.textStyles.amountLarge.copyWith(
-                color: Colors.white,
-                fontSize: 36,
-                fontWeight: FontWeight.w700,
-              ),
+            const SizedBox(height: 12),
+            // 金额行：已花费 / 总预算（同一行）
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  context.localeProvider.currency.formatAmount(totalSpent, decimals: 0),
+                  style: context.textStyles.amountLarge.copyWith(
+                    color: Colors.white,
+                    fontSize: 30,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  ' / ${context.localeProvider.currency.formatAmount(totalBudget, decimals: 0)}',
+                  style: context.textStyles.body.copyWith(color: Colors.white.withValues(alpha: 0.65)),
+                ),
+              ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              '/ ${context.localeProvider.currency.formatAmount(totalBudget, decimals: 0)}',
-              style: context.textStyles.body.copyWith(color: Colors.white.withValues(alpha: 0.65)),
-            ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
             // 进度条
             ClipRRect(
               borderRadius: BorderRadius.circular(5),
               child: LinearProgressIndicator(
                 value: (percentage / 100).clamp(0, 1),
-                minHeight: 10,
+                minHeight: 8,
                 backgroundColor: Colors.white.withValues(alpha: 0.2),
                 valueColor: const AlwaysStoppedAnimation(Colors.white),
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             // 底部信息行
             Row(
               children: [
@@ -726,7 +732,9 @@ class _ChildCategoryPickerSheet extends StatelessWidget {
               final hasExisting = existingIds.contains(cat.id);
               final color = _parseColorHex(cat.color, context);
               return GestureDetector(
-                onTap: hasExisting ? null : () => Navigator.pop(context, cat),
+                onTap: hasExisting
+                    ? () => AppToast.show(context, l10n.budgetCategoryAlreadyExists)
+                    : () => Navigator.pop(context, cat),
                 child: Opacity(
                   opacity: hasExisting ? 0.4 : 1.0,
                   child: Column(
