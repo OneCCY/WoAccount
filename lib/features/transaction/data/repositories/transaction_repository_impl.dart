@@ -136,6 +136,18 @@ class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   @override
+  Stream<List<Transaction>> watchByDateRange(int bookId, DateTime start, DateTime end) {
+    return (_db.select(_db.transactions)
+          ..where((t) =>
+              t.isDeleted.equals(false) &
+              t.accountBookId.equals(bookId) &
+              t.transactionDate.isBiggerOrEqualValue(start) &
+              t.transactionDate.isSmallerThanValue(end))
+          ..orderBy([(t) => OrderingTerm.desc(t.transactionDate)]))
+        .watch();
+  }
+
+  @override
   Future<List<Transaction>> getPaged(int bookId, int limit, int offset) async {
     return (_db.select(_db.transactions)
           ..where((t) => t.isDeleted.equals(false) & t.accountBookId.equals(bookId))

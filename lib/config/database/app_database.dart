@@ -191,7 +191,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -314,6 +314,36 @@ class AppDatabase extends _$AppDatabase {
           "parent_category_id = category_id, "
           "category_id = parent_category_id "
           "WHERE parent_category_id IS NOT NULL",
+        );
+      }
+      if (from < 11) {
+        // 性能优化：为高频查询添加复合索引
+        // Transactions 表：覆盖几乎所有查询场景
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_txn_book_deleted_date '
+          'ON transactions(account_book_id, is_deleted, transaction_date DESC)',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_txn_book_deleted_category '
+          'ON transactions(account_book_id, is_deleted, category_id)',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_txn_book_deleted_created '
+          'ON transactions(account_book_id, is_deleted, created_at DESC)',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_txn_book_deleted_type '
+          'ON transactions(account_book_id, is_deleted, type)',
+        );
+        // ConversationMessages 表：覆盖分页查询
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_msg_book_conversation_created '
+          'ON conversation_messages(account_book_id, conversation_id, created_at DESC)',
+        );
+        // AiTrainingRecords 表：覆盖修正记录查询
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_training_book_correct '
+          'ON ai_training_records(account_book_id, was_correct, created_at DESC)',
         );
       }
     },

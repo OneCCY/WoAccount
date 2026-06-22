@@ -147,6 +147,9 @@ abstract class TransactionRepository {
   /// 监听账本内所有交易变化（响应式）
   Stream<List<Transaction>> watchAll(int bookId);
 
+  /// 监听账本内指定日期范围的交易变化（响应式，替代 watchAll 的高效版本）
+  Stream<List<Transaction>> watchByDateRange(int bookId, DateTime start, DateTime end);
+
   /// 分页获取账本内所有交易（按时间倒序）
   Future<List<Transaction>> getPaged(int bookId, int limit, int offset);
 

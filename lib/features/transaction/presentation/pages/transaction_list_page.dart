@@ -72,10 +72,14 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
   }
 
   /// 监听交易数据变化，当日视图可见时自动刷新
+  /// 使用当月日期范围而非 watchAll，减少不必要的数据加载
   void _listenTransactionChanges() {
     final repo = ref.read(transactionRepositoryProvider);
     final bookId = ref.read(currentBookProvider);
-    repo.watchAll(bookId).listen((_) {
+    final now = DateTime.now();
+    final monthStart = DateTime(now.year, now.month, 1);
+    final monthEnd = DateTime(now.year, now.month + 1, 1);
+    repo.watchByDateRange(bookId, monthStart, monthEnd).listen((_) {
       if (mounted && _currentView == ViewType.day && !_isDayLoading) {
         _loadTransactions();
       }
@@ -682,16 +686,15 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
       onRefresh: () async { _triggerRefresh(); },
       child: StreamBuilder<List<Transaction>>(
         key: ValueKey('week_stats_$_refreshKey'),
-        stream: repo.watchAll(ref.watch(currentBookProvider)),
+        stream: repo.watchByDateRange(ref.watch(currentBookProvider), weekStartDay, weekEnd),
         builder: (context, snapshot) {
-          final allTxns = snapshot.data ?? [];
+          final weekTxns = snapshot.data ?? [];
           return FutureBuilder<List<Category>>(
             future: catRepo.getAll(),
             builder: (context, catSnap) {
-              // 计算本周每天的收支
+              // 计算本周每天的收支（数据已按日期范围过滤）
               final dailyTotals = <int, ({double expense, double income})>{};
-              for (final t in allTxns) {
-                if (t.transactionDate.isBefore(weekStartDay) || !t.transactionDate.isBefore(weekEnd)) continue;
+              for (final t in weekTxns) {
                 final day = t.transactionDate.day;
                 final isExpense = t.type == 'expense';
                 final existing = dailyTotals[day];
@@ -800,14 +803,12 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
 
     return StreamBuilder<List<Transaction>>(
       key: ValueKey('week_$_refreshKey'),
-      stream: repo.watchAll(ref.watch(currentBookProvider)),
+      stream: repo.watchByDateRange(ref.watch(currentBookProvider), dayStart, dayEnd),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator(color: context.colors.primary));
         }
-        final allTxns = snapshot.data ?? [];
-        final dayTxns = allTxns.where((t) =>
-            !t.transactionDate.isBefore(dayStart) && t.transactionDate.isBefore(dayEnd)).toList();
+        final dayTxns = snapshot.data ?? [];
 
         return FutureBuilder<List<Category>>(
           future: catRepo.getAll(),
@@ -862,11 +863,9 @@ class _TransactionListPageState extends ConsumerState<TransactionListPage> with 
       onRefresh: () async { _triggerRefresh(); },
       child: StreamBuilder<List<Transaction>>(
         key: ValueKey('month_$_refreshKey'),
-        stream: repo.watchAll(ref.watch(currentBookProvider)),
+        stream: repo.watchByDateRange(ref.watch(currentBookProvider), start, end),
         builder: (context, snapshot) {
-          final allTxns = snapshot.data ?? [];
-          final monthTxns = allTxns.where((t) =>
-              !t.transactionDate.isBefore(start) && t.transactionDate.isBefore(end)).toList();
+          final monthTxns = snapshot.data ?? [];
 
           return FutureBuilder<List<Category>>(
             future: catRepo.getAll(),
@@ -1088,7 +1087,7 @@ class _DayDetailPage extends ConsumerWidget {
         backgroundColor: context.colors.surface,
       ),
       body: StreamBuilder<List<Transaction>>(
-        stream: repo.watchAll(ref.watch(currentBookProvider)),
+        stream: repo.watchByDateRange(ref.watch(currentBookProvider), start, end),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator(color: context.colors.primary));
@@ -1097,9 +1096,7 @@ class _DayDetailPage extends ConsumerWidget {
             debugPrint('[TransactionList] stream error: ${snapshot.error}');
             return Center(child: Text(AppLocalizations.of(context)!.loadFailedPullToRefresh, style: context.textStyles.body.copyWith(color: context.colors.textTertiary)));
           }
-          final allTxns = snapshot.data ?? [];
-          final dayTxns = allTxns.where((t) =>
-              !t.transactionDate.isBefore(start) && t.transactionDate.isBefore(end)).toList();
+          final dayTxns = snapshot.data ?? [];
 
           if (dayTxns.isEmpty) {
             return Center(

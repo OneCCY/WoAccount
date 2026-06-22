@@ -284,23 +284,31 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   /// 从数据库动态构建分类体系文本（用于 LLM 提示词）
+  /// 使用单次 getAll 查询 + 内存分组，避免 N+1 查询
   Future<String> _buildCategoryTaxonomy() async {
     try {
-      final categories = await _categoryRepo.getTopLevel();
-      if (categories.isEmpty) return '';
+      final allCats = await _categoryRepo.getAll();
+      final childrenMap = <int, List<Category>>{};
+      for (final c in allCats) {
+        if (c.parentId != null) {
+          childrenMap.putIfAbsent(c.parentId!, () => []).add(c);
+        }
+      }
 
-      final expenseCats = categories.where((c) => c.isExpense).toList();
-      final incomeCats = categories.where((c) => !c.isExpense).toList();
+      final parents = allCats.where((c) => c.parentId == null).toList();
+      if (parents.isEmpty) return '';
+
+      final expenseCats = parents.where((c) => c.isExpense).toList();
+      final incomeCats = parents.where((c) => !c.isExpense).toList();
 
       final buffer = StringBuffer();
 
       if (expenseCats.isNotEmpty) {
         buffer.writeln('### 支出分类');
         for (final cat in expenseCats) {
-          final children = await _categoryRepo.getChildren(cat.id);
+          final children = childrenMap[cat.id] ?? [];
           if (children.isNotEmpty) {
-            final subNames = children.map((c) => c.name).join('、');
-            buffer.writeln('- ${cat.name}（$subNames）');
+            buffer.writeln('- ${cat.name}（${children.map((c) => c.name).join('、')}）');
           } else {
             buffer.writeln('- ${cat.name}');
           }
@@ -311,10 +319,9 @@ class _HomePageState extends ConsumerState<HomePage> {
       if (incomeCats.isNotEmpty) {
         buffer.writeln('### 收入分类');
         for (final cat in incomeCats) {
-          final children = await _categoryRepo.getChildren(cat.id);
+          final children = childrenMap[cat.id] ?? [];
           if (children.isNotEmpty) {
-            final subNames = children.map((c) => c.name).join('、');
-            buffer.writeln('- ${cat.name}（$subNames）');
+            buffer.writeln('- ${cat.name}（${children.map((c) => c.name).join('、')}）');
           } else {
             buffer.writeln('- ${cat.name}');
           }

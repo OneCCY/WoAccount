@@ -343,12 +343,16 @@ class TransactionPipeline {
 
       if (recent.isEmpty) return null;
 
-      // 获取分类名称
+      // 批量获取分类名称（避免 N+1 查询）
+      final categoryIds = recent.map((t) => t.categoryId).toSet();
+      final allCats = await (_db.select(_db.categories)
+            ..where((c) => c.id.isIn(categoryIds)))
+          .get();
+      final catMap = {for (final c in allCats) c.id: c};
+
       final buffer = StringBuffer();
       for (final t in recent) {
-        final cat = await (_db.select(_db.categories)
-              ..where((c) => c.id.equals(t.categoryId)))
-            .getSingleOrNull();
+        final cat = catMap[t.categoryId];
         final dateStr = '${t.transactionDate.month}/${t.transactionDate.day}';
         buffer.writeln('- "${t.description}" ${t.amount}元 → ${cat?.name ?? '未分类'} ($dateStr)');
       }
@@ -375,24 +379,25 @@ class TransactionPipeline {
 
       if (records.isEmpty) return null;
 
+      // 批量获取分类名称（避免 N+1 查询）
+      final catIds = <int>{};
+      for (final r in records) {
+        if (r.predictedCategoryId != null) catIds.add(r.predictedCategoryId!);
+        if (r.actualCategoryId != null) catIds.add(r.actualCategoryId!);
+      }
+      final allCats = catIds.isNotEmpty
+          ? await (_db.select(_db.categories)..where((c) => c.id.isIn(catIds))).get()
+          : <Category>[];
+      final catMap = {for (final c in allCats) c.id: c};
+
       final buffer = StringBuffer();
       for (final r in records) {
-        // 获取预测分类和实际分类的名称
-        String predictedName = '未知';
-        String actualName = '未知';
-
-        if (r.predictedCategoryId != null) {
-          final predCat = await (_db.select(_db.categories)
-                ..where((c) => c.id.equals(r.predictedCategoryId!)))
-              .getSingleOrNull();
-          predictedName = predCat?.name ?? '未知';
-        }
-        if (r.actualCategoryId != null) {
-          final actualCat = await (_db.select(_db.categories)
-                ..where((c) => c.id.equals(r.actualCategoryId!)))
-              .getSingleOrNull();
-          actualName = actualCat?.name ?? '未知';
-        }
+        final predictedName = r.predictedCategoryId != null
+            ? (catMap[r.predictedCategoryId!]?.name ?? '未知')
+            : '未知';
+        final actualName = r.actualCategoryId != null
+            ? (catMap[r.actualCategoryId!]?.name ?? '未知')
+            : '未知';
 
         buffer.writeln('- "${r.inputText}" → 用户选择了 $actualName（而非 $predictedName）');
       }
