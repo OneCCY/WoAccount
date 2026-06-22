@@ -300,12 +300,11 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
 
   /// 弹出月份选择器
   void _showMonthPicker(AppLocalizations l10n) {
-    final now = DateTime.now();
     final months = <DateTime>[];
-    for (int y = now.year - 1; y <= now.year; y++) {
+    for (int y = 2020; y <= 2100; y++) {
       for (int m = 1; m <= 12; m++) {
         final d = DateTime(y, m);
-        if (d.isAfter(DateTime(now.year, now.month))) break;
+        if (d.isAfter(DateTime(2100, 12))) break;
         months.add(d);
       }
     }
