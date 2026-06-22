@@ -9,7 +9,6 @@ import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/toast.dart';
 import '../../domain/repositories/budget_repository.dart';
 
 /// 预算视图模式
@@ -37,60 +36,29 @@ class _BudgetPageState extends ConsumerState<BudgetPage> {
 
   /// 弹出月份选择器（可上下滚动）
   void _showMonthPicker(AppLocalizations l10n) {
+    final now = DateTime.now();
     final months = <DateTime>[];
     for (int y = 2020; y <= 2100; y++) {
       for (int m = 1; m <= 12; m++) {
-        final d = DateTime(y, m);
-        if (d.isAfter(DateTime(2100, 12))) break;
-        months.add(d);
+        months.add(DateTime(y, m));
       }
     }
+
+    // 找到当前月在列表中的位置（倒序显示，所以要计算反向索引）
+    final currentIndex = months.indexWhere((m) => m.year == now.year && m.month == now.month);
+    final reversedIndex = currentIndex >= 0 ? months.length - 1 - currentIndex : 0;
 
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        height: 300,
-        decoration: BoxDecoration(
-          color: context.colors.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-        ),
-        child: Column(
-          children: [
-            Container(
-              width: 36, height: 4,
-              margin: const EdgeInsets.only(top: 12, bottom: 8),
-              decoration: BoxDecoration(
-                color: context.colors.textTertiary.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: months.length,
-                itemBuilder: (ctx, i) {
-                  final m = months[months.length - 1 - i];
-                  final isSelected = m.year == _currentMonth.year && m.month == _currentMonth.month;
-                  return ListTile(
-                    title: Center(
-                      child: Text(
-                        l10n.reportMonthLabel(m.year.toString(), m.month.toString()),
-                        style: context.textStyles.body.copyWith(
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                          color: isSelected ? context.colors.primary : context.colors.textPrimary,
-                        ),
-                      ),
-                    ),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      setState(() => _currentMonth = m);
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+      isScrollControlled: true,
+      builder: (ctx) => _MonthPickerSheet(
+        months: months,
+        currentMonth: _currentMonth,
+        initialIndex: reversedIndex,
+        onSelected: (m) {
+          setState(() => _currentMonth = m);
+        },
       ),
     );
   }
@@ -799,7 +767,9 @@ class _ParentCategoryPickerSheet extends StatelessWidget {
               final color = _parsePickerColor(cat.color, context);
               return GestureDetector(
                 onTap: hasExisting
-                    ? () => AppToast.show(context, AppLocalizations.of(context)!.budgetCategoryAlreadyExists)
+                    ? () => ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(AppLocalizations.of(context)!.budgetCategoryAlreadyExists),
+                          behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 1)))
                     : () => Navigator.pop(context, cat),
                 child: Opacity(
                   opacity: hasExisting ? 0.4 : 1.0,
@@ -839,5 +809,95 @@ class _ParentCategoryPickerSheet extends StatelessWidget {
     } catch (_) {
       return context.colors.textTertiary;
     }
+  }
+}
+
+/// 月份选择器底部弹窗（支持 2020-2100，自动滚动到当前月附近）
+class _MonthPickerSheet extends StatefulWidget {
+  final List<DateTime> months;
+  final DateTime currentMonth;
+  final int initialIndex;
+  final ValueChanged<DateTime> onSelected;
+
+  const _MonthPickerSheet({
+    required this.months,
+    required this.currentMonth,
+    required this.initialIndex,
+    required this.onSelected,
+  });
+
+  @override
+  State<_MonthPickerSheet> createState() => _MonthPickerSheetState();
+}
+
+class _MonthPickerSheetState extends State<_MonthPickerSheet> {
+  late final ScrollController _scrollCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollCtrl = ScrollController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollCtrl.hasClients) {
+        final offset = widget.initialIndex * 48.0;
+        _scrollCtrl.jumpTo(offset.clamp(0, _scrollCtrl.position.maxScrollExtent));
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.5,
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 36, height: 4,
+            margin: const EdgeInsets.only(top: 12, bottom: 8),
+            decoration: BoxDecoration(
+              color: context.colors.textTertiary.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              controller: _scrollCtrl,
+              itemCount: widget.months.length,
+              itemExtent: 48,
+              itemBuilder: (ctx, i) {
+                final m = widget.months[widget.months.length - 1 - i];
+                final isSelected = m.year == widget.currentMonth.year && m.month == widget.currentMonth.month;
+                return ListTile(
+                  dense: true,
+                  title: Center(
+                    child: Text(
+                      AppLocalizations.of(context)!.reportMonthLabel(m.year.toString(), m.month.toString()),
+                      style: context.textStyles.body.copyWith(
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                        color: isSelected ? context.colors.primary : context.colors.textPrimary,
+                      ),
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    widget.onSelected(m);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -197,19 +197,14 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
                   const SizedBox(height: 12),
 
                   // 2. 服务商管理入口
-                  _buildEntryCard(
-                    icon: Icons.cloud_outlined,
-                    label: l10n.llmSupplierManagement,
-                    subtitle: _buildSupplierSubtitle(l10n),
-                    onTap: _openSupplierManagement,
-                  ),
+                  _buildSupplierEntryCard(l10n),
                 ],
               ),
             ),
     );
   }
 
-  /// 模型管理入口卡片 — 逐行展示各能力的配置状态
+  /// 模型管理入口卡片 — 图标+名称在左，各能力配置在右
   Widget _buildModelEntryCard(AppLocalizations l10n) {
     final active = _activeProvider;
 
@@ -223,28 +218,41 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                width: 44, height: 44,
-                decoration: BoxDecoration(
-                  color: context.colors.primarySurface,
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-                ),
-                child: Center(child: Icon(Icons.smart_toy_outlined, size: 22, color: context.colors.primary)),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // 左侧：图标 + 名称（垂直布局）
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(l10n.llmModelManagement, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
+                    Container(
+                      width: 44, height: 44,
+                      decoration: BoxDecoration(
+                        color: context.colors.primarySurface,
+                        borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+                      ),
+                      child: Center(child: Icon(Icons.smart_toy_outlined, size: 22, color: context.colors.primary)),
+                    ),
                     const SizedBox(height: 6),
-                    ...ModelCapability.values.map((cap) {
+                    Text(l10n.llmModelManagement,
+                      style: AppTextStyles.caption.copyWith(
+                        color: context.colors.textSecondary, fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 16),
+                // 右侧：各能力配置状态
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: ModelCapability.values.map((cap) {
                       final model = active?.getModelForCapability(cap);
                       final hasModel = model != null && model.isNotEmpty;
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 2),
+                        padding: const EdgeInsets.only(bottom: 3),
                         child: Row(
                           children: [
                             Text(cap.emoji, style: const TextStyle(fontSize: 12)),
@@ -263,70 +271,80 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
                           ],
                         ),
                       );
-                    }),
-                  ],
+                    }).toList(),
+                  ),
                 ),
-              ),
-              Icon(Icons.chevron_right, color: context.colors.textTertiary, size: 20),
-            ],
+                Icon(Icons.chevron_right, color: context.colors.textTertiary, size: 20),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  /// 服务商管理副标题
-  String _buildSupplierSubtitle(AppLocalizations l10n) {
+  /// 服务商管理入口卡片 — 图标+名称在左，状态信息在右
+  Widget _buildSupplierEntryCard(AppLocalizations l10n) {
     final count = _providers.length;
-    if (count == 0) return l10n.llmNoProviders;
-
     final activeName = _activeProvider?.name;
-    if (activeName != null) {
-      return '$count ${l10n.llmConfigured} · ${l10n.llmInUse}: $activeName';
-    }
-    return '$count ${l10n.llmConfigured}';
-  }
 
-  /// 通用入口卡片
-  Widget _buildEntryCard({
-    required IconData icon,
-    required String label,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
     return Container(
       decoration: BoxDecoration(
         color: context.colors.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
       ),
       child: InkWell(
-        onTap: onTap,
+        onTap: _openSupplierManagement,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Container(
-                width: 44, height: 44,
-                decoration: BoxDecoration(
-                  color: context.colors.primarySurface,
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-                ),
-                child: Center(child: Icon(icon, size: 22, color: context.colors.primary)),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(label, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 2),
-                    Text(subtitle,
-                      style: AppTextStyles.caption.copyWith(color: context.colors.textSecondary),
-                      overflow: TextOverflow.ellipsis,
+              Column(
+                children: [
+                  Container(
+                    width: 44, height: 44,
+                    decoration: BoxDecoration(
+                      color: context.colors.primarySurface,
+                      borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
                     ),
-                  ],
-                ),
+                    child: Center(child: Icon(Icons.cloud_outlined, size: 22, color: context.colors.primary)),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(l10n.llmSupplierManagement,
+                    style: AppTextStyles.caption.copyWith(
+                      color: context.colors.textSecondary, fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: count > 0
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('$count ${l10n.llmConfigured}',
+                            style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w500)),
+                          if (activeName != null) ...[
+                            const SizedBox(height: 2),
+                            Row(
+                              children: [
+                                Icon(Icons.check_circle, size: 12, color: context.colors.primary),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text('${l10n.llmInUse}：$activeName',
+                                    style: AppTextStyles.caption.copyWith(color: context.colors.primary),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      )
+                    : Text(l10n.llmNoProviders,
+                        style: AppTextStyles.caption.copyWith(color: context.colors.textTertiary)),
               ),
               Icon(Icons.chevron_right, color: context.colors.textTertiary, size: 20),
             ],

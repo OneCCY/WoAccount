@@ -10,7 +10,6 @@ import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/toast.dart';
 import '../../domain/repositories/budget_repository.dart';
 
 /// 预算详情页 — 展示某一父分类下的所有子分类预算
@@ -732,7 +731,9 @@ class _ChildCategoryPickerSheet extends StatelessWidget {
               final color = _parseColorHex(cat.color, context);
               return GestureDetector(
                 onTap: hasExisting
-                    ? () => AppToast.show(context, l10n.budgetCategoryAlreadyExists)
+                    ? () => ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.budgetCategoryAlreadyExists),
+                          behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 1)))
                     : () => Navigator.pop(context, cat),
                 child: Opacity(
                   opacity: hasExisting ? 0.4 : 1.0,
