@@ -163,10 +163,10 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
     }
   }
 
-  void _openCapabilityConfig(ModelCapability cap) async {
+  void _openModelManagement() async {
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => _CapabilityConfigPage(capability: cap)),
+      MaterialPageRoute(builder: (_) => const _ModelManagementPage()),
     );
     _load();
   }
@@ -192,25 +192,182 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1. 模型管理
-                  _sectionLabel(l10n.llmModelManagement),
-                  const SizedBox(height: 8),
-                  ...ModelCapability.values.map((cap) => _buildCapabilityCard(cap)),
-                  const SizedBox(height: 24),
+                  // 1. 模型管理入口
+                  _buildEntryCard(
+                    icon: Icons.smart_toy_outlined,
+                    label: l10n.llmModelManagement,
+                    subtitle: _buildModelSubtitle(l10n),
+                    onTap: _openModelManagement,
+                  ),
+                  const SizedBox(height: 12),
 
                   // 2. 服务商管理入口
-                  _sectionLabel(l10n.llmSupplierManagement),
-                  const SizedBox(height: 8),
-                  _buildSupplierEntryCard(l10n),
-                  const SizedBox(height: 40),
+                  _buildEntryCard(
+                    icon: Icons.cloud_outlined,
+                    label: l10n.llmSupplierManagement,
+                    subtitle: _buildSupplierSubtitle(l10n),
+                    onTap: _openSupplierManagement,
+                  ),
                 ],
               ),
             ),
     );
   }
 
-  Widget _buildCapabilityCard(ModelCapability cap) {
+  /// 模型管理副标题：列出各能力的配置状态
+  String _buildModelSubtitle(AppLocalizations l10n) {
+    final active = _activeProvider;
+    if (active == null) return l10n.llmNotConfigured;
+
+    final configured = ModelCapability.values
+        .where((cap) {
+          final model = active.getModelForCapability(cap);
+          return model != null && model.isNotEmpty;
+        })
+        .toList();
+
+    if (configured.isEmpty) return l10n.llmNotConfigured;
+
+    return configured.map((cap) {
+      final model = active.getModelForCapability(cap) ?? '';
+      return '${cap.getLocalizedLabel(l10n)}: $model';
+    }).join(' · ');
+  }
+
+  /// 服务商管理副标题
+  String _buildSupplierSubtitle(AppLocalizations l10n) {
+    final count = _providers.length;
+    if (count == 0) return l10n.llmNoProviders;
+
+    final activeName = _activeProvider?.name;
+    if (activeName != null) {
+      return '$count ${l10n.llmConfigured} · ${l10n.llmInUse}: $activeName';
+    }
+    return '$count ${l10n.llmConfigured}';
+  }
+
+  /// 通用入口卡片
+  Widget _buildEntryCard({
+    required IconData icon,
+    required String label,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 44, height: 44,
+                decoration: BoxDecoration(
+                  color: context.colors.primarySurface,
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+                ),
+                child: Center(child: Icon(icon, size: 22, color: context.colors.primary)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(label, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 2),
+                    Text(subtitle,
+                      style: AppTextStyles.caption.copyWith(color: context.colors.textSecondary),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right, color: context.colors.textTertiary, size: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// 模型管理页 — 按能力选择服务商和模型
+// ============================================================
+
+class _ModelManagementPage extends StatefulWidget {
+  const _ModelManagementPage();
+
+  @override
+  State<_ModelManagementPage> createState() => _ModelManagementPageState();
+}
+
+class _ModelManagementPageState extends State<_ModelManagementPage> {
+  List<LlmProvider> _providers = [];
+  String? _activeId;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final providers = await LlmConfigManager.loadProviders();
+    final activeId = await LlmConfigManager.getActiveProviderId();
+    if (mounted) {
+      setState(() {
+        _providers = providers;
+        _activeId = activeId;
+        _isLoading = false;
+      });
+    }
+  }
+
+  LlmProvider? get _activeProvider {
+    if (_activeId == null) return null;
+    try {
+      return _providers.firstWhere((p) => p.id == _activeId);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void _openCapabilityConfig(ModelCapability cap) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => _CapabilityConfigPage(capability: cap)),
+    );
+    _load();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    return Scaffold(
+      backgroundColor: context.colors.background,
+      appBar: AppBar(title: Text(l10n.llmModelManagement)),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(AppDimensions.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ...ModelCapability.values.map((cap) => _buildCapabilityCard(cap, l10n)),
+                ],
+              ),
+            ),
+    );
+  }
+
+  Widget _buildCapabilityCard(ModelCapability cap, AppLocalizations l10n) {
     final active = _activeProvider;
     final modelName = active?.getModelForCapability(cap);
 
@@ -276,63 +433,6 @@ class _LlmSettingsPageState extends State<LlmSettingsPage> {
         ),
       ),
     );
-  }
-
-  /// 服务商管理入口卡片
-  Widget _buildSupplierEntryCard(AppLocalizations l10n) {
-    final count = _providers.length;
-    final activeName = _activeProvider?.name;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: context.colors.surface,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-      ),
-      child: InkWell(
-        onTap: _openSupplierManagement,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                width: 44, height: 44,
-                decoration: BoxDecoration(
-                  color: context.colors.primarySurface,
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-                ),
-                child: Center(child: Icon(Icons.cloud_outlined, size: 22, color: context.colors.primary)),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(l10n.llmSupplierManagement, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 2),
-                    if (count > 0)
-                      Text(
-                        activeName != null
-                            ? '$count ${l10n.llmConfigured} · ${l10n.llmInUse}: $activeName'
-                            : '$count ${l10n.llmConfigured}',
-                        style: AppTextStyles.caption.copyWith(color: context.colors.textSecondary),
-                        overflow: TextOverflow.ellipsis,
-                      )
-                    else
-                      Text(l10n.llmNoProviders, style: AppTextStyles.caption.copyWith(color: context.colors.textTertiary)),
-                  ],
-                ),
-              ),
-              Icon(Icons.chevron_right, color: context.colors.textTertiary, size: 20),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _sectionLabel(String text) {
-    return Text(text, style: AppTextStyles.footnote.copyWith(color: context.colors.textSecondary));
   }
 }
 
