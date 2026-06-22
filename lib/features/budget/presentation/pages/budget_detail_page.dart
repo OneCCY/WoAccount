@@ -48,7 +48,6 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
     final bookId = ref.read(currentBookProvider);
     final allProgress = await budgetRepo.getBudgetProgress(bookId, _currentMonth.year, _currentMonth.month);
 
-    // 过滤出当前父分类下的子分类预算
     final catRepo = ref.read(categoryRepositoryProvider);
     final children = await catRepo.getChildren(widget.parentCategoryId);
     final childIds = children.map((c) => c.id).toSet();
@@ -71,7 +70,6 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
 
     if (children.isEmpty || !mounted) return;
 
-    // 弹出子分类选择器（仅当前一级分类的子分类）
     final selected = await showModalBottomSheet<Category>(
       context: context,
       backgroundColor: Colors.transparent,
@@ -234,6 +232,10 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
     return Scaffold(
       backgroundColor: context.colors.background,
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: context.colors.textTertiary),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: GestureDetector(
           onTap: () => _showMonthPicker(l10n),
           child: Row(
@@ -241,18 +243,29 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
             children: [
               Text(widget.parentCategoryIcon, style: const TextStyle(fontSize: 20)),
               const SizedBox(width: 6),
-              Flexible(child: Text(widget.parentCategoryName, overflow: TextOverflow.ellipsis)),
+              Flexible(child: Text(widget.parentCategoryName, overflow: TextOverflow.ellipsis, style: context.textStyles.h3)),
               const SizedBox(width: 6),
-              Text(monthLabel, style: context.textStyles.footnote.copyWith(
-                color: context.colors.textSecondary, fontWeight: FontWeight.w400,
-              )),
-              Icon(Icons.arrow_drop_down, size: 20, color: context.colors.textSecondary),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: context.colors.surfaceSecondary,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(monthLabel, style: context.textStyles.caption.copyWith(
+                      color: context.colors.textSecondary, fontWeight: FontWeight.w500,
+                    )),
+                    const SizedBox(width: 2),
+                    Icon(Icons.keyboard_arrow_down, size: 14, color: context.colors.textTertiary),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
-        actions: [
-          IconButton(icon: Icon(Icons.add, color: context.colors.primary), onPressed: _onAddBudget),
-        ],
+        centerTitle: true,
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator(color: context.colors.primary))
@@ -266,7 +279,7 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.category_outlined, size: 48, color: context.colors.textTertiary),
+                              Icon(Icons.category_outlined, size: 48, color: context.colors.textTertiary.withValues(alpha: 0.5)),
                               const SizedBox(height: 12),
                               Text(l10n.budgetNoBudgets, style: context.textStyles.callout.copyWith(color: context.colors.textSecondary)),
                             ],
@@ -278,6 +291,7 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
                           itemBuilder: (context, index) => _buildChildItem(_childProgresses[index]),
                         ),
                 ),
+                _buildAddButton(l10n),
               ],
             ),
     );
@@ -348,46 +362,109 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
     );
   }
 
+  /// 汇总卡片 — 渐变绿背景，参考一级分类总预算卡片设计
   Widget _buildSummaryCard(double totalBudget, double totalSpent, AppLocalizations l10n) {
     final percentage = totalBudget > 0 ? (totalSpent / totalBudget * 100) : 0.0;
-    final barColor = percentage > 90 ? context.colors.error : percentage > 70 ? context.colors.warning : context.colors.success;
+    final remaining = totalBudget - totalSpent;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(AppDimensions.md, 8, AppDimensions.md, 0),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: context.colors.surface,
-          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              context.colors.primaryDark.withValues(alpha: 0.85),
+              context.colors.primary.withValues(alpha: 0.7),
+              context.colors.primaryLight.withValues(alpha: 0.55),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+          boxShadow: [
+            BoxShadow(
+              color: context.colors.primary.withValues(alpha: 0.25),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 标题行 + 子分类数量
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(l10n.budgetSpent(context.localeProvider.currency.formatAmount(totalSpent, decimals: 0)),
-                  style: context.textStyles.body.copyWith(fontWeight: FontWeight.w500)),
-                Text('/ ${context.localeProvider.currency.formatAmount(totalBudget, decimals: 0)}',
-                  style: context.textStyles.footnote.copyWith(color: context.colors.textSecondary)),
+                Text(widget.parentCategoryIcon, style: const TextStyle(fontSize: 18)),
+                const SizedBox(width: 6),
+                Text(widget.parentCategoryName, style: context.textStyles.footnote.copyWith(
+                  color: Colors.white.withValues(alpha: 0.8),
+                  fontWeight: FontWeight.w500,
+                )),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    l10n.budgetCategoryCount(_childProgresses.length.toString()),
+                    style: context.textStyles.caption.copyWith(color: Colors.white.withValues(alpha: 0.85)),
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: (percentage / 100).clamp(0, 1),
-                minHeight: 8,
-                backgroundColor: context.colors.surfaceSecondary,
-                valueColor: AlwaysStoppedAnimation(barColor),
+            const SizedBox(height: 14),
+            // 已花费金额（大字）
+            Text(
+              context.localeProvider.currency.formatAmount(totalSpent, decimals: 0),
+              style: context.textStyles.amountLarge.copyWith(
+                color: Colors.white,
+                fontSize: 36,
+                fontWeight: FontWeight.w700,
               ),
             ),
             const SizedBox(height: 4),
+            Text(
+              '/ ${context.localeProvider.currency.formatAmount(totalBudget, decimals: 0)}',
+              style: context.textStyles.body.copyWith(color: Colors.white.withValues(alpha: 0.65)),
+            ),
+            const SizedBox(height: 14),
+            // 进度条
+            ClipRRect(
+              borderRadius: BorderRadius.circular(5),
+              child: LinearProgressIndicator(
+                value: (percentage / 100).clamp(0, 1),
+                minHeight: 10,
+                backgroundColor: Colors.white.withValues(alpha: 0.2),
+                valueColor: const AlwaysStoppedAnimation(Colors.white),
+              ),
+            ),
+            const SizedBox(height: 10),
+            // 底部信息行
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('${percentage.toStringAsFixed(1)}%', style: context.textStyles.caption.copyWith(color: barColor)),
-                Text(l10n.budgetRemaining(context.localeProvider.currency.formatAmount(totalBudget - totalSpent, decimals: 0)),
-                  style: context.textStyles.caption),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    l10n.budgetUsedPercent(percentage.toStringAsFixed(0)),
+                    style: context.textStyles.caption.copyWith(color: Colors.white, fontWeight: FontWeight.w500),
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  l10n.budgetRemaining(context.localeProvider.currency.formatAmount(remaining, decimals: 0)),
+                  style: context.textStyles.caption.copyWith(
+                    color: remaining < 0 ? const Color(0xFFFFCDD2) : Colors.white.withValues(alpha: 0.7),
+                    fontWeight: remaining < 0 ? FontWeight.w600 : FontWeight.w400,
+                  ),
+                ),
               ],
             ),
           ],
@@ -396,6 +473,7 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
     );
   }
 
+  /// 子分类行 — 卡片化布局 + 彩色进度条
   Widget _buildChildItem(BudgetProgress progress) {
     final cat = progress.category;
     final color = _parseColor(cat?.color);
@@ -409,7 +487,7 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 24),
-        margin: const EdgeInsets.symmetric(vertical: 4),
+        margin: const EdgeInsets.symmetric(vertical: 5),
         decoration: BoxDecoration(
           color: context.colors.error,
           borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
@@ -419,69 +497,116 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
       child: GestureDetector(
         onTap: () => _navigateToTransactions(progress),
         child: Container(
-          margin: const EdgeInsets.symmetric(vertical: 4),
-          padding: const EdgeInsets.all(16),
+          margin: const EdgeInsets.symmetric(vertical: 5),
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: context.colors.surface,
             borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+            boxShadow: context.colors.cardShadow,
           ),
-          child: Column(
+          child: Row(
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 36, height: 36,
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-                    ),
-                    child: Center(child: Text(cat?.icon ?? '📦', style: const TextStyle(fontSize: 18))),
+              // 图标容器
+              Container(
+                width: 40, height: 40,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [color.withValues(alpha: 0.12), color.withValues(alpha: 0.22)],
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+                ),
+                child: Center(child: Text(cat?.icon ?? '📦', style: const TextStyle(fontSize: 20))),
+              ),
+              const SizedBox(width: 12),
+              // 名称 + 进度条
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(cat?.name ?? '', style: context.textStyles.body),
-                            Text('${percentage.toStringAsFixed(1)}%', style: context.textStyles.caption.copyWith(color: barColor)),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: (percentage / 100).clamp(0, 1),
-                            minHeight: 6,
-                            backgroundColor: context.colors.surfaceSecondary,
-                            valueColor: AlwaysStoppedAnimation(barColor),
-                          ),
-                        ),
+                        Expanded(child: Text(cat?.name ?? '', style: context.textStyles.body.copyWith(fontWeight: FontWeight.w500))),
+                        Text('${percentage.toStringAsFixed(0)}%', style: context.textStyles.caption.copyWith(
+                          color: barColor, fontWeight: FontWeight.w500,
+                        )),
                       ],
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(context.localeProvider.currency.formatAmount(progress.spent, decimals: 0),
-                        style: context.textStyles.amountSmall.copyWith(
-                          color: progress.isOverBudget ? context.colors.error : context.colors.textPrimary,
-                        )),
-                      Text('/ ${context.localeProvider.currency.formatAmount(progress.budget.amount, decimals: 0)}',
-                        style: context.textStyles.caption),
-                    ],
-                  ),
-                  const SizedBox(width: 4),
-                  GestureDetector(
-                    onTap: () => _onEditBudget(progress),
-                    child: Icon(Icons.edit_outlined, size: 18, color: context.colors.textTertiary),
-                  ),
+                    const SizedBox(height: 6),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(3),
+                      child: LinearProgressIndicator(
+                        value: (percentage / 100).clamp(0, 1),
+                        minHeight: 6,
+                        backgroundColor: context.colors.surfaceSecondary,
+                        valueColor: AlwaysStoppedAnimation(barColor),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              // 金额
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(context.localeProvider.currency.formatAmount(progress.spent, decimals: 0),
+                    style: context.textStyles.amountSmall.copyWith(
+                      color: progress.isOverBudget ? context.colors.error : context.colors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    )),
+                  const SizedBox(height: 2),
+                  Text('/ ${context.localeProvider.currency.formatAmount(progress.budget.amount, decimals: 0)}',
+                    style: context.textStyles.caption.copyWith(fontSize: 10)),
                 ],
               ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () => _onEditBudget(progress),
+                child: Icon(Icons.edit_outlined, size: 18, color: context.colors.textTertiary),
+              ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 底部新增按钮 — 渐变绿圆角矩形 + 缩放动效
+  Widget _buildAddButton(AppLocalizations l10n) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        AppDimensions.md, 8, AppDimensions.md,
+        MediaQuery.of(context).viewPadding.bottom + 12,
+      ),
+      child: _ScaleOnTap(
+        onTap: _onAddBudget,
+        child: Container(
+          width: double.infinity,
+          height: 50,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [context.colors.primaryDark, context.colors.primary, context.colors.primaryLight],
+            ),
+            borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+            boxShadow: [
+              BoxShadow(
+                color: context.colors.primary.withValues(alpha: 0.35),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.add, color: Colors.white, size: 20),
+                const SizedBox(width: 6),
+                Text(l10n.budgetAddCategoryBudget, style: context.textStyles.buttonText.copyWith(color: Colors.white)),
+              ],
+            ),
           ),
         ),
       ),
@@ -509,6 +634,48 @@ class _BudgetDetailPageState extends ConsumerState<BudgetDetailPage> {
     } catch (_) {
       return context.colors.textTertiary;
     }
+  }
+}
+
+/// 点击缩放动效组件
+class _ScaleOnTap extends StatefulWidget {
+  final Widget child;
+  final VoidCallback onTap;
+
+  const _ScaleOnTap({required this.child, required this.onTap});
+
+  @override
+  State<_ScaleOnTap> createState() => _ScaleOnTapState();
+}
+
+class _ScaleOnTapState extends State<_ScaleOnTap> with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 100), reverseDuration: const Duration(milliseconds: 150));
+    _scale = Tween<double>(begin: 1.0, end: 0.95).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => _ctrl.forward(),
+      onTapUp: (_) {
+        _ctrl.reverse();
+        widget.onTap();
+      },
+      onTapCancel: () => _ctrl.reverse(),
+      child: ScaleTransition(scale: _scale, child: widget.child),
+    );
   }
 }
 
