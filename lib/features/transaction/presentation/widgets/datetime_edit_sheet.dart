@@ -77,8 +77,10 @@ class _DatetimeEditSheetState extends State<DatetimeEditSheet> {
           Expanded(
             child: CupertinoDatePicker(
               mode: CupertinoDatePickerMode.dateAndTime,
-              initialDateTime: _selectedDateTime,
-              maximumDate: DateTime.now().add(const Duration(days: 1)),
+              initialDateTime: _selectedDateTime.isAfter(DateTime.now().add(const Duration(days: 1)))
+                  ? DateTime.now()
+                  : _selectedDateTime,
+              maximumDate: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day + 2),
               minimumYear: 2020,
               maximumYear: DateTime.now().year + 1,
               use24hFormat: true,
