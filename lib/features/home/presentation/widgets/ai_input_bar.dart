@@ -138,10 +138,12 @@ class _AiInputBarState extends State<AiInputBar> {
 
       // 启动 PlatformStt 实时识别
       if (widget.sttService != null) {
-        await widget.sttService!.startListening();
-        _sttSubscription = widget.sttService!.partialTextStream.listen((text) {
-          if (mounted) _platformText = text;
-        });
+        final started = await widget.sttService!.startListening();
+        if (started) {
+          _sttSubscription = widget.sttService!.partialTextStream.listen((text) {
+            if (mounted) setState(() => _platformText = text);
+          });
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -261,7 +263,9 @@ class _AiInputBarState extends State<AiInputBar> {
                   style: context.textStyles.body,
                   decoration: InputDecoration(
                     hintText: _isRecording
-                        ? AppLocalizations.of(context)!.chatInputVoiceHint
+                        ? (_platformText?.isNotEmpty == true
+                            ? _platformText
+                            : AppLocalizations.of(context)!.chatInputListening)
                         : AppLocalizations.of(context)!.homeInputHint,
                     hintStyle: context.textStyles.body.copyWith(
                       color: _isRecording ? context.colors.primary : context.colors.textHint,

@@ -142,10 +142,12 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
 
       // 启动 PlatformStt 实时识别
       if (widget.sttService != null) {
-        await widget.sttService!.startListening();
-        _sttSubscription = widget.sttService!.partialTextStream.listen((text) {
-          if (mounted) _platformText = text;
-        });
+        final started = await widget.sttService!.startListening();
+        if (started) {
+          _sttSubscription = widget.sttService!.partialTextStream.listen((text) {
+            if (mounted) setState(() => _platformText = text);
+          });
+        }
       }
 
       if (mounted) {
@@ -293,7 +295,28 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
                   top: screenSize.height * 0.12,
                   left: 0,
                   right: 0,
-                  child: Center(child: _buildVoiceBubble()),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Center(child: _buildVoiceBubble()),
+                      // 实时识别文本
+                      if (_platformText != null && _platformText!.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 16, left: 32, right: 32),
+                          child: Text(
+                            _platformText!,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.9),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
 
                 // ===== 底部手势面板（视觉指示） =====

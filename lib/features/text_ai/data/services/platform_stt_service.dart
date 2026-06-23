@@ -63,13 +63,18 @@ class PlatformSttService {
 
     _stateController.add(SttState.listening);
 
-    await _speech.listen(
-      onResult: _onSpeechResult,
-      localeId: localeId,
-      listenMode: stt.ListenMode.dictation,
-      cancelOnError: true,
-      partialResults: true,
-    );
+    try {
+      await _speech.listen(
+        onResult: _onSpeechResult,
+        localeId: localeId,
+        listenMode: stt.ListenMode.dictation,
+        cancelOnError: true,
+        partialResults: true,
+      );
+    } catch (e) {
+      _stateController.add(SttState.error(e.toString()));
+      return false;
+    }
 
     return true;
   }

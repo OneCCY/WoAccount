@@ -85,10 +85,13 @@ class _ChatInputBarState extends State<ChatInputBar> {
 
     // 立即启动平台 STT（同一根手指，无需二次按下）
     if (widget.sttService != null) {
-      widget.sttService!.startListening();
-      _sttSubscription = widget.sttService!.partialTextStream.listen((text) {
-        if (mounted && _isVoiceActive) {
-          setState(() => _partialText = text);
+      widget.sttService!.startListening().then((started) {
+        if (started && mounted) {
+          _sttSubscription = widget.sttService!.partialTextStream.listen((text) {
+            if (mounted && _isVoiceActive) {
+              setState(() => _partialText = text);
+            }
+          });
         }
       });
     }
@@ -284,7 +287,11 @@ class _ChatInputBarState extends State<ChatInputBar> {
                           focusNode: _focusNode,
                           style: context.textStyles.body.copyWith(fontSize: Responsive.fs(context, 14)),
                           decoration: InputDecoration(
-                            hintText: l10n.chatInputTextHint,
+                            hintText: _isVoiceActive
+                                ? (_partialText.isNotEmpty
+                                    ? _partialText
+                                    : l10n.chatInputListening)
+                                : l10n.chatInputTextHint,
                             hintStyle: context.textStyles.footnote.copyWith(color: context.colors.textTertiary),
                             border: InputBorder.none,
                             isDense: true,
