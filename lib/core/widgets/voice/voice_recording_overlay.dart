@@ -27,10 +27,10 @@ class VoiceResult {
 ///
 /// 交互流程：
 /// 1. 长按触发 → 显示覆盖层 + 开始录音
-/// 2. 手势追踪 → 判定热区（取消/发送/转文字）
-/// 3. 松手 → 根据热区执行操作
+/// 2. 手指按住不放 → 弹窗显示录音状态，三个热区在弹窗上方
+/// 3. 上滑左移 → 取消 | 上滑右移 → 转文字 | 不滑/上滑中间 → 发送
+/// 4. 松手 → 根据热区执行操作
 class VoiceRecordingOverlay {
-  /// 显示语音录制覆盖层，返回录制结果
   static Future<VoiceResult?> show(BuildContext context) async {
     return Navigator.of(context).push<VoiceResult>(
       _VoiceRecordingRoute(),
@@ -38,23 +38,20 @@ class VoiceRecordingOverlay {
   }
 }
 
-/// 自定义路由，从底部弹出
 class _VoiceRecordingRoute extends PageRouteBuilder<VoiceResult> {
   _VoiceRecordingRoute()
       : super(
           opaque: false,
           barrierColor: Colors.transparent,
-          transitionDuration: const Duration(milliseconds: 200),
-          reverseTransitionDuration: const Duration(milliseconds: 150),
+          transitionDuration: const Duration(milliseconds: 150),
+          reverseTransitionDuration: const Duration(milliseconds: 100),
           pageBuilder: (context, animation, secondaryAnimation) =>
               _VoiceRecordingPage(animation: animation),
         );
 }
 
-/// 语音录制页面
 class _VoiceRecordingPage extends StatefulWidget {
   final Animation<double> animation;
-
   const _VoiceRecordingPage({required this.animation});
 
   @override
@@ -69,15 +66,13 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
   DateTime? _recordStartTime;
   String? _recordFilePath;
 
-  // 声波模拟定时器
   Timer? _waveformTimer;
+  Timer? _durationTimer;
 
-  // 手势追踪起点（按钮中心位置）
-  Offset _gestureOrigin = Offset.zero;
-
-  // 热区判定阈值
-  static const double _verticalThreshold = 80.0; // Y轴上滑阈值
-  static const double _horizontalThreshold = 60.0; // X轴偏移阈值
+  // 手势追踪
+  Offset? _touchStart;
+  static const double _verticalThreshold = 60.0;  // 上滑阈值
+  static const double _horizontalThreshold = 50.0; // 左右偏移阈值
 
   @override
   void initState() {
@@ -88,12 +83,12 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
   @override
   void dispose() {
     _waveformTimer?.cancel();
+    _durationTimer?.cancel();
     _audioRecorder.dispose();
     super.dispose();
   }
 
   Future<void> _startRecording() async {
-    // 检查权限
     bool hasPermission = false;
     try {
       hasPermission = await _audioRecorder.hasPermission()
@@ -127,6 +122,7 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
 
       if (mounted) {
         _startWaveformSimulation();
+        setState(() {}); // 触发 UI 刷新显示计时
       }
     } catch (e) {
       if (mounted) {
@@ -135,40 +131,40 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
     }
   }
 
-  /// 模拟声波数据（实际应从录音 API 的振幅回调获取）
   void _startWaveformSimulation() {
     _waveformTimer = Timer.periodic(const Duration(milliseconds: 80), (_) {
       if (!mounted) return;
       setState(() {
-        // 模拟随机音量
         _waveformGenerator.addSample(0.3 + (DateTime.now().millisecondsSinceEpoch % 100) / 140.0);
       });
     });
   }
 
-  void _onPanStart(DragStartDetails details) {
-    // 记录手势起点（屏幕下半部分中心）
-    final size = MediaQuery.of(context).size;
-    _gestureOrigin = Offset(size.width / 2, size.height - 100);
+  // ==================== 手势处理（Listener 原始触摸事件）====================
+
+  void _onPointerDown(PointerDownEvent event) {
+    _touchStart = event.position;
   }
 
-  void _onPanUpdate(DragUpdateDetails details) {
-    final position = details.globalPosition;
-    final dx = position.dx - _gestureOrigin.dx;
-    final dy = _gestureOrigin.dy - position.dy; // 正值 = 手指上移
+  void _onPointerMove(PointerMoveEvent event) {
+    if (_touchStart == null) return;
+
+    final dx = event.position.dx - _touchStart!.dx;
+    final dy = _touchStart!.dy - event.position.dy; // 正值 = 上滑
 
     GestureZone newZone;
 
     if (dy > _verticalThreshold) {
+      // 已上滑超过阈值
       if (dx < -_horizontalThreshold) {
-        newZone = GestureZone.cancel;
+        newZone = GestureZone.cancel;      // 左上 → 取消
       } else if (dx > _horizontalThreshold) {
-        newZone = GestureZone.transcribe;
+        newZone = GestureZone.transcribe;   // 右上 → 转文字
       } else {
-        newZone = GestureZone.send;
+        newZone = GestureZone.send;         // 正上 → 发送
       }
     } else {
-      newZone = GestureZone.send; // 默认中间区域
+      newZone = GestureZone.send;  // 未上滑，默认发送
     }
 
     if (newZone != _activeZone) {
@@ -177,7 +173,7 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
     }
   }
 
-  Future<void> _onPanEnd(DragEndDetails details) async {
+  Future<void> _onPointerUp(PointerUpEvent event) async {
     _waveformTimer?.cancel();
 
     final action = switch (_activeZone) {
@@ -189,7 +185,7 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
     // 停止录音
     await _audioRecorder.stop();
 
-    // 检查最小时长
+    // 检查最小时长（取消除外）
     if (action != VoiceResultAction.cancel) {
       final duration = _recordStartTime != null
           ? DateTime.now().difference(_recordStartTime!)
@@ -197,7 +193,8 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
       if (duration.inMilliseconds < 500) {
         if (mounted) {
           Navigator.of(context).pop(const VoiceResult(action: VoiceResultAction.cancel));
-          AppToast.show(context, AppLocalizations.of(context)!.chatInputRecordShort, duration: const Duration(milliseconds: 800));
+          AppToast.show(context, AppLocalizations.of(context)!.chatInputRecordShort,
+              duration: const Duration(milliseconds: 800));
         }
         return;
       }
@@ -213,6 +210,14 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
     }
   }
 
+  void _onPointerCancel(PointerCancelEvent event) {
+    _waveformTimer?.cancel();
+    _audioRecorder.stop();
+    if (mounted) {
+      Navigator.of(context).pop(const VoiceResult(action: VoiceResultAction.cancel));
+    }
+  }
+
   String _formatDuration() {
     if (_recordStartTime == null) return '0:00';
     final duration = DateTime.now().difference(_recordStartTime!);
@@ -221,36 +226,52 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
     return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 
+  // ==================== UI 构建 ====================
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
+    final isCancel = _activeZone == GestureZone.cancel;
+    final isTranscribe = _activeZone == GestureZone.transcribe;
+
+    // 录音弹窗位置（屏幕中下部）
+    final popupBottom = screenSize.height * 0.32;
 
     return AnimatedBuilder(
       animation: widget.animation,
       builder: (context, child) {
         return Scaffold(
           backgroundColor: Colors.black.withValues(alpha: 0.5 * widget.animation.value),
-          body: GestureDetector(
-            onPanStart: _onPanStart,
-            onPanUpdate: _onPanUpdate,
-            onPanEnd: _onPanEnd,
+          body: Listener(
+            onPointerDown: _onPointerDown,
+            onPointerMove: _onPointerMove,
+            onPointerUp: _onPointerUp,
+            onPointerCancel: _onPointerCancel,
+            behavior: HitTestBehavior.translucent,
             child: Stack(
               children: [
-                // 中央反馈弹窗
+                // ===== 三个热区指示器（弹窗上方） =====
                 Positioned(
-                  left: screenSize.width / 2 - 80,
-                  bottom: screenSize.height * 0.35,
-                  child: _buildCentralPopup(),
+                  left: 0, right: 0,
+                  bottom: popupBottom + 140,  // 弹窗上方
+                  height: 120,
+                  child: _buildZoneIndicators(),
                 ),
 
-                // 底部扇形面板
+                // ===== 中央录音弹窗 =====
                 Positioned(
-                  left: 0,
-                  right: 0,
+                  left: screenSize.width / 2 - (isTranscribe ? 100 : 80),
+                  bottom: popupBottom,
+                  child: _buildRecordingPopup(),
+                ),
+
+                // ===== 底部扇形面板 =====
+                Positioned(
+                  left: 0, right: 0,
                   bottom: 0,
-                  height: screenSize.height * 0.3,
+                  height: screenSize.height * 0.28,
                   child: CustomPaint(
-                    size: Size(screenSize.width, screenSize.height * 0.3),
+                    size: Size(screenSize.width, screenSize.height * 0.28),
                     painter: FanShapePainter(
                       activeZone: _activeZone,
                       panelProgress: widget.animation.value,
@@ -258,11 +279,10 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
                   ),
                 ),
 
-                // 底部提示文字
+                // ===== 底部提示 =====
                 Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 20,
+                  left: 0, right: 0,
+                  bottom: 16,
                   child: Center(
                     child: Text(
                       AppLocalizations.of(context)!.voiceOverlaySwipeHint,
@@ -281,7 +301,95 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
     );
   }
 
-  Widget _buildCentralPopup() {
+  /// 三个热区指示器（录音弹窗上方，横向排列）
+  Widget _buildZoneIndicators() {
+    final isCancel = _activeZone == GestureZone.cancel;
+    final isSend = _activeZone == GestureZone.send;
+    final isTranscribe = _activeZone == GestureZone.transcribe;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Row(
+        children: [
+          // 左：取消
+          Expanded(
+            child: _buildZoneIcon(
+              icon: Icons.close,
+              label: AppLocalizations.of(context)!.voiceOverlayCancelLabel,
+              isActive: isCancel,
+              activeColor: Colors.red,
+            ),
+          ),
+          // 中：发送
+          Expanded(
+            child: _buildZoneIcon(
+              icon: Icons.send,
+              label: AppLocalizations.of(context)!.chatInputVoiceSend,
+              isActive: isSend,
+              activeColor: Colors.white,
+            ),
+          ),
+          // 右：转文字
+          Expanded(
+            child: _buildZoneIcon(
+              icon: Icons.text_fields,
+              label: AppLocalizations.of(context)!.voiceOverlayTranscribeLabel,
+              isActive: isTranscribe,
+              activeColor: const Color(0xFF2196F3),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildZoneIcon({
+    required IconData icon,
+    required String label,
+    required bool isActive,
+    required Color activeColor,
+  }) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: isActive
+                  ? activeColor.withValues(alpha: 0.25)
+                  : Colors.white.withValues(alpha: 0.08),
+              shape: BoxShape.circle,
+              border: isActive
+                  ? Border.all(color: activeColor.withValues(alpha: 0.6), width: 1.5)
+                  : null,
+            ),
+            child: Icon(
+              icon,
+              color: isActive ? activeColor : Colors.white54,
+              size: 22,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: isActive ? activeColor : Colors.white38,
+              fontSize: 11,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 中央录音弹窗
+  Widget _buildRecordingPopup() {
     final isCancel = _activeZone == GestureZone.cancel;
     final isTranscribe = _activeZone == GestureZone.transcribe;
 
@@ -340,7 +448,6 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
               ),
             ),
           ),
-          // 转文字提示
           if (isTranscribe) ...[
             const SizedBox(height: 8),
             Text(

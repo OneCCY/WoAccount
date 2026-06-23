@@ -145,6 +145,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatInputVoiceCancel => '← Release to cancel';
 
   @override
+  String get chatInputVoiceSend => 'Release to send';
+
+  @override
   String get voiceOverlaySwipeHint => '↑ Swipe up to cancel or transcribe';
 
   @override

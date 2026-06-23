@@ -140,6 +140,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get chatInputVoiceCancel => '← 松手取消';
 
   @override
+  String get chatInputVoiceSend => '松开发送';
+
+  @override
   String get voiceOverlaySwipeHint => '↑ スワイプでキャンセルまたは文字変換';
 
   @override

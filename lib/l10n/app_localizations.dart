@@ -336,6 +336,12 @@ abstract class AppLocalizations {
   /// **'← 松手取消'**
   String get chatInputVoiceCancel;
 
+  /// No description provided for @chatInputVoiceSend.
+  ///
+  /// In zh, this message translates to:
+  /// **'松开发送'**
+  String get chatInputVoiceSend;
+
   /// No description provided for @voiceOverlaySwipeHint.
   ///
   /// In zh, this message translates to:

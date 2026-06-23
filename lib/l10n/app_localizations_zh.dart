@@ -140,6 +140,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatInputVoiceCancel => '← 松手取消';
 
   @override
+  String get chatInputVoiceSend => '松开发送';
+
+  @override
   String get voiceOverlaySwipeHint => '↑ 上滑取消或转文字';
 
   @override

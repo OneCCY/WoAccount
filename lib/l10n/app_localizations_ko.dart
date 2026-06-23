@@ -141,6 +141,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get chatInputVoiceCancel => '← 松手取消';
 
   @override
+  String get chatInputVoiceSend => '松开发送';
+
+  @override
   String get voiceOverlaySwipeHint => '↑ 위로 밀어 취소 또는 텍스트 변환';
 
   @override
