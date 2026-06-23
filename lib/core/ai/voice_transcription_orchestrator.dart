@@ -1,16 +1,6 @@
 import '../media/media_storage_service.dart';
 import '../../features/ai/data/models/llm_config.dart';
-import '../../features/text_ai/data/services/platform_stt_service.dart';
 import '../../features/text_ai/data/services/voice_recognition_service.dart';
-
-/// 引擎可用性检测结果
-class EngineAvailability {
-  final bool platform;
-  final bool whisper;
-  const EngineAvailability({required this.platform, required this.whisper});
-  bool get none => !platform && !whisper;
-  bool get both => platform && whisper;
-}
 
 /// 双引擎语音转写结果
 class DualTranscriptionResult {
@@ -71,25 +61,13 @@ class DualTranscriptionResult {
 /// 职责：接收录音文件和平台 STT 结果，协调双引擎转写，返回结构化结果。
 /// 不负责录音（录音由 UI 层的 AudioRecorder 管理）。
 class VoiceTranscriptionOrchestrator {
-  final PlatformSttService _platformStt;
   final VoiceRecognitionService _whisperService;
   final MediaStorageService _mediaStorage;
 
   VoiceTranscriptionOrchestrator({
-    required PlatformSttService platformStt,
-    required VoiceRecognitionService whisperService,
-    required MediaStorageService mediaStorage,
-  })  : _platformStt = platformStt,
-        _whisperService = whisperService,
-        _mediaStorage = mediaStorage;
-
-  /// 检测是否有至少一个引擎可用（UI 层调用，决定是否显示录音按钮）
-  Future<bool> canTranscribe(LlmProvider? provider) async {
-    final hasPlatform = await _platformStt.isAvailable();
-    final hasWhisper =
-        provider?.getModelForCapability(ModelCapability.audio) != null;
-    return hasPlatform || hasWhisper;
-  }
+    required this._whisperService,
+    required this._mediaStorage,
+  });
 
   /// 执行转写
   ///

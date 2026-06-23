@@ -242,11 +242,6 @@
   "profileEditDeleteAccountSubmitted": "注销申请已提交",
 
   "settingsTitle": "系统设置",
-  "settingsVoiceMode": "语音输入方式",
-  "settingsVoiceModePlatform": "平台原生",
-  "settingsVoiceModeWhisper": "Whisper API",
-  "settingsVoiceModePlatformDesc": "使用系统内置语音识别，免费、无需配置",
-  "settingsVoiceModeWhisperDesc": "使用 Whisper API，需要配置 audio 模型",
   "settingsGeneral": "通用",
   "settingsLanguage": "语言",
   "settingsDarkMode": "深色模式",

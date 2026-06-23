@@ -2,15 +2,6 @@ import 'dart:async';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:speech_to_text/speech_recognition_result.dart';
 
-/// 语音识别方式
-enum SttMode {
-  /// 平台原生（Android/iOS 内置语音识别，免费、离线可用）
-  platform,
-
-  /// Whisper API（需要 LLM provider 配置 audio 模型）
-  whisper,
-}
-
 /// 平台原生语音转文字服务
 ///
 /// 基于 speech_to_text 包，使用 Android/iOS 系统内置的语音识别引擎。

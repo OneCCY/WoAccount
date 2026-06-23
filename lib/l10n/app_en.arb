@@ -242,11 +242,6 @@
   "profileEditDeleteAccountSubmitted": "Account deletion request submitted",
 
   "settingsTitle": "Settings",
-  "settingsVoiceMode": "Voice Input Method",
-  "settingsVoiceModePlatform": "Platform Native",
-  "settingsVoiceModeWhisper": "Whisper API",
-  "settingsVoiceModePlatformDesc": "Uses built-in speech recognition, free and offline",
-  "settingsVoiceModeWhisperDesc": "Uses Whisper API, requires audio model config",
   "settingsGeneral": "General",
   "settingsLanguage": "Language",
   "settingsDarkMode": "Dark Mode",

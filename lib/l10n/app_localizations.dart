@@ -1344,36 +1344,6 @@ abstract class AppLocalizations {
   /// **'系统设置'**
   String get settingsTitle;
 
-  /// No description provided for @settingsVoiceMode.
-  ///
-  /// In zh, this message translates to:
-  /// **'语音输入方式'**
-  String get settingsVoiceMode;
-
-  /// No description provided for @settingsVoiceModePlatform.
-  ///
-  /// In zh, this message translates to:
-  /// **'平台原生'**
-  String get settingsVoiceModePlatform;
-
-  /// No description provided for @settingsVoiceModeWhisper.
-  ///
-  /// In zh, this message translates to:
-  /// **'Whisper API'**
-  String get settingsVoiceModeWhisper;
-
-  /// No description provided for @settingsVoiceModePlatformDesc.
-  ///
-  /// In zh, this message translates to:
-  /// **'使用系统内置语音识别，免费、无需配置'**
-  String get settingsVoiceModePlatformDesc;
-
-  /// No description provided for @settingsVoiceModeWhisperDesc.
-  ///
-  /// In zh, this message translates to:
-  /// **'使用 Whisper API，需要配置 audio 模型'**
-  String get settingsVoiceModeWhisperDesc;
-
   /// No description provided for @settingsGeneral.
   ///
   /// In zh, this message translates to:

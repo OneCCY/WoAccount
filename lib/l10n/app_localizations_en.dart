@@ -698,23 +698,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTitle => 'Settings';
 
   @override
-  String get settingsVoiceMode => 'Voice Input Method';
-
-  @override
-  String get settingsVoiceModePlatform => 'Platform Native';
-
-  @override
-  String get settingsVoiceModeWhisper => 'Whisper API';
-
-  @override
-  String get settingsVoiceModePlatformDesc =>
-      'Uses built-in speech recognition, free and offline';
-
-  @override
-  String get settingsVoiceModeWhisperDesc =>
-      'Uses Whisper API, requires audio model config';
-
-  @override
   String get settingsGeneral => 'General';
 
   @override

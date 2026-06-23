@@ -44,7 +44,6 @@ final platformSttServiceProvider = Provider<PlatformSttService>((ref) {
 final voiceTranscriptionOrchestratorProvider =
     Provider<VoiceTranscriptionOrchestrator>((ref) {
   return VoiceTranscriptionOrchestrator(
-    platformStt: ref.watch(platformSttServiceProvider),
     whisperService: ref.watch(voiceRecognitionServiceProvider),
     mediaStorage: ref.watch(mediaStorageServiceProvider),
   );

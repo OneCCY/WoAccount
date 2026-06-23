@@ -10,7 +10,6 @@ import '../../../../config/di/providers.dart';
 import '../../../../config/di/ai_providers.dart';
 import '../../../../core/ai/llm_error_resolver.dart';
 import '../../../../core/ai/transaction_pipeline.dart';
-import '../../../../core/ai/voice_transcription_orchestrator.dart';
 import '../../../../core/config/ai_provider_presets.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
@@ -150,18 +149,12 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
     final extra = GoRouterState.of(context).extra;
     if (extra is Map<String, dynamic>) {
       final transcribedText = extra['transcribedText'] as String?;
-      final voicePath = extra['voicePath'] as String?;
 
       if (transcribedText != null && transcribedText.isNotEmpty) {
         // 仅转文字模式：填入输入框
         // 通过延迟确保 build 完成后再处理
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _processInput(text: transcribedText);
-        });
-      } else if (voicePath != null && voicePath.isNotEmpty) {
-        // 完整管线模式：语音→转文字→AI解析
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _processInput(voicePath: voicePath);
         });
       }
     }
@@ -242,10 +235,9 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
 
   // ==================== 统一输入处理 ====================
 
-  /// 统一处理入口：文本/语音/图片都走此方法
+  /// 统一处理入口：文本/图片都走此方法
   Future<void> _processInput({
     String? text,
-    String? voicePath,
     String? imagePath,
   }) async {
     if (_isAiResponding) return;
@@ -257,10 +249,6 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
     if (text != null && text.trim().isNotEmpty) {
       source = InputSource.text;
       displayText = text.trim();
-    } else if (voicePath != null) {
-      source = InputSource.voice;
-      displayText = AppLocalizations.of(context)!.chatPageVoicePlaceholder; // 先显示占位，转写后更新
-      mediaFilePath = voicePath;
     } else if (imagePath != null) {
       source = InputSource.image;
       displayText = AppLocalizations.of(context)!.chatPageImagePlaceholder;
@@ -314,41 +302,8 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
           result = await _pipeline.processText(displayText, categoryTaxonomy: categoryTaxonomy, locale: locale, bookId: _bookId);
           break;
         case InputSource.voice:
-          // 使用 orchestrator 进行双引擎转写
-          final orchestrator = ref.read(voiceTranscriptionOrchestratorProvider);
-          final transcription = await orchestrator.transcribe(
-            audioPath: voicePath!,
-            provider: provider,
-          );
-          if (!mounted) return;
-
-          result = await _pipeline.processVoiceResult(
-            transcription: transcription,
-            categoryTaxonomy: categoryTaxonomy,
-            locale: locale,
-            bookId: _bookId,
-          );
-          if (!mounted) return;
-          // 更新用户消息为转写文本
-          await _chatRepo.insertMessage(
-            ConversationMessagesCompanion.insert(
-              conversationId: _conversationId,
-              role: 'assistant',
-              content: AppLocalizations.of(context)!.chatPageVoiceTranscription(result.normalizedText),
-              accountBookId: _bookId,
-            ),
-          );
-          setState(() {
-            _items.add(_ChatItem.assistant(ConversationMessage(
-              id: 0,
-              conversationId: _conversationId,
-              role: 'assistant',
-              content: AppLocalizations.of(context)!.chatPageVoiceTranscription(result.normalizedText),
-              accountBookId: _bookId,
-              createdAt: DateTime.now(),
-            )));
-          });
-          break;
+          // Voice is no longer handled here; upstream orchestrator handles transcription.
+          throw UnsupportedError('Voice input is not supported in AiChatPage');
         case InputSource.image:
           result = await _pipeline.processImage(
             imageTempPath: imagePath!,

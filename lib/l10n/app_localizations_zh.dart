@@ -684,21 +684,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsTitle => '系统设置';
 
   @override
-  String get settingsVoiceMode => '语音输入方式';
-
-  @override
-  String get settingsVoiceModePlatform => '平台原生';
-
-  @override
-  String get settingsVoiceModeWhisper => 'Whisper API';
-
-  @override
-  String get settingsVoiceModePlatformDesc => '使用系统内置语音识别，免费、无需配置';
-
-  @override
-  String get settingsVoiceModeWhisperDesc => '使用 Whisper API，需要配置 audio 模型';
-
-  @override
   String get settingsGeneral => '通用';
 
   @override
