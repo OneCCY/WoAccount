@@ -156,6 +156,56 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
     } catch (_) {}
   }
 
+  /// 仅转文字模式：Whisper 转写音频后，将文本填入输入框（不直接记账）
+  Future<void> _transcribeVoiceOnly(String audioPath) async {
+    if (_isAiResponding) return;
+
+    setState(() => _isAiResponding = true);
+
+    try {
+      final provider = await ref.read(llmRepositoryProvider).getActiveProvider();
+      if (!mounted) return;
+      if (provider == null || !provider.isComplete) {
+        throw LlmException(AppLocalizations.of(context)!.chatPageConfigAiError);
+      }
+
+      final transcribedText = await _pipeline.transcribeOnly(
+        audioTempPath: audioPath,
+        provider: provider,
+      );
+
+      if (!mounted) return;
+      setState(() => _isAiResponding = false);
+
+      // 将转写文本填入输入框，让用户编辑后再提交
+      // 通过显示一条转写消息 + 自动填入输入框
+      await _chatRepo.insertMessage(
+        ConversationMessagesCompanion.insert(
+          conversationId: _conversationId,
+          role: 'assistant',
+          content: AppLocalizations.of(context)!.chatPageVoiceTranscription(transcribedText),
+          accountBookId: _bookId,
+        ),
+      );
+      setState(() {
+        _items.add(_ChatItem.assistant(ConversationMessage(
+          id: 0,
+          conversationId: _conversationId,
+          role: 'assistant',
+          content: AppLocalizations.of(context)!.chatPageVoiceTranscription(transcribedText),
+          accountBookId: _bookId,
+          createdAt: DateTime.now(),
+        )));
+      });
+      _scrollToBottom();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isAiResponding = false);
+      final l10n = AppLocalizations.of(context)!;
+      AppToast.show(context, l10n.chatPageParseError(resolveLlmError(e, l10n)));
+    }
+  }
+
   /// 处理从外部传入的输入（如浮动按钮录音结果）
   void _handleExternalInput() {
     final extra = GoRouterState.of(context).extra;
@@ -785,6 +835,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
             onSubmit: (text) => _processInput(text: text),
             onVoiceRecorded: (path) => _processInput(voicePath: path),
             onImageCaptured: (path) => _processInput(imagePath: path),
+            onVoiceTranscribeOnly: (path) => _transcribeVoiceOnly(path),
             isLoading: _isAiResponding,
             onManualEntry: () => context.push('/manual-entry'),
             voiceMode: _voiceMode,
