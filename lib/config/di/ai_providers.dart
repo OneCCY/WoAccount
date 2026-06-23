@@ -59,7 +59,6 @@ final mediaStorageServiceProvider = Provider<MediaStorageService>((ref) {
 final transactionPipelineProvider = Provider<TransactionPipeline>((ref) {
   return TransactionPipeline(
     llmRepo: ref.watch(llmRepositoryProvider),
-    voiceService: ref.watch(voiceRecognitionServiceProvider),
     imageService: ref.watch(imageRecognitionServiceProvider),
     mediaStorage: ref.watch(mediaStorageServiceProvider),
     db: ref.watch(appDatabaseProvider),

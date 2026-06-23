@@ -1,10 +1,10 @@
 import 'package:drift/drift.dart';
 import '../../config/database/app_database.dart';
 import '../../features/ai/data/models/llm_config.dart';
-import '../../features/text_ai/data/services/voice_recognition_service.dart';
 import '../../features/vision_ai/data/services/image_recognition_service.dart';
 import '../../features/ai/domain/repositories/llm_repository.dart';
 import '../media/media_storage_service.dart';
+import 'voice_transcription_orchestrator.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 
 /// 输入源类型
@@ -67,19 +67,16 @@ class PipelineResult {
 /// - Tool Use：检测引用型输入（"跟上次一样"）并预取历史数据
 class TransactionPipeline {
   final LlmRepository _llmRepo;
-  final VoiceRecognitionService _voiceService;
   final ImageRecognitionService _imageService;
   final MediaStorageService _mediaStorage;
   final AppDatabase _db;
 
   TransactionPipeline({
     required LlmRepository llmRepo,
-    required VoiceRecognitionService voiceService,
     required ImageRecognitionService imageService,
     required MediaStorageService mediaStorage,
     required AppDatabase db,
   })  : _llmRepo = llmRepo,
-        _voiceService = voiceService,
         _imageService = imageService,
         _mediaStorage = mediaStorage,
         _db = db;
@@ -111,52 +108,42 @@ class TransactionPipeline {
     );
   }
 
-  /// 仅语音转文字（不走 LLM 解析）
+  /// 处理双引擎语音转写结果
   ///
-  /// 用于首页右滑转文字场景：用户录音后仅转写文本，填入输入框由用户编辑后发送。
-  Future<String> transcribeOnly({
-    required String audioTempPath,
-    required LlmProvider provider,
-  }) async {
-    // 保存音频到永久存储
-    final savedPath = await _mediaStorage.saveAudio(audioTempPath);
-
-    // 语音转文字
-    final text = await _voiceService.transcribe(provider, savedPath);
-
-    if (text.trim().isEmpty) {
-      throw const LlmException('语音识别结果为空，请重新录制', errorCode: 'pipelineErrorEmptyVoiceResult');
-    }
-
-    return text;
-  }
-
-  /// 处理语音输入
-  ///
-  /// [audioTempPath] 录音临时文件路径
-  /// [provider] 当前 LLM 服务商配置
-  Future<PipelineResult> processVoice({
-    required String audioTempPath,
-    required LlmProvider provider,
+  /// 双引擎有差异时构建交叉校验 prompt，LLM 一次调用完成校验+解析。
+  /// 单引擎或一致时直接用合并文本解析。
+  Future<PipelineResult> processVoiceResult({
+    required DualTranscriptionResult transcription,
     String? categoryTaxonomy,
     String locale = 'zh',
     int? bookId,
   }) async {
-    // 1. 保存音频到永久存储
-    final savedPath = await _mediaStorage.saveAudio(audioTempPath);
+    // 构建输入文本
+    String inputForLlm;
 
-    // 2. 语音转文字
-    final transcribedText = await _voiceService.transcribe(provider, savedPath);
-
-    if (transcribedText.trim().isEmpty) {
-      throw const LlmException('语音识别结果为空，请重新录制', errorCode: 'pipelineErrorEmptyVoiceResult');
+    if (transcription.engineCount >= 2 && !transcription.isIdentical) {
+      // 双引擎有差异 → 交叉校验 prompt
+      inputForLlm = _buildCrossValidationPrompt(
+        transcription.platformText!,
+        transcription.whisperText!,
+      );
+    } else {
+      // 单引擎或双引擎一致 → 直接用合并文本
+      inputForLlm = transcription.mergedText;
     }
 
-    // 3. [Tool Use] 引用检测 + [RAG + Episodic Memory] 上下文构建
-    final resolvedText = await _resolveReference(transcribedText, bookId);
+    if (inputForLlm.trim().isEmpty) {
+      throw const LlmException(
+        '语音识别结果为空，请重新录制',
+        errorCode: 'pipelineErrorEmptyVoiceResult',
+      );
+    }
+
+    // [Tool Use] 引用检测 + [RAG + Episodic Memory] 上下文构建
+    final resolvedText = await _resolveReference(inputForLlm, bookId);
     final context = await _buildEnrichedContext(resolvedText, bookId);
 
-    // 4. 用转写文本走 AI 记账解析（带增强上下文）
+    // 用文本走 AI 记账解析（带增强上下文）
     final results = await _llmRepo.parseTransaction(
       resolvedText,
       categoryTaxonomy: categoryTaxonomy,
@@ -166,11 +153,21 @@ class TransactionPipeline {
     );
 
     return PipelineResult(
-      normalizedText: transcribedText,
+      normalizedText: transcription.mergedText,
       transactions: results,
       source: InputSource.voice,
-      mediaFilePath: savedPath,
+      mediaFilePath: transcription.audioPath,
     );
+  }
+
+  /// 构建双引擎交叉校验 prompt
+  String _buildCrossValidationPrompt(String platformText, String whisperText) {
+    return '## 语音识别交叉校验\n'
+        '以下文字由两个不同的语音识别引擎转写，可能存在差异。'
+        '请综合两段文本，判断用户的实际意图，然后解析为记账信息。\n\n'
+        '引擎A（设备原生）：「$platformText」\n'
+        '引擎B（云端Whisper）：「$whisperText」\n\n'
+        '请先判断最可能的正确文本，再提取记账信息。';
   }
 
   /// 处理图片输入
