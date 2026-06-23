@@ -2546,6 +2546,10 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get voiceErrorEndpointNotFound =>
+      'Whisper API 엔드포인트를 찾을 수 없습니다. 공급자의 Base URL을 확인해 주세요';
+
+  @override
   String get pipelineErrorEmptyVoiceResult => '음성 인식 결과가 비어 있습니다. 다시 녹음해 주세요';
 
   @override

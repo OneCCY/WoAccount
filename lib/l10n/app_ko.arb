@@ -887,6 +887,7 @@
   "voiceErrorInvalidResponseFormat": "음성 인식 결과 형식이 올바르지 않습니다",
   "voiceErrorTranscriptionFailed": "음성 인식에 실패했습니다: {message}",
   "@voiceErrorTranscriptionFailed": { "placeholders": { "message": { "type": "String" } } },
+  "voiceErrorEndpointNotFound": "Whisper API 엔드포인트를 찾을 수 없습니다. 공급자의 Base URL을 확인해 주세요",
   "pipelineErrorEmptyVoiceResult": "음성 인식 결과가 비어 있습니다. 다시 녹음해 주세요",
   "pipelineErrorEmptyImageResult": "이미지 인식 결과가 비어 있습니다. 더 선명한 이미지를 선택해 주세요",
   "acCoinInitialGiftDesc": "신규 회원 가입 선물",

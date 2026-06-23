@@ -2539,6 +2539,10 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get voiceErrorEndpointNotFound =>
+      'Whisper APIエンドポイントが見つかりません。サプライヤーのBase URLを確認してください';
+
+  @override
   String get pipelineErrorEmptyVoiceResult => '音声認識結果が空です。再度録音してください';
 
   @override

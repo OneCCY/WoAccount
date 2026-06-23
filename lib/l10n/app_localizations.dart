@@ -4848,6 +4848,12 @@ abstract class AppLocalizations {
   /// **'语音识别失败: {message}'**
   String voiceErrorTranscriptionFailed(String message);
 
+  /// No description provided for @voiceErrorEndpointNotFound.
+  ///
+  /// In zh, this message translates to:
+  /// **'Whisper API 端点未找到，请检查供应商 Base URL 配置'**
+  String get voiceErrorEndpointNotFound;
+
   /// No description provided for @pipelineErrorEmptyVoiceResult.
   ///
   /// In zh, this message translates to:

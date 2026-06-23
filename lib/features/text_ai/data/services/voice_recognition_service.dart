@@ -17,6 +17,17 @@ class VoiceRecognitionService {
   /// [audioFilePath] 本地音频文件路径
   /// [language] 语言代码（默认 'zh' 中文）
   /// 返回识别后的文本
+  /// Build candidate URL list (auto-detect correct API path)
+  List<String> _buildCandidateUrls(String baseUrl) {
+    if (baseUrl.endsWith('/v1')) {
+      return ['$baseUrl/audio/transcriptions'];
+    }
+    return [
+      '$baseUrl/audio/transcriptions',
+      '$baseUrl/v1/audio/transcriptions',
+    ];
+  }
+
   Future<String> transcribe(
     LlmProvider provider,
     String audioFilePath, {
@@ -24,52 +35,58 @@ class VoiceRecognitionService {
   }) async {
     final model = provider.getModelForCapability(ModelCapability.audio);
     if (model == null || model.isEmpty) {
-      throw const LlmException('未配置语音识别模型，请在 AI 设置中配置', errorCode: 'voiceErrorNoModelConfigured');
+      throw const LlmException('未配置语音识别模型，请在 AI 设置中配置',
+          errorCode: 'voiceErrorNoModelConfigured');
     }
 
     final file = File(audioFilePath);
     if (!file.existsSync()) {
-      throw const LlmException('音频文件不存在', errorCode: 'voiceErrorAudioNotFound');
+      throw const LlmException('音频文件不存在',
+          errorCode: 'voiceErrorAudioNotFound');
     }
 
-    try {
-      final formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(
-          audioFilePath,
-          filename: 'recording.m4a',
-        ),
-        'model': model,
-        'language': language,
-      });
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(audioFilePath, filename: 'recording.m4a'),
+      'model': model,
+      'language': language,
+    });
 
-      final response = await _dio.post(
-        '${provider.baseUrl}/audio/transcriptions',
-        data: formData,
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer ${provider.apiKey}',
-          },
-          sendTimeout: Duration(seconds: provider.timeoutSeconds),
-          receiveTimeout: Duration(seconds: provider.timeoutSeconds),
-        ),
-      );
+    final urls = _buildCandidateUrls(provider.baseUrl);
 
-      final data = response.data;
+    for (final url in urls) {
+      try {
+        final response = await _dio.post(
+          url,
+          data: formData,
+          options: Options(
+            headers: {'Authorization': 'Bearer ${provider.apiKey}'},
+            sendTimeout: Duration(seconds: provider.timeoutSeconds),
+            receiveTimeout: Duration(seconds: provider.timeoutSeconds),
+          ),
+        );
 
-      // OpenAI Whisper 标准响应: { "text": "..." }
-      if (data is Map<String, dynamic> && data.containsKey('text')) {
-        return data['text'] as String;
+        final data = response.data;
+        if (data is Map<String, dynamic> && data.containsKey('text')) {
+          return data['text'] as String;
+        }
+        if (data is String) return data;
+
+        throw const LlmException('语音识别返回格式异常',
+            errorCode: 'voiceErrorInvalidResponseFormat');
+      } on DioException catch (e) {
+        if (e.response?.statusCode == 404) continue;
+        if (e.response?.statusCode == 401) {
+          throw const LlmException('API Key 无效',
+              errorCode: 'llmErrorInvalidApiKey');
+        }
+        throw LlmException('语音识别失败: ${e.message}',
+            errorCode: 'voiceErrorTranscriptionFailed');
       }
-
-      // 兼容直接返回纯文本的情况
-      if (data is String) return data;
-
-      throw const LlmException('语音识别返回格式异常', errorCode: 'voiceErrorInvalidResponseFormat');
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 401) {
-        throw const LlmException('API Key 无效', errorCode: 'llmErrorInvalidApiKey');
-      }
-      throw LlmException('语音识别失败: ${e.message}', errorCode: 'voiceErrorTranscriptionFailed');
     }
+
+    throw LlmException(
+      'Whisper API endpoint not found (tried: ${urls.join(", ")})',
+      errorCode: 'voiceErrorEndpointNotFound',
+    );
   }
 }

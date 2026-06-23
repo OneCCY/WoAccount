@@ -2534,6 +2534,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get voiceErrorEndpointNotFound =>
+      'Whisper API 端点未找到，请检查供应商 Base URL 配置';
+
+  @override
   String get pipelineErrorEmptyVoiceResult => '语音识别结果为空，请重新录制';
 
   @override
@@ -5167,6 +5171,10 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String voiceErrorTranscriptionFailed(String message) {
     return '語音識別失敗: $message';
   }
+
+  @override
+  String get voiceErrorEndpointNotFound =>
+      'Whisper API 端點未找到，請檢查供應商 Base URL 配置';
 
   @override
   String get pipelineErrorEmptyVoiceResult => '語音識別結果為空，請重新錄製';

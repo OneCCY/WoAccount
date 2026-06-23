@@ -63,6 +63,8 @@ String? _resolve(String errorCode, AppLocalizations l10n, String fallback) {
       return l10n.voiceErrorInvalidResponseFormat;
     case 'voiceErrorTranscriptionFailed':
       return l10n.voiceErrorTranscriptionFailed(fallback);
+    case 'voiceErrorEndpointNotFound':
+      return l10n.voiceErrorEndpointNotFound;
     // --- Pipeline errors ---
     case 'pipelineErrorEmptyVoiceResult':
       return l10n.pipelineErrorEmptyVoiceResult;

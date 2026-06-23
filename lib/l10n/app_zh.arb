@@ -898,6 +898,7 @@
   "voiceErrorInvalidResponseFormat": "语音识别返回格式异常",
   "voiceErrorTranscriptionFailed": "语音识别失败: {message}",
   "@voiceErrorTranscriptionFailed": { "placeholders": { "message": { "type": "String" } } },
+  "voiceErrorEndpointNotFound": "Whisper API 端点未找到，请检查供应商 Base URL 配置",
   "pipelineErrorEmptyVoiceResult": "语音识别结果为空，请重新录制",
   "pipelineErrorEmptyImageResult": "图片识别结果为空，请选择更清晰的图片",
   "acCoinInitialGiftDesc": "新用户注册赠送",

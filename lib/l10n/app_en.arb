@@ -897,6 +897,7 @@
   "voiceErrorInvalidResponseFormat": "Voice recognition returned invalid format",
   "voiceErrorTranscriptionFailed": "Voice recognition failed: {message}",
   "@voiceErrorTranscriptionFailed": { "placeholders": { "message": { "type": "String" } } },
+  "voiceErrorEndpointNotFound": "Whisper API endpoint not found. Please check supplier Base URL",
   "pipelineErrorEmptyVoiceResult": "Voice recognition returned empty, please record again",
   "pipelineErrorEmptyImageResult": "Image recognition returned empty, please choose a clearer image",
   "acCoinInitialGiftDesc": "New user registration gift",

@@ -2586,6 +2586,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get voiceErrorEndpointNotFound =>
+      'Whisper API endpoint not found. Please check supplier Base URL';
+
+  @override
   String get pipelineErrorEmptyVoiceResult =>
       'Voice recognition returned empty, please record again';
 
