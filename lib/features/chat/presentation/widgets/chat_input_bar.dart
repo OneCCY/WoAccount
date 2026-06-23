@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -49,12 +51,14 @@ class _ChatInputBarState extends State<ChatInputBar> {
 
   // 平台 STT
   String _partialText = '';
+  StreamSubscription<String>? _sttSubscription;
 
   static const double _verticalThreshold = 60.0;
   static const double _horizontalThreshold = 50.0;
 
   @override
   void dispose() {
+    _sttSubscription?.cancel();
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -82,7 +86,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
     // 立即启动平台 STT（同一根手指，无需二次按下）
     if (widget.sttService != null) {
       widget.sttService!.startListening();
-      widget.sttService!.partialTextStream.listen((text) {
+      _sttSubscription = widget.sttService!.partialTextStream.listen((text) {
         if (mounted && _isVoiceActive) {
           setState(() => _partialText = text);
         }
@@ -118,6 +122,9 @@ class _ChatInputBarState extends State<ChatInputBar> {
   Future<void> _onLongPressEnd(LongPressEndDetails details) async {
     if (!_isVoiceActive) return;
 
+    _sttSubscription?.cancel();
+    _sttSubscription = null;
+
     final zone = _zone;
     setState(() {
       _isVoiceActive = false;
@@ -126,7 +133,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
 
     switch (zone) {
       case _GestureZone.cancel:
-        // 取消 — 不执行任何操作
+        widget.sttService?.cancel();
         break;
       case _GestureZone.transcribe:
         // 转文字 — 走平台 STT 或 Whisper
