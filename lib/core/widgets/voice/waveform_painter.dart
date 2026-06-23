@@ -1,61 +1,117 @@
 import 'dart:math';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
-/// 声波动画绘制器
-/// 根据音量数据绘制跳动的波形条
-class WaveformPainter extends CustomPainter {
+/// 绿色语音气泡绘制器（微信风格）
+///
+/// 绘制带尾巴的圆角绿色气泡，内部包含：
+/// - 圆点声波动画
+/// - 录音时长文本
+class VoiceBubblePainter extends CustomPainter {
   final List<double> amplitudes;
-  final Color color;
-  final bool isCancelled;
-  final bool isTranscribe;
+  final String durationText;
+  final Color bubbleColor;
 
-  WaveformPainter({
+  VoiceBubblePainter({
     required this.amplitudes,
-    this.color = Colors.white,
-    this.isCancelled = false,
-    this.isTranscribe = false,
+    required this.durationText,
+    this.bubbleColor = const Color(0xFF07C160),
   });
 
   @override
   void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+
+    // 气泡主体（不含尾巴的区域）
+    const tailHeight = 12.0;
+    final bodyHeight = h - tailHeight;
+    final bodyRect = RRect.fromLTRBR(0, 0, w, bodyHeight, const Radius.circular(16));
+
+    // 绘制气泡背景
+    final bgPaint = Paint()..color = bubbleColor;
+    canvas.drawRRect(bodyRect, bgPaint);
+
+    // 绘制尾巴（底部中间的小三角）
+    final tailPath = Path()
+      ..moveTo(w / 2 - 10, bodyHeight - 2)
+      ..lineTo(w / 2, h)
+      ..lineTo(w / 2 + 10, bodyHeight - 2)
+      ..close();
+    canvas.drawPath(tailPath, bgPaint);
+
+    // 绘制声波圆点
+    _drawWaveformDots(canvas, Size(w, bodyHeight));
+
+    // 绘制时长文本
+    _drawDuration(canvas, Size(w, bodyHeight));
+  }
+
+  void _drawWaveformDots(Canvas canvas, Size size) {
     if (amplitudes.isEmpty) return;
 
-    final barWidth = 3.0;
-    final barGap = 2.5;
-    final maxBarHeight = size.height * 0.8;
-    final centerY = size.height / 2;
+    final centerY = size.height * 0.38;
+    final dotRadius = 2.5;
+    final maxAmplitude = size.height * 0.15;
 
-    final paint = Paint()
-      ..color = isCancelled
-          ? Colors.red.withValues(alpha: 0.8)
-          : isTranscribe
-              ? const Color(0xFF2196F3).withValues(alpha: 0.8)
-              : color.withValues(alpha: 0.9)
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = barWidth;
+    final dotPaint = Paint()..color = Colors.white.withValues(alpha: 0.7);
 
-    final totalBars = amplitudes.length;
-    final totalWidth = totalBars * (barWidth + barGap) - barGap;
+    final totalDots = amplitudes.length;
+    final totalWidth = totalDots * 8.0;
     final startX = (size.width - totalWidth) / 2;
 
-    for (int i = 0; i < totalBars; i++) {
-      final x = startX + i * (barWidth + barGap);
+    for (int i = 0; i < totalDots; i++) {
+      final x = startX + i * 8.0 + 4;
       final amplitude = amplitudes[i].clamp(0.0, 1.0);
-      final barHeight = max(4.0, amplitude * maxBarHeight);
+      final yOffset = amplitude * maxAmplitude;
 
-      canvas.drawLine(
-        Offset(x, centerY - barHeight / 2),
-        Offset(x, centerY + barHeight / 2),
-        paint,
+      // 上半部分圆点
+      canvas.drawOval(
+        Rect.fromCenter(
+          center: Offset(x, centerY - yOffset),
+          width: dotRadius * 2,
+          height: dotRadius * 2,
+        ),
+        dotPaint,
+      );
+      // 下半部分圆点（对称）
+      canvas.drawOval(
+        Rect.fromCenter(
+          center: Offset(x, centerY + yOffset),
+          width: dotRadius * 2,
+          height: dotRadius * 2,
+        ),
+        dotPaint,
       );
     }
   }
 
+  void _drawDuration(Canvas canvas, Size size) {
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: durationText,
+        style: TextStyle(
+          color: Colors.white.withValues(alpha: 0.85),
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      textDirection: ui.TextDirection.ltr,
+    )..layout();
+
+    textPainter.paint(
+      canvas,
+      Offset(
+        (size.width - textPainter.width) / 2,
+        size.height * 0.62 - textPainter.height / 2,
+      ),
+    );
+  }
+
   @override
-  bool shouldRepaint(covariant WaveformPainter oldDelegate) {
+  bool shouldRepaint(covariant VoiceBubblePainter oldDelegate) {
     return oldDelegate.amplitudes != amplitudes ||
-        oldDelegate.isCancelled != isCancelled ||
-        oldDelegate.isTranscribe != isTranscribe;
+        oldDelegate.durationText != durationText;
   }
 }
 
@@ -69,19 +125,10 @@ class WaveformGenerator {
 
   List<double> get amplitudes => List.unmodifiable(_amplitudes);
 
-  /// 模拟音量更新（实际应从录音 API 获取）
+  /// 模拟音量更新
   void addSample(double volume) {
-    // 添加一些随机性使波形更自然
     final adjusted = (volume + _random.nextDouble() * 0.3).clamp(0.0, 1.0);
     _amplitudes.add(adjusted);
-    if (_amplitudes.length > maxBars) {
-      _amplitudes.removeAt(0);
-    }
-  }
-
-  /// 生成静音帧
-  void addSilence() {
-    _amplitudes.add(_random.nextDouble() * 0.1);
     if (_amplitudes.length > maxBars) {
       _amplitudes.removeAt(0);
     }
