@@ -8,15 +8,6 @@ import '../../../../core/widgets/toast.dart';
 import '../../../text_ai/data/services/platform_stt_service.dart';
 import '../../../../core/utils/responsive.dart';
 
-/// 语音识别模式
-enum VoiceInputMode {
-  /// 平台原生 STT（实时转文字，无需 API key）
-  platform,
-
-  /// Whisper API（录音后发送到云端转写）
-  whisper,
-}
-
 /// 录音手势区域
 enum _GestureZone {
   none,
@@ -29,11 +20,10 @@ enum _GestureZone {
 class ChatInputBar extends StatefulWidget {
   final Function(String) onSubmit;
   final VoidCallback onManualEntry;
-  final Function(String filePath) onVoiceRecorded;
+  final Function(String filePath, String? platformText) onVoiceRecorded;
   final Function(String filePath) onImageCaptured;
-  final Function(String filePath) onVoiceTranscribeOnly;
+  final Function(String filePath, String? platformText) onVoiceTranscribeOnly;
   final bool isLoading;
-  final VoiceInputMode voiceMode;
   final PlatformSttService? sttService;
 
   const ChatInputBar({
@@ -44,7 +34,6 @@ class ChatInputBar extends StatefulWidget {
     required this.onImageCaptured,
     required this.onVoiceTranscribeOnly,
     this.isLoading = false,
-    this.voiceMode = VoiceInputMode.platform,
     this.sttService,
   });
 
@@ -95,7 +84,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
     });
 
     // 立即启动平台 STT（同一根手指，无需二次按下）
-    if (widget.voiceMode == VoiceInputMode.platform && widget.sttService != null) {
+    if (widget.sttService != null) {
       widget.sttService!.startListening();
       widget.sttService!.partialTextStream.listen((text) {
         if (mounted && _isVoiceActive) {
@@ -155,45 +144,33 @@ class _ChatInputBarState extends State<ChatInputBar> {
     }
   }
 
-  /// 发送：平台 STT 文本 → 记账管线，或 Whisper 录音文件 → 记账管线
+  /// 发送：停止 PlatformStt，提交文本到记账管线
   Future<void> _handleSend() async {
-    if (widget.voiceMode == VoiceInputMode.platform && widget.sttService != null) {
-      // 平台 STT：识别后提交文本
-      final text = await widget.sttService!.stopListening();
-      final result = (text ?? _partialText).trim();
-      if (result.isNotEmpty) {
-        widget.onSubmit(result);
-      } else {
-        if (mounted) AppToast.show(context, AppLocalizations.of(context)!.chatInputRecordShort);
-      }
+    String? platformText;
+    if (widget.sttService != null) {
+      platformText = await widget.sttService!.stopListening();
+    }
+    final result = (platformText ?? _partialText).trim();
+    if (result.isNotEmpty) {
+      widget.onSubmit(result);
     } else {
-      // Whisper：已经在长按开始时开始录音（由调用方处理）
-      // 这里需要录音逻辑 — 使用 record 包
-      // 注意：当前架构下，Whisper 模式的录音由 VoiceRecordingOverlay 处理
-      // 但内联模式下，我们需要自己管理录音
-      // 此分支暂不支持内联 Whisper 录音，提示用户切换模式
-      if (mounted) {
-        AppToast.show(context, '请在设置中切换为平台原生语音模式');
-      }
+      if (mounted) AppToast.show(context, AppLocalizations.of(context)!.chatInputRecordShort);
     }
   }
 
-  /// 转文字：平台 STT → 填入输入框，或 Whisper → 填入输入框
+  /// 转文字：停止 PlatformStt，填入输入框供用户编辑
   Future<void> _handleTranscribe() async {
-    if (widget.voiceMode == VoiceInputMode.platform && widget.sttService != null) {
-      final text = await widget.sttService!.stopListening();
-      final result = (text ?? _partialText).trim();
-      if (result.isNotEmpty) {
-        // 填入输入框供用户编辑
-        _controller.text = result;
-        _focusNode.requestFocus();
-      } else {
-        if (mounted) AppToast.show(context, AppLocalizations.of(context)!.chatInputRecordShort);
-      }
+    String? platformText;
+    if (widget.sttService != null) {
+      platformText = await widget.sttService!.stopListening();
+    }
+    final result = (platformText ?? _partialText).trim();
+    if (result.isNotEmpty) {
+      // 填入输入框供用户编辑
+      _controller.text = result;
+      _focusNode.requestFocus();
     } else {
-      if (mounted) {
-        AppToast.show(context, '请在设置中切换为平台原生语音模式');
-      }
+      if (mounted) AppToast.show(context, AppLocalizations.of(context)!.chatInputRecordShort);
     }
   }
 

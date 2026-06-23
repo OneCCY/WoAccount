@@ -10,6 +10,7 @@ import '../../../../config/di/providers.dart';
 import '../../../../config/di/ai_providers.dart';
 import '../../../../core/ai/llm_error_resolver.dart';
 import '../../../../core/ai/transaction_pipeline.dart';
+import '../../../../core/ai/voice_transcription_orchestrator.dart';
 import '../../../../core/config/ai_provider_presets.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
@@ -24,7 +25,6 @@ import '../widgets/confirm_card.dart';
 import '../widgets/saved_card.dart';
 import '../../../../core/widgets/page_refresh_mixin.dart';
 import '../../../../core/widgets/toast.dart';
-import '../../../settings/data/services/voice_mode_setting.dart';
 
 /// AI 记账对话页
 class AiChatPage extends ConsumerStatefulWidget {
@@ -48,7 +48,6 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
     _loadInitialMessages();
     _loadUserProfile();
     _loadAiProviderIcon();
-    _loadVoiceMode();
   }
 
   List<_ChatItem> _items = [];
@@ -66,7 +65,6 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
 
   String? _userAvatarPath;
   String _aiIcon = '🤖';
-  VoiceInputMode _voiceMode = VoiceInputMode.platform;
 
   late final ChatRepository _chatRepo;
   late final TransactionRepository _txnRepo;
@@ -92,7 +90,6 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
     });
     _loadUserProfile();
     _loadAiProviderIcon();
-    _loadVoiceMode();
   }
 
   /// 从 provider 恢复未保存的确认卡片
@@ -148,15 +145,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
     }
   }
 
-  /// 加载语音输入模式设置
-  Future<void> _loadVoiceMode() async {
-    try {
-      final mode = await VoiceModeSetting.getMode();
-      if (mounted) setState(() => _voiceMode = mode);
-    } catch (_) {}
-  }
-
-  /// 仅转文字模式：Whisper 转写音频后，将文本填入输入框（不直接记账）
+  /// 仅转文字模式：使用 orchestrator 转写音频后，将文本填入输入框（不直接记账）
   Future<void> _transcribeVoiceOnly(String audioPath) async {
     if (_isAiResponding) return;
 
@@ -169,21 +158,21 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
         throw LlmException(AppLocalizations.of(context)!.chatPageConfigAiError);
       }
 
-      final transcribedText = await _pipeline.transcribeOnly(
-        audioTempPath: audioPath,
+      final orchestrator = ref.read(voiceTranscriptionOrchestratorProvider);
+      final transcription = await orchestrator.transcribe(
+        audioPath: audioPath,
         provider: provider,
       );
-
       if (!mounted) return;
+
       setState(() => _isAiResponding = false);
 
       // 将转写文本填入输入框，让用户编辑后再提交
-      // 通过显示一条转写消息 + 自动填入输入框
       await _chatRepo.insertMessage(
         ConversationMessagesCompanion.insert(
           conversationId: _conversationId,
           role: 'assistant',
-          content: AppLocalizations.of(context)!.chatPageVoiceTranscription(transcribedText),
+          content: AppLocalizations.of(context)!.chatPageVoiceTranscription(transcription.mergedText),
           accountBookId: _bookId,
         ),
       );
@@ -192,7 +181,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
           id: 0,
           conversationId: _conversationId,
           role: 'assistant',
-          content: AppLocalizations.of(context)!.chatPageVoiceTranscription(transcribedText),
+          content: AppLocalizations.of(context)!.chatPageVoiceTranscription(transcription.mergedText),
           accountBookId: _bookId,
           createdAt: DateTime.now(),
         )));
@@ -375,9 +364,16 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
           result = await _pipeline.processText(displayText, categoryTaxonomy: categoryTaxonomy, locale: locale, bookId: _bookId);
           break;
         case InputSource.voice:
-          result = await _pipeline.processVoice(
-            audioTempPath: voicePath!,
+          // 使用 orchestrator 进行双引擎转写
+          final orchestrator = ref.read(voiceTranscriptionOrchestratorProvider);
+          final transcription = await orchestrator.transcribe(
+            audioPath: voicePath!,
             provider: provider,
+          );
+          if (!mounted) return;
+
+          result = await _pipeline.processVoiceResult(
+            transcription: transcription,
             categoryTaxonomy: categoryTaxonomy,
             locale: locale,
             bookId: _bookId,
@@ -833,12 +829,11 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
           if (_isAiResponding) _buildTypingIndicator(),
           ChatInputBar(
             onSubmit: (text) => _processInput(text: text),
-            onVoiceRecorded: (path) => _processInput(voicePath: path),
+            onVoiceRecorded: (path, platformText) => _processInput(voicePath: path),
             onImageCaptured: (path) => _processInput(imagePath: path),
-            onVoiceTranscribeOnly: (path) => _transcribeVoiceOnly(path),
+            onVoiceTranscribeOnly: (path, platformText) => _transcribeVoiceOnly(path),
             isLoading: _isAiResponding,
             onManualEntry: () => context.push('/manual-entry'),
-            voiceMode: _voiceMode,
             sttService: ref.read(platformSttServiceProvider),
           ),
         ],

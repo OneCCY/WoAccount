@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../config/di/ai_providers.dart';
+import '../../../features/text_ai/data/services/platform_stt_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../voice/voice_recording_overlay.dart';
@@ -30,6 +31,7 @@ class _MainShellState extends ConsumerState<MainShell> {
         currentIndex: currentIndex,
         onNavTap: _onNavTap,
         onVoiceResult: _handleVoiceResult,
+        sttService: ref.read(platformSttServiceProvider),
       ),
     );
   }
@@ -45,22 +47,29 @@ class _MainShellState extends ConsumerState<MainShell> {
       return;
     }
 
-    final pipeline = ref.read(transactionPipelineProvider);
+    final orchestrator = ref.read(voiceTranscriptionOrchestratorProvider);
 
-    if (result.action == VoiceResultAction.transcribe && result.filePath != null) {
-      try {
-        final text = await pipeline.transcribeOnly(
-          audioTempPath: result.filePath!,
-          provider: provider,
-        );
-        if (!context.mounted) return;
-        context.go('/', extra: {'transcribedText': text});
-      } catch (e) {
-        if (!context.mounted) return;
-        AppToast.show(context, AppLocalizations.of(context)!.homePageRecordFailed(e.toString()));
+    if (result.filePath == null) return;
+
+    try {
+      // 双引擎转写
+      final transcription = await orchestrator.transcribe(
+        audioPath: result.filePath!,
+        platformText: result.platformText,
+        provider: provider,
+      );
+      if (!context.mounted) return;
+
+      if (result.action == VoiceResultAction.transcribe) {
+        // 仅转文字
+        context.go('/', extra: {'transcribedText': transcription.mergedText});
+      } else {
+        // 完整管线：传转写结果到首页处理
+        context.go('/', extra: {'transcription': transcription});
       }
-    } else if (result.action == VoiceResultAction.send && result.filePath != null) {
-      context.go('/', extra: {'voicePath': result.filePath});
+    } catch (e) {
+      if (!context.mounted) return;
+      AppToast.show(context, AppLocalizations.of(context)!.homePageRecordFailed(e.toString()));
     }
   }
 
@@ -89,11 +98,13 @@ class _BottomBarWithFloatingButton extends StatelessWidget {
   final int currentIndex;
   final void Function(BuildContext, int) onNavTap;
   final void Function(BuildContext, VoiceResult) onVoiceResult;
+  final PlatformSttService? sttService;
 
   const _BottomBarWithFloatingButton({
     required this.currentIndex,
     required this.onNavTap,
     required this.onVoiceResult,
+    this.sttService,
   });
 
   @override
@@ -163,6 +174,7 @@ class _BottomBarWithFloatingButton extends StatelessWidget {
                 isActive: currentIndex == 1,
                 onTap: () => onNavTap(context, 1),
                 onVoiceResult: onVoiceResult,
+                sttService: sttService,
               ),
             ),
           ),
@@ -177,11 +189,13 @@ class _FloatingRecordButton extends StatelessWidget {
   final bool isActive;
   final VoidCallback onTap;
   final void Function(BuildContext, VoiceResult) onVoiceResult;
+  final PlatformSttService? sttService;
 
   const _FloatingRecordButton({
     required this.isActive,
     required this.onTap,
     required this.onVoiceResult,
+    this.sttService,
   });
 
   @override
@@ -190,7 +204,7 @@ class _FloatingRecordButton extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       onLongPressStart: (_) async {
-        final result = await VoiceRecordingOverlay.show(context);
+        final result = await VoiceRecordingOverlay.show(context, sttService: sttService);
         if (result != null && context.mounted) {
           onVoiceResult(context, result);
         }

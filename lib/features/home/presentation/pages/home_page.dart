@@ -7,6 +7,7 @@ import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../config/di/ai_providers.dart';
 import '../../../../core/ai/llm_error_resolver.dart';
+import '../../../../core/ai/voice_transcription_orchestrator.dart';
 import '../../../../core/locale/locale_provider.dart';
 import '../../../transaction/domain/repositories/transaction_repository.dart';
 import '../../../category/domain/repositories/category_repository.dart';
@@ -41,6 +42,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     // 检查 AI 是否已配置，未配置则提示
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAiConfig();
+      _handleExternalInput();
     });
   }
 
@@ -70,7 +72,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   /// 语音录制完成回调
-  Future<void> _handleVoiceRecorded(VoiceEndAction action, String filePath) async {
+  Future<void> _handleVoiceRecorded(VoiceEndAction action, String filePath, String? platformText) async {
     final llmRepo = ref.read(llmRepositoryProvider);
     final provider = await llmRepo.getActiveProvider();
     if (!mounted) return;
@@ -79,20 +81,24 @@ class _HomePageState extends ConsumerState<HomePage> {
       return;
     }
 
+    final orchestrator = ref.read(voiceTranscriptionOrchestratorProvider);
     final pipeline = ref.read(transactionPipelineProvider);
 
     if (action == VoiceEndAction.transcribeOnly) {
       // 仅转文字，填入输入框
       try {
         setState(() => _isLoading = true);
-        final text = await pipeline.transcribeOnly(
-          audioTempPath: filePath,
+
+        final transcription = await orchestrator.transcribe(
+          audioPath: filePath,
+          platformText: platformText,
           provider: provider,
         );
         if (!mounted) return;
-        _inputController.text = text;
+
+        _inputController.text = transcription.mergedText;
         _inputController.selection = TextSelection.fromPosition(
-          TextPosition(offset: text.length),
+          TextPosition(offset: transcription.mergedText.length),
         );
       } catch (e) {
         if (!mounted) return;
@@ -101,13 +107,21 @@ class _HomePageState extends ConsumerState<HomePage> {
         if (mounted) setState(() => _isLoading = false);
       }
     } else {
-      // 完整管线：语音→转文字→AI解析→确认卡片
+      // 完整管线：语音→转写→AI解析→确认卡片
       try {
         setState(() => _isLoading = true);
-        final categoryTaxonomy = await _buildCategoryTaxonomy();
-        final result = await pipeline.processVoice(
-          audioTempPath: filePath,
+
+        // 双引擎转写
+        final transcription = await orchestrator.transcribe(
+          audioPath: filePath,
+          platformText: platformText,
           provider: provider,
+        );
+        if (!mounted) return;
+
+        final categoryTaxonomy = await _buildCategoryTaxonomy();
+        final result = await pipeline.processVoiceResult(
+          transcription: transcription,
           categoryTaxonomy: categoryTaxonomy,
         );
         if (!mounted) return;
@@ -173,6 +187,105 @@ class _HomePageState extends ConsumerState<HomePage> {
       } finally {
         if (mounted) setState(() => _isLoading = false);
       }
+    }
+  }
+
+  /// 处理从外部传入的输入（如浮动按钮录音结果）
+  void _handleExternalInput() {
+    final extra = GoRouterState.of(context).extra;
+    if (extra is Map<String, dynamic>) {
+      final transcribedText = extra['transcribedText'] as String?;
+      final transcription = extra['transcription'];
+
+      if (transcribedText != null && transcribedText.isNotEmpty) {
+        // 仅转文字模式：填入输入框
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _inputController.text = transcribedText;
+          _inputController.selection = TextSelection.fromPosition(
+            TextPosition(offset: transcribedText.length),
+          );
+        });
+      } else if (transcription != null) {
+        // 完整管线模式：来自浮动按钮的双引擎转写结果
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _handleTranscriptionFromFloating(transcription as DualTranscriptionResult);
+        });
+      }
+    }
+  }
+
+  /// 处理从浮动按钮传来的双引擎转写结果（完整管线：转写→AI解析→确认卡片）
+  Future<void> _handleTranscriptionFromFloating(DualTranscriptionResult transcription) async {
+    final pipeline = ref.read(transactionPipelineProvider);
+    try {
+      setState(() => _isLoading = true);
+      final categoryTaxonomy = await _buildCategoryTaxonomy();
+      final result = await pipeline.processVoiceResult(
+        transcription: transcription,
+        categoryTaxonomy: categoryTaxonomy,
+      );
+      if (!mounted) return;
+
+      if (result.transactions.isEmpty) {
+        _showSnackBar(AppLocalizations.of(context)!.homePageNoContent);
+        return;
+      }
+
+      final txn = result.transactions.first;
+
+      // 匹配分类
+      final categories = await _categoryRepo.getAll();
+      final matchedCategory = categories.firstWhere(
+        (c) => c.name == txn.category,
+        orElse: () => categories.firstWhere(
+          (c) => c.isExpense == (txn.type == 'expense'),
+          orElse: () => categories.first,
+        ),
+      );
+
+      // 解析日期
+      DateTime txnDate = DateTime.now();
+      if (txn.date != null && txn.date!.isNotEmpty) {
+        try {
+          txnDate = DateTime.parse(txn.date!);
+        } catch (_) {}
+      }
+
+      // 显示确认卡片
+      if (!mounted) return;
+      await AiConfirmSheet.show(
+        context,
+        originalInput: result.normalizedText,
+        amount: txn.amount,
+        category: matchedCategory.name,
+        description: txn.description.isNotEmpty
+            ? txn.description
+            : result.normalizedText.replaceAll(RegExp(r'\d+\.?\d*'), '').trim(),
+        date: txnDate,
+        confidence: txn.confidence,
+        parseTimeMs: 0,
+        onCancel: () => Navigator.of(context).pop(),
+        onConfirm: () async {
+          Navigator.of(context).pop();
+          await _saveTransaction(
+            input: result.normalizedText,
+            amount: txn.amount,
+            type: txn.type,
+            categoryId: matchedCategory.id,
+            description: txn.description.isNotEmpty
+                ? txn.description
+                : result.normalizedText.replaceAll(RegExp(r'\d+\.?\d*'), '').trim(),
+            date: txnDate,
+            aiSource: txn.confidence > 0.85 ? 'llm' : 'rule',
+            confidence: txn.confidence,
+          );
+        },
+      );
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackBar(AppLocalizations.of(context)!.homePageRecordFailed(resolveLlmError(e, AppLocalizations.of(context)!)));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -378,6 +491,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         onCamera: () {
           // TODO: 拍照识别
         },
+        sttService: ref.read(platformSttServiceProvider),
       ),
     );
   }

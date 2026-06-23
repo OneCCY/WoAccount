@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/toast.dart';
+import '../../../text_ai/data/services/platform_stt_service.dart';
 
 /// 语音录制结果模式
 enum VoiceEndAction {
@@ -27,12 +28,15 @@ class AiInputBar extends StatefulWidget {
   final VoidCallback onManualEntry;
   final VoidCallback onCamera;
 
-  /// 语音录制完成回调 [action] 决定后续行为，[filePath] 录音文件路径
-  final Function(VoiceEndAction action, String filePath)? onVoiceRecorded;
+  /// 语音录制完成回调 [action] 决定后续行为，[filePath] 录音文件路径，[platformText] PlatformStt 实时识别结果
+  final Function(VoiceEndAction action, String filePath, String? platformText)? onVoiceRecorded;
   final bool isLoading;
 
   /// 可选的外部 TextEditingController，用于外部设置输入框文本
   final TextEditingController? controller;
+
+  /// 平台原生语音识别服务
+  final PlatformSttService? sttService;
 
   const AiInputBar({
     super.key,
@@ -42,6 +46,7 @@ class AiInputBar extends StatefulWidget {
     this.onVoiceRecorded,
     this.isLoading = false,
     this.controller,
+    this.sttService,
   });
 
   @override
@@ -58,6 +63,7 @@ class _AiInputBarState extends State<AiInputBar> {
   bool _isTranscribeOnly = false;
   Offset _dragOffset = Offset.zero;
   DateTime? _recordStartTime;
+  String? _platformText;  // PlatformStt 实时识别结果
 
   @override
   void initState() {
@@ -126,6 +132,14 @@ class _AiInputBarState extends State<AiInputBar> {
         ),
         path: tempPath,
       );
+
+      // 启动 PlatformStt 实时识别
+      if (widget.sttService != null) {
+        await widget.sttService!.startListening();
+        widget.sttService!.partialTextStream.listen((text) {
+          if (mounted) _platformText = text;
+        });
+      }
     } catch (e) {
       if (mounted) {
         setState(() => _isRecording = false);
@@ -171,6 +185,14 @@ class _AiInputBarState extends State<AiInputBar> {
 
     final path = await _audioRecorder.stop();
 
+    // 停止 PlatformStt 并获取结果
+    String? platformText;
+    if (widget.sttService != null) {
+      platformText = await widget.sttService!.stopListening();
+    }
+    platformText ??= _platformText;
+    _platformText = null;
+
     // 先保存状态再重置
     final wasCancelled = _isCancelled;
     final wasTranscribeOnly = _isTranscribeOnly;
@@ -204,7 +226,7 @@ class _AiInputBarState extends State<AiInputBar> {
     final action = wasTranscribeOnly
         ? VoiceEndAction.transcribeOnly
         : VoiceEndAction.send;
-    widget.onVoiceRecorded?.call(action, path);
+    widget.onVoiceRecorded?.call(action, path, platformText);
   }
 
   @override

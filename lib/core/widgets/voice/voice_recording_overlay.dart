@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
+import '../../../features/text_ai/data/services/platform_stt_service.dart';
 import 'fan_shape_painter.dart';
 import '../toast.dart';
 import 'waveform_painter.dart';
@@ -19,8 +20,9 @@ enum VoiceResultAction {
 class VoiceResult {
   final VoiceResultAction action;
   final String? filePath;
+  final String? platformText;  // PlatformStt 实时识别结果
 
-  const VoiceResult({required this.action, this.filePath});
+  const VoiceResult({required this.action, this.filePath, this.platformText});
 }
 
 /// 微信风格「按住说话」全屏覆盖层
@@ -36,28 +38,33 @@ class VoiceResult {
 /// 3. 上滑左移 → 取消 | 上滑右移 → 转文字 | 不滑/上滑中间 → 发送
 /// 4. 松手 → 根据区域执行操作
 class VoiceRecordingOverlay {
-  static Future<VoiceResult?> show(BuildContext context) async {
+  static Future<VoiceResult?> show(
+    BuildContext context, {
+    PlatformSttService? sttService,
+  }) async {
     return Navigator.of(context).push<VoiceResult>(
-      _VoiceRecordingRoute(),
+      _VoiceRecordingRoute(sttService: sttService),
     );
   }
 }
 
 class _VoiceRecordingRoute extends PageRouteBuilder<VoiceResult> {
-  _VoiceRecordingRoute()
+  final PlatformSttService? sttService;
+  _VoiceRecordingRoute({this.sttService})
       : super(
           opaque: false,
           barrierColor: Colors.transparent,
           transitionDuration: const Duration(milliseconds: 150),
           reverseTransitionDuration: const Duration(milliseconds: 100),
           pageBuilder: (context, animation, secondaryAnimation) =>
-              _VoiceRecordingPage(animation: animation),
+              _VoiceRecordingPage(animation: animation, sttService: sttService),
         );
 }
 
 class _VoiceRecordingPage extends StatefulWidget {
   final Animation<double> animation;
-  const _VoiceRecordingPage({required this.animation});
+  final PlatformSttService? sttService;
+  const _VoiceRecordingPage({required this.animation, this.sttService});
 
   @override
   State<_VoiceRecordingPage> createState() => _VoiceRecordingPageState();
@@ -70,6 +77,7 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
   GestureZone _activeZone = GestureZone.send; // 默认发送区域
   DateTime? _recordStartTime;
   String? _recordFilePath;
+  String? _platformText;  // PlatformStt 实时识别结果
 
   Timer? _waveformTimer;
   Timer? _durationTimer;
@@ -129,6 +137,14 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
         ),
         path: _recordFilePath!,
       );
+
+      // 启动 PlatformStt 实时识别
+      if (widget.sttService != null) {
+        await widget.sttService!.startListening();
+        widget.sttService!.partialTextStream.listen((text) {
+          if (mounted) _platformText = text;
+        });
+      }
 
       if (mounted) {
         _startWaveformSimulation();
@@ -196,6 +212,13 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
 
     await _audioRecorder.stop();
 
+    // 停止 PlatformStt 并获取结果
+    String? platformText;
+    if (widget.sttService != null) {
+      platformText = await widget.sttService!.stopListening();
+    }
+    platformText ??= _platformText;
+
     // 最小时长检查（取消除外）
     if (action != VoiceResultAction.cancel) {
       final duration = _recordStartTime != null
@@ -218,6 +241,7 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
       Navigator.of(context).pop(VoiceResult(
         action: action,
         filePath: action != VoiceResultAction.cancel ? _recordFilePath : null,
+        platformText: action != VoiceResultAction.cancel ? platformText : null,
       ));
     }
   }
@@ -225,6 +249,7 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
   void _onPointerCancel(PointerCancelEvent event) {
     _waveformTimer?.cancel();
     _audioRecorder.stop();
+    widget.sttService?.cancel();  // 停止 PlatformStt
     if (mounted) {
       Navigator.of(context)
           .pop(const VoiceResult(action: VoiceResultAction.cancel));
