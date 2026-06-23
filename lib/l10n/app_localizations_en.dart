@@ -2571,7 +2571,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get voiceErrorNoEngineAvailable =>
-      'No voice recognition engine available. Please check AI settings or device voice support';
+      'No voice recognition engine available. Device native STT not supported — please configure a Whisper cloud model in AI Settings';
 
   @override
   String get voiceErrorAudioNotFound => 'Audio file not found';

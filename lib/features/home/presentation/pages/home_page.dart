@@ -9,6 +9,7 @@ import '../../../../config/di/ai_providers.dart';
 import '../../../../core/ai/llm_error_resolver.dart';
 import '../../../../core/ai/transaction_pipeline.dart';
 import '../../../../core/ai/voice_transcription_orchestrator.dart';
+import '../../../ai/data/models/llm_config.dart';
 import '../../../../core/locale/locale_provider.dart';
 import '../../../transaction/domain/repositories/transaction_repository.dart';
 import '../../../category/domain/repositories/category_repository.dart';
@@ -43,6 +44,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     // 检查 AI 是否已配置，未配置则提示
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAiConfig();
+      _checkVoiceEngine();
       _handleExternalInput();
     });
   }
@@ -67,6 +69,30 @@ class _HomePageState extends ConsumerState<HomePage> {
           ),
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 4),
+        ),
+      );
+    }
+  }
+
+  /// 检查语音引擎是否可用
+  Future<void> _checkVoiceEngine() async {
+    final sttService = ref.read(platformSttServiceProvider);
+    final hasPlatform = await sttService.isAvailable();
+
+    final llmRepo = ref.read(llmRepositoryProvider);
+    final provider = await llmRepo.getActiveProvider();
+    final hasWhisper = provider?.getModelForCapability(ModelCapability.audio) != null;
+
+    if (!hasPlatform && !hasWhisper && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.voiceErrorNoEngineAvailable),
+          action: SnackBarAction(
+            label: AppLocalizations.of(context)!.homePageGoSettings,
+            onPressed: () => context.push('/settings/llm'),
+          ),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 5),
         ),
       );
     }

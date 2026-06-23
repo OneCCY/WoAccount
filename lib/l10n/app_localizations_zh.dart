@@ -2519,7 +2519,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get voiceErrorNoModelConfigured => '未配置语音识别模型，请在 AI 设置中配置';
 
   @override
-  String get voiceErrorNoEngineAvailable => '未配置语音识别引擎，请检查 AI 设置或设备语音支持';
+  String get voiceErrorNoEngineAvailable =>
+      '无可用的语音识别引擎。设备不支持原生语音识别，请在 AI 设置中配置 Whisper 云端语音模型';
 
   @override
   String get voiceErrorAudioNotFound => '音频文件不存在';
