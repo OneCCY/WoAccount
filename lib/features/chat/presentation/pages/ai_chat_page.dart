@@ -145,56 +145,6 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
     }
   }
 
-  /// 仅转文字模式：使用 orchestrator 转写音频后，将文本填入输入框（不直接记账）
-  Future<void> _transcribeVoiceOnly(String audioPath) async {
-    if (_isAiResponding) return;
-
-    setState(() => _isAiResponding = true);
-
-    try {
-      final provider = await ref.read(llmRepositoryProvider).getActiveProvider();
-      if (!mounted) return;
-      if (provider == null || !provider.isComplete) {
-        throw LlmException(AppLocalizations.of(context)!.chatPageConfigAiError);
-      }
-
-      final orchestrator = ref.read(voiceTranscriptionOrchestratorProvider);
-      final transcription = await orchestrator.transcribe(
-        audioPath: audioPath,
-        provider: provider,
-      );
-      if (!mounted) return;
-
-      setState(() => _isAiResponding = false);
-
-      // 将转写文本填入输入框，让用户编辑后再提交
-      await _chatRepo.insertMessage(
-        ConversationMessagesCompanion.insert(
-          conversationId: _conversationId,
-          role: 'assistant',
-          content: AppLocalizations.of(context)!.chatPageVoiceTranscription(transcription.mergedText),
-          accountBookId: _bookId,
-        ),
-      );
-      setState(() {
-        _items.add(_ChatItem.assistant(ConversationMessage(
-          id: 0,
-          conversationId: _conversationId,
-          role: 'assistant',
-          content: AppLocalizations.of(context)!.chatPageVoiceTranscription(transcription.mergedText),
-          accountBookId: _bookId,
-          createdAt: DateTime.now(),
-        )));
-      });
-      _scrollToBottom();
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isAiResponding = false);
-      final l10n = AppLocalizations.of(context)!;
-      AppToast.show(context, l10n.chatPageParseError(resolveLlmError(e, l10n)));
-    }
-  }
-
   /// 处理从外部传入的输入（如浮动按钮录音结果）
   void _handleExternalInput() {
     final extra = GoRouterState.of(context).extra;
@@ -829,9 +779,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
           if (_isAiResponding) _buildTypingIndicator(),
           ChatInputBar(
             onSubmit: (text) => _processInput(text: text),
-            onVoiceRecorded: (path, platformText) => _processInput(voicePath: path),
             onImageCaptured: (path) => _processInput(imagePath: path),
-            onVoiceTranscribeOnly: (path, platformText) => _transcribeVoiceOnly(path),
             isLoading: _isAiResponding,
             onManualEntry: () => context.push('/manual-entry'),
             sttService: ref.read(platformSttServiceProvider),

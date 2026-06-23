@@ -20,9 +20,7 @@ enum _GestureZone {
 class ChatInputBar extends StatefulWidget {
   final Function(String) onSubmit;
   final VoidCallback onManualEntry;
-  final Function(String filePath, String? platformText) onVoiceRecorded;
   final Function(String filePath) onImageCaptured;
-  final Function(String filePath, String? platformText) onVoiceTranscribeOnly;
   final bool isLoading;
   final PlatformSttService? sttService;
 
@@ -30,9 +28,7 @@ class ChatInputBar extends StatefulWidget {
     super.key,
     required this.onSubmit,
     required this.onManualEntry,
-    required this.onVoiceRecorded,
     required this.onImageCaptured,
-    required this.onVoiceTranscribeOnly,
     this.isLoading = false,
     this.sttService,
   });

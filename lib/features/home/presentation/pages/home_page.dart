@@ -7,6 +7,7 @@ import '../../../../config/database/app_database.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../config/di/ai_providers.dart';
 import '../../../../core/ai/llm_error_resolver.dart';
+import '../../../../core/ai/transaction_pipeline.dart';
 import '../../../../core/ai/voice_transcription_orchestrator.dart';
 import '../../../../core/locale/locale_provider.dart';
 import '../../../transaction/domain/repositories/transaction_repository.dart';
@@ -126,61 +127,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         );
         if (!mounted) return;
 
-        if (result.transactions.isEmpty) {
-          _showSnackBar(AppLocalizations.of(context)!.homePageNoContent);
-          return;
-        }
-
-        final txn = result.transactions.first;
-
-        // 匹配分类
-        final categories = await _categoryRepo.getAll();
-        final matchedCategory = categories.firstWhere(
-          (c) => c.name == txn.category,
-          orElse: () => categories.firstWhere(
-            (c) => c.isExpense == (txn.type == 'expense'),
-            orElse: () => categories.first,
-          ),
-        );
-
-        // 解析日期
-        DateTime txnDate = DateTime.now();
-        if (txn.date != null && txn.date!.isNotEmpty) {
-          try {
-            txnDate = DateTime.parse(txn.date!);
-          } catch (_) {}
-        }
-
-        // 显示确认卡片
-        if (!mounted) return;
-        await AiConfirmSheet.show(
-          context,
-          originalInput: result.normalizedText,
-          amount: txn.amount,
-          category: matchedCategory.name,
-          description: txn.description.isNotEmpty
-              ? txn.description
-              : result.normalizedText.replaceAll(RegExp(r'\d+\.?\d*'), '').trim(),
-          date: txnDate,
-          confidence: txn.confidence,
-          parseTimeMs: 0,
-          onCancel: () => Navigator.of(context).pop(),
-          onConfirm: () async {
-            Navigator.of(context).pop();
-            await _saveTransaction(
-              input: result.normalizedText,
-              amount: txn.amount,
-              type: txn.type,
-              categoryId: matchedCategory.id,
-              description: txn.description.isNotEmpty
-                  ? txn.description
-                  : result.normalizedText.replaceAll(RegExp(r'\d+\.?\d*'), '').trim(),
-              date: txnDate,
-              aiSource: txn.confidence > 0.85 ? 'llm' : 'rule',
-              confidence: txn.confidence,
-            );
-          },
-        );
+        await _showConfirmForResult(result);
       } catch (e) {
         if (!mounted) return;
         _showSnackBar(AppLocalizations.of(context)!.homePageRecordFailed(resolveLlmError(e, AppLocalizations.of(context)!)));
@@ -226,67 +173,72 @@ class _HomePageState extends ConsumerState<HomePage> {
       );
       if (!mounted) return;
 
-      if (result.transactions.isEmpty) {
-        _showSnackBar(AppLocalizations.of(context)!.homePageNoContent);
-        return;
-      }
-
-      final txn = result.transactions.first;
-
-      // 匹配分类
-      final categories = await _categoryRepo.getAll();
-      final matchedCategory = categories.firstWhere(
-        (c) => c.name == txn.category,
-        orElse: () => categories.firstWhere(
-          (c) => c.isExpense == (txn.type == 'expense'),
-          orElse: () => categories.first,
-        ),
-      );
-
-      // 解析日期
-      DateTime txnDate = DateTime.now();
-      if (txn.date != null && txn.date!.isNotEmpty) {
-        try {
-          txnDate = DateTime.parse(txn.date!);
-        } catch (_) {}
-      }
-
-      // 显示确认卡片
-      if (!mounted) return;
-      await AiConfirmSheet.show(
-        context,
-        originalInput: result.normalizedText,
-        amount: txn.amount,
-        category: matchedCategory.name,
-        description: txn.description.isNotEmpty
-            ? txn.description
-            : result.normalizedText.replaceAll(RegExp(r'\d+\.?\d*'), '').trim(),
-        date: txnDate,
-        confidence: txn.confidence,
-        parseTimeMs: 0,
-        onCancel: () => Navigator.of(context).pop(),
-        onConfirm: () async {
-          Navigator.of(context).pop();
-          await _saveTransaction(
-            input: result.normalizedText,
-            amount: txn.amount,
-            type: txn.type,
-            categoryId: matchedCategory.id,
-            description: txn.description.isNotEmpty
-                ? txn.description
-                : result.normalizedText.replaceAll(RegExp(r'\d+\.?\d*'), '').trim(),
-            date: txnDate,
-            aiSource: txn.confidence > 0.85 ? 'llm' : 'rule',
-            confidence: txn.confidence,
-          );
-        },
-      );
+      await _showConfirmForResult(result);
     } catch (e) {
       if (!mounted) return;
       _showSnackBar(AppLocalizations.of(context)!.homePageRecordFailed(resolveLlmError(e, AppLocalizations.of(context)!)));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  /// 共享确认卡片逻辑：分类匹配 → 日期解析 → 显示确认卡片 → 保存
+  Future<void> _showConfirmForResult(PipelineResult result) async {
+    if (result.transactions.isEmpty) {
+      _showSnackBar(AppLocalizations.of(context)!.homePageNoContent);
+      return;
+    }
+
+    final txn = result.transactions.first;
+
+    // 匹配分类
+    final categories = await _categoryRepo.getAll();
+    final matchedCategory = categories.firstWhere(
+      (c) => c.name == txn.category,
+      orElse: () => categories.firstWhere(
+        (c) => c.isExpense == (txn.type == 'expense'),
+        orElse: () => categories.first,
+      ),
+    );
+
+    // 解析日期
+    DateTime txnDate = DateTime.now();
+    if (txn.date != null && txn.date!.isNotEmpty) {
+      try {
+        txnDate = DateTime.parse(txn.date!);
+      } catch (_) {}
+    }
+
+    // 显示确认卡片
+    if (!mounted) return;
+    final description = txn.description.isNotEmpty
+        ? txn.description
+        : result.normalizedText.replaceAll(RegExp(r'\d+\.?\d*'), '').trim();
+
+    await AiConfirmSheet.show(
+      context,
+      originalInput: result.normalizedText,
+      amount: txn.amount,
+      category: matchedCategory.name,
+      description: description,
+      date: txnDate,
+      confidence: txn.confidence,
+      parseTimeMs: 0,
+      onCancel: () => Navigator.of(context).pop(),
+      onConfirm: () async {
+        Navigator.of(context).pop();
+        await _saveTransaction(
+          input: result.normalizedText,
+          amount: txn.amount,
+          type: txn.type,
+          categoryId: matchedCategory.id,
+          description: description,
+          date: txnDate,
+          aiSource: txn.confidence > 0.85 ? 'llm' : 'rule',
+          confidence: txn.confidence,
+        );
+      },
+    );
   }
 
   Future<void> _handleAiInput(String input) async {

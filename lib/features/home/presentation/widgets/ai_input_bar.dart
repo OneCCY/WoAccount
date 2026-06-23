@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
@@ -64,6 +65,7 @@ class _AiInputBarState extends State<AiInputBar> {
   Offset _dragOffset = Offset.zero;
   DateTime? _recordStartTime;
   String? _platformText;  // PlatformStt 实时识别结果
+  StreamSubscription<String>? _sttSubscription;
 
   @override
   void initState() {
@@ -73,6 +75,7 @@ class _AiInputBarState extends State<AiInputBar> {
 
   @override
   void dispose() {
+    _sttSubscription?.cancel();
     if (widget.controller == null) _controller.dispose();
     _focusNode.dispose();
     _audioRecorder.dispose();
@@ -136,7 +139,7 @@ class _AiInputBarState extends State<AiInputBar> {
       // 启动 PlatformStt 实时识别
       if (widget.sttService != null) {
         await widget.sttService!.startListening();
-        widget.sttService!.partialTextStream.listen((text) {
+        _sttSubscription = widget.sttService!.partialTextStream.listen((text) {
           if (mounted) _platformText = text;
         });
       }
@@ -183,6 +186,7 @@ class _AiInputBarState extends State<AiInputBar> {
   Future<void> _onVoiceEnd(LongPressEndDetails details) async {
     if (!_isRecording) return;
 
+    _sttSubscription?.cancel();
     final path = await _audioRecorder.stop();
 
     // 停止 PlatformStt 并获取结果

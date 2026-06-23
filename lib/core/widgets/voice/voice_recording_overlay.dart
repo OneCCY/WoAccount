@@ -78,6 +78,7 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
   DateTime? _recordStartTime;
   String? _recordFilePath;
   String? _platformText;  // PlatformStt 实时识别结果
+  StreamSubscription<String>? _sttSubscription;
 
   Timer? _waveformTimer;
   Timer? _durationTimer;
@@ -95,6 +96,7 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
 
   @override
   void dispose() {
+    _sttSubscription?.cancel();
     _waveformTimer?.cancel();
     _durationTimer?.cancel();
     _audioRecorder.dispose();
@@ -141,7 +143,7 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
       // 启动 PlatformStt 实时识别
       if (widget.sttService != null) {
         await widget.sttService!.startListening();
-        widget.sttService!.partialTextStream.listen((text) {
+        _sttSubscription = widget.sttService!.partialTextStream.listen((text) {
           if (mounted) _platformText = text;
         });
       }
@@ -203,6 +205,7 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
 
   Future<void> _onPointerUp(PointerUpEvent event) async {
     _waveformTimer?.cancel();
+    _sttSubscription?.cancel();
 
     final action = switch (_activeZone) {
       GestureZone.cancel => VoiceResultAction.cancel,
@@ -248,6 +251,7 @@ class _VoiceRecordingPageState extends State<_VoiceRecordingPage> {
 
   void _onPointerCancel(PointerCancelEvent event) {
     _waveformTimer?.cancel();
+    _sttSubscription?.cancel();
     _audioRecorder.stop();
     widget.sttService?.cancel();  // 停止 PlatformStt
     if (mounted) {
