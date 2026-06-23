@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/ai/transaction_pipeline.dart';
+import '../../core/ai/voice_transcription_orchestrator.dart';
 import '../../core/media/media_storage_service.dart';
 import '../../features/ai/data/repositories/llm_repository_impl.dart';
 import '../../features/ai/domain/repositories/llm_repository.dart';
@@ -37,6 +38,16 @@ final platformSttServiceProvider = Provider<PlatformSttService>((ref) {
   final service = PlatformSttService();
   ref.onDispose(() => service.dispose());
   return service;
+});
+
+/// 双引擎语音转写编排器 Provider
+final voiceTranscriptionOrchestratorProvider =
+    Provider<VoiceTranscriptionOrchestrator>((ref) {
+  return VoiceTranscriptionOrchestrator(
+    platformStt: ref.watch(platformSttServiceProvider),
+    whisperService: ref.watch(voiceRecognitionServiceProvider),
+    mediaStorage: ref.watch(mediaStorageServiceProvider),
+  );
 });
 
 /// 媒体存储服务 Provider

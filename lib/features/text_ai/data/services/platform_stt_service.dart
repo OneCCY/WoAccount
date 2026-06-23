@@ -52,6 +52,14 @@ class PlatformSttService {
     }
   }
 
+  /// 检查引擎是否可用（已初始化且设备支持）
+  Future<bool> isAvailable() async {
+    if (!_initialized) {
+      return await initialize();
+    }
+    return _initialized;
+  }
+
   /// 开始实时语音识别
   ///
   /// [localeId] 识别语言，如 'zh_CN'、'en_US'
