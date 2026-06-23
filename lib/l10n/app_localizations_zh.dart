@@ -81,7 +81,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatPageSaveSuccessTitle => '记账成功';
 
   @override
-  String chatPageSaveSuccess(String amount, String category, String description, String date) {
+  String chatPageSaveSuccess(
+    String amount,
+    String category,
+    String description,
+    String date,
+  ) {
     return '✅ 已保存\n$amount · $category\n$description · $date';
   }
 
@@ -2433,7 +2438,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get llmApiUrl => '请求地址';
 
   @override
-  String get llmApiUrlHintAnthropic => 'Anthropic API 地址，如 https://api.anthropic.com';
+  String get llmApiUrlHintAnthropic =>
+      'Anthropic API 地址，如 https://api.anthropic.com';
 
   @override
   String get llmApiUrlHelper => '填入 API 的 base_url，不需要手动拼接 /chat/completions';
@@ -2526,6 +2532,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get voiceErrorNoModelConfigured => '未配置语音识别模型，请在 AI 设置中配置';
+
+  @override
+  String get voiceErrorNoEngineAvailable => '未配置语音识别引擎，请检查 AI 设置或设备语音支持';
 
   @override
   String get voiceErrorAudioNotFound => '音频文件不存在';
@@ -2662,7 +2671,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
 class AppLocalizationsZhTw extends AppLocalizationsZh {
-  AppLocalizationsZhTw(): super('zh_TW');
+  AppLocalizationsZhTw() : super('zh_TW');
 
   @override
   String get appTitle => 'WoAccount';
@@ -2737,7 +2746,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get chatPageSaveSuccessTitle => '記帳成功';
 
   @override
-  String chatPageSaveSuccess(String amount, String category, String description, String date) {
+  String chatPageSaveSuccess(
+    String amount,
+    String category,
+    String description,
+    String date,
+  ) {
     return '✅ 已儲存\n$amount · $category\n$description · $date';
   }
 
@@ -5059,7 +5073,8 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get llmApiUrl => '請求地址';
 
   @override
-  String get llmApiUrlHintAnthropic => 'Anthropic API 地址，如 https://api.anthropic.com';
+  String get llmApiUrlHintAnthropic =>
+      'Anthropic API 地址，如 https://api.anthropic.com';
 
   @override
   String get llmApiUrlHelper => '填入 API 的 base_url，不需要手動拼接 /chat/completions';
@@ -5152,6 +5167,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get voiceErrorNoModelConfigured => '未配置語音識別模型，請在 AI 設定中配置';
+
+  @override
+  String get voiceErrorNoEngineAvailable => '未配置語音識別引擎，請檢查 AI 設定或裝置語音支援';
 
   @override
   String get voiceErrorAudioNotFound => '音訊檔案不存在';

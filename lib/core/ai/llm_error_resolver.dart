@@ -53,6 +53,8 @@ String? _resolve(String errorCode, AppLocalizations l10n, String fallback) {
     case 'visionErrorRecognitionFailed':
       return l10n.visionErrorRecognitionFailed(fallback);
     // --- Voice errors ---
+    case 'voiceErrorNoEngineAvailable':
+      return l10n.voiceErrorNoEngineAvailable;
     case 'voiceErrorNoModelConfigured':
       return l10n.voiceErrorNoModelConfigured;
     case 'voiceErrorAudioNotFound':

@@ -67,7 +67,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatPageNoSubcategory => 'None';
 
   @override
-  String get chatPageConfigAiError => 'Please add and configure an AI provider in Settings first';
+  String get chatPageConfigAiError =>
+      'Please add and configure an AI provider in Settings first';
 
   @override
   String chatPageParseError(String error) {
@@ -75,13 +76,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get chatPageNoCategoryError => 'No categories available. Please add a category in Category Management first';
+  String get chatPageNoCategoryError =>
+      'No categories available. Please add a category in Category Management first';
 
   @override
   String get chatPageSaveSuccessTitle => 'Saved';
 
   @override
-  String chatPageSaveSuccess(String amount, String category, String description, String date) {
+  String chatPageSaveSuccess(
+    String amount,
+    String category,
+    String description,
+    String date,
+  ) {
     return '✅ Saved\n$amount · $category\n$description · $date';
   }
 
@@ -94,10 +101,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatPageEmptyTitle => 'Start Bookkeeping';
 
   @override
-  String get chatPageEmptyHint => 'Try typing \"lunch ramen 25\" or \"dinner 24, laundry 34\"';
+  String get chatPageEmptyHint =>
+      'Try typing \"lunch ramen 25\" or \"dinner 24, laundry 34\"';
 
   @override
-  String get chatPageEmptyInstruction => 'Long press the record button for voice input 🎤 · Tap the right button for photo recognition 📷';
+  String get chatPageEmptyInstruction =>
+      'Long press the record button for voice input 🎤 · Tap the right button for photo recognition 📷';
 
   @override
   String get chatPageAiParsing => 'AI is parsing...';
@@ -123,7 +132,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatInputGallery => 'Choose from Gallery';
 
   @override
-  String get chatInputVoiceHint => 'Release to send, swipe left to cancel ↖, swipe right to transcribe ↗';
+  String get chatInputVoiceHint =>
+      'Release to send, swipe left to cancel ↖, swipe right to transcribe ↗';
 
   @override
   String get chatInputListening => 'Listening...';
@@ -183,7 +193,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatDeleteTitle => 'Clear Chat';
 
   @override
-  String get chatDeleteMessage => 'Are you sure you want to clear all chat history? This cannot be undone.';
+  String get chatDeleteMessage =>
+      'Are you sure you want to clear all chat history? This cannot be undone.';
 
   @override
   String get chatDeleteSuccess => 'Chat history cleared';
@@ -208,13 +219,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatActionDelete => 'Delete Message';
 
   @override
-  String get chatDeleteMsgConfirm => 'Are you sure you want to delete this message?';
+  String get chatDeleteMsgConfirm =>
+      'Are you sure you want to delete this message?';
 
   @override
   String get chatCopyMessage => 'Copied to clipboard';
 
   @override
-  String get homePageAiNotConfigured => 'AI service not configured yet, basic rule parsing will be used';
+  String get homePageAiNotConfigured =>
+      'AI service not configured yet, basic rule parsing will be used';
 
   @override
   String get homePageGoSettings => 'Go to Settings';
@@ -238,7 +251,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get homePageBudgetAlert => 'Today\'s spending has exceeded 80% of the daily budget';
+  String get homePageBudgetAlert =>
+      'Today\'s spending has exceeded 80% of the daily budget';
 
   @override
   String get homeInputManual => 'Manual Entry';
@@ -374,7 +388,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get txnDetailDeleteConfirmTitle => 'Confirm Delete';
 
   @override
-  String get txnDetailDeleteConfirmContent => 'This cannot be undone. Are you sure you want to delete this transaction?';
+  String get txnDetailDeleteConfirmContent =>
+      'This cannot be undone. Are you sure you want to delete this transaction?';
 
   @override
   String get txnDetailNotFound => 'Transaction not found';
@@ -566,7 +581,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get profileImportConfirm => 'Importing will overwrite all current data. Continue?';
+  String get profileImportConfirm =>
+      'Importing will overwrite all current data. Continue?';
 
   @override
   String get profileImportNoBackup => 'No backup files found';
@@ -655,7 +671,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileEditLogout => 'Log Out';
 
   @override
-  String get profileEditLogoutConfirmContent => 'Are you sure you want to log out?';
+  String get profileEditLogoutConfirmContent =>
+      'Are you sure you want to log out?';
 
   @override
   String get profileEditLogoutExit => 'Log Out';
@@ -667,13 +684,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileEditDeleteAccount => 'Delete Account';
 
   @override
-  String get profileEditDeleteAccountConfirmContent => 'Account data cannot be recovered after deletion. Are you sure you want to proceed?';
+  String get profileEditDeleteAccountConfirmContent =>
+      'Account data cannot be recovered after deletion. Are you sure you want to proceed?';
 
   @override
   String get profileEditDeleteAccountSubmit => 'Delete Account';
 
   @override
-  String get profileEditDeleteAccountSubmitted => 'Account deletion request submitted';
+  String get profileEditDeleteAccountSubmitted =>
+      'Account deletion request submitted';
 
   @override
   String get settingsTitle => 'Settings';
@@ -688,10 +707,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsVoiceModeWhisper => 'Whisper API';
 
   @override
-  String get settingsVoiceModePlatformDesc => 'Uses built-in speech recognition, free and offline';
+  String get settingsVoiceModePlatformDesc =>
+      'Uses built-in speech recognition, free and offline';
 
   @override
-  String get settingsVoiceModeWhisperDesc => 'Uses Whisper API, requires audio model config';
+  String get settingsVoiceModeWhisperDesc =>
+      'Uses Whisper API, requires audio model config';
 
   @override
   String get settingsGeneral => 'General';
@@ -733,7 +754,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsRestoreData => 'Restore Data';
 
   @override
-  String get settingsRestoreConfirm => 'Restoring will overwrite all current data. Continue?';
+  String get settingsRestoreConfirm =>
+      'Restoring will overwrite all current data. Continue?';
 
   @override
   String get settingsRestoreSuccess => 'Data restored successfully';
@@ -753,7 +775,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsClearData => 'Clear All Data';
 
   @override
-  String get settingsClearConfirm => 'This action cannot be undone. Are you sure you want to clear all data?';
+  String get settingsClearConfirm =>
+      'This action cannot be undone. Are you sure you want to clear all data?';
 
   @override
   String get settingsClearDataSuccess => 'All data has been cleared';
@@ -762,7 +785,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsDeleteAccount => 'Delete Account';
 
   @override
-  String get settingsDeleteConfirm => 'All data will be permanently deleted. Are you sure you want to continue?';
+  String get settingsDeleteConfirm =>
+      'All data will be permanently deleted. Are you sure you want to continue?';
 
   @override
   String get settingsDeleteAccountSuccess => 'Account data has been deleted';
@@ -841,10 +865,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get budgetAddCategoryBudget => 'Add Category Budget';
 
   @override
-  String get budgetAddCategoryBudgetDeveloping => 'Category budget feature is under development';
+  String get budgetAddCategoryBudgetDeveloping =>
+      'Category budget feature is under development';
 
   @override
-  String get budgetEditBudgetDeveloping => 'Budget editing feature is under development';
+  String get budgetEditBudgetDeveloping =>
+      'Budget editing feature is under development';
 
   @override
   String get budgetSetTotalTitle => 'Set Total Budget';
@@ -865,16 +891,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get budgetNoCategoryAvailable => 'No categories available';
 
   @override
-  String get budgetCategoryAlreadyExists => 'Budget for this category already exists';
+  String get budgetCategoryAlreadyExists =>
+      'Budget for this category already exists';
 
   @override
   String get budgetDeleteTitle => 'Delete Budget';
 
   @override
-  String get budgetDeleteConfirm => 'Are you sure you want to delete this category budget?';
+  String get budgetDeleteConfirm =>
+      'Are you sure you want to delete this category budget?';
 
   @override
-  String get budgetNoBudgets => 'No budgets set yet, tap the edit button to start';
+  String get budgetNoBudgets =>
+      'No budgets set yet, tap the edit button to start';
 
   @override
   String get bookTitle => 'My Account Books';
@@ -883,7 +912,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookCreate => 'New Account Book';
 
   @override
-  String get bookDescription => 'Each account book has its own transactions, budgets, and AI conversation history';
+  String get bookDescription =>
+      'Each account book has its own transactions, budgets, and AI conversation history';
 
   @override
   String get bookDefault => 'Default';
@@ -961,7 +991,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get txnRecyclePermanentDelete => 'Delete Permanently';
 
   @override
-  String get txnRecyclePermanentDeleteConfirm => 'Permanently delete selected transactions? This cannot be undone.';
+  String get txnRecyclePermanentDeleteConfirm =>
+      'Permanently delete selected transactions? This cannot be undone.';
 
   @override
   String txnRecycleBatchRestored(int count) {
@@ -1083,7 +1114,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookDetailClearData => 'Clear Book Data';
 
   @override
-  String get bookDetailDefaultNotDeletable => 'Current account book cannot be deleted';
+  String get bookDetailDefaultNotDeletable =>
+      'Current account book cannot be deleted';
 
   @override
   String get bookDetailSetDefaultSuccess => 'Set as default account book';
@@ -1217,10 +1249,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get securityPatternLockDesc => 'Unlock by drawing a pattern';
 
   @override
-  String get securityLockHint => 'When multiple unlock methods are selected, a switch button will appear on the unlock screen. Fingerprint unlock requires device biometric support.';
+  String get securityLockHint =>
+      'When multiple unlock methods are selected, a switch button will appear on the unlock screen. Fingerprint unlock requires device biometric support.';
 
   @override
-  String get securityBiometricVerify => 'Verify fingerprint to enable fingerprint unlock';
+  String get securityBiometricVerify =>
+      'Verify fingerprint to enable fingerprint unlock';
 
   @override
   String securityBiometricFail(String error) {
@@ -1255,7 +1289,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get securityDrawPattern => 'Draw unlock pattern';
 
   @override
-  String get securityConfirmPattern => 'Please draw the pattern again to confirm';
+  String get securityConfirmPattern =>
+      'Please draw the pattern again to confirm';
 
   @override
   String get securityDrawToUnlock => 'Draw pattern to unlock';
@@ -1264,7 +1299,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get securityPatternHint => 'Connect at least 4 dots';
 
   @override
-  String get securityConfirmPatternHint => 'Please draw the same pattern as before';
+  String get securityConfirmPatternHint =>
+      'Please draw the same pattern as before';
 
   @override
   String get securityRedraw => 'Redraw';
@@ -1273,7 +1309,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get securityPatternMinDots => 'Please connect at least 4 dots';
 
   @override
-  String get securityPatternMismatch => 'Patterns do not match, please draw again';
+  String get securityPatternMismatch =>
+      'Patterns do not match, please draw again';
 
   @override
   String get securityPatternSetSuccess => 'Pattern set successfully';
@@ -1282,7 +1319,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get securityPatternWrong => 'Incorrect pattern, please try again';
 
   @override
-  String get securityAuthRequired => 'Please verify your identity to unlock the app';
+  String get securityAuthRequired =>
+      'Please verify your identity to unlock the app';
 
   @override
   String get securitySelectUnlockMethod => 'Select unlock method';
@@ -1345,7 +1383,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checkinMakeupAlreadyChecked => 'This date is already checked in';
 
   @override
-  String get checkinMakeupInsufficient => 'Insufficient AC Coins. Makeup check-in costs 100 AC Coins';
+  String get checkinMakeupInsufficient =>
+      'Insufficient AC Coins. Makeup check-in costs 100 AC Coins';
 
   @override
   String get checkinMakeupConfirmTitle => 'Makeup Check-in';
@@ -2080,7 +2119,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get catManageDeleteBlocked => 'This category has linked data and cannot be deleted';
+  String get catManageDeleteBlocked =>
+      'This category has linked data and cannot be deleted';
 
   @override
   String get catManageCustomBadge => 'C';
@@ -2168,7 +2208,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiPresetDoubaoName => 'Doubao (ByteDance)';
 
   @override
-  String get aiPresetDoubaoNote => 'Create an inference endpoint on Volcano Ark, use endpoint ID as model name';
+  String get aiPresetDoubaoNote =>
+      'Create an inference endpoint on Volcano Ark, use endpoint ID as model name';
 
   @override
   String get aiPresetZhipuName => 'Zhipu AI';
@@ -2189,13 +2230,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiPresetMimoName => 'Xiaomi MiMo';
 
   @override
-  String get aiPresetMimoNote => 'Supports OpenAI/Anthropic compatible protocols, multi-region clusters';
+  String get aiPresetMimoNote =>
+      'Supports OpenAI/Anthropic compatible protocols, multi-region clusters';
 
   @override
   String get aiPresetOllamaName => 'Ollama (Local)';
 
   @override
-  String get aiPresetOllamaNote => 'Requires local Ollama service, model names depend on local installation';
+  String get aiPresetOllamaNote =>
+      'Requires local Ollama service, model names depend on local installation';
 
   @override
   String get llmCapTextLabel => 'Text Model';
@@ -2207,7 +2250,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get llmCapVisionLabel => 'Vision Model';
 
   @override
-  String get llmCapVisionDesc => 'For photo recognition of receipts and invoices';
+  String get llmCapVisionDesc =>
+      'For photo recognition of receipts and invoices';
 
   @override
   String get llmCapAudioLabel => 'Voice Model';
@@ -2306,13 +2350,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get llmTest => 'Test';
 
   @override
-  String get llmConfigIncomplete => 'Please complete the configuration first (API Key, URL, and at least one model required)';
+  String get llmConfigIncomplete =>
+      'Please complete the configuration first (API Key, URL, and at least one model required)';
 
   @override
   String get llmConnectSuccess => '✅ Connection successful';
 
   @override
-  String get llmConnectFail => '❌ Connection failed, please check URL, Key and model name';
+  String get llmConnectFail =>
+      '❌ Connection failed, please check URL, Key and model name';
 
   @override
   String get llmConfigCopied => 'Config copied to clipboard';
@@ -2329,7 +2375,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get llmImportFailed => 'Import failed, please check JSON format';
 
   @override
-  String get llmProviderNotConfigured => 'This provider has no API Key or URL configured, please edit first';
+  String get llmProviderNotConfigured =>
+      'This provider has no API Key or URL configured, please edit first';
 
   @override
   String llmModelsFetched(String count, String label) {
@@ -2433,13 +2480,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get llmApiUrl => 'API URL';
 
   @override
-  String get llmApiUrlHintAnthropic => 'Anthropic API URL, e.g. https://api.anthropic.com';
+  String get llmApiUrlHintAnthropic =>
+      'Anthropic API URL, e.g. https://api.anthropic.com';
 
   @override
-  String get llmApiUrlHelper => 'Enter the API base_url, no need to append /chat/completions';
+  String get llmApiUrlHelper =>
+      'Enter the API base_url, no need to append /chat/completions';
 
   @override
-  String get llmSaveHint => 'After saving, go back to configure models via capability cards';
+  String get llmSaveHint =>
+      'After saving, go back to configure models via capability cards';
 
   @override
   String get llmInputApiKey => 'Enter API Key';
@@ -2454,7 +2504,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get llmTemperature => 'Response Style';
 
   @override
-  String get llmTemperatureHint => 'Lower = more precise and stable, Higher = more diverse and creative';
+  String get llmTemperatureHint =>
+      'Lower = more precise and stable, Higher = more diverse and creative';
 
   @override
   String get llmTemperaturePrecise => 'Precise';
@@ -2469,13 +2520,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get llmTimeout => 'Timeout (seconds)';
 
   @override
-  String get llmErrorNoModelForCapability => 'No model configured for this capability';
+  String get llmErrorNoModelForCapability =>
+      'No model configured for this capability';
 
   @override
-  String get llmErrorNoProviderConfigured => 'Please add and configure an AI provider in Settings first';
+  String get llmErrorNoProviderConfigured =>
+      'Please add and configure an AI provider in Settings first';
 
   @override
-  String get llmErrorNoProviderOrInput => 'Please add an AI provider in Settings, or provide a more specific description';
+  String get llmErrorNoProviderOrInput =>
+      'Please add an AI provider in Settings, or provide a more specific description';
 
   @override
   String get llmErrorCannotParseResponse => 'Unable to parse AI response';
@@ -2489,7 +2543,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get llmErrorTimeout => 'Request timed out, please check your network connection';
+  String get llmErrorTimeout =>
+      'Request timed out, please check your network connection';
 
   @override
   String get llmErrorInvalidApiKey => 'Invalid API Key, please check Settings';
@@ -2498,7 +2553,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get llmErrorRateLimit => 'Too many requests, please try again later';
 
   @override
-  String get llmErrorForbidden => 'Access denied, please check API Key permissions';
+  String get llmErrorForbidden =>
+      'Access denied, please check API Key permissions';
 
   @override
   String llmErrorRequestFailed(String code) {
@@ -2506,7 +2562,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get llmErrorNetworkFailed => 'Network connection failed, please check your network';
+  String get llmErrorNetworkFailed =>
+      'Network connection failed, please check your network';
 
   @override
   String llmErrorRequestFailedWithMessage(String message) {
@@ -2514,7 +2571,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get visionErrorNoModelConfigured => 'Vision model not configured. Please configure it in AI Settings';
+  String get visionErrorNoModelConfigured =>
+      'Vision model not configured. Please configure it in AI Settings';
 
   @override
   String get visionErrorImageNotFound => 'Image file not found';
@@ -2525,13 +2583,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get voiceErrorNoModelConfigured => 'Voice model not configured. Please configure it in AI Settings';
+  String get voiceErrorNoModelConfigured =>
+      'Voice model not configured. Please configure it in AI Settings';
+
+  @override
+  String get voiceErrorNoEngineAvailable =>
+      'No voice recognition engine available. Please check AI settings or device voice support';
 
   @override
   String get voiceErrorAudioNotFound => 'Audio file not found';
 
   @override
-  String get voiceErrorInvalidResponseFormat => 'Voice recognition returned invalid format';
+  String get voiceErrorInvalidResponseFormat =>
+      'Voice recognition returned invalid format';
 
   @override
   String voiceErrorTranscriptionFailed(String message) {
@@ -2539,10 +2603,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get pipelineErrorEmptyVoiceResult => 'Voice recognition returned empty, please record again';
+  String get pipelineErrorEmptyVoiceResult =>
+      'Voice recognition returned empty, please record again';
 
   @override
-  String get pipelineErrorEmptyImageResult => 'Image recognition returned empty, please choose a clearer image';
+  String get pipelineErrorEmptyImageResult =>
+      'Image recognition returned empty, please choose a clearer image';
 
   @override
   String get acCoinInitialGiftDesc => 'New user registration gift';
@@ -2557,7 +2623,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchPageTitle => 'Search Transactions';
 
   @override
-  String get searchHint => 'Enter keywords or natural language, e.g. \'how much on taxis last month\'';
+  String get searchHint =>
+      'Enter keywords or natural language, e.g. \'how much on taxis last month\'';
 
   @override
   String get searchAiParsing => 'AI is understanding your query...';
@@ -2600,7 +2667,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchLlmNotConfigured => 'AI not configured, keyword search only';
 
   @override
-  String get searchLlmError => 'AI query parsing failed, switched to keyword search';
+  String get searchLlmError =>
+      'AI query parsing failed, switched to keyword search';
 
   @override
   String get searchQuickSuggestions => 'Suggestions';

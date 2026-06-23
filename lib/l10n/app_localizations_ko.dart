@@ -81,7 +81,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get chatPageSaveSuccessTitle => '기록 완료';
 
   @override
-  String chatPageSaveSuccess(String amount, String category, String description, String date) {
+  String chatPageSaveSuccess(
+    String amount,
+    String category,
+    String description,
+    String date,
+  ) {
     return '✅ 저장 완료\n$amount · $category\n$description · $date';
   }
 
@@ -97,7 +102,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get chatPageEmptyHint => '\"점심 라면 25\" 또는 \"식사 24, 세탁 34\"처럼 입력해 보세요';
 
   @override
-  String get chatPageEmptyInstruction => '기록 버튼을 길게 눌러 음성 입력 🎤 · 오른쪽 버튼으로 사진 인식 📷';
+  String get chatPageEmptyInstruction =>
+      '기록 버튼을 길게 눌러 음성 입력 🎤 · 오른쪽 버튼으로 사진 인식 📷';
 
   @override
   String get chatPageAiParsing => 'AI 분석 중...';
@@ -374,7 +380,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get txnDetailDeleteConfirmTitle => '삭제 확인';
 
   @override
-  String get txnDetailDeleteConfirmContent => '삭제하면 복구할 수 없습니다. 이 내역을 삭제하시겠습니까?';
+  String get txnDetailDeleteConfirmContent =>
+      '삭제하면 복구할 수 없습니다. 이 내역을 삭제하시겠습니까?';
 
   @override
   String get txnDetailNotFound => '내역을 찾을 수 없습니다';
@@ -667,7 +674,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get profileEditDeleteAccount => '계정 삭제 요청';
 
   @override
-  String get profileEditDeleteAccountConfirmContent => '계정을 삭제하면 데이터를 복구할 수 없습니다. 삭제를 요청하시겠습니까?';
+  String get profileEditDeleteAccountConfirmContent =>
+      '계정을 삭제하면 데이터를 복구할 수 없습니다. 삭제를 요청하시겠습니까?';
 
   @override
   String get profileEditDeleteAccountSubmit => '삭제 요청';
@@ -961,7 +969,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get txnRecyclePermanentDelete => '영구 삭제';
 
   @override
-  String get txnRecyclePermanentDeleteConfirm => '선택한 거래를 영구 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.';
+  String get txnRecyclePermanentDeleteConfirm =>
+      '선택한 거래를 영구 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.';
 
   @override
   String txnRecycleBatchRestored(int count) {
@@ -1217,7 +1226,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get securityPatternLockDesc => '패턴을 그려서 잠금 해제';
 
   @override
-  String get securityLockHint => '여러 잠금 해제 방법을 선택하면 잠금 화면에 전환 버튼이 표시됩니다. 지문 인식에는 기기의 생체 인식 기능이 필요합니다.';
+  String get securityLockHint =>
+      '여러 잠금 해제 방법을 선택하면 잠금 화면에 전환 버튼이 표시됩니다. 지문 인식에는 기기의 생체 인식 기능이 필요합니다.';
 
   @override
   String get securityBiometricVerify => '지문을 확인하여 지문 인식을 활성화합니다';
@@ -2189,7 +2199,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get aiPresetMimoName => '샤오미 MiMo';
 
   @override
-  String get aiPresetMimoNote => 'OpenAI/Anthropic 호환 프로토콜 지원, 중국/싱가포르/유럽 멀티 클러스터';
+  String get aiPresetMimoNote =>
+      'OpenAI/Anthropic 호환 프로토콜 지원, 중국/싱가포르/유럽 멀티 클러스터';
 
   @override
   String get aiPresetOllamaName => 'Ollama (로컬)';
@@ -2306,7 +2317,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get llmTest => '테스트';
 
   @override
-  String get llmConfigIncomplete => '먼저 설정을 완료해 주세요 (API Key, URL, 최소 1개 모델 필요)';
+  String get llmConfigIncomplete =>
+      '먼저 설정을 완료해 주세요 (API Key, URL, 최소 1개 모델 필요)';
 
   @override
   String get llmConnectSuccess => '✅ 연결 성공';
@@ -2329,7 +2341,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get llmImportFailed => '가져오기에 실패했습니다. JSON 형식을 확인해 주세요';
 
   @override
-  String get llmProviderNotConfigured => '이 프로바이더에 API Key 또는 URL이 설정되지 않았습니다. 먼저 편집해 주세요';
+  String get llmProviderNotConfigured =>
+      '이 프로바이더에 API Key 또는 URL이 설정되지 않았습니다. 먼저 편집해 주세요';
 
   @override
   String llmModelsFetched(String count, String label) {
@@ -2433,10 +2446,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get llmApiUrl => '요청 URL';
 
   @override
-  String get llmApiUrlHintAnthropic => 'Anthropic API URL (예: https://api.anthropic.com)';
+  String get llmApiUrlHintAnthropic =>
+      'Anthropic API URL (예: https://api.anthropic.com)';
 
   @override
-  String get llmApiUrlHelper => 'API의 base_url을 입력하세요. /chat/completions는 자동으로 추가됩니다';
+  String get llmApiUrlHelper =>
+      'API의 base_url을 입력하세요. /chat/completions는 자동으로 추가됩니다';
 
   @override
   String get llmSaveHint => '저장 후 이전 페이지로 돌아가 능력 카드에서 모델을 설정해 주세요';
@@ -2475,7 +2490,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get llmErrorNoProviderConfigured => '설정에서 AI 프로바이더를 추가하고 구성해 주세요';
 
   @override
-  String get llmErrorNoProviderOrInput => '설정에서 AI 프로바이더를 추가하거나, 더 구체적으로 입력해 주세요';
+  String get llmErrorNoProviderOrInput =>
+      '설정에서 AI 프로바이더를 추가하거나, 더 구체적으로 입력해 주세요';
 
   @override
   String get llmErrorCannotParseResponse => 'AI 응답을 분석할 수 없습니다';
@@ -2514,7 +2530,8 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get visionErrorNoModelConfigured => '비전 모델이 설정되지 않았습니다. AI 설정에서 구성해 주세요';
+  String get visionErrorNoModelConfigured =>
+      '비전 모델이 설정되지 않았습니다. AI 설정에서 구성해 주세요';
 
   @override
   String get visionErrorImageNotFound => '이미지 파일을 찾을 수 없습니다';
@@ -2525,7 +2542,12 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get voiceErrorNoModelConfigured => '음성 모델이 설정되지 않았습니다. AI 설정에서 구성해 주세요';
+  String get voiceErrorNoModelConfigured =>
+      '음성 모델이 설정되지 않았습니다. AI 설정에서 구성해 주세요';
+
+  @override
+  String get voiceErrorNoEngineAvailable =>
+      '음성 인식 엔진을 사용할 수 없습니다. AI 설정 또는 기기 음성 지원을 확인해 주세요';
 
   @override
   String get voiceErrorAudioNotFound => '오디오 파일을 찾을 수 없습니다';
@@ -2542,7 +2564,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get pipelineErrorEmptyVoiceResult => '음성 인식 결과가 비어 있습니다. 다시 녹음해 주세요';
 
   @override
-  String get pipelineErrorEmptyImageResult => '이미지 인식 결과가 비어 있습니다. 더 선명한 이미지를 선택해 주세요';
+  String get pipelineErrorEmptyImageResult =>
+      '이미지 인식 결과가 비어 있습니다. 더 선명한 이미지를 선택해 주세요';
 
   @override
   String get acCoinInitialGiftDesc => '신규 회원 가입 선물';

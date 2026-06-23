@@ -882,6 +882,7 @@
   "visionErrorRecognitionFailed": "이미지 인식에 실패했습니다: {message}",
   "@visionErrorRecognitionFailed": { "placeholders": { "message": { "type": "String" } } },
   "voiceErrorNoModelConfigured": "음성 모델이 설정되지 않았습니다. AI 설정에서 구성해 주세요",
+  "voiceErrorNoEngineAvailable": "음성 인식 엔진을 사용할 수 없습니다. AI 설정 또는 기기 음성 지원을 확인해 주세요",
   "voiceErrorAudioNotFound": "오디오 파일을 찾을 수 없습니다",
   "voiceErrorInvalidResponseFormat": "음성 인식 결과 형식이 올바르지 않습니다",
   "voiceErrorTranscriptionFailed": "음성 인식에 실패했습니다: {message}",

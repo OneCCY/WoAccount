@@ -81,7 +81,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get chatPageSaveSuccessTitle => '記帳成功';
 
   @override
-  String chatPageSaveSuccess(String amount, String category, String description, String date) {
+  String chatPageSaveSuccess(
+    String amount,
+    String category,
+    String description,
+    String date,
+  ) {
     return '✅ 保存しました\n$amount · $category\n$description · $date';
   }
 
@@ -667,7 +672,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get profileEditDeleteAccount => 'アカウント削除申請';
 
   @override
-  String get profileEditDeleteAccountConfirmContent => 'アカウントを削除するとデータは復元できません。削除を申請しますか？';
+  String get profileEditDeleteAccountConfirmContent =>
+      'アカウントを削除するとデータは復元できません。削除を申請しますか？';
 
   @override
   String get profileEditDeleteAccountSubmit => '削除を申請';
@@ -961,7 +967,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get txnRecyclePermanentDelete => '完全に削除';
 
   @override
-  String get txnRecyclePermanentDeleteConfirm => '選択した取引を完全に削除しますか？この操作は元に戻せません。';
+  String get txnRecyclePermanentDeleteConfirm =>
+      '選択した取引を完全に削除しますか？この操作は元に戻せません。';
 
   @override
   String txnRecycleBatchRestored(int count) {
@@ -1217,7 +1224,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get securityPatternLockDesc => 'パターンを描いてロック解除';
 
   @override
-  String get securityLockHint => '複数のロック解除方法を選択すると、ロック画面に切り替えボタンが表示されます。指紋認証にはデバイスの生体認証機能が必要です。';
+  String get securityLockHint =>
+      '複数のロック解除方法を選択すると、ロック画面に切り替えボタンが表示されます。指紋認証にはデバイスの生体認証機能が必要です。';
 
   @override
   String get securityBiometricVerify => '指紋を確認して指紋認証を有効化';
@@ -2189,7 +2197,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get aiPresetMimoName => 'Xiaomi MiMo';
 
   @override
-  String get aiPresetMimoNote => 'OpenAI/Anthropic互換プロトコル対応、中国/シンガポール/欧州マルチクラスター';
+  String get aiPresetMimoNote =>
+      'OpenAI/Anthropic互換プロトコル対応、中国/シンガポール/欧州マルチクラスター';
 
   @override
   String get aiPresetOllamaName => 'Ollama (ローカル)';
@@ -2329,7 +2338,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get llmImportFailed => 'インポートに失敗しました。JSON形式を確認してください';
 
   @override
-  String get llmProviderNotConfigured => 'このプロバイダーにはAPI KeyまたはURLが設定されていません。先に編集してください';
+  String get llmProviderNotConfigured =>
+      'このプロバイダーにはAPI KeyまたはURLが設定されていません。先に編集してください';
 
   @override
   String llmModelsFetched(String count, String label) {
@@ -2433,7 +2443,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get llmApiUrl => 'リクエストURL';
 
   @override
-  String get llmApiUrlHintAnthropic => 'Anthropic API URL（例: https://api.anthropic.com）';
+  String get llmApiUrlHintAnthropic =>
+      'Anthropic API URL（例: https://api.anthropic.com）';
 
   @override
   String get llmApiUrlHelper => 'APIのbase_urlを入力してください。/chat/completionsは不要です';
@@ -2526,6 +2537,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get voiceErrorNoModelConfigured => '音声モデルが設定されていません。AI設定で設定してください';
+
+  @override
+  String get voiceErrorNoEngineAvailable =>
+      '音声認識エンジンが利用できません。AI設定またはデバイスの音声サポートを確認してください';
 
   @override
   String get voiceErrorAudioNotFound => '音声ファイルが見つかりません';

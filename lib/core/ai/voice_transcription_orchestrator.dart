@@ -117,7 +117,7 @@ class VoiceTranscriptionOrchestrator {
 
     if (!hasPlatform && !hasWhisper) {
       throw const LlmException(
-        '未配置语音识别引擎，请检查 AI 设置或设备语音支持',
+        'No voice recognition engine available',
         errorCode: 'voiceErrorNoEngineAvailable',
       );
     }

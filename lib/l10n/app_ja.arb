@@ -882,6 +882,7 @@
   "visionErrorRecognitionFailed": "画像認識に失敗しました: {message}",
   "@visionErrorRecognitionFailed": { "placeholders": { "message": { "type": "String" } } },
   "voiceErrorNoModelConfigured": "音声モデルが設定されていません。AI設定で設定してください",
+  "voiceErrorNoEngineAvailable": "音声認識エンジンが利用できません。AI設定またはデバイスの音声サポートを確認してください",
   "voiceErrorAudioNotFound": "音声ファイルが見つかりません",
   "voiceErrorInvalidResponseFormat": "音声認識の返答形式が異常です",
   "voiceErrorTranscriptionFailed": "音声認識に失敗しました: {message}",

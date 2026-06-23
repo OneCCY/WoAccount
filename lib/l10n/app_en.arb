@@ -897,6 +897,7 @@
   "visionErrorRecognitionFailed": "Image recognition failed: {message}",
   "@visionErrorRecognitionFailed": { "placeholders": { "message": { "type": "String" } } },
   "voiceErrorNoModelConfigured": "Voice model not configured. Please configure it in AI Settings",
+  "voiceErrorNoEngineAvailable": "No voice recognition engine available. Please check AI settings or device voice support",
   "voiceErrorAudioNotFound": "Audio file not found",
   "voiceErrorInvalidResponseFormat": "Voice recognition returned invalid format",
   "voiceErrorTranscriptionFailed": "Voice recognition failed: {message}",

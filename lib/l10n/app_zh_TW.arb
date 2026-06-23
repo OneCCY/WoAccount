@@ -882,6 +882,7 @@
   "visionErrorRecognitionFailed": "圖片識別失敗: {message}",
   "@visionErrorRecognitionFailed": { "placeholders": { "message": { "type": "String" } } },
   "voiceErrorNoModelConfigured": "未配置語音識別模型，請在 AI 設定中配置",
+  "voiceErrorNoEngineAvailable": "未配置語音識別引擎，請檢查 AI 設定或裝置語音支援",
   "voiceErrorAudioNotFound": "音訊檔案不存在",
   "voiceErrorInvalidResponseFormat": "語音識別回傳格式異常",
   "voiceErrorTranscriptionFailed": "語音識別失敗: {message}",
