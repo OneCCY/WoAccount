@@ -47,6 +47,7 @@
   "chatInputRecording": "正在录音...",
   "chatInputVoiceCancel": "← 松手取消",
   "chatInputVoiceSend": "松开发送",
+  "chatInputVoiceCanceling": "松手取消",
   "voiceOverlaySwipeHint": "↑ 上滑取消或转文字",
   "voiceOverlayCancelLabel": "松手 取消",
   "voiceOverlayTranscribeLabel": "松手 仅转文字",

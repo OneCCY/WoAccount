@@ -81,12 +81,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatPageSaveSuccessTitle => '记账成功';
 
   @override
-  String chatPageSaveSuccess(
-    String amount,
-    String category,
-    String description,
-    String date,
-  ) {
+  String chatPageSaveSuccess(String amount, String category, String description, String date) {
     return '✅ 已保存\n$amount · $category\n$description · $date';
   }
 
@@ -141,6 +136,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get chatInputVoiceSend => '松开发送';
+
+  @override
+  String get chatInputVoiceCanceling => '松手取消';
 
   @override
   String get voiceOverlaySwipeHint => '↑ 上滑取消或转文字';
@@ -2435,8 +2433,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get llmApiUrl => '请求地址';
 
   @override
-  String get llmApiUrlHintAnthropic =>
-      'Anthropic API 地址，如 https://api.anthropic.com';
+  String get llmApiUrlHintAnthropic => 'Anthropic API 地址，如 https://api.anthropic.com';
 
   @override
   String get llmApiUrlHelper => '填入 API 的 base_url，不需要手动拼接 /chat/completions';
@@ -2665,7 +2662,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
 class AppLocalizationsZhTw extends AppLocalizationsZh {
-  AppLocalizationsZhTw() : super('zh_TW');
+  AppLocalizationsZhTw(): super('zh_TW');
 
   @override
   String get appTitle => 'WoAccount';
@@ -2740,12 +2737,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get chatPageSaveSuccessTitle => '記帳成功';
 
   @override
-  String chatPageSaveSuccess(
-    String amount,
-    String category,
-    String description,
-    String date,
-  ) {
+  String chatPageSaveSuccess(String amount, String category, String description, String date) {
     return '✅ 已儲存\n$amount · $category\n$description · $date';
   }
 
@@ -5067,8 +5059,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get llmApiUrl => '請求地址';
 
   @override
-  String get llmApiUrlHintAnthropic =>
-      'Anthropic API 地址，如 https://api.anthropic.com';
+  String get llmApiUrlHintAnthropic => 'Anthropic API 地址，如 https://api.anthropic.com';
 
   @override
   String get llmApiUrlHelper => '填入 API 的 base_url，不需要手動拼接 /chat/completions';

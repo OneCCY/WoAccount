@@ -47,6 +47,7 @@
   "chatInputRecording": "Recording...",
   "chatInputVoiceCancel": "← Release to cancel",
   "chatInputVoiceSend": "Release to send",
+  "chatInputVoiceCanceling": "Release to cancel",
   "voiceOverlaySwipeHint": "↑ Swipe up to cancel or transcribe",
   "voiceOverlayCancelLabel": "Release to cancel",
   "voiceOverlayTranscribeLabel": "Release to transcribe only",

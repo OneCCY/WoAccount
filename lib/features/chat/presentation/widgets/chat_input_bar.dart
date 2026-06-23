@@ -5,7 +5,6 @@ import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/toast.dart';
-import '../../../../core/widgets/voice/voice_recording_overlay.dart';
 import '../../../text_ai/data/services/platform_stt_service.dart';
 import '../../../../core/utils/responsive.dart';
 
@@ -18,8 +17,15 @@ enum VoiceInputMode {
   whisper,
 }
 
+/// 录音手势区域
+enum _GestureZone {
+  none,
+  send,       // 默认/上滑中间 → 发送
+  cancel,     // 左上滑 → 取消
+  transcribe, // 右上滑 → 转文字
+}
+
 /// 聊天底部输入栏
-/// 左: 记账按钮（醒目，长按语音）  |  中: 文本输入  |  右: 拍照
 class ChatInputBar extends StatefulWidget {
   final Function(String) onSubmit;
   final VoidCallback onManualEntry;
@@ -27,11 +33,7 @@ class ChatInputBar extends StatefulWidget {
   final Function(String filePath) onImageCaptured;
   final Function(String filePath) onVoiceTranscribeOnly;
   final bool isLoading;
-
-  /// 语音识别模式（默认平台原生）
   final VoiceInputMode voiceMode;
-
-  /// 平台 STT 服务（voiceMode 为 platform 时必传）
   final PlatformSttService? sttService;
 
   const ChatInputBar({
@@ -55,6 +57,17 @@ class _ChatInputBarState extends State<ChatInputBar> {
   final _focusNode = FocusNode();
   final _imagePicker = ImagePicker();
 
+  // 录音状态
+  bool _isVoiceActive = false;
+  _GestureZone _zone = _GestureZone.none;
+  Offset _gestureOrigin = Offset.zero;
+
+  // 平台 STT
+  String _partialText = '';
+
+  static const double _verticalThreshold = 60.0;
+  static const double _horizontalThreshold = 50.0;
+
   @override
   void dispose() {
     _controller.dispose();
@@ -70,66 +83,117 @@ class _ChatInputBarState extends State<ChatInputBar> {
     _focusNode.unfocus();
   }
 
-  // ==================== 语音交互 ====================
+  // ==================== 长按手势（同一根手指全程追踪）====================
 
-  Future<void> _onVoiceStart() async {
+  void _onLongPressStart(LongPressStartDetails details) {
     HapticFeedback.heavyImpact();
+    _gestureOrigin = details.globalPosition;
+    setState(() {
+      _isVoiceActive = true;
+      _zone = _GestureZone.send;
+      _partialText = '';
+    });
 
+    // 立即启动平台 STT（同一根手指，无需二次按下）
     if (widget.voiceMode == VoiceInputMode.platform && widget.sttService != null) {
-      await _startPlatformStt();
+      widget.sttService!.startListening();
+      widget.sttService!.partialTextStream.listen((text) {
+        if (mounted && _isVoiceActive) {
+          setState(() => _partialText = text);
+        }
+      });
+    }
+  }
+
+  void _onLongPressMoveUpdate(LongPressMoveUpdateDetails details) {
+    if (!_isVoiceActive) return;
+
+    final dx = details.offsetFromOrigin.dx;
+    final dy = -details.offsetFromOrigin.dy; // 正值 = 上滑
+
+    _GestureZone newZone;
+    if (dy > _verticalThreshold) {
+      if (dx < -_horizontalThreshold) {
+        newZone = _GestureZone.cancel;
+      } else if (dx > _horizontalThreshold) {
+        newZone = _GestureZone.transcribe;
+      } else {
+        newZone = _GestureZone.send;
+      }
     } else {
-      await _startWhisperOverlay();
+      newZone = _GestureZone.send;
+    }
+
+    if (newZone != _zone) {
+      HapticFeedback.lightImpact();
+      setState(() => _zone = newZone);
     }
   }
 
-  /// 平台原生 STT：直接启动实时识别，松开后提交文本
-  Future<void> _startPlatformStt() async {
-    final stt = widget.sttService!;
-    final ok = await stt.startListening();
-    if (!ok) {
-      // 平台 STT 不可用，降级到 Whisper 录音覆盖层
-      if (mounted) await _startWhisperOverlay();
-      return;
-    }
+  Future<void> _onLongPressEnd(LongPressEndDetails details) async {
+    if (!_isVoiceActive) return;
 
-    if (!mounted) return;
+    final zone = _zone;
+    setState(() {
+      _isVoiceActive = false;
+      _zone = _GestureZone.none;
+    });
 
-    // 显示实时转写覆盖层
-    final result = await showModalBottomSheet<_PlatformSttResult>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => _PlatformSttOverlay(sttService: stt),
-    );
-
-    if (result == null || result.action == _PlatformSttAction.cancel) {
-      await stt.cancel();
-      return;
-    }
-
-    if (result.text != null && result.text!.isNotEmpty) {
-      widget.onSubmit(result.text!);
+    switch (zone) {
+      case _GestureZone.cancel:
+        // 取消 — 不执行任何操作
+        break;
+      case _GestureZone.transcribe:
+        // 转文字 — 走平台 STT 或 Whisper
+        await _handleTranscribe();
+        break;
+      case _GestureZone.send:
+      case _GestureZone.none:
+        // 发送 — 走完整记账管线
+        await _handleSend();
+        break;
     }
   }
 
-  /// Whisper 模式：显示全屏录音覆盖层
-  Future<void> _startWhisperOverlay() async {
-    final result = await VoiceRecordingOverlay.show(context);
-    if (result == null) return;
+  /// 发送：平台 STT 文本 → 记账管线，或 Whisper 录音文件 → 记账管线
+  Future<void> _handleSend() async {
+    if (widget.voiceMode == VoiceInputMode.platform && widget.sttService != null) {
+      // 平台 STT：识别后提交文本
+      final text = await widget.sttService!.stopListening();
+      final result = (text ?? _partialText).trim();
+      if (result.isNotEmpty) {
+        widget.onSubmit(result);
+      } else {
+        if (mounted) AppToast.show(context, AppLocalizations.of(context)!.chatInputRecordShort);
+      }
+    } else {
+      // Whisper：已经在长按开始时开始录音（由调用方处理）
+      // 这里需要录音逻辑 — 使用 record 包
+      // 注意：当前架构下，Whisper 模式的录音由 VoiceRecordingOverlay 处理
+      // 但内联模式下，我们需要自己管理录音
+      // 此分支暂不支持内联 Whisper 录音，提示用户切换模式
+      if (mounted) {
+        AppToast.show(context, '请在设置中切换为平台原生语音模式');
+      }
+    }
+  }
 
-    switch (result.action) {
-      case VoiceResultAction.send:
-        if (result.filePath != null) {
-          widget.onVoiceRecorded(result.filePath!);
-        }
-        break;
-      case VoiceResultAction.transcribe:
-        if (result.filePath != null) {
-          widget.onVoiceTranscribeOnly(result.filePath!);
-        }
-        break;
-      case VoiceResultAction.cancel:
-        break;
+  /// 转文字：平台 STT → 填入输入框，或 Whisper → 填入输入框
+  Future<void> _handleTranscribe() async {
+    if (widget.voiceMode == VoiceInputMode.platform && widget.sttService != null) {
+      final text = await widget.sttService!.stopListening();
+      final result = (text ?? _partialText).trim();
+      if (result.isNotEmpty) {
+        // 填入输入框供用户编辑
+        _controller.text = result;
+        _focusNode.requestFocus();
+      } else {
+        if (mounted) AppToast.show(context, AppLocalizations.of(context)!.chatInputRecordShort);
+      }
+    } else {
+      if (mounted) {
+        AppToast.show(context, '请在设置中切换为平台原生语音模式');
+      }
     }
   }
 
@@ -143,13 +207,9 @@ class _ChatInputBarState extends State<ChatInputBar> {
         maxHeight: 2048,
         imageQuality: 85,
       );
-      if (picked != null) {
-        widget.onImageCaptured(picked.path);
-      }
+      if (picked != null) widget.onImageCaptured(picked.path);
     } catch (e) {
-      if (mounted) {
-        AppToast.show(context, AppLocalizations.of(context)!.chatInputImageFailed(''));
-      }
+      if (mounted) AppToast.show(context, AppLocalizations.of(context)!.chatInputImageFailed(''));
     }
   }
 
@@ -164,18 +224,12 @@ class _ChatInputBarState extends State<ChatInputBar> {
             ListTile(
               leading: const Icon(Icons.camera_alt),
               title: Text(l10n.chatInputCamera),
-              onTap: () {
-                Navigator.pop(ctx);
-                _pickImage(ImageSource.camera);
-              },
+              onTap: () { Navigator.pop(ctx); _pickImage(ImageSource.camera); },
             ),
             ListTile(
               leading: const Icon(Icons.photo_library),
               title: Text(l10n.chatInputGallery),
-              onTap: () {
-                Navigator.pop(ctx);
-                _pickImage(ImageSource.gallery);
-              },
+              onTap: () { Navigator.pop(ctx); _pickImage(ImageSource.gallery); },
             ),
           ],
         ),
@@ -189,246 +243,236 @@ class _ChatInputBarState extends State<ChatInputBar> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-        Responsive.s(context, 12),
-        Responsive.s(context, 8),
-        Responsive.s(context, 12),
-        MediaQuery.of(context).padding.bottom + Responsive.s(context, 8),
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // ===== 输入栏主体 =====
+        Container(
+          padding: EdgeInsets.fromLTRB(
+            Responsive.s(context, 12),
+            Responsive.s(context, 8),
+            Responsive.s(context, 12),
+            MediaQuery.of(context).padding.bottom + Responsive.s(context, 8),
+          ),
+          decoration: BoxDecoration(
+            color: context.colors.surface,
+            border: Border(top: BorderSide(color: context.colors.separatorOpaque, width: 0.5)),
+          ),
+          child: Row(
+            children: [
+              // 左侧：记账按钮（长按录音）
+              GestureDetector(
+                onLongPressStart: _onLongPressStart,
+                onLongPressMoveUpdate: _onLongPressMoveUpdate,
+                onLongPressEnd: _onLongPressEnd,
+                onTap: widget.onManualEntry,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  width: Responsive.s(context, 40),
+                  height: Responsive.s(context, 40),
+                  decoration: BoxDecoration(
+                    color: _isVoiceActive
+                        ? (_zone == _GestureZone.cancel ? context.colors.error : context.colors.primary)
+                        : context.colors.primarySurface,
+                    borderRadius: BorderRadius.circular(Responsive.s(context, 20)),
+                  ),
+                  child: Center(
+                    child: _isVoiceActive
+                        ? Icon(
+                            _zone == _GestureZone.cancel ? Icons.close : Icons.mic,
+                            color: Colors.white, size: 20,
+                          )
+                        : Text('📝', style: TextStyle(fontSize: Responsive.fs(context, 18))),
+                  ),
+                ),
+              ),
+              SizedBox(width: Responsive.s(context, 8)),
+              // 中间：文本输入框
+              Expanded(
+                child: Container(
+                  height: Responsive.s(context, 40),
+                  decoration: BoxDecoration(
+                    color: context.colors.surfaceSecondary,
+                    borderRadius: BorderRadius.circular(Responsive.s(context, 20)),
+                  ),
+                  child: Row(
+                    children: [
+                      SizedBox(width: Responsive.s(context, 14)),
+                      Expanded(
+                        child: TextField(
+                          controller: _controller,
+                          focusNode: _focusNode,
+                          style: context.textStyles.body.copyWith(fontSize: Responsive.fs(context, 14)),
+                          decoration: InputDecoration(
+                            hintText: l10n.chatInputTextHint,
+                            hintStyle: context.textStyles.footnote.copyWith(color: context.colors.textTertiary),
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: EdgeInsets.symmetric(vertical: Responsive.s(context, 10)),
+                          ),
+                          textInputAction: TextInputAction.send,
+                          onSubmitted: (_) => _handleSubmit(),
+                        ),
+                      ),
+                      if (_controller.text.isNotEmpty)
+                        GestureDetector(
+                          onTap: () { _controller.clear(); setState(() {}); },
+                          child: Padding(
+                            padding: EdgeInsets.only(right: Responsive.s(context, 8)),
+                            child: Icon(Icons.cancel, size: 16, color: context.colors.textTertiary),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(width: Responsive.s(context, 8)),
+              // 右侧：拍照按钮
+              GestureDetector(
+                onTap: _showImageSourceSheet,
+                child: Container(
+                  width: Responsive.s(context, 40),
+                  height: Responsive.s(context, 40),
+                  decoration: BoxDecoration(
+                    color: context.colors.surfaceSecondary,
+                    borderRadius: BorderRadius.circular(Responsive.s(context, 20)),
+                  ),
+                  child: Center(
+                    child: Icon(Icons.camera_alt, size: 20, color: context.colors.textSecondary),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // ===== 录音时弹出的覆盖层（内联，不是 Modal）=====
+        if (_isVoiceActive)
+          Positioned(
+            bottom: Responsive.s(context, 60), // 输入栏上方
+            left: 0, right: 0,
+            child: _buildVoiceOverlay(l10n),
+          ),
+      ],
+    );
+  }
+
+  /// 录音覆盖层（显示在输入栏上方）
+  Widget _buildVoiceOverlay(AppLocalizations l10n) {
+    final isCancel = _zone == _GestureZone.cancel;
+    final isTranscribe = _zone == _GestureZone.transcribe;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // 三个热区指示器
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: Responsive.s(context, 24)),
+          child: Row(
+            children: [
+              _buildZoneChip(
+                icon: Icons.close,
+                label: l10n.voiceOverlayCancelLabel,
+                isActive: isCancel,
+                activeColor: context.colors.error,
+              ),
+              const Spacer(),
+              _buildZoneChip(
+                icon: Icons.send,
+                label: l10n.chatInputVoiceSend,
+                isActive: !isCancel && !isTranscribe,
+                activeColor: context.colors.textPrimary,
+              ),
+              const Spacer(),
+              _buildZoneChip(
+                icon: Icons.text_fields,
+                label: l10n.voiceOverlayTranscribeLabel,
+                isActive: isTranscribe,
+                activeColor: const Color(0xFF2196F3),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: Responsive.s(context, 8)),
+        // 录音状态弹窗
+        Container(
+          margin: EdgeInsets.symmetric(horizontal: Responsive.s(context, 40)),
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.s(context, 20),
+            vertical: Responsive.s(context, 14),
+          ),
+          decoration: BoxDecoration(
+            color: isCancel
+                ? context.colors.error.withValues(alpha: 0.9)
+                : context.colors.textPrimary.withValues(alpha: 0.85),
+            borderRadius: BorderRadius.circular(Responsive.s(context, 14)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                isCancel ? Icons.close : Icons.mic,
+                size: 18,
+                color: isCancel ? Colors.white : Colors.greenAccent,
+              ),
+              SizedBox(width: Responsive.s(context, 8)),
+              Text(
+                isCancel ? l10n.chatInputVoiceCanceling : l10n.chatInputListening,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildZoneChip({
+    required IconData icon,
+    required String label,
+    required bool isActive,
+    required Color activeColor,
+  }) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.s(context, 10),
+        vertical: Responsive.s(context, 6),
       ),
       decoration: BoxDecoration(
-        color: context.colors.surface,
-        border: Border(top: BorderSide(color: context.colors.separatorOpaque, width: 0.5)),
+        color: isActive
+            ? activeColor.withValues(alpha: 0.15)
+            : context.colors.surfaceSecondary,
+        borderRadius: BorderRadius.circular(Responsive.s(context, 16)),
+        border: isActive
+            ? Border.all(color: activeColor.withValues(alpha: 0.4), width: 1)
+            : null,
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // 左侧：记账按钮（长按语音）
-          GestureDetector(
-            onLongPressStart: (_) => _onVoiceStart(),
-            onTap: widget.onManualEntry,
-            child: Container(
-              width: Responsive.s(context, 40),
-              height: Responsive.s(context, 40),
-              decoration: BoxDecoration(
-                color: context.colors.primarySurface,
-                borderRadius: BorderRadius.circular(Responsive.s(context, 20)),
-              ),
-              child: Center(
-                child: Text('📝', style: TextStyle(fontSize: Responsive.fs(context, 18))),
-              ),
-            ),
-          ),
-          SizedBox(width: Responsive.s(context, 8)),
-          // 中间：文本输入框
-          Expanded(
-            child: Container(
-              height: Responsive.s(context, 40),
-              decoration: BoxDecoration(
-                color: context.colors.surfaceSecondary,
-                borderRadius: BorderRadius.circular(Responsive.s(context, 20)),
-              ),
-              child: Row(
-                children: [
-                  SizedBox(width: Responsive.s(context, 14)),
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      focusNode: _focusNode,
-                      style: context.textStyles.body.copyWith(fontSize: Responsive.fs(context, 14)),
-                      decoration: InputDecoration(
-                        hintText: l10n.chatInputTextHint,
-                        hintStyle: context.textStyles.footnote.copyWith(
-                          color: context.colors.textTertiary,
-                        ),
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: Responsive.s(context, 10),
-                        ),
-                      ),
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => _handleSubmit(),
-                    ),
-                  ),
-                  if (_controller.text.isNotEmpty)
-                    GestureDetector(
-                      onTap: () {
-                        _controller.clear();
-                        setState(() {});
-                      },
-                      child: Padding(
-                        padding: EdgeInsets.only(right: Responsive.s(context, 8)),
-                        child: Icon(Icons.cancel, size: 16, color: context.colors.textTertiary),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-          SizedBox(width: Responsive.s(context, 8)),
-          // 右侧：拍照按钮
-          GestureDetector(
-            onTap: _showImageSourceSheet,
-            child: Container(
-              width: Responsive.s(context, 40),
-              height: Responsive.s(context, 40),
-              decoration: BoxDecoration(
-                color: context.colors.surfaceSecondary,
-                borderRadius: BorderRadius.circular(Responsive.s(context, 20)),
-              ),
-              child: Center(
-                child: Icon(Icons.camera_alt, size: 20, color: context.colors.textSecondary),
-              ),
+          Icon(icon, size: 14, color: isActive ? activeColor : context.colors.textTertiary),
+          SizedBox(width: Responsive.s(context, 4)),
+          Text(
+            label,
+            style: context.textStyles.caption.copyWith(
+              color: isActive ? activeColor : context.colors.textTertiary,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+              fontSize: 11,
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ==================== 平台 STT 实时转写覆盖层 ====================
-
-enum _PlatformSttAction { submit, cancel }
-
-class _PlatformSttResult {
-  final _PlatformSttAction action;
-  final String? text;
-  const _PlatformSttResult({required this.action, this.text});
-}
-
-/// 平台 STT 实时转写覆盖层
-///
-/// 长按触发后弹出，实时显示转写文字。
-/// 手势：左滑取消，松开（默认）提交转写文字。
-class _PlatformSttOverlay extends StatefulWidget {
-  final PlatformSttService sttService;
-  const _PlatformSttOverlay({required this.sttService});
-
-  @override
-  State<_PlatformSttOverlay> createState() => _PlatformSttOverlayState();
-}
-
-class _PlatformSttOverlayState extends State<_PlatformSttOverlay> {
-  String _partialText = '';
-  bool _isCancelled = false;
-  Offset _dragStart = Offset.zero;
-  Offset _dragOffset = Offset.zero;
-
-  static const double _cancelThreshold = -80.0;
-
-  @override
-  void initState() {
-    super.initState();
-    widget.sttService.partialTextStream.listen((text) {
-      if (mounted && !_isCancelled) {
-        setState(() => _partialText = text);
-      }
-    });
-  }
-
-  void _onPanStart(DragStartDetails details) {
-    _dragStart = details.globalPosition;
-  }
-
-  void _onPanUpdate(DragUpdateDetails details) {
-    _dragOffset = details.globalPosition - _dragStart;
-    setState(() {});
-    if (_dragOffset.dx < _cancelThreshold) {
-      if (!_isCancelled) {
-        HapticFeedback.heavyImpact();
-        setState(() => _isCancelled = true);
-      }
-    } else if (_isCancelled) {
-      setState(() => _isCancelled = false);
-    }
-  }
-
-  Future<void> _onPanEnd(DragEndDetails details) async {
-    if (_isCancelled) {
-      Navigator.of(context).pop(const _PlatformSttResult(action: _PlatformSttAction.cancel));
-      return;
-    }
-
-    final text = _partialText.trim();
-    if (text.isEmpty) {
-      AppToast.show(context, AppLocalizations.of(context)!.chatInputRecordShort, duration: const Duration(milliseconds: 800));
-      Navigator.of(context).pop(const _PlatformSttResult(action: _PlatformSttAction.cancel));
-      return;
-    }
-
-    HapticFeedback.lightImpact();
-    Navigator.of(context).pop(_PlatformSttResult(
-      action: _PlatformSttAction.submit,
-      text: text,
-    ));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onPanStart: _onPanStart,
-      onPanUpdate: _onPanUpdate,
-      onPanEnd: _onPanEnd,
-      child: Container(
-        color: Colors.black54,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            // 中央转写弹窗
-            Container(
-              margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.25),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              constraints: const BoxConstraints(minWidth: 160, minHeight: 80, maxWidth: 300),
-              decoration: BoxDecoration(
-                color: _isCancelled
-                    ? Colors.red.withValues(alpha: 0.9)
-                    : const Color(0xFF2D2D2D).withValues(alpha: 0.9),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        _isCancelled ? Icons.close : Icons.mic,
-                        size: 20,
-                        color: _isCancelled ? Colors.white : Colors.green,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        _isCancelled
-                            ? AppLocalizations.of(context)!.voiceOverlayCancelLabel
-                            : AppLocalizations.of(context)!.chatInputListening,
-                        style: const TextStyle(color: Colors.white70, fontSize: 14),
-                      ),
-                    ],
-                  ),
-                  if (_partialText.isNotEmpty && !_isCancelled) ...[
-                    const SizedBox(height: 10),
-                    Text(
-                      _partialText,
-                      style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            // 底部提示
-            Padding(
-              padding: const EdgeInsets.only(bottom: 40),
-              child: Text(
-                AppLocalizations.of(context)!.voiceOverlaySwipeHint,
-                style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 12),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
