@@ -367,35 +367,15 @@ class _ModelManagementPage extends StatefulWidget {
 }
 
 class _ModelManagementPageState extends State<_ModelManagementPage> {
-  List<LlmProvider> _providers = [];
-  String? _activeId;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    final providers = await LlmConfigManager.loadProviders();
-    final activeId = await LlmConfigManager.getActiveProviderId();
-    if (mounted) {
-      setState(() {
-        _providers = providers;
-        _activeId = activeId;
-        _isLoading = false;
-      });
-    }
-  }
-
-  LlmProvider? get _activeProvider {
-    if (_activeId == null) return null;
-    try {
-      return _providers.firstWhere((p) => p.id == _activeId);
-    } catch (_) {
-      return null;
-    }
+    // Trigger initial build after frame; cards use FutureBuilder internally
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() => _isLoading = false);
+    });
   }
 
   void _openCapabilityConfig(ModelCapability cap) async {
@@ -403,7 +383,8 @@ class _ModelManagementPageState extends State<_ModelManagementPage> {
       context,
       MaterialPageRoute(builder: (_) => _CapabilityConfigPage(capability: cap)),
     );
-    _load();
+    // Force rebuild so FutureBuilder re-resolves each capability
+    setState(() {});
   }
 
   @override
@@ -427,70 +408,83 @@ class _ModelManagementPageState extends State<_ModelManagementPage> {
   }
 
   Widget _buildCapabilityCard(ModelCapability cap, AppLocalizations l10n) {
-    final active = _activeProvider;
-    final modelName = active?.getModelForCapability(cap);
+    return FutureBuilder<(LlmProvider?, String?)>(
+      future: LlmConfigManager.resolveCapabilityConfig(cap),
+      builder: (context, snapshot) {
+        final (provider, modelName) = snapshot.data ?? (null, null);
+        final providerName = provider?.name ?? '';
+        final hasConfig = modelName != null && modelName.isNotEmpty;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: context.colors.surface,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-      ),
-      child: InkWell(
-        onTap: () => _openCapabilityConfig(cap),
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                width: 44, height: 44,
-                decoration: BoxDecoration(
-                  color: context.colors.primarySurface,
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-                ),
-                child: Center(child: Text(cap.emoji, style: const TextStyle(fontSize: 22))),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(cap.getLocalizedLabel(l10n), style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 2),
-                    if (modelName != null && modelName.isNotEmpty)
-                      Text('${active!.name} · $modelName',
-                        style: AppTextStyles.caption.copyWith(color: context.colors.primary),
-                        overflow: TextOverflow.ellipsis,
-                      )
-                    else
-                      Text(l10n.llmNotConfigured,
-                        style: AppTextStyles.caption.copyWith(color: context.colors.textTertiary)),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: (modelName != null && modelName.isNotEmpty)
-                      ? context.colors.success.withValues(alpha: 0.1)
-                      : context.colors.warning.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  (modelName != null && modelName.isNotEmpty) ? l10n.llmConfigured : l10n.llmNotConfigured,
-                  style: AppTextStyles.caption.copyWith(
-                    color: (modelName != null && modelName.isNotEmpty) ? context.colors.success : context.colors.warning,
-                    fontSize: 11,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Icon(Icons.chevron_right, color: context.colors.textTertiary, size: 20),
-            ],
+        String subtitle;
+        if (hasConfig && providerName.isNotEmpty) {
+          subtitle = '$providerName · $modelName';
+        } else if (hasConfig) {
+          subtitle = modelName;
+        } else {
+          subtitle = l10n.llmNotConfigured;
+        }
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: context.colors.surface,
+            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
           ),
-        ),
-      ),
+          child: InkWell(
+            onTap: () => _openCapabilityConfig(cap),
+            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44, height: 44,
+                    decoration: BoxDecoration(
+                      color: context.colors.primarySurface,
+                      borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+                    ),
+                    child: Center(child: Text(cap.emoji, style: const TextStyle(fontSize: 22))),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(cap.getLocalizedLabel(l10n), style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 2),
+                        Text(subtitle,
+                          style: AppTextStyles.caption.copyWith(
+                            color: hasConfig ? context.colors.primary : context.colors.textTertiary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: hasConfig
+                          ? context.colors.success.withValues(alpha: 0.1)
+                          : context.colors.warning.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      hasConfig ? l10n.llmConfigured : l10n.llmNotConfigured,
+                      style: AppTextStyles.caption.copyWith(
+                        color: hasConfig ? context.colors.success : context.colors.warning,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(Icons.chevron_right, color: context.colors.textTertiary, size: 20),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -968,11 +962,25 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
   Future<void> _selectModel(LlmProvider provider, String? model) async {
     if (model == null) return;
 
+    // 1. Save model config with providerId
     final newModels = Map<String, ModelConfig>.from(provider.models);
-    newModels[widget.capability.name] = ModelConfig(modelName: model);
+    newModels[widget.capability.name] = ModelConfig(
+      modelName: model,
+      providerId: provider.id,
+    );
 
     final updated = provider.copyWith(models: newModels);
     await LlmConfigManager.updateProvider(updated);
+
+    // 2. Clean up old providers' capability config
+    for (final p in _providers) {
+      if (p.id == provider.id) continue;
+      if (p.models.containsKey(widget.capability.name)) {
+        final cleaned = Map<String, ModelConfig>.from(p.models);
+        cleaned.remove(widget.capability.name);
+        await LlmConfigManager.updateProvider(p.copyWith(models: cleaned));
+      }
+    }
 
     if (mounted) {
       setState(() {
@@ -980,8 +988,17 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
         // 更新本地 provider 列表
         final idx = _providers.indexWhere((p) => p.id == provider.id);
         if (idx != -1) _providers[idx] = updated;
+        // Remove capability from other providers in local state
+        for (var i = 0; i < _providers.length; i++) {
+          if (_providers[i].id != provider.id &&
+              _providers[i].models.containsKey(widget.capability.name)) {
+            final cleaned = Map<String, ModelConfig>.from(_providers[i].models);
+            cleaned.remove(widget.capability.name);
+            _providers[i] = _providers[i].copyWith(models: cleaned);
+          }
+        }
       });
-      AppToast.show(context, AppLocalizations.of(context)!.llmModelSet(widget.capability.label, provider.name, model));
+      AppToast.show(context, AppLocalizations.of(context)!.llmModelSet(widget.capability.getLocalizedLabel(AppLocalizations.of(context)!), provider.name, model));
     }
   }
 
