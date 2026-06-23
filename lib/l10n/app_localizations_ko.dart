@@ -2670,4 +2670,13 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get llmModelManagement => '모델 관리';
+
+  @override
+  String get llmSelectProvider => '공급자 선택';
+
+  @override
+  String get llmSelectModel => '모델 선택';
+
+  @override
+  String get llmProviderIncomplete => '미설정';
 }

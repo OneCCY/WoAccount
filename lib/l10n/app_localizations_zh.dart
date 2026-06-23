@@ -2657,6 +2657,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get llmModelManagement => '模型管理';
+
+  @override
+  String get llmSelectProvider => '选择服务商';
+
+  @override
+  String get llmSelectModel => '选择模型';
+
+  @override
+  String get llmProviderIncomplete => '未配置完整';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -5296,4 +5305,13 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get llmModelManagement => '模型管理';
+
+  @override
+  String get llmSelectProvider => '選擇服務商';
+
+  @override
+  String get llmSelectModel => '選擇模型';
+
+  @override
+  String get llmProviderIncomplete => '未配置完整';
 }

@@ -929,5 +929,8 @@
   "searchKeywordPlaceholder": "説明・メモ・金額を検索...",
   "searchParsingFailed": "AI解析失敗",
   "llmSupplierManagement": "サプライヤー管理",
-  "llmModelManagement": "モデル管理"
+  "llmModelManagement": "モデル管理",
+  "llmSelectProvider": "プロバイダー選択",
+  "llmSelectModel": "モデル選択",
+  "llmProviderIncomplete": "未設定"
 }

@@ -5087,6 +5087,24 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'模型管理'**
   String get llmModelManagement;
+
+  /// No description provided for @llmSelectProvider.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择服务商'**
+  String get llmSelectProvider;
+
+  /// No description provided for @llmSelectModel.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择模型'**
+  String get llmSelectModel;
+
+  /// No description provided for @llmProviderIncomplete.
+  ///
+  /// In zh, this message translates to:
+  /// **'未配置完整'**
+  String get llmProviderIncomplete;
 }
 
 class _AppLocalizationsDelegate

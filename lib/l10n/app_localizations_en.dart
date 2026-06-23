@@ -2713,4 +2713,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get llmModelManagement => 'Model Management';
+
+  @override
+  String get llmSelectProvider => 'Select Provider';
+
+  @override
+  String get llmSelectModel => 'Select Model';
+
+  @override
+  String get llmProviderIncomplete => 'Not configured';
 }

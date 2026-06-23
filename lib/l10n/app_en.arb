@@ -939,5 +939,8 @@
   "searchKeywordPlaceholder": "Search description, notes, amount...",
   "searchParsingFailed": "AI parsing failed",
   "llmSupplierManagement": "Supplier Management",
-  "llmModelManagement": "Model Management"
+  "llmModelManagement": "Model Management",
+  "llmSelectProvider": "Select Provider",
+  "llmSelectModel": "Select Model",
+  "llmProviderIncomplete": "Not configured"
 }

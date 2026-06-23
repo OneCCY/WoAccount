@@ -929,5 +929,8 @@
   "searchKeywordPlaceholder": "설명, 메모, 금액 검색...",
   "searchParsingFailed": "AI 분석 실패",
   "llmSupplierManagement": "공급업체 관리",
-  "llmModelManagement": "모델 관리"
+  "llmModelManagement": "모델 관리",
+  "llmSelectProvider": "공급자 선택",
+  "llmSelectModel": "모델 선택",
+  "llmProviderIncomplete": "미설정"
 }

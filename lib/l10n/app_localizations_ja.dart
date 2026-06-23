@@ -2662,4 +2662,13 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get llmModelManagement => 'モデル管理';
+
+  @override
+  String get llmSelectProvider => 'プロバイダー選択';
+
+  @override
+  String get llmSelectModel => 'モデル選択';
+
+  @override
+  String get llmProviderIncomplete => '未設定';
 }
