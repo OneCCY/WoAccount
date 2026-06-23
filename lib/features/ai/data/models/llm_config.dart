@@ -75,13 +75,19 @@ enum ModelCapability {
 
 class ModelConfig {
   final String modelName;
+  final String? providerId;
 
-  const ModelConfig({required this.modelName});
+  const ModelConfig({required this.modelName, this.providerId});
 
-  Map<String, dynamic> toJson() => {'modelName': modelName};
+  Map<String, dynamic> toJson() => {
+        'modelName': modelName,
+        if (providerId != null) 'providerId': providerId,
+      };
 
-  factory ModelConfig.fromJson(Map<String, dynamic> json) =>
-      ModelConfig(modelName: json['modelName'] as String? ?? '');
+  factory ModelConfig.fromJson(Map<String, dynamic> json) => ModelConfig(
+        modelName: json['modelName'] as String? ?? '',
+        providerId: json['providerId'] as String?,
+      );
 }
 
 // ============================================================
@@ -286,6 +292,42 @@ class LlmConfigManager {
     if (activeId == id && providers.isNotEmpty) {
       await setActiveProviderId(providers.first.id);
     }
+  }
+
+  /// Resolve the provider for a given capability.
+  ///
+  /// Priority: ModelConfig.providerId > active provider (fallback for old data).
+  static Future<LlmProvider?> resolveProviderForCapability(
+    ModelCapability capability,
+  ) async {
+    final providers = await loadProviders();
+    for (final p in providers) {
+      final model = p.models[capability.name];
+      if (model != null && model.providerId != null && model.modelName.isNotEmpty) {
+        final target = providers.where((x) => x.id == model.providerId).firstOrNull;
+        if (target != null && target.isComplete) return target;
+      }
+    }
+    return await getActiveProvider();
+  }
+
+  /// Resolve the provider and model name for a capability.
+  static Future<(LlmProvider?, String?)> resolveCapabilityConfig(
+    ModelCapability capability,
+  ) async {
+    final providers = await loadProviders();
+    for (final p in providers) {
+      final model = p.models[capability.name];
+      if (model != null && model.providerId != null && model.modelName.isNotEmpty) {
+        final target = providers.where((x) => x.id == model.providerId).firstOrNull;
+        if (target != null && target.isComplete) {
+          return (target, model.modelName);
+        }
+      }
+    }
+    final active = await getActiveProvider();
+    final modelName = active?.getModelForCapability(capability);
+    return (active, modelName);
   }
 
   static Future<String> exportConfig() async {
