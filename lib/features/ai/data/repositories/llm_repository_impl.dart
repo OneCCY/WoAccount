@@ -32,8 +32,8 @@ class LlmRepositoryImpl implements LlmRepository {
   }
 
   @override
-  Future<LlmResponse> chat(LlmRequest request) async {
-    final provider = await LlmConfigManager.getActiveProvider();
+  Future<LlmResponse> chat(LlmRequest request, {LlmProvider? provider}) async {
+    provider ??= await LlmConfigManager.getActiveProvider();
 
     if (provider == null || !provider.isComplete) {
       throw const LlmException('请先在设置中添加并配置 AI 服务商', errorCode: 'llmErrorNoProviderConfigured');
@@ -188,6 +188,7 @@ class LlmRepositoryImpl implements LlmRepository {
   @override
   Future<List<TransactionParseResult>> parseTransaction(
     String input, {
+    LlmProvider? provider,
     String? categoryTaxonomy,
     String locale = 'zh',
     String? fewShotExamples,
@@ -198,7 +199,7 @@ class LlmRepositoryImpl implements LlmRepository {
 
     // 降级策略：先尝试 LLM，失败后用规则引擎
     try {
-      final provider = await LlmConfigManager.getActiveProvider();
+      provider ??= await LlmConfigManager.resolveProviderForCapability(ModelCapability.text);
       if (provider == null || !provider.isComplete) {
         // 未配置 LLM，直接用规则引擎
         final ruleResult = RuleEngine.parse(sanitizedInput);
@@ -224,7 +225,7 @@ class LlmRepositoryImpl implements LlmRepository {
         capability: ModelCapability.text,
         structuredOutput: true,
         jsonSchema: _transactionJsonSchema,
-      ));
+      ), provider: provider);
 
       final results = _parseTransactionResponse(response.content);
 

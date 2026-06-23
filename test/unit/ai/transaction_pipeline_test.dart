@@ -145,7 +145,6 @@ void main() {
 
         final result = await pipeline.processImage(
           imageTempPath: '/tmp/photo.jpg',
-          provider: testProvider,
         );
 
         expect(result.source, InputSource.image);
@@ -180,6 +179,7 @@ class FakeLlmRepository implements LlmRepository {
   @override
   Future<List<TransactionParseResult>> parseTransaction(
     String input, {
+    LlmProvider? provider,
     String? categoryTaxonomy,
     String locale = 'zh',
     String? fewShotExamples,

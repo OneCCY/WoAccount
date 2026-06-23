@@ -100,52 +100,24 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   /// 语音录制完成回调
   Future<void> _handleVoiceRecorded(VoiceEndAction action, String filePath, String? platformText) async {
-    final llmRepo = ref.read(llmRepositoryProvider);
-    final provider = await llmRepo.getActiveProvider();
-    if (!mounted) return;
-    if (provider == null || !provider.isComplete) {
-      _showSnackBar(AppLocalizations.of(context)!.homePageAiNotConfigured);
-      return;
-    }
-
     final orchestrator = ref.read(voiceTranscriptionOrchestratorProvider);
     final pipeline = ref.read(transactionPipelineProvider);
 
-    if (action == VoiceEndAction.transcribeOnly) {
-      // 仅转文字，填入输入框
-      try {
-        setState(() => _isLoading = true);
+    try {
+      setState(() => _isLoading = true);
 
-        final transcription = await orchestrator.transcribe(
-          audioPath: filePath,
-          platformText: platformText,
-          provider: provider,
-        );
-        if (!mounted) return;
+      final transcription = await orchestrator.transcribe(
+        audioPath: filePath,
+        platformText: platformText,
+      );
+      if (!mounted) return;
 
+      if (action == VoiceEndAction.transcribeOnly) {
         _inputController.text = transcription.mergedText;
         _inputController.selection = TextSelection.fromPosition(
           TextPosition(offset: transcription.mergedText.length),
         );
-      } catch (e) {
-        if (!mounted) return;
-        _showSnackBar(AppLocalizations.of(context)!.homePageRecordFailed(resolveLlmError(e, AppLocalizations.of(context)!)));
-      } finally {
-        if (mounted) setState(() => _isLoading = false);
-      }
-    } else {
-      // 完整管线：语音→转写→AI解析→确认卡片
-      try {
-        setState(() => _isLoading = true);
-
-        // 双引擎转写
-        final transcription = await orchestrator.transcribe(
-          audioPath: filePath,
-          platformText: platformText,
-          provider: provider,
-        );
-        if (!mounted) return;
-
+      } else {
         final categoryTaxonomy = await _buildCategoryTaxonomy();
         final result = await pipeline.processVoiceResult(
           transcription: transcription,
@@ -154,12 +126,12 @@ class _HomePageState extends ConsumerState<HomePage> {
         if (!mounted) return;
 
         await _showConfirmForResult(result);
-      } catch (e) {
-        if (!mounted) return;
-        _showSnackBar(AppLocalizations.of(context)!.homePageRecordFailed(resolveLlmError(e, AppLocalizations.of(context)!)));
-      } finally {
-        if (mounted) setState(() => _isLoading = false);
       }
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackBar(AppLocalizations.of(context)!.homePageRecordFailed(resolveLlmError(e, AppLocalizations.of(context)!)));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

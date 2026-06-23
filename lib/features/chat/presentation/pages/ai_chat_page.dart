@@ -286,12 +286,6 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
 
     // 2. 通过统一管线处理
     try {
-      final provider = await ref.read(llmRepositoryProvider).getActiveProvider();
-      if (!mounted) return;
-      if (provider == null || !provider.isComplete) {
-        throw LlmException(AppLocalizations.of(context)!.chatPageConfigAiError);
-      }
-
       // 动态构建用户分类体系
       final categoryTaxonomy = await _buildCategoryTaxonomy();
       final locale = Localizations.localeOf(context).languageCode;
@@ -307,7 +301,6 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
         case InputSource.image:
           result = await _pipeline.processImage(
             imageTempPath: imagePath!,
-            provider: provider,
             categoryTaxonomy: categoryTaxonomy,
             locale: locale,
             bookId: _bookId,

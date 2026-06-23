@@ -38,33 +38,20 @@ class _MainShellState extends ConsumerState<MainShell> {
 
   Future<void> _handleVoiceResult(BuildContext context, VoiceResult result) async {
     if (result.action == VoiceResultAction.cancel) return;
-
-    final provider = await ref.read(llmRepositoryProvider).getActiveProvider();
-    if (!context.mounted) return;
-
-    if (provider == null || !provider.isComplete) {
-      AppToast.show(context, AppLocalizations.of(context)!.homePageAiNotConfigured);
-      return;
-    }
+    if (result.filePath == null) return;
 
     final orchestrator = ref.read(voiceTranscriptionOrchestratorProvider);
 
-    if (result.filePath == null) return;
-
     try {
-      // 双引擎转写
       final transcription = await orchestrator.transcribe(
         audioPath: result.filePath!,
         platformText: result.platformText,
-        provider: provider,
       );
       if (!context.mounted) return;
 
       if (result.action == VoiceResultAction.transcribe) {
-        // 仅转文字
         context.go('/', extra: {'transcribedText': transcription.mergedText});
       } else {
-        // 完整管线：传转写结果到首页处理
         context.go('/', extra: {'transcription': transcription});
       }
     } catch (e) {

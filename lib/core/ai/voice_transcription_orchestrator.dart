@@ -73,12 +73,15 @@ class VoiceTranscriptionOrchestrator {
   ///
   /// [audioPath] 录音文件路径
   /// [platformText] PlatformSttService 的实时识别结果（可能为 null）
-  /// [provider] 当前 LLM 服务商配置
   Future<DualTranscriptionResult> transcribe({
     required String audioPath,
     String? platformText,
-    required LlmProvider provider,
   }) async {
+    // 解析 audio 能力对应的 provider
+    final provider = await LlmConfigManager.resolveProviderForCapability(
+      ModelCapability.audio,
+    );
+
     // 1. 保存音频到永久存储
     String? savedPath;
     try {
@@ -90,7 +93,7 @@ class VoiceTranscriptionOrchestrator {
     // 2. 检测引擎可用性
     final hasPlatform =
         platformText != null && platformText.trim().isNotEmpty;
-    final hasWhisper =
+    final hasWhisper = provider != null && provider.isComplete &&
         provider.getModelForCapability(ModelCapability.audio) != null;
 
     if (!hasPlatform && !hasWhisper) {
@@ -111,7 +114,7 @@ class VoiceTranscriptionOrchestrator {
     // 4. Whisper 引擎（单引擎或双引擎）
     String? whisperText;
     try {
-      whisperText = await _whisperService.transcribe(provider, savedPath ?? audioPath);
+      whisperText = await _whisperService.transcribe(provider!, savedPath ?? audioPath);
     } catch (e) {
       // Whisper 失败时，如果 Platform 有结果则降级
       if (hasPlatform) {

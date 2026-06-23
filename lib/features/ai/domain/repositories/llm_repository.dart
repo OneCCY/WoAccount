@@ -6,7 +6,7 @@ abstract class LlmRepository {
   Future<LlmProvider?> getActiveProvider();
 
   /// 发送聊天请求
-  Future<LlmResponse> chat(LlmRequest request);
+  Future<LlmResponse> chat(LlmRequest request, {LlmProvider? provider});
 
   /// 解析记账输入（带降级策略：LLM → 规则引擎）
   /// 返回列表支持多笔交易（如 "吃饭24，洗衣服34"）
@@ -16,6 +16,7 @@ abstract class LlmRepository {
   /// [similarTransactions] 相似历史交易文本（RAG 检索结果）
   Future<List<TransactionParseResult>> parseTransaction(
     String input, {
+    LlmProvider? provider,
     String? categoryTaxonomy,
     String locale = 'zh',
     String? fewShotExamples,

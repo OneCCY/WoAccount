@@ -94,8 +94,14 @@ class TransactionPipeline {
     // [RAG + Episodic Memory] 构建增强上下文
     final context = await _buildEnrichedContext(resolvedText, bookId);
 
+    // 解析 text 能力对应的 provider
+    final provider = await LlmConfigManager.resolveProviderForCapability(
+      ModelCapability.text,
+    );
+
     final results = await _llmRepo.parseTransaction(
       resolvedText,
+      provider: provider,
       categoryTaxonomy: categoryTaxonomy,
       locale: locale,
       fewShotExamples: context.fewShotExamples,
@@ -143,9 +149,15 @@ class TransactionPipeline {
     final resolvedText = await _resolveReference(inputForLlm, bookId);
     final context = await _buildEnrichedContext(resolvedText, bookId);
 
+    // 解析 text 能力对应的 provider
+    final provider = await LlmConfigManager.resolveProviderForCapability(
+      ModelCapability.text,
+    );
+
     // 用文本走 AI 记账解析（带增强上下文）
     final results = await _llmRepo.parseTransaction(
       resolvedText,
+      provider: provider,
       categoryTaxonomy: categoryTaxonomy,
       locale: locale,
       fewShotExamples: context.fewShotExamples,
@@ -173,14 +185,20 @@ class TransactionPipeline {
   /// 处理图片输入
   ///
   /// [imageTempPath] 图片临时文件路径
-  /// [provider] 当前 LLM 服务商配置
   Future<PipelineResult> processImage({
     required String imageTempPath,
-    required LlmProvider provider,
     String? categoryTaxonomy,
     String locale = 'zh',
     int? bookId,
   }) async {
+    // 解析 vision 能力对应的 provider
+    final provider = await LlmConfigManager.resolveProviderForCapability(
+      ModelCapability.vision,
+    );
+    if (provider == null || !provider.isComplete) {
+      throw const LlmException('No vision provider configured', errorCode: 'llmErrorNoProviderOrInput');
+    }
+
     // 1. 保存图片到永久存储
     final savedPath = await _mediaStorage.saveImageFile(imageTempPath);
 
@@ -194,9 +212,15 @@ class TransactionPipeline {
       throw const LlmException('图片识别结果为空，请选择更清晰的图片', errorCode: 'pipelineErrorEmptyImageResult');
     }
 
+    // 解析 text 能力对应的 provider（可能与 vision 不同）
+    final textProvider = await LlmConfigManager.resolveProviderForCapability(
+      ModelCapability.text,
+    );
+
     // 3. 用识别文本走 AI 记账解析
     final results = await _llmRepo.parseTransaction(
       recognizedText,
+      provider: textProvider,
       categoryTaxonomy: categoryTaxonomy,
       locale: locale,
     );
