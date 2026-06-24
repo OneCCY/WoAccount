@@ -352,6 +352,8 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
         initialName: cat.name,
         initialIcon: cat.icon ?? '📦',
         initialColor: cat.color,
+        editCategoryId: cat.id,
+        onDelete: () => catRepo.delete(cat.id),
       ),
     );
 
@@ -514,6 +516,8 @@ class _AddCategorySheetContent extends StatefulWidget {
   final String? initialName;
   final String? initialIcon;
   final String? initialColor;
+  final int? editCategoryId; // non-null = edit mode
+  final VoidCallback? onDelete;
 
   const _AddCategorySheetContent({
     required this.isSub,
@@ -524,6 +528,8 @@ class _AddCategorySheetContent extends StatefulWidget {
     this.initialName,
     this.initialIcon,
     this.initialColor,
+    this.editCategoryId,
+    this.onDelete,
   });
 
   @override
@@ -580,16 +586,35 @@ class _AddCategorySheetContentState extends State<_AddCategorySheetContent> {
                   child: Text(l10n.commonCancel, style: context.textStyles.body.copyWith(color: context.colors.textSecondary)),
                 ),
                 Text(
-                  widget.isSub ? l10n.catManageAddSubTitle(widget.parentName) : l10n.catManageAddTitle(l10n.catManageCustom),
+                  widget.editCategoryId != null
+                      ? l10n.commonEditCategory
+                      : (widget.isSub ? l10n.catManageAddSubTitle(widget.parentName) : l10n.catManageAddTitle(l10n.catManageCustom)),
                   style: context.textStyles.footnote.copyWith(fontWeight: FontWeight.w600),
                 ),
-                TextButton(
-                  onPressed: () {
-                    final name = _nameController.text.trim();
-                    if (name.isEmpty) return;
-                    Navigator.of(context).pop((name, _selectedIcon, _selectedColor));
-                  },
-                  child: Text(l10n.commonAdd, style: context.textStyles.body.copyWith(color: context.colors.primary, fontWeight: FontWeight.w600)),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 删除按钮（编辑模式才显示）
+                    if (widget.editCategoryId != null && widget.onDelete != null)
+                      TextButton(
+                        onPressed: () {
+                          widget.onDelete!();
+                          Navigator.of(context).pop();
+                        },
+                        child: Text(l10n.commonDelete, style: context.textStyles.body.copyWith(color: context.colors.error)),
+                      ),
+                    TextButton(
+                      onPressed: () {
+                        final name = _nameController.text.trim();
+                        if (name.isEmpty) return;
+                        Navigator.of(context).pop((name, _selectedIcon, _selectedColor));
+                      },
+                      child: Text(
+                        widget.editCategoryId != null ? l10n.commonSave : l10n.commonAdd,
+                        style: context.textStyles.body.copyWith(color: context.colors.primary, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
