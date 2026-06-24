@@ -348,9 +348,14 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
             return;
           }
 
-          await _catRepo.update(cat.toCompanion(false).copyWith(
+          await _catRepo.update(CategoriesCompanion(
+            id: Value(cat.id),
             name: Value(name),
             icon: Value(icon),
+            color: Value(cat.color),
+            isExpense: Value(cat.isExpense),
+            level: Value(cat.level),
+            sortOrder: Value(cat.sortOrder),
           ));
         },
       ),
