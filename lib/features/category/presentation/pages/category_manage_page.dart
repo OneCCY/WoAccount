@@ -26,7 +26,6 @@ class CategoryManagePage extends ConsumerStatefulWidget {
 class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
   CategoryManageType _type = CategoryManageType.expense;
   Category? _selectedParent;
-  bool _isEditMode = false;
   late final CategoryRepository _catRepo;
 
   @override
@@ -45,34 +44,13 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
         leading: _selectedParent != null
             ? IconButton(
                 icon: const Icon(Icons.arrow_back),
-                onPressed: () => setState(() {
-                  _selectedParent = null;
-                  _isEditMode = false; // BUG-9 修复：返回时退出编辑模式
-                }),
+                onPressed: () => setState(() => _selectedParent = null),
               )
             : null,
-        actions: [
-          IconButton(
-            icon: Icon(_isEditMode ? Icons.check : Icons.edit_outlined),
-            onPressed: () => setState(() => _isEditMode = !_isEditMode),
-          ),
-        ],
       ),
       body: _selectedParent != null
           ? _buildSubCategoryList()
           : _buildCategoryView(),
-      bottomNavigationBar: _isEditMode
-          ? Container(
-              padding: const EdgeInsets.all(AppDimensions.md),
-              color: context.colors.surface,
-              child: SafeArea(
-                child: ElevatedButton(
-                  onPressed: () => setState(() => _isEditMode = false),
-                  child: Text(l10n.commonDone),
-                ),
-              ),
-            )
-          : null,
     );
   }
 
@@ -80,9 +58,7 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
   Widget _buildCategoryView() {
     return Column(
       children: [
-        // 类型切换
-        if (!_isEditMode) _buildTypeTabs(),
-        // 分类网格
+        _buildTypeTabs(),
         Expanded(child: _buildCategoryGrid()),
       ],
     );
@@ -151,17 +127,9 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
               final cat = categories[index];
               return _CategoryGridItem(
                 category: cat,
-                isEditMode: _isEditMode,
-                onTap: () {
-                  if (_isEditMode) return;
-                  setState(() => _selectedParent = cat);
-                },
-                // BUG-8 修复：长按编辑用户自定义分类
+                onTap: () => setState(() => _selectedParent = cat),
                 onLongPress: !cat.isSystem
                     ? () => _onEditCategory(cat)
-                    : null,
-                onDelete: _isEditMode && !cat.isSystem
-                    ? () => _onDeleteCategory(cat)
                     : null,
               );
             },
@@ -212,9 +180,8 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
           children: [
             ...children.map((sub) => _SubCategoryListItem(
                   category: sub,
-                  isEditMode: _isEditMode,
-                  onDelete: _isEditMode && !sub.isSystem
-                      ? () => _onDeleteCategory(sub)
+                  onLongPress: !sub.isSystem
+                      ? () => _onEditCategory(sub)
                       : null,
                 )),
             // 添加子分类按钮
@@ -330,8 +297,8 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
     );
   }
 
-  // BUG-8 修复：编辑分类功能
   void _onEditCategory(Category cat) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -339,15 +306,13 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
       builder: (ctx) => _EditCategorySheet(
         category: cat,
         onConfirm: (name, icon) async {
-          // 检查重名（排除自身）
           final existing = await _catRepo.getByName(name);
           if (existing != null && existing.id != cat.id) {
             if (mounted) {
-              AppToast.show(context, AppLocalizations.of(context)!.catManageNameExists, duration: const Duration(milliseconds: 800));
+              AppToast.show(context, l10n.catManageNameExists, duration: const Duration(milliseconds: 800));
             }
             return;
           }
-
           await _catRepo.update(CategoriesCompanion(
             id: Value(cat.id),
             name: Value(name),
@@ -358,42 +323,18 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
             sortOrder: Value(cat.sortOrder),
           ));
         },
-      ),
-    );
-  }
-
-  void _onDeleteCategory(Category cat) {
-    final l10n = AppLocalizations.of(context)!;
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.catManageDeleteTitle),
-        content: Text(cat.level == 1
-            ? l10n.catManageDeleteWithChildren(getCategoryDisplayName(cat, l10n))
-            : l10n.catManageDeleteConfirm(getCategoryDisplayName(cat, l10n))),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(l10n.commonCancel),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.of(ctx).pop();
-              // BUG-2 修复：有子分类时使用级联删除
-              final children = await _catRepo.getChildren(cat.id);
-              final bool success;
-              if (children.isNotEmpty) {
-                success = await _catRepo.deleteWithChildren(cat.id);
-              } else {
-                success = await _catRepo.delete(cat.id);
-              }
-              if (!success && mounted) {
-                AppToast.show(context, l10n.catManageDeleteBlocked, duration: const Duration(milliseconds: 800));
-              }
-            },
-            child: Text(l10n.commonDelete, style: TextStyle(color: context.colors.error)),
-          ),
-        ],
+        onDelete: () async {
+          final children = await _catRepo.getChildren(cat.id);
+          final bool success;
+          if (children.isNotEmpty) {
+            success = await _catRepo.deleteWithChildren(cat.id);
+          } else {
+            success = await _catRepo.delete(cat.id);
+          }
+          if (!success && mounted) {
+            AppToast.show(context, l10n.catManageDeleteBlocked, duration: const Duration(milliseconds: 800));
+          }
+        },
       ),
     );
   }
@@ -402,17 +343,13 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
 /// 分类网格项
 class _CategoryGridItem extends StatelessWidget {
   final Category category;
-  final bool isEditMode;
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
-  final VoidCallback? onDelete;
 
   const _CategoryGridItem({
     required this.category,
-    required this.isEditMode,
     required this.onTap,
     this.onLongPress,
-    this.onDelete,
   });
 
   @override
@@ -456,26 +393,6 @@ class _CategoryGridItem extends StatelessWidget {
                     )),
                   ),
                 ),
-              // 删除按钮
-              if (isEditMode && onDelete != null)
-                Positioned(
-                  right: -4,
-                  top: -4,
-                  child: GestureDetector(
-                    onTap: onDelete,
-                    child: Container(
-                      width: 16,
-                      height: 16,
-                      decoration: BoxDecoration(
-                        color: context.colors.error,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Icon(Icons.close, size: 10, color: context.colors.textOnPrimary),
-                      ),
-                    ),
-                  ),
-                ),
             ],
           ),
           const SizedBox(height: 4),
@@ -501,47 +418,41 @@ class _CategoryGridItem extends StatelessWidget {
 /// 子分类列表项
 class _SubCategoryListItem extends StatelessWidget {
   final Category category;
-  final bool isEditMode;
-  final VoidCallback? onDelete;
+  final VoidCallback? onLongPress;
 
   const _SubCategoryListItem({
     required this.category,
-    required this.isEditMode,
-    this.onDelete,
+    this.onLongPress,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: context.colors.surface,
-        border: Border(bottom: BorderSide(color: context.colors.separatorOpaque, width: 0.5)),
-      ),
-      child: Row(
-        children: [
-          Text(category.icon ?? '📦', style: const TextStyle(fontSize: 20)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(getCategoryDisplayName(category, AppLocalizations.of(context)!), style: context.textStyles.body),
-          ),
-          if (!category.isSystem)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: context.colors.primarySurface,
-                borderRadius: BorderRadius.circular(4),
+    return GestureDetector(
+      onLongPress: onLongPress,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: context.colors.surface,
+          border: Border(bottom: BorderSide(color: context.colors.separatorOpaque, width: 0.5)),
+        ),
+        child: Row(
+          children: [
+            Text(category.icon ?? '📦', style: const TextStyle(fontSize: 20)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(getCategoryDisplayName(category, AppLocalizations.of(context)!), style: context.textStyles.body),
+            ),
+            if (!category.isSystem)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: context.colors.primarySurface,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(AppLocalizations.of(context)!.catManageCustom, style: context.textStyles.caption.copyWith(color: context.colors.primaryDark)),
               ),
-              child: Text(AppLocalizations.of(context)!.catManageCustom, style: context.textStyles.caption.copyWith(color: context.colors.primaryDark)),
-            ),
-          if (isEditMode && onDelete != null) ...[
-            const SizedBox(width: 8),
-            GestureDetector(
-              onTap: onDelete,
-              child: Icon(Icons.delete_outline, size: 20, color: context.colors.error),
-            ),
           ],
-        ],
+        ),
       ),
     );
   }
@@ -843,10 +754,12 @@ class _AddSubCategorySheetState extends State<_AddSubCategorySheet> {
 class _EditCategorySheet extends StatefulWidget {
   final Category category;
   final Function(String name, String icon) onConfirm;
+  final VoidCallback onDelete;
 
   const _EditCategorySheet({
     required this.category,
     required this.onConfirm,
+    required this.onDelete,
   });
 
   @override
@@ -950,6 +863,28 @@ class _EditCategorySheetState extends State<_EditCategorySheet> {
             ),
           ),
           const SizedBox(height: 20),
+          // 删除按钮
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                widget.onDelete();
+              },
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                side: BorderSide(color: context.colors.error),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+                ),
+              ),
+              child: Text(l10n.commonDelete, style: AppTextStyles.body.copyWith(
+                color: context.colors.error,
+                fontWeight: FontWeight.w600,
+              )),
+            ),
+          ),
+          const SizedBox(height: 8),
           // 保存按钮
           SizedBox(
             width: double.infinity,
