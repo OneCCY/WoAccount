@@ -321,6 +321,7 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
             isExpense: Value(cat.isExpense),
             level: Value(cat.level),
             sortOrder: Value(cat.sortOrder),
+            parentId: Value(cat.parentId),
           ));
         },
         onDelete: () async {
@@ -512,7 +513,7 @@ class _AddCategorySheetState extends State<_AddCategorySheet> {
         AppDimensions.md,
         8,
         AppDimensions.md,
-        MediaQuery.of(context).viewInsets.bottom + AppDimensions.md,
+        MediaQuery.viewInsetsOf(context).bottom + AppDimensions.md,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -544,7 +545,6 @@ class _AddCategorySheetState extends State<_AddCategorySheet> {
                 borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
               ),
             ),
-            maxLength: 20,
           ),
           const SizedBox(height: 16),
           // 图标选择标签
@@ -649,7 +649,7 @@ class _AddSubCategorySheetState extends State<_AddSubCategorySheet> {
         AppDimensions.md,
         8,
         AppDimensions.md,
-        MediaQuery.of(context).viewInsets.bottom + AppDimensions.md,
+        MediaQuery.viewInsetsOf(context).bottom + AppDimensions.md,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -795,7 +795,7 @@ class _EditCategorySheetState extends State<_EditCategorySheet> {
         AppDimensions.md,
         8,
         AppDimensions.md,
-        MediaQuery.of(context).viewInsets.bottom + AppDimensions.md,
+        MediaQuery.viewInsetsOf(context).bottom + AppDimensions.md,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -827,7 +827,6 @@ class _EditCategorySheetState extends State<_EditCategorySheet> {
                 borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
               ),
             ),
-            maxLength: 20,
           ),
           const SizedBox(height: 16),
           // 图标选择标签
@@ -863,53 +862,54 @@ class _EditCategorySheetState extends State<_EditCategorySheet> {
             ),
           ),
           const SizedBox(height: 20),
-          // 删除按钮
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                widget.onDelete();
-              },
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                side: BorderSide(color: context.colors.error),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+          // 删除 + 保存（左右布局）
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    widget.onDelete();
+                  },
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    side: BorderSide(color: context.colors.error),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+                    ),
+                  ),
+                  child: Text(l10n.commonDelete, style: AppTextStyles.body.copyWith(
+                    color: context.colors.error,
+                    fontWeight: FontWeight.w600,
+                  )),
                 ),
               ),
-              child: Text(l10n.commonDelete, style: AppTextStyles.body.copyWith(
-                color: context.colors.error,
-                fontWeight: FontWeight.w600,
-              )),
-            ),
-          ),
-          const SizedBox(height: 8),
-          // 保存按钮
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                final name = _nameController.text.trim();
-                if (name.isEmpty) {
-                  AppToast.show(context, l10n.catManageNameHint, duration: const Duration(milliseconds: 500));
-                  return;
-                }
-                Navigator.of(context).pop();
-                widget.onConfirm(name, _selectedIcon);
-              },
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                backgroundColor: context.colors.primary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    final name = _nameController.text.trim();
+                    if (name.isEmpty) {
+                      AppToast.show(context, l10n.catManageNameHint, duration: const Duration(milliseconds: 500));
+                      return;
+                    }
+                    Navigator.of(context).pop();
+                    widget.onConfirm(name, _selectedIcon);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    backgroundColor: context.colors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+                    ),
+                  ),
+                  child: Text(l10n.commonSave, style: AppTextStyles.body.copyWith(
+                    color: context.colors.textOnPrimary,
+                    fontWeight: FontWeight.w600,
+                  )),
                 ),
               ),
-              child: Text(l10n.commonSave, style: AppTextStyles.body.copyWith(
-                color: context.colors.textOnPrimary,
-                fontWeight: FontWeight.w600,
-              )),
-            ),
+            ],
           ),
         ],
       ),
