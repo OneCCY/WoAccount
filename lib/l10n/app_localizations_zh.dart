@@ -2666,6 +2666,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get llmProviderIncomplete => '未配置完整';
+
+  @override
+  String get llmNone => '不使用';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -5314,4 +5317,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get llmProviderIncomplete => '未配置完整';
+
+  @override
+  String get llmNone => '不使用';
 }

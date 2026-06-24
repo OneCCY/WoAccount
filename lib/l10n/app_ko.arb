@@ -932,5 +932,6 @@
   "llmModelManagement": "모델 관리",
   "llmSelectProvider": "공급자 선택",
   "llmSelectModel": "모델 선택",
-  "llmProviderIncomplete": "미설정"
+  "llmProviderIncomplete": "미설정",
+  "llmNone": "사용 안 함"
 }

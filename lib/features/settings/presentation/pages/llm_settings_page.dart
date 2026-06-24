@@ -502,22 +502,23 @@ class _SupplierManagementPage extends StatefulWidget {
 
 class _SupplierManagementPageState extends State<_SupplierManagementPage> {
   List<LlmProvider> _providers = [];
-  String? _activeId;
   bool _isLoading = true;
+
+  // Connection status per provider
+  final Map<String, ConnectionStatus> _connectionStatuses = {};
+  final Map<String, int?> _latencies = {};
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _load().then((_) => _checkAllConnections());
   }
 
   Future<void> _load() async {
     final providers = await LlmConfigManager.loadProviders();
-    final activeId = await LlmConfigManager.getActiveProviderId();
     if (mounted) {
       setState(() {
         _providers = providers;
-        _activeId = activeId;
         _isLoading = false;
       });
     }
@@ -572,24 +573,47 @@ class _SupplierManagementPageState extends State<_SupplierManagementPage> {
       AppToast.show(context, AppLocalizations.of(context)!.llmConfigIncomplete);
       return;
     }
-
-    showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator()));
-
-    final repo = LlmRepositoryImpl(Dio());
-    final success = await repo.testConnection(provider);
-
+    await _checkConnection(provider);
     if (mounted) {
-      Navigator.pop(context);
-      if (success) {
+      final status = _connectionStatuses[provider.id];
+      if (status == ConnectionStatus.connected) {
         AppToast.show(context, AppLocalizations.of(context)!.llmConnectSuccess);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.llmConnectFail),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: context.colors.error,
-          ),
-        );
+        AppToast.show(context, AppLocalizations.of(context)!.llmConnectFail);
+      }
+    }
+  }
+
+  Future<void> _checkAllConnections() async {
+    for (final p in _providers) {
+      if (p.isComplete) await _checkConnection(p);
+    }
+  }
+
+  Future<void> _checkConnection(LlmProvider provider) async {
+    if (!mounted) return;
+    setState(() {
+      _connectionStatuses[provider.id] = ConnectionStatus.testing;
+    });
+
+    final stopwatch = Stopwatch()..start();
+    try {
+      final repo = LlmRepositoryImpl(Dio());
+      final success = await repo.testConnection(provider);
+      stopwatch.stop();
+      if (mounted) {
+        setState(() {
+          _connectionStatuses[provider.id] = success ? ConnectionStatus.connected : ConnectionStatus.disconnected;
+          _latencies[provider.id] = success ? stopwatch.elapsedMilliseconds : null;
+        });
+      }
+    } catch (_) {
+      stopwatch.stop();
+      if (mounted) {
+        setState(() {
+          _connectionStatuses[provider.id] = ConnectionStatus.disconnected;
+          _latencies[provider.id] = null;
+        });
       }
     }
   }
@@ -697,7 +721,8 @@ class _SupplierManagementPageState extends State<_SupplierManagementPage> {
   Widget _buildProviderList(AppLocalizations l10n) {
     return Column(
       children: _providers.map((p) {
-        final isActive = p.id == _activeId;
+        final status = _connectionStatuses[p.id] ?? ConnectionStatus.unknown;
+        final latency = _latencies[p.id];
         final preset = getPresetByKey(p.providerKey);
 
         return Container(
@@ -705,7 +730,6 @@ class _SupplierManagementPageState extends State<_SupplierManagementPage> {
           decoration: BoxDecoration(
             color: context.colors.surface,
             borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-            border: isActive ? Border.all(color: context.colors.primary, width: 1.5) : null,
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -721,27 +745,8 @@ class _SupplierManagementPageState extends State<_SupplierManagementPage> {
                         style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
                       ),
                     ),
-                    if (isActive)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: context.colors.primarySurface,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(l10n.llmInUse, style: AppTextStyles.caption.copyWith(color: context.colors.primary, fontSize: 11)),
-                      ),
-                    if (!p.isComplete)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 4),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: context.colors.warning.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(l10n.llmIncomplete, style: AppTextStyles.caption.copyWith(color: context.colors.warning, fontSize: 11)),
-                        ),
-                      ),
+                    // Connection status indicator
+                    _buildStatusChip(status, latency, l10n),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -768,6 +773,36 @@ class _SupplierManagementPageState extends State<_SupplierManagementPage> {
           ),
         );
       }).toList(),
+    );
+  }
+
+  Widget _buildStatusChip(ConnectionStatus status, int? latency, AppLocalizations l10n) {
+    final isConnected = status == ConnectionStatus.connected;
+    final isTesting = status == ConnectionStatus.testing;
+    final color = isConnected ? context.colors.success : context.colors.textTertiary;
+    final label = isTesting
+        ? '...'
+        : isConnected
+            ? '${latency ?? '?'}ms'
+            : l10n.llmConnectFail;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: (isConnected ? context.colors.success : context.colors.textTertiary).withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isTesting)
+            SizedBox(width: 10, height: 10, child: CircularProgressIndicator(strokeWidth: 1.5, color: color))
+          else
+            Container(width: 8, height: 8, decoration: BoxDecoration(shape: BoxShape.circle, color: color)),
+          const SizedBox(width: 4),
+          Text(label, style: AppTextStyles.caption.copyWith(color: color, fontSize: 11)),
+        ],
+      ),
     );
   }
 
@@ -860,7 +895,7 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
     super.initState();
     _customModelCtrl = TextEditingController();
     _entries = {};
-    _load();
+    _load().then((_) => _checkAllConnections());
   }
 
   @override
@@ -1011,6 +1046,23 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
         }
       });
       AppToast.show(context, AppLocalizations.of(context)!.llmModelSet(widget.capability.getLocalizedLabel(AppLocalizations.of(context)!), provider.name, model));
+    }
+  }
+
+  Future<void> _deselectModel(LlmProvider provider) async {
+    // Remove capability from this provider
+    final newModels = Map<String, ModelConfig>.from(provider.models);
+    newModels.remove(widget.capability.name);
+    final updated = provider.copyWith(models: newModels);
+    await LlmConfigManager.updateProvider(updated);
+
+    if (mounted) {
+      setState(() {
+        final idx = _providers.indexWhere((p) => p.id == provider.id);
+        if (idx != -1) _providers[idx] = updated;
+        final entry = _entries[provider.id];
+        if (entry != null) entry.selectedModel = null;
+      });
     }
   }
 
@@ -1221,11 +1273,15 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
     final preset = getPresetByKey(provider.providerKey);
     final isSelected = provider.id == _selectedProviderId;
     final hasConfig = provider.apiKey.isNotEmpty && provider.baseUrl.isNotEmpty;
+    final entry = _entries[provider.id];
+    final isConnected = entry?.connectionStatus == ConnectionStatus.connected;
+    final isTesting = entry?.connectionStatus == ConnectionStatus.testing;
+    final canSelect = hasConfig && isConnected;
 
     return GestureDetector(
-      onTap: () {
-        setState(() => _selectedProviderId = provider.id);
-      },
+      onTap: canSelect
+          ? () => setState(() => _selectedProviderId = provider.id)
+          : null,
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -1241,10 +1297,12 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
             Icon(
               isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
               size: 20,
-              color: isSelected ? context.colors.primary : context.colors.textTertiary,
+              color: canSelect
+                  ? (isSelected ? context.colors.primary : context.colors.textTertiary)
+                  : context.colors.textHint.withValues(alpha: 0.4),
             ),
             const SizedBox(width: 10),
-            Text(preset?.icon ?? '🤖', style: const TextStyle(fontSize: 18)),
+            Text(preset?.icon ?? '🤖', style: TextStyle(fontSize: 18, color: canSelect ? null : context.colors.textHint)),
             const SizedBox(width: 8),
             Expanded(
               child: Column(
@@ -1254,16 +1312,45 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
                     provider.name.isEmpty ? l10n.llmUnnamedProvider : provider.name,
                     style: AppTextStyles.body.copyWith(
                       fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                      color: canSelect ? null : context.colors.textHint,
                     ),
                   ),
                   if (!hasConfig)
                     Text(l10n.llmProviderIncomplete, style: AppTextStyles.caption.copyWith(color: context.colors.textTertiary)),
+                  if (hasConfig && !isConnected && !isTesting)
+                    Text(l10n.llmConnectFail, style: AppTextStyles.caption.copyWith(color: context.colors.error, fontSize: 11)),
+                  if (isTesting)
+                    Text('...', style: AppTextStyles.caption.copyWith(color: context.colors.textTertiary)),
                 ],
               ),
             ),
+            // Connection status dot
+            if (hasConfig) _buildStatusDot(entry),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildStatusDot(_ProviderModelEntry? entry) {
+    if (entry == null) return const SizedBox.shrink();
+    final isConnected = entry.connectionStatus == ConnectionStatus.connected;
+    final isTesting = entry.connectionStatus == ConnectionStatus.testing;
+    final color = isConnected ? context.colors.success : context.colors.textTertiary;
+
+    if (isTesting) {
+      return SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: context.colors.textTertiary));
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(width: 10, height: 10, decoration: BoxDecoration(shape: BoxShape.circle, color: color)),
+        if (isConnected && entry.latencyMs != null) ...[
+          const SizedBox(width: 4),
+          Text('${entry.latencyMs}ms', style: AppTextStyles.caption.copyWith(color: context.colors.success, fontSize: 10)),
+        ],
+      ],
     );
   }
 
@@ -1405,6 +1492,11 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
           ),
           style: AppTextStyles.body.copyWith(fontSize: 14, color: context.colors.textPrimary),
           items: [
+            // None option — allow deselecting
+            DropdownMenuItem<String>(
+              value: null,
+              child: Text(AppLocalizations.of(context)!.llmNone, style: TextStyle(fontSize: 14, color: context.colors.textHint)),
+            ),
             ...entry.fetchedModels.map((m) => DropdownMenuItem(
               value: m.id,
               child: Text(m.id, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 14, color: context.colors.textPrimary)),
@@ -1419,6 +1511,9 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
               _showCustomModelDialog(provider, entry);
             } else if (v != null) {
               _selectModel(provider, v);
+            } else {
+              // Deselect — remove capability from this provider
+              _deselectModel(provider);
             }
           },
         ),

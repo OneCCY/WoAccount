@@ -942,5 +942,6 @@
   "llmModelManagement": "Model Management",
   "llmSelectProvider": "Select Provider",
   "llmSelectModel": "Select Model",
-  "llmProviderIncomplete": "Not configured"
+  "llmProviderIncomplete": "Not configured",
+  "llmNone": "None"
 }

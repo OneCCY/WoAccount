@@ -2722,4 +2722,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get llmProviderIncomplete => 'Not configured';
+
+  @override
+  String get llmNone => 'None';
 }

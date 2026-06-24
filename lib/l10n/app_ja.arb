@@ -932,5 +932,6 @@
   "llmModelManagement": "モデル管理",
   "llmSelectProvider": "プロバイダー選択",
   "llmSelectModel": "モデル選択",
-  "llmProviderIncomplete": "未設定"
+  "llmProviderIncomplete": "未設定",
+  "llmNone": "使用しない"
 }

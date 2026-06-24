@@ -2671,4 +2671,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get llmProviderIncomplete => '未設定';
+
+  @override
+  String get llmNone => '使用しない';
 }

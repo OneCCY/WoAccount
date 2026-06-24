@@ -2679,4 +2679,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get llmProviderIncomplete => '미설정';
+
+  @override
+  String get llmNone => '사용 안 함';
 }

@@ -5105,6 +5105,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'未配置完整'**
   String get llmProviderIncomplete;
+
+  /// No description provided for @llmNone.
+  ///
+  /// In zh, this message translates to:
+  /// **'不使用'**
+  String get llmNone;
 }
 
 class _AppLocalizationsDelegate
