@@ -419,18 +419,31 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
       return c.isExpense == isExpense;
     }
 
+    // 1. Exact name match
     for (final c in categories) {
       if (c.name == categoryName && matchesType(c)) return c;
     }
+    // 2. Partial name match
     for (final c in categories) {
       if ((c.name.contains(categoryName) || categoryName.contains(c.name)) && matchesType(c)) {
         return c;
       }
     }
-    for (final c in categories) {
-      if (matchesType(c)) return c;
-    }
-    return categories.first;
+    // 3. No match — create a new top-level category
+    final allCats = await _catRepo.getAll();
+    final maxSort = allCats.where((c) => c.level == 1).isEmpty
+        ? 0
+        : allCats.where((c) => c.level == 1).map((c) => c.sortOrder).reduce((a, b) => a > b ? a : b);
+    final newId = await _catRepo.insert(CategoriesCompanion.insert(
+      name: categoryName,
+      icon: const Value('📦'),
+      color: const Value('#607D8B'),
+      level: const Value(1),
+      isSystem: const Value(false),
+      isExpense: Value(isExpense && !isOther),
+      sortOrder: Value(maxSort + 1),
+    ));
+    return await _catRepo.getById(newId) ?? categories.first;
   }
 
   Future<Category?> _matchSubcategory(int parentId, String? subcategoryName, bool isExpense) async {

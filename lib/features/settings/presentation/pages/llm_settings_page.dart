@@ -880,7 +880,6 @@ class _CapabilityConfigPage extends StatefulWidget {
 
 class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
   List<LlmProvider> _providers = [];
-  String? _activeId;
   String? _selectedProviderId;  // 当前选中的供应商
   bool _isLoading = true;
   late final Map<String, _ProviderModelEntry> _entries;
@@ -951,7 +950,6 @@ class _CapabilityConfigPageState extends State<_CapabilityConfigPage> {
 
     setState(() {
       _providers = providers;
-      _activeId = activeId;
       _selectedProviderId = selectedId ?? activeId;
       _entries.clear();
       _entries.addAll(entries);

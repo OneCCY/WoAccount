@@ -350,6 +350,7 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
 
     final result = await showDialog<(String, String, String)>(
       context: context,
+      useRootNavigator: true,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
           title: Text(isSub ? l10n.catManageAddSubTitle(parentName) : l10n.catManageAddTitle(l10n.catManageCustom)),
