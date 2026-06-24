@@ -353,17 +353,25 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
         initialIcon: cat.icon ?? '📦',
         initialColor: cat.color,
         editCategoryId: cat.id,
-        onDelete: () => catRepo.delete(cat.id),
+        onDelete: () async {
+          final success = await catRepo.deleteWithChildren(cat.id);
+          if (!success && mounted) {
+            AppToast.show(context, l10n.chatDeleteMsgConfirm);
+          }
+        },
       ),
     );
 
     if (result == null || !mounted) return;
 
-    await catRepo.update(cat.toCompanion(false).copyWith(
+    // Build companion with only the fields we want to update
+    final companion = CategoriesCompanion(
+      id: Value(cat.id),
       name: Value(result.$1),
       icon: Value(result.$2),
       color: Value(result.$3),
-    ));
+    );
+    await catRepo.update(companion);
   }
 
   /// 添加分类弹窗（一级或二级）
