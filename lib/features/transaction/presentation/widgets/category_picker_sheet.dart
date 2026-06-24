@@ -281,7 +281,6 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
               Navigator.of(context).pop(cat);
             }
           },
-          onLongPress: !cat.isSystem ? () => _editCategory(cat) : null,
         );
       },
     );
@@ -316,62 +315,9 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
           color: _parseColor(cat.color),
           isSelected: isSelected,
           onTap: () => Navigator.of(context).pop(cat),
-          onLongPress: !cat.isSystem ? () => _editCategory(cat) : null,
         );
       },
     );
-  }
-
-  /// 编辑自定义分类
-  Future<void> _editCategory(Category cat) async {
-    final l10n = AppLocalizations.of(context)!;
-    final catRepo = ref.read(categoryRepositoryProvider);
-
-    const emojiOptions = [
-      '🍔', '🍜', '🛒', '🚗', '🚌', '🏠', '💊', '📚', '🎮', '👗',
-      '💼', '💰', '🎁', '✈️', '🐾', '👶', '📱', '💡', '🏥', '🎓',
-      '🎉', '💼', '🔧', '📦', '💳', '🏦', '🎯', '⭐', '❤️', '🔥',
-    ];
-    const colorOptions = [
-      '#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5',
-      '#2196F3', '#00BCD4', '#009688', '#4CAF50', '#8BC34A',
-      '#FF9800', '#FF5722', '#795548', '#607D8B', '#9E9E9E',
-    ];
-
-    final result = await showModalBottomSheet<(String, String, String)>(
-      context: context,
-      isScrollControlled: true,
-      useRootNavigator: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => _AddCategorySheetContent(
-        isSub: cat.parentId != null,
-        parentName: '',
-        l10n: l10n,
-        emojiOptions: emojiOptions,
-        colorOptions: colorOptions,
-        initialName: cat.name,
-        initialIcon: cat.icon ?? '📦',
-        initialColor: cat.color,
-        editCategoryId: cat.id,
-        onDelete: () async {
-          final success = await catRepo.deleteWithChildren(cat.id);
-          if (!success && mounted) {
-            AppToast.show(context, l10n.chatDeleteMsgConfirm);
-          }
-        },
-      ),
-    );
-
-    if (result == null || !mounted) return;
-
-    // Build companion with only the fields we want to update
-    final companion = CategoriesCompanion(
-      id: Value(cat.id),
-      name: Value(result.$1),
-      icon: Value(result.$2),
-      color: Value(result.$3),
-    );
-    await catRepo.update(companion);
   }
 
   /// 添加分类弹窗（一级或二级）
@@ -449,7 +395,6 @@ class _CategoryTile extends StatelessWidget {
   final bool isSelected;
   final bool hasChildren;
   final VoidCallback onTap;
-  final VoidCallback? onLongPress;
 
   const _CategoryTile({
     required this.icon,
@@ -458,14 +403,12 @@ class _CategoryTile extends StatelessWidget {
     required this.isSelected,
     this.hasChildren = false,
     required this.onTap,
-    this.onLongPress,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      onLongPress: onLongPress,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -521,11 +464,6 @@ class _AddCategorySheetContent extends StatefulWidget {
   final AppLocalizations l10n;
   final List<String> emojiOptions;
   final List<String> colorOptions;
-  final String? initialName;
-  final String? initialIcon;
-  final String? initialColor;
-  final int? editCategoryId; // non-null = edit mode
-  final VoidCallback? onDelete;
 
   const _AddCategorySheetContent({
     required this.isSub,
@@ -533,11 +471,6 @@ class _AddCategorySheetContent extends StatefulWidget {
     required this.l10n,
     required this.emojiOptions,
     required this.colorOptions,
-    this.initialName,
-    this.initialIcon,
-    this.initialColor,
-    this.editCategoryId,
-    this.onDelete,
   });
 
   @override
@@ -552,9 +485,7 @@ class _AddCategorySheetContentState extends State<_AddCategorySheetContent> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.initialName ?? '');
-    _selectedIcon = widget.initialIcon ?? '📦';
-    _selectedColor = widget.initialColor ?? '#607D8B';
+    _nameController = TextEditingController();
   }
 
   @override
@@ -594,35 +525,16 @@ class _AddCategorySheetContentState extends State<_AddCategorySheetContent> {
                   child: Text(l10n.commonCancel, style: context.textStyles.body.copyWith(color: context.colors.textSecondary)),
                 ),
                 Text(
-                  widget.editCategoryId != null
-                      ? l10n.commonEditCategory
-                      : (widget.isSub ? l10n.catManageAddSubTitle(widget.parentName) : l10n.catManageAddTitle(l10n.catManageCustom)),
+                  widget.isSub ? l10n.catManageAddSubTitle(widget.parentName) : l10n.catManageAddTitle(l10n.catManageCustom),
                   style: context.textStyles.footnote.copyWith(fontWeight: FontWeight.w600),
                 ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // 删除按钮（编辑模式才显示）
-                    if (widget.editCategoryId != null && widget.onDelete != null)
-                      TextButton(
-                        onPressed: () {
-                          widget.onDelete!();
-                          Navigator.of(context).pop();
-                        },
-                        child: Text(l10n.commonDelete, style: context.textStyles.body.copyWith(color: context.colors.error)),
-                      ),
-                    TextButton(
-                      onPressed: () {
-                        final name = _nameController.text.trim();
-                        if (name.isEmpty) return;
-                        Navigator.of(context).pop((name, _selectedIcon, _selectedColor));
-                      },
-                      child: Text(
-                        widget.editCategoryId != null ? l10n.commonSave : l10n.commonAdd,
-                        style: context.textStyles.body.copyWith(color: context.colors.primary, fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ],
+                TextButton(
+                  onPressed: () {
+                    final name = _nameController.text.trim();
+                    if (name.isEmpty) return;
+                    Navigator.of(context).pop((name, _selectedIcon, _selectedColor));
+                  },
+                  child: Text(l10n.commonAdd, style: context.textStyles.body.copyWith(color: context.colors.primary, fontWeight: FontWeight.w600)),
                 ),
               ],
             ),
