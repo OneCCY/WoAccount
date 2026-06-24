@@ -269,9 +269,12 @@ class ConfirmCard extends StatelessWidget {
   }
 
   Future<void> _editCategory(BuildContext context) async {
+    // Map type string to category type int: 0=expense, 1=income, 2=other
+    final catType = data.type == 'expense' ? 0 : (data.type == 'other' ? 2 : 1);
     final picked = await CategoryPickerSheet.show(
       context,
       initialIsExpense: data.type == 'expense',
+      initialCategoryType: catType,
       selectedCategoryId: data.categoryId,
     );
     if (picked == null) return;

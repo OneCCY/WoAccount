@@ -410,18 +410,25 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
       throw Exception(AppLocalizations.of(context)!.chatPageNoCategoryError);
     }
 
+    const otherKeys = {'catOtherTransfer', 'catOtherRepayment', 'catOtherSocial'};
     final isExpense = type == 'expense';
+    final isOther = type == 'other';
+
+    bool matchesType(Category c) {
+      if (isOther) return !c.isExpense && c.l10nKey != null && otherKeys.contains(c.l10nKey);
+      return c.isExpense == isExpense;
+    }
 
     for (final c in categories) {
-      if (c.name == categoryName && c.isExpense == isExpense) return c;
+      if (c.name == categoryName && matchesType(c)) return c;
     }
     for (final c in categories) {
-      if ((c.name.contains(categoryName) || categoryName.contains(c.name)) && c.isExpense == isExpense) {
+      if ((c.name.contains(categoryName) || categoryName.contains(c.name)) && matchesType(c)) {
         return c;
       }
     }
     for (final c in categories) {
-      if (c.isExpense == isExpense) return c;
+      if (matchesType(c)) return c;
     }
     return categories.first;
   }
@@ -586,7 +593,9 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
       if (parents.isEmpty) return '';
 
       final expenseCats = parents.where((c) => c.isExpense).toList();
-      final incomeCats = parents.where((c) => !c.isExpense).toList();
+      const otherKeys = {'catOtherTransfer', 'catOtherRepayment', 'catOtherSocial'};
+      final otherCats = parents.where((c) => !c.isExpense && c.l10nKey != null && otherKeys.contains(c.l10nKey)).toList();
+      final incomeCats = parents.where((c) => !c.isExpense && (c.l10nKey == null || !otherKeys.contains(c.l10nKey!))).toList();
 
       final buffer = StringBuffer();
 
@@ -607,6 +616,20 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
       if (incomeCats.isNotEmpty) {
         buffer.writeln('### 收入分类');
         for (final cat in incomeCats) {
+          final children = childrenMap[cat.id] ?? [];
+          if (children.isNotEmpty) {
+            final subNames = children.map((c) => c.name).join('、');
+            buffer.writeln('- ${cat.name}（$subNames）');
+          } else {
+            buffer.writeln('- ${cat.name}');
+          }
+        }
+        buffer.writeln();
+      }
+
+      if (otherCats.isNotEmpty) {
+        buffer.writeln('### 其他分类');
+        for (final cat in otherCats) {
           final children = childrenMap[cat.id] ?? [];
           if (children.isNotEmpty) {
             final subNames = children.map((c) => c.name).join('、');

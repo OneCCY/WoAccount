@@ -569,7 +569,7 @@ class _SupplierManagementPageState extends State<_SupplierManagementPage> {
   }
 
   Future<void> _testProvider(LlmProvider provider) async {
-    if (!provider.isComplete) {
+    if (provider.apiKey.isEmpty || provider.baseUrl.isEmpty) {
       AppToast.show(context, AppLocalizations.of(context)!.llmConfigIncomplete);
       return;
     }
@@ -586,7 +586,7 @@ class _SupplierManagementPageState extends State<_SupplierManagementPage> {
 
   Future<void> _checkAllConnections() async {
     for (final p in _providers) {
-      if (p.isComplete) await _checkConnection(p);
+      if (p.apiKey.isNotEmpty && p.baseUrl.isNotEmpty) await _checkConnection(p);
     }
   }
 

@@ -191,10 +191,17 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     // 匹配分类
     final categories = await _categoryRepo.getAll();
+    const otherKeys = {'catOtherTransfer', 'catOtherRepayment', 'catOtherSocial'};
+    final isExpense = txn.type == 'expense';
+    final isOther = txn.type == 'other';
+    bool matchesType(Category c) {
+      if (isOther) return !c.isExpense && c.l10nKey != null && otherKeys.contains(c.l10nKey);
+      return c.isExpense == isExpense;
+    }
     final matchedCategory = categories.firstWhere(
-      (c) => c.name == txn.category,
+      (c) => c.name == txn.category && matchesType(c),
       orElse: () => categories.firstWhere(
-        (c) => c.isExpense == (txn.type == 'expense'),
+        (c) => matchesType(c),
         orElse: () => categories.first,
       ),
     );
@@ -262,10 +269,17 @@ class _HomePageState extends ConsumerState<HomePage> {
 
       // 根据分类名称匹配数据库中的分类
       final categories = await _categoryRepo.getAll();
+      const otherKeys2 = {'catOtherTransfer', 'catOtherRepayment', 'catOtherSocial'};
+      final isExp = result.type == 'expense';
+      final isOth = result.type == 'other';
+      bool matchesType(Category c) {
+        if (isOth) return !c.isExpense && c.l10nKey != null && otherKeys2.contains(c.l10nKey);
+        return c.isExpense == isExp;
+      }
       final matchedCategory = categories.firstWhere(
-        (c) => c.name == result.category,
+        (c) => c.name == result.category && matchesType(c),
         orElse: () => categories.firstWhere(
-          (c) => c.isExpense == (result.type == 'expense'),
+          (c) => matchesType(c),
           orElse: () => categories.first,
         ),
       );
@@ -362,7 +376,9 @@ class _HomePageState extends ConsumerState<HomePage> {
       if (parents.isEmpty) return '';
 
       final expenseCats = parents.where((c) => c.isExpense).toList();
-      final incomeCats = parents.where((c) => !c.isExpense).toList();
+      const otherKeys = {'catOtherTransfer', 'catOtherRepayment', 'catOtherSocial'};
+      final otherCats = parents.where((c) => !c.isExpense && c.l10nKey != null && otherKeys.contains(c.l10nKey)).toList();
+      final incomeCats = parents.where((c) => !c.isExpense && (c.l10nKey == null || !otherKeys.contains(c.l10nKey!))).toList();
 
       final buffer = StringBuffer();
 
@@ -382,6 +398,19 @@ class _HomePageState extends ConsumerState<HomePage> {
       if (incomeCats.isNotEmpty) {
         buffer.writeln('### 收入分类');
         for (final cat in incomeCats) {
+          final children = childrenMap[cat.id] ?? [];
+          if (children.isNotEmpty) {
+            buffer.writeln('- ${cat.name}（${children.map((c) => c.name).join('、')}）');
+          } else {
+            buffer.writeln('- ${cat.name}');
+          }
+        }
+        buffer.writeln();
+      }
+
+      if (otherCats.isNotEmpty) {
+        buffer.writeln('### 其他分类');
+        for (final cat in otherCats) {
           final children = childrenMap[cat.id] ?? [];
           if (children.isNotEmpty) {
             buffer.writeln('- ${cat.name}（${children.map((c) => c.name).join('、')}）');

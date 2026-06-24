@@ -13,11 +13,13 @@ import '../../../../core/widgets/toast.dart';
 /// 分类选择 BottomSheet
 class CategoryPickerSheet extends ConsumerStatefulWidget {
   final bool initialIsExpense;
+  final int initialCategoryType; // 0=expense, 1=income, 2=other; -1 = use initialIsExpense
   final int? selectedCategoryId;
 
   const CategoryPickerSheet({
     super.key,
     required this.initialIsExpense,
+    this.initialCategoryType = -1,
     this.selectedCategoryId,
   });
 
@@ -25,6 +27,7 @@ class CategoryPickerSheet extends ConsumerStatefulWidget {
   static Future<Category?> show(BuildContext context, {
     required bool initialIsExpense,
     int? selectedCategoryId,
+    int initialCategoryType = -1,
   }) {
     return showModalBottomSheet<Category>(
       context: context,
@@ -32,6 +35,7 @@ class CategoryPickerSheet extends ConsumerStatefulWidget {
       backgroundColor: Colors.transparent,
       builder: (_) => CategoryPickerSheet(
         initialIsExpense: initialIsExpense,
+        initialCategoryType: initialCategoryType,
         selectedCategoryId: selectedCategoryId,
       ),
     );
@@ -42,7 +46,7 @@ class CategoryPickerSheet extends ConsumerStatefulWidget {
 }
 
 class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
-  late bool _isExpense;
+  late int _categoryType; // 0=expense, 1=income, 2=other
   int? _selectedId;
   int? _expandedParentId;
   String _searchQuery = '';
@@ -50,17 +54,25 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
   @override
   void initState() {
     super.initState();
-    _isExpense = widget.initialIsExpense;
+    _categoryType = widget.initialCategoryType >= 0
+        ? widget.initialCategoryType
+        : (widget.initialIsExpense ? 0 : 1);
     _selectedId = widget.selectedCategoryId;
   }
 
   List<Category> _filterTopLevel(List<Category> allCategories) {
-    // BUG-6 修复：统一使用 c.level == 1 过滤顶层分类（与 repository 一致）
     var cats = allCategories.where((c) => c.level == 1).toList();
-    if (_isExpense) {
+    if (_categoryType == 0) {
+      // Expense
       cats = cats.where((c) => c.isExpense).toList();
+    } else if (_categoryType == 2) {
+      // Other — isExpense=false + l10nKey in otherKeys
+      const otherKeys = {'catOtherTransfer', 'catOtherRepayment', 'catOtherSocial'};
+      cats = cats.where((c) => !c.isExpense && c.l10nKey != null && otherKeys.contains(c.l10nKey)).toList();
     } else {
-      cats = cats.where((c) => !c.isExpense).toList();
+      // Income — isExpense=false + NOT other
+      const otherKeys = {'catOtherTransfer', 'catOtherRepayment', 'catOtherSocial'};
+      cats = cats.where((c) => !c.isExpense && (c.l10nKey == null || !otherKeys.contains(c.l10nKey!))).toList();
     }
     if (_searchQuery.isNotEmpty) {
       cats = cats.where((c) => c.name.contains(_searchQuery)).toList();
@@ -194,12 +206,16 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _toggleBtn(l10n.entryExpense, _isExpense, () => setState(() {
-            _isExpense = true;
+          _toggleBtn(l10n.entryExpense, _categoryType == 0, () => setState(() {
+            _categoryType = 0;
             _expandedParentId = null;
           })),
-          _toggleBtn(l10n.entryIncome, !_isExpense, () => setState(() {
-            _isExpense = false;
+          _toggleBtn(l10n.entryIncome, _categoryType == 1, () => setState(() {
+            _categoryType = 1;
+            _expandedParentId = null;
+          })),
+          _toggleBtn(l10n.entryOther, _categoryType == 2, () => setState(() {
+            _categoryType = 2;
             _expandedParentId = null;
           })),
         ],
@@ -449,7 +465,7 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
       name: result.$1,
       icon: Value(result.$2),
       color: Value(result.$3),
-      isExpense: Value(_isExpense),
+      isExpense: Value(_categoryType == 0),
       level: Value(level),
       sortOrder: Value(maxOrder + 1),
       parentId: Value(parentId),
