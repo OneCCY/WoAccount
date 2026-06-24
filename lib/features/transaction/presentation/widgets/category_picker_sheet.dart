@@ -333,10 +333,6 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
       parentName = parentCat != null ? getCategoryDisplayName(parentCat, l10n) : '';
     }
 
-    final nameController = TextEditingController();
-    String selectedIcon = '📦';
-    String selectedColor = '#607D8B';
-
     const emojiOptions = [
       '🍔', '🍜', '🛒', '🚗', '🚌', '🏠', '💊', '📚', '🎮', '👗',
       '💼', '💰', '🎁', '✈️', '🐾', '👶', '📱', '💡', '🏥', '🎓',
@@ -348,101 +344,17 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
       '#FF9800', '#FF5722', '#795548', '#607D8B', '#9E9E9E',
     ];
 
-    final result = await showDialog<(String, String, String)>(
+    final result = await showModalBottomSheet<(String, String, String)>(
       context: context,
+      isScrollControlled: true,
       useRootNavigator: true,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(isSub ? l10n.catManageAddSubTitle(parentName) : l10n.catManageAddTitle(l10n.catManageCustom)),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextField(
-                  controller: nameController,
-                  autofocus: true,
-                  maxLength: 20,
-                  decoration: InputDecoration(
-                    hintText: isSub ? l10n.catManageSubNameHint : l10n.catManageNameHint,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppDimensions.radiusSm)),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(l10n.catManageSelectIcon, style: context.textStyles.caption.copyWith(color: context.colors.textTertiary)),
-                const SizedBox(height: 8),
-                SizedBox(
-                  height: 40,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: emojiOptions.length,
-                    separatorBuilder: (_, _) => const SizedBox(width: 6),
-                    itemBuilder: (_, i) {
-                      final emoji = emojiOptions[i];
-                      final isSelected = selectedIcon == emoji;
-                      return GestureDetector(
-                        onTap: () => setDialogState(() => selectedIcon = emoji),
-                        child: Container(
-                          width: 40, height: 40,
-                          decoration: BoxDecoration(
-                            color: isSelected ? context.colors.primarySurface : context.colors.surfaceSecondary,
-                            borderRadius: BorderRadius.circular(8),
-                            border: isSelected ? Border.all(color: context.colors.primary, width: 2) : null,
-                          ),
-                          child: Center(child: Text(emoji, style: const TextStyle(fontSize: 20))),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(l10n.catManageSelectColor, style: context.textStyles.caption.copyWith(color: context.colors.textTertiary)),
-                const SizedBox(height: 8),
-                SizedBox(
-                  height: 36,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: colorOptions.length,
-                    separatorBuilder: (_, _) => const SizedBox(width: 6),
-                    itemBuilder: (_, i) {
-                      final hex = colorOptions[i];
-                      final color = Color(int.parse('FF${hex.replaceFirst('#', '')}', radix: 16));
-                      final isSelected = selectedColor == hex;
-                      return GestureDetector(
-                        onTap: () => setDialogState(() => selectedColor = hex),
-                        child: Container(
-                          width: 36, height: 36,
-                          decoration: BoxDecoration(
-                            color: color.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(8),
-                            border: isSelected ? Border.all(color: color, width: 2) : null,
-                          ),
-                          child: Center(
-                            child: Container(
-                              width: 16, height: 16,
-                              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.commonCancel)),
-            TextButton(
-              onPressed: () {
-                final name = nameController.text.trim();
-                if (name.isEmpty) return;
-                Navigator.pop(ctx, (name, selectedIcon, selectedColor));
-              },
-              child: Text(l10n.commonAdd),
-            ),
-          ],
-        ),
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _AddCategorySheetContent(
+        isSub: isSub,
+        parentName: parentName,
+        l10n: l10n,
+        emojiOptions: emojiOptions,
+        colorOptions: colorOptions,
       ),
     );
 
@@ -538,6 +450,175 @@ class _CategoryTile extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 添加分类 BottomSheet 内容
+class _AddCategorySheetContent extends StatefulWidget {
+  final bool isSub;
+  final String parentName;
+  final AppLocalizations l10n;
+  final List<String> emojiOptions;
+  final List<String> colorOptions;
+
+  const _AddCategorySheetContent({
+    required this.isSub,
+    required this.parentName,
+    required this.l10n,
+    required this.emojiOptions,
+    required this.colorOptions,
+  });
+
+  @override
+  State<_AddCategorySheetContent> createState() => _AddCategorySheetContentState();
+}
+
+class _AddCategorySheetContentState extends State<_AddCategorySheetContent> {
+  late final TextEditingController _nameController;
+  String _selectedIcon = '📦';
+  String _selectedColor = '#607D8B';
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = widget.l10n;
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.55,
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        children: [
+          // 拖拽把手
+          Container(
+            width: 40, height: 4,
+            margin: const EdgeInsets.only(top: 12, bottom: 8),
+            decoration: BoxDecoration(
+              color: context.colors.textTertiary,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          // 标题栏
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(l10n.commonCancel, style: context.textStyles.body.copyWith(color: context.colors.textSecondary)),
+                ),
+                Text(
+                  widget.isSub ? l10n.catManageAddSubTitle(widget.parentName) : l10n.catManageAddTitle(l10n.catManageCustom),
+                  style: context.textStyles.footnote.copyWith(fontWeight: FontWeight.w600),
+                ),
+                TextButton(
+                  onPressed: () {
+                    final name = _nameController.text.trim();
+                    if (name.isEmpty) return;
+                    Navigator.of(context).pop((name, _selectedIcon, _selectedColor));
+                  },
+                  child: Text(l10n.commonAdd, style: context.textStyles.body.copyWith(color: context.colors.primary, fontWeight: FontWeight.w600)),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          // 内容
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: _nameController,
+                    autofocus: true,
+                    maxLength: 20,
+                    decoration: InputDecoration(
+                      hintText: widget.isSub ? l10n.catManageSubNameHint : l10n.catManageNameHint,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(l10n.catManageSelectIcon, style: context.textStyles.caption.copyWith(color: context.colors.textTertiary)),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 40,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: widget.emojiOptions.length,
+                      separatorBuilder: (_, _) => const SizedBox(width: 6),
+                      itemBuilder: (_, i) {
+                        final emoji = widget.emojiOptions[i];
+                        final isSelected = _selectedIcon == emoji;
+                        return GestureDetector(
+                          onTap: () => setState(() => _selectedIcon = emoji),
+                          child: Container(
+                            width: 40, height: 40,
+                            decoration: BoxDecoration(
+                              color: isSelected ? context.colors.primarySurface : context.colors.surfaceSecondary,
+                              borderRadius: BorderRadius.circular(8),
+                              border: isSelected ? Border.all(color: context.colors.primary, width: 2) : null,
+                            ),
+                            child: Center(child: Text(emoji, style: const TextStyle(fontSize: 20))),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(l10n.catManageSelectColor, style: context.textStyles.caption.copyWith(color: context.colors.textTertiary)),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 36,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: widget.colorOptions.length,
+                      separatorBuilder: (_, _) => const SizedBox(width: 6),
+                      itemBuilder: (_, i) {
+                        final hex = widget.colorOptions[i];
+                        final color = Color(int.parse('FF${hex.replaceFirst('#', '')}', radix: 16));
+                        final isSelected = _selectedColor == hex;
+                        return GestureDetector(
+                          onTap: () => setState(() => _selectedColor = hex),
+                          child: Container(
+                            width: 36, height: 36,
+                            decoration: BoxDecoration(
+                              color: color.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(8),
+                              border: isSelected ? Border.all(color: color, width: 2) : null,
+                            ),
+                            child: Center(
+                              child: Container(
+                                width: 16, height: 16,
+                                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
