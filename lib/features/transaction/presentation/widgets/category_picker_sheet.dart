@@ -281,6 +281,7 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
               Navigator.of(context).pop(cat);
             }
           },
+          onLongPress: !cat.isSystem ? () => _editCategory(cat) : null,
         );
       },
     );
@@ -315,9 +316,52 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
           color: _parseColor(cat.color),
           isSelected: isSelected,
           onTap: () => Navigator.of(context).pop(cat),
+          onLongPress: !cat.isSystem ? () => _editCategory(cat) : null,
         );
       },
     );
+  }
+
+  /// 编辑自定义分类
+  Future<void> _editCategory(Category cat) async {
+    final l10n = AppLocalizations.of(context)!;
+    final catRepo = ref.read(categoryRepositoryProvider);
+
+    const emojiOptions = [
+      '🍔', '🍜', '🛒', '🚗', '🚌', '🏠', '💊', '📚', '🎮', '👗',
+      '💼', '💰', '🎁', '✈️', '🐾', '👶', '📱', '💡', '🏥', '🎓',
+      '🎉', '💼', '🔧', '📦', '💳', '🏦', '🎯', '⭐', '❤️', '🔥',
+    ];
+    const colorOptions = [
+      '#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5',
+      '#2196F3', '#00BCD4', '#009688', '#4CAF50', '#8BC34A',
+      '#FF9800', '#FF5722', '#795548', '#607D8B', '#9E9E9E',
+    ];
+
+    final result = await showModalBottomSheet<(String, String, String)>(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _AddCategorySheetContent(
+        isSub: cat.parentId != null,
+        parentName: '',
+        l10n: l10n,
+        emojiOptions: emojiOptions,
+        colorOptions: colorOptions,
+        initialName: cat.name,
+        initialIcon: cat.icon ?? '📦',
+        initialColor: cat.color,
+      ),
+    );
+
+    if (result == null || !mounted) return;
+
+    await catRepo.update(cat.toCompanion(false).copyWith(
+      name: Value(result.$1),
+      icon: Value(result.$2),
+      color: Value(result.$3),
+    ));
   }
 
   /// 添加分类弹窗（一级或二级）
@@ -395,6 +439,7 @@ class _CategoryTile extends StatelessWidget {
   final bool isSelected;
   final bool hasChildren;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
   const _CategoryTile({
     required this.icon,
@@ -403,12 +448,14 @@ class _CategoryTile extends StatelessWidget {
     required this.isSelected,
     this.hasChildren = false,
     required this.onTap,
+    this.onLongPress,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
+      onLongPress: onLongPress,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -464,6 +511,9 @@ class _AddCategorySheetContent extends StatefulWidget {
   final AppLocalizations l10n;
   final List<String> emojiOptions;
   final List<String> colorOptions;
+  final String? initialName;
+  final String? initialIcon;
+  final String? initialColor;
 
   const _AddCategorySheetContent({
     required this.isSub,
@@ -471,6 +521,9 @@ class _AddCategorySheetContent extends StatefulWidget {
     required this.l10n,
     required this.emojiOptions,
     required this.colorOptions,
+    this.initialName,
+    this.initialIcon,
+    this.initialColor,
   });
 
   @override
@@ -485,7 +538,9 @@ class _AddCategorySheetContentState extends State<_AddCategorySheetContent> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController();
+    _nameController = TextEditingController(text: widget.initialName ?? '');
+    _selectedIcon = widget.initialIcon ?? '📦';
+    _selectedColor = widget.initialColor ?? '#607D8B';
   }
 
   @override
