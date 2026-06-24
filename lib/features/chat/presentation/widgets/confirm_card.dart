@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
+import '../../../../config/di/providers.dart';
 import '../../../../core/locale/locale_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
@@ -274,8 +276,15 @@ class ConfirmCard extends StatelessWidget {
     );
     if (picked == null) return;
     final isSub = picked.parentId != null;
+    // Look up parent category name when a subcategory is picked
+    String categoryName = picked.name;
+    if (isSub && picked.parentId != null) {
+      final catRepo = ProviderScope.containerOf(context).read(categoryRepositoryProvider);
+      final parent = await catRepo.getById(picked.parentId!);
+      if (parent != null) categoryName = parent.name;
+    }
     onEdit(data.copyWith(
-      category: picked.name,
+      category: categoryName,
       categoryId: picked.id,
       subcategory: isSub ? picked.name : null,
       parentCategoryId: isSub ? picked.parentId : null,

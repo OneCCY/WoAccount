@@ -116,6 +116,9 @@ abstract class TransactionRepository {
   /// 根据 ID 获取
   Future<Transaction?> getById(int id);
 
+  /// 根据 ID 获取（包含已删除的记录，用于回收站查看详情）
+  Future<Transaction?> getByIdIncludeDeleted(int id);
+
   /// 根据日期范围获取
   Future<List<Transaction>> getByDateRange(int bookId, DateTime start, DateTime end);
 

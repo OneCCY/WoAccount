@@ -24,6 +24,13 @@ class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   @override
+  Future<Transaction?> getByIdIncludeDeleted(int id) async {
+    return (_db.select(_db.transactions)
+          ..where((t) => t.id.equals(id)))
+        .getSingleOrNull();
+  }
+
+  @override
   Future<List<Transaction>> getByDateRange(int bookId, DateTime start, DateTime end) async {
     return (_db.select(_db.transactions)
           ..where((t) =>

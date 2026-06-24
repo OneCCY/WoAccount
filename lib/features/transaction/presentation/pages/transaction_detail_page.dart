@@ -62,7 +62,9 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
     final txnRepo = ref.read(transactionRepositoryProvider);
     final catRepo = ref.read(categoryRepositoryProvider);
 
-    final txn = await txnRepo.getById(widget.transactionId);
+    final txn = widget.readOnly
+        ? await txnRepo.getByIdIncludeDeleted(widget.transactionId)
+        : await txnRepo.getById(widget.transactionId);
     if (txn == null) {
       if (mounted) setState(() => _isLoading = false);
       return;

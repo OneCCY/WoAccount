@@ -270,18 +270,17 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
         isExpense: isExpense,
         isOther: isOther,
         onConfirm: (name, icon) async {
-          // BUG-7 修复：重名校验
+          if (!mounted) return;
           final existing = await _catRepo.getByName(name);
+          if (!mounted) return;
           if (existing != null) {
-            if (mounted) {
-              AppToast.show(context, AppLocalizations.of(context)!.catManageNameExists, duration: const Duration(milliseconds: 800));
-            }
+            AppToast.show(context, AppLocalizations.of(context)!.catManageNameExists, duration: const Duration(milliseconds: 800));
             return;
           }
 
           final allTopLevel = await _catRepo.getTopLevel();
+          if (!mounted) return;
           final maxSort = allTopLevel.isEmpty ? 0 : allTopLevel.map((c) => c.sortOrder).reduce((a, b) => a > b ? a : b);
-          // 随机分配颜色
           final randomColor = _colorOptions[DateTime.now().millisecondsSinceEpoch % _colorOptions.length];
           await _catRepo.insert(CategoriesCompanion.insert(
             name: name,
@@ -305,16 +304,16 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
       builder: (ctx) => _AddSubCategorySheet(
         parentName: _selectedParent!.name,
         onConfirm: (name, icon) async {
-          // BUG-7 修复：重名校验
+          if (!mounted) return;
           final existing = await _catRepo.getByName(name);
+          if (!mounted) return;
           if (existing != null) {
-            if (mounted) {
-              AppToast.show(context, AppLocalizations.of(context)!.catManageSubNameExists, duration: const Duration(milliseconds: 800));
-            }
+            AppToast.show(context, AppLocalizations.of(context)!.catManageSubNameExists, duration: const Duration(milliseconds: 800));
             return;
           }
 
           final children = await _catRepo.getChildren(_selectedParent!.id);
+          if (!mounted) return;
           final maxSort = children.isEmpty ? 0 : children.map((c) => c.sortOrder).reduce((a, b) => a > b ? a : b);
           await _catRepo.insert(CategoriesCompanion.insert(
             name: name,

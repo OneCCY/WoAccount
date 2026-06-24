@@ -443,6 +443,7 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
     final level = isSub ? 2 : 1;
     final siblings = existingCats.where((c) => isSub ? c.parentId == parentId : c.parentId == null).toList();
     final maxOrder = siblings.isEmpty ? 0 : siblings.map((c) => c.sortOrder).reduce((a, b) => a > b ? a : b);
+    if (!mounted) return;
 
     await catRepo.insert(CategoriesCompanion.insert(
       name: result.$1,
