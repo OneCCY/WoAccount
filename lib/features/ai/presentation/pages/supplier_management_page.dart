@@ -55,21 +55,26 @@ class _SupplierManagementPageV2State extends ConsumerState<SupplierManagementPag
 
     final stopwatch = Stopwatch()..start();
     try {
-      // v2 连通性测试：GET /models（不依赖模型配置）
-      final dio = Dio();
+      // 根据预设判断 API 格式
+      final isAnthropic = provider.providerKey == 'claude';
       final baseUrl = provider.baseUrl.replaceAll(RegExp(r'/+$'), '');
       final candidates = [
         '$baseUrl/v1/models',
         '$baseUrl/models',
       ];
 
+      final headers = isAnthropic
+          ? {'x-api-key': provider.apiKey, 'anthropic-version': '2023-06-01'}
+          : {'Authorization': 'Bearer ${provider.apiKey}'};
+
+      final dio = Dio();
       bool connected = false;
       for (final url in candidates) {
         try {
           final response = await dio.get(
             url,
             options: Options(
-              headers: {'Authorization': 'Bearer ${provider.apiKey}'},
+              headers: headers,
               receiveTimeout: const Duration(seconds: 10),
             ),
           );
@@ -78,12 +83,10 @@ class _SupplierManagementPageV2State extends ConsumerState<SupplierManagementPag
             break;
           }
         } on DioException catch (e) {
-          // 401/403 说明 key 有效但权限问题，也算连通
           if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
             connected = true;
             break;
           }
-          // 404 说明 URL 不对，继续尝试下一个
           if (e.response?.statusCode == 404) continue;
           rethrow;
         }
