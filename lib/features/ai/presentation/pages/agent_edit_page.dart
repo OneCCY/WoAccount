@@ -266,6 +266,7 @@ class _AgentEditPageState extends ConsumerState<AgentEditPage> {
     required ValueChanged<String?> onChanged,
   }) {
     return DropdownButtonFormField<String>(
+      isExpanded: true,
       initialValue: _providers.any((p) => p.id == selectedId) ? selectedId : null,
       decoration: InputDecoration(
         labelText: AppLocalizations.of(context)!.agentEditProvider,
@@ -294,6 +295,7 @@ class _AgentEditPageState extends ConsumerState<AgentEditPage> {
           children: [
             Expanded(
               child: DropdownButtonFormField<String>(
+                isExpanded: true,
                 initialValue: (selectedModel != null && models.contains(selectedModel))
                     ? selectedModel
                     : null,
