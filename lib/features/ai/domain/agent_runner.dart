@@ -125,14 +125,14 @@ class AgentRunner {
           final trace = AiTrace(
             id: const Uuid().v4(),
             agentId: agentId,
-            providerId: config.providerId,
-            modelName: config.modelName,
+            providerId: config.fallbackProviderId!,
+            modelName: config.fallbackModelName!,
             timestamp: DateTime.now(),
             latencyMs: stopwatch.elapsedMilliseconds,
             success: true,
             fallbackUsed: true,
-            fallbackProviderId: config.fallbackProviderId,
-            fallbackModelName: config.fallbackModelName,
+            fallbackProviderId: config.providerId,
+            fallbackModelName: config.modelName,
           );
           await TraceStorage.record(trace);
 
@@ -238,11 +238,11 @@ class AgentRunner {
     final messages = <ChatMessage>[];
 
     if (agent.id == 'transaction_parser') {
-      await _buildTransactionParserMessages(messages, input as String, extraParams);
+      await _buildTransactionParserMessages(messages, input.toString(), extraParams);
     } else if (agent.id == 'receipt_ocr') {
-      _buildReceiptOcrMessages(messages, input as String, extraParams);
+      _buildReceiptOcrMessages(messages, input.toString(), extraParams);
     } else if (agent.id == 'finance_search') {
-      _buildFinanceSearchMessages(messages, input as String, extraParams);
+      _buildFinanceSearchMessages(messages, input.toString(), extraParams);
     } else {
       // 通用 Agent：直接使用 systemPrompt + input
       if (agent.systemPrompt.isNotEmpty) {
@@ -353,23 +353,33 @@ class AgentRunner {
       if (keywords.isEmpty) return null;
 
       final topKeywords = keywords.take(3).toList();
+
+      // 构建 LIKE 表达式（转义 LIKE 通配符）
+      final tbl = _db.transactions;
+      Expression<bool>? likeCondition;
+      for (final kw in topKeywords) {
+        // 转义 LIKE 通配符：用方括号包裹特殊字符（SQLite 兼容）
+        final escaped = kw
+            .replaceAll('%', '')
+            .replaceAll('_', '')
+            .replaceAll('[', '')
+            .replaceAll(']', '');
+        if (escaped.isEmpty) continue;
+        final pattern = '%$escaped%';
+        final expr = tbl.description.like(pattern) |
+            tbl.note.like(pattern) |
+            tbl.originalInput.like(pattern);
+        likeCondition = likeCondition == null ? expr : likeCondition | expr;
+      }
+
+      // 合并所有 WHERE 条件为单次调用（避免 .where() 覆盖）
       final query = _db.select(_db.transactions)
-        ..where((t) => t.isDeleted.equals(false) & t.accountBookId.equals(bookId))
+        ..where((t) =>
+            t.isDeleted.equals(false) &
+            t.accountBookId.equals(bookId) &
+            (likeCondition ?? t.id.isBiggerThanValue(-1)))
         ..orderBy([(t) => OrderingTerm.desc(t.transactionDate)])
         ..limit(3);
-
-      // 使用 LIKE 搜索
-      final tbl = _db.transactions;
-      Expression<bool>? combined;
-      for (final kw in topKeywords) {
-        final likeExpr = tbl.description.like('%$kw%') |
-            tbl.note.like('%$kw%') |
-            tbl.originalInput.like('%$kw%');
-        combined = combined == null ? likeExpr : combined | likeExpr;
-      }
-      if (combined != null) {
-        query.where((t) => combined!);
-      }
 
       final results = await query.get();
       if (results.isEmpty) return null;

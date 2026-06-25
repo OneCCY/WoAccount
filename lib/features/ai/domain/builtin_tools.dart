@@ -110,9 +110,36 @@ class GetTransactionsTool extends BuiltinTool {
 
   @override
   Future<dynamic> execute(Map<String, dynamic> params) async {
-    final limit = params['limit'] as int? ?? 20;
+    final limit = (params['limit'] as num?)?.toInt() ?? 20;
+    final startDate = params['startDate'] as String?;
+    final endDate = params['endDate'] as String?;
+    final type = params['type'] as String?;
+    final keyword = params['keyword'] as String?;
+
     final query = _db.select(_db.transactions)
-      ..where((t) => t.isDeleted.equals(false))
+      ..where((t) => t.isDeleted.equals(false));
+
+    if (startDate != null && startDate.isNotEmpty) {
+      try {
+        final start = DateTime.parse(startDate);
+        query.where((t) => t.transactionDate.isBiggerOrEqualValue(start));
+      } catch (_) {}
+    }
+    if (endDate != null && endDate.isNotEmpty) {
+      try {
+        final end = DateTime.parse(endDate).add(const Duration(days: 1));
+        query.where((t) => t.transactionDate.isSmallerThanValue(end));
+      } catch (_) {}
+    }
+    if (type != null && type.isNotEmpty) {
+      query.where((t) => t.type.equals(type));
+    }
+    if (keyword != null && keyword.isNotEmpty) {
+      final kw = '%$keyword%';
+      query.where((t) => t.description.like(kw) | t.note.like(kw));
+    }
+
+    query
       ..orderBy([(t) => OrderingTerm.desc(t.transactionDate)])
       ..limit(limit);
 
@@ -147,12 +174,37 @@ class GetBudgetsTool extends BuiltinTool {
 
   @override
   Future<dynamic> execute(Map<String, dynamic> params) async {
-    final budgets = await _db.select(_db.budgets).get();
+    final monthStr = params['month'] as String?;
+
+    int year;
+    int month;
+    if (monthStr != null && monthStr.length >= 7) {
+      try {
+        final parts = monthStr.split('-');
+        year = int.parse(parts[0]);
+        month = int.parse(parts[1]);
+      } catch (_) {
+        final now = DateTime.now();
+        year = now.year;
+        month = now.month;
+      }
+    } else {
+      final now = DateTime.now();
+      year = now.year;
+      month = now.month;
+    }
+
+    final query = _db.select(_db.budgets)
+      ..where((b) => b.year.equals(year) & b.month.equals(month));
+
+    final budgets = await query.get();
     return budgets.map((b) => {
       'id': b.id,
       'amount': b.amount,
       'categoryId': b.categoryId,
       'period': b.period,
+      'year': b.year,
+      'month': b.month,
     }).toList();
   }
 }
@@ -178,17 +230,28 @@ class CalculateTotalTool extends BuiltinTool {
 
   @override
   Future<dynamic> execute(Map<String, dynamic> params) async {
-    final startStr = params['startDate'] as String;
-    final endStr = params['endDate'] as String;
+    final startStr = params['startDate'] as String?;
+    final endStr = params['endDate'] as String?;
+    if (startStr == null || endStr == null) {
+      return {'error': 'startDate and endDate are required'};
+    }
+
+    final DateTime start;
+    final DateTime end;
+    try {
+      start = DateTime.parse(startStr);
+      end = DateTime.parse(endStr);
+    } catch (_) {
+      return {'error': '日期格式无效，请使用 YYYY-MM-DD'};
+    }
+
     final type = params['type'] as String?;
-    final start = DateTime.parse(startStr);
-    final end = DateTime.parse(endStr);
 
     final query = _db.select(_db.transactions)
       ..where((t) => t.isDeleted.equals(false) &
           t.transactionDate.isBiggerOrEqualValue(start) &
           t.transactionDate.isSmallerOrEqualValue(end));
-    if (type != null) {
+    if (type != null && type.isNotEmpty) {
       query.where((t) => t.type.equals(type));
     }
     final results = await query.get();
@@ -223,13 +286,11 @@ class ResolveReferenceTool extends BuiltinTool {
 
   static const _referencePatterns = [
     _RefPattern('跟上次一样', _RefType.lastTransaction),
-    _RefPattern('跟上次一样', _RefType.lastTransaction),
     _RefPattern('上次那样', _RefType.lastTransaction),
     _RefPattern('和上次一样', _RefType.lastTransaction),
     _RefPattern('同上次', _RefType.lastTransaction),
     _RefPattern('same as last', _RefType.lastTransaction),
     _RefPattern('same as before', _RefType.lastTransaction),
-    _RefPattern('跟昨天一样', _RefType.sameDayYesterday),
     _RefPattern('跟昨天一样', _RefType.sameDayYesterday),
     _RefPattern('和昨天一样', _RefType.sameDayYesterday),
     _RefPattern('like yesterday', _RefType.sameDayYesterday),

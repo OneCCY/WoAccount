@@ -24,6 +24,9 @@ class ConfigMigration {
 
   /// 执行迁移
   static Future<int> migrate() async {
+    // 版本守卫：已迁移则跳过
+    if (!await needsMigration()) return 0;
+
     final prefs = await SharedPreferences.getInstance();
     final oldJson = prefs.getString('llm_providers');
     if (oldJson == null || oldJson.isEmpty) {
@@ -31,7 +34,14 @@ class ConfigMigration {
       return 0;
     }
 
-    final oldList = jsonDecode(oldJson) as List;
+    List<dynamic> oldList;
+    try {
+      oldList = jsonDecode(oldJson) as List;
+    } catch (_) {
+      // JSON 损坏，标记迁移完成避免反复重试
+      await _setVersion();
+      return 0;
+    }
     if (oldList.isEmpty) {
       await _setVersion();
       return 0;
@@ -39,75 +49,89 @@ class ConfigMigration {
 
     int migratedCount = 0;
 
-    // 1. 解析旧 Provider 列表
-    final oldProviders = oldList
-        .map((e) => LlmProvider.fromJson(e as Map<String, dynamic>))
-        .toList();
+    // 1. 逐个解析旧 Provider（单个失败不阻塞其余）
+    final oldProviders = <LlmProvider>[];
+    for (final entry in oldList) {
+      try {
+        oldProviders.add(LlmProvider.fromJson(entry as Map<String, dynamic>));
+      } catch (_) {
+        // 跳过损坏的条目
+      }
+    }
 
     // 2. 提取 agent_configs
     for (final old in oldProviders) {
       for (final entry in old.models.entries) {
-        final capability = entry.key;
-        final modelConfig = entry.value;
-        final agentId = _capabilityToAgentId(capability);
+        try {
+          final capability = entry.key;
+          final modelConfig = entry.value;
+          final agentId = _capabilityToAgentId(capability);
 
-        if (agentId != null &&
-            modelConfig.modelName.isNotEmpty &&
-            modelConfig.providerId != null &&
-            modelConfig.providerId!.isNotEmpty) {
-          // 找到实际的 provider（可能是另一个 provider）
-          final targetProviderId = modelConfig.providerId!;
-          final existing = await AgentConfigStorage.load(agentId);
-          if (existing == null) {
-            await AgentConfigStorage.save(AgentConfig(
-              agentId: agentId,
-              providerId: targetProviderId,
-              modelName: modelConfig.modelName,
-            ));
-            migratedCount++;
+          if (agentId != null &&
+              modelConfig.modelName.isNotEmpty &&
+              modelConfig.providerId != null &&
+              modelConfig.providerId!.isNotEmpty) {
+            final targetProviderId = modelConfig.providerId!;
+            final existing = await AgentConfigStorage.load(agentId);
+            if (existing == null) {
+              await AgentConfigStorage.save(AgentConfig(
+                agentId: agentId,
+                providerId: targetProviderId,
+                modelName: modelConfig.modelName,
+              ));
+              migratedCount++;
+            }
           }
+        } catch (_) {
+          // 单条迁移失败不阻塞
         }
       }
     }
 
-    // 3. 保存不含 models 的 AiProvider
-    final newProviders = oldProviders.map((old) => AiProvider(
-      id: old.id,
-      name: old.name,
-      apiKey: old.apiKey,
-      baseUrl: old.baseUrl,
-      providerKey: old.providerKey == 'custom' ? null : old.providerKey,
-      temperature: old.temperature,
-      maxTokens: old.maxTokens,
-      timeoutSeconds: old.timeoutSeconds,
-    )).toList();
+    // 3. 保存不含 models 的 AiProvider（仅 v2 存储为空时写入）
+    final existingV2 = await ProviderStorage.loadAll();
+    if (existingV2.isEmpty) {
+      final newProviders = oldProviders.map((old) => AiProvider(
+        id: old.id,
+        name: old.name,
+        apiKey: old.apiKey,
+        baseUrl: old.baseUrl,
+        providerKey: old.providerKey == 'custom' ? null : old.providerKey,
+        temperature: old.temperature,
+        maxTokens: old.maxTokens,
+        timeoutSeconds: old.timeoutSeconds,
+      )).toList();
+      await ProviderStorage.saveAll(newProviders);
+    }
 
-    await ProviderStorage.saveAll(newProviders);
-
-    // 4. 对于没有 agent_config 的旧配置，尝试从旧 models 中提取默认配置
+    // 4. 补充缺失的 agent_config（从旧 models 中提取）
     for (final old in oldProviders) {
       for (final entry in old.models.entries) {
-        final capability = entry.key;
-        final modelConfig = entry.value;
-        final agentId = _capabilityToAgentId(capability);
+        try {
+          final capability = entry.key;
+          final modelConfig = entry.value;
+          final agentId = _capabilityToAgentId(capability);
 
-        if (agentId != null && modelConfig.modelName.isNotEmpty) {
-          final existing = await AgentConfigStorage.load(agentId);
-          if (existing == null) {
-            // 模型配置在当前 provider 上，直接使用
-            await AgentConfigStorage.save(AgentConfig(
-              agentId: agentId,
-              providerId: old.id,
-              modelName: modelConfig.modelName,
-            ));
-            migratedCount++;
+          if (agentId != null && modelConfig.modelName.isNotEmpty) {
+            final existing = await AgentConfigStorage.load(agentId);
+            if (existing == null) {
+              await AgentConfigStorage.save(AgentConfig(
+                agentId: agentId,
+                providerId: old.id,
+                modelName: modelConfig.modelName,
+              ));
+              migratedCount++;
+            }
           }
+        } catch (_) {
+          // 单条失败不阻塞
         }
       }
     }
 
-    // 5. 标记迁移完成
+    // 5. 标记迁移完成并清理旧数据
     await _setVersion();
+    await prefs.remove('llm_providers');
 
     return migratedCount;
   }
