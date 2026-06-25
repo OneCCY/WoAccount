@@ -85,14 +85,14 @@ class AgentRunner {
         modelName: config.modelName,
         timestamp: DateTime.now(),
         latencyMs: stopwatch.elapsedMilliseconds,
-        inputTokens: null,
-        outputTokens: null,
+        inputTokens: result.promptTokens,
+        outputTokens: result.completionTokens,
         success: true,
         fallbackUsed: false,
       );
       await TraceStorage.record(trace);
 
-      return AgentResult(content: result, trace: trace, fallbackUsed: false);
+      return AgentResult(content: result.content, trace: trace, fallbackUsed: false);
     } catch (e) {
       // 主模型失败，检查是否可以降级
       if (!_shouldFallback(e)) {
@@ -129,6 +129,8 @@ class AgentRunner {
             modelName: config.fallbackModelName!,
             timestamp: DateTime.now(),
             latencyMs: stopwatch.elapsedMilliseconds,
+            inputTokens: result.promptTokens,
+            outputTokens: result.completionTokens,
             success: true,
             fallbackUsed: true,
             fallbackProviderId: config.providerId,
@@ -136,7 +138,7 @@ class AgentRunner {
           );
           await TraceStorage.record(trace);
 
-          return AgentResult(content: result, trace: trace, fallbackUsed: true);
+          return AgentResult(content: result.content, trace: trace, fallbackUsed: true);
         } catch (_) {
           // 备选也失败，继续到 RuleEngine 降级
         }
@@ -195,7 +197,7 @@ class AgentRunner {
   }
 
   /// 使用指定 Provider 和模型执行
-  Future<String> _executeWithProvider(
+  Future<({String content, int? promptTokens, int? completionTokens})> _executeWithProvider(
     AiAgent agent,
     AgentConfig config,
     dynamic input,
@@ -225,8 +227,18 @@ class AgentRunner {
       jsonSchema: agent.outputSchema,
     );
 
-    final response = await _llmRepo.chat(request, provider: _toLegacyProvider(provider, modelName));
-    return response.content;
+    // 使用 AgentConfig.timeout 覆盖 Provider 默认超时
+    final effectiveProvider = _toLegacyProvider(provider, modelName);
+    final timeoutProvider = config.timeout != null
+        ? effectiveProvider.copyWith(timeoutSeconds: config.timeout)
+        : effectiveProvider;
+
+    final response = await _llmRepo.chat(request, provider: timeoutProvider);
+    return (
+      content: response.content,
+      promptTokens: response.promptTokens > 0 ? response.promptTokens : null,
+      completionTokens: response.completionTokens > 0 ? response.completionTokens : null,
+    );
   }
 
   /// 构建 LLM 请求消息
@@ -333,8 +345,12 @@ class AgentRunner {
       if (result is Map && result['resolved'] == true) {
         return result['resolvedInput'] as String;
       }
-    } catch (_) {
-      // 工具执行失败，返回原始输入
+    } catch (e) {
+      // 工具执行失败，记录日志并返回原始输入
+      assert(() {
+        print('[AgentRunner] resolve_reference failed: $e');
+        return true;
+      }());
     }
     return input;
   }

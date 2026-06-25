@@ -36,11 +36,10 @@ class ProviderStorage {
   /// 按 ID 查找
   static Future<AiProvider?> getById(String id) async {
     final all = await loadAll();
-    try {
-      return all.firstWhere((p) => p.id == id);
-    } catch (_) {
-      return null;
+    for (final p in all) {
+      if (p.id == id) return p;
     }
+    return null;
   }
 
   /// 添加供应商
@@ -73,8 +72,13 @@ class ProviderStorage {
     List<String> models,
   ) async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_keyFetchedModels);
-    final map = raw != null ? Map<String, dynamic>.from(jsonDecode(raw)) : <String, dynamic>{};
+    Map<String, dynamic> map;
+    try {
+      final raw = prefs.getString(_keyFetchedModels);
+      map = raw != null ? Map<String, dynamic>.from(jsonDecode(raw)) : <String, dynamic>{};
+    } catch (_) {
+      map = <String, dynamic>{};
+    }
     map[providerId] = models;
     await prefs.setString(_keyFetchedModels, jsonEncode(map));
   }

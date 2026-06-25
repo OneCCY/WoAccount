@@ -444,9 +444,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           SizedBox(height: MediaQuery.of(context).padding.top),
 
           // 预算提醒卡片
-          BudgetInsightCard(
-            message: AppLocalizations.of(context)!.homePageBudgetAlert,
-          ),
+          const BudgetInsightCard(),
 
           // AI 助手入口
           AiAssistantEntry(

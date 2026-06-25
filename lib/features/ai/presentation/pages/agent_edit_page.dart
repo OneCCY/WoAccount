@@ -23,7 +23,6 @@ class AgentEditPage extends ConsumerStatefulWidget {
 
 class _AgentEditPageState extends ConsumerState<AgentEditPage> {
   AiAgent? _agent;
-  AgentConfig? _config;
   List<AiProvider> _providers = [];
   List<String> _fetchedModels = [];
   bool _isLoading = true;
@@ -50,7 +49,6 @@ class _AgentEditPageState extends ConsumerState<AgentEditPage> {
 
     setState(() {
       _agent = agent;
-      _config = config;
       _providers = providers.where((p) => p.isReady).toList();
       _selectedProviderId = config?.providerId;
       _selectedModel = config?.modelName;

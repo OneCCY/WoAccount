@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 
 import '../../data/models/ai_agent.dart';
@@ -127,8 +126,8 @@ class _LlmSettingsPageV2State extends ConsumerState<LlmSettingsPageV2> {
       leading: CircleAvatar(
         radius: 16,
         backgroundColor: provider.isReady
-            ? Colors.green.withOpacity(0.1)
-            : Colors.red.withOpacity(0.1),
+            ? Colors.green.withValues(alpha: 0.1)
+            : Colors.red.withValues(alpha: 0.1),
         child: Icon(
           provider.isReady ? Icons.check_circle : Icons.error_outline,
           size: 18,
@@ -166,16 +165,17 @@ class _LlmSettingsPageV2State extends ConsumerState<LlmSettingsPageV2> {
         config.providerId.isNotEmpty &&
         config.modelName.isNotEmpty;
 
-    final providerName = isConfigured
-        ? _providers.where((p) => p.id == config!.providerId).firstOrNull?.name ?? config!.providerId
+    final agentConfig = isConfigured ? config : null;
+    final providerName = agentConfig != null
+        ? _providers.where((p) => p.id == agentConfig.providerId).firstOrNull?.name ?? agentConfig.providerId
         : null;
 
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: Text(agent.icon, style: const TextStyle(fontSize: 24)),
       title: Text(_getAgentName(l10n, agent)),
-      subtitle: isConfigured
-          ? Text('$providerName / ${config!.modelName}',
+      subtitle: isConfigured && agentConfig != null
+          ? Text('$providerName / ${agentConfig.modelName}',
               style: const TextStyle(fontSize: 12))
           : Text(l10n.aiSettingsNoAgents,
               style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.error)),
