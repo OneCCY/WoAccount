@@ -1,5 +1,7 @@
 # WoAccount LLM用户配置方案
 
+> **⚠️ 已废弃** — 替代文档: [AI 配置架构重设计 v2.0](../specs/2026-06-25-ai-agent-architecture-redesign.md)
+>
 > **版本**: v1.0 | **创建日期**: 2026-06-04
 
 ---
