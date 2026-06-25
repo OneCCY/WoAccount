@@ -13,7 +13,7 @@ import '../../features/profile/presentation/pages/profile_edit_page.dart';
 import '../../features/profile/presentation/pages/checkin_calendar_page.dart';
 import '../../features/profile/presentation/pages/ac_coin_records_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
-import '../../features/settings/presentation/pages/llm_settings_page.dart';
+import '../../features/ai/presentation/pages/llm_settings_page_v2.dart';
 import '../../features/budget/presentation/pages/budget_page.dart';
 import '../../features/budget/presentation/pages/budget_setting_page.dart';
 import '../../features/budget/presentation/pages/budget_detail_page.dart';
@@ -106,7 +106,7 @@ class AppRouter {
       ),
       GoRoute(
         path: '/settings/llm',
-        builder: (context, state) => const LlmSettingsPage(),
+        builder: (context, state) => const LlmSettingsPageV2(),
       ),
       GoRoute(
         path: '/budget',

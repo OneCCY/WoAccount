@@ -11,6 +11,7 @@ import 'config/routes/app_router.dart';
 import 'config/di/providers.dart';
 import 'features/security/presentation/widgets/auth_wrapper.dart';
 import 'features/profile/data/services/backup_service.dart';
+import 'features/ai/data/storage/config_migration.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +21,13 @@ void main() async {
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
   };
+
+  // AI 配置迁移（v1 → v2）
+  try {
+    await ConfigMigration.migrate();
+  } catch (_) {
+    // 迁移失败不阻塞启动
+  }
 
   // 加载主题设置
   final themeProvider = ThemeProvider();

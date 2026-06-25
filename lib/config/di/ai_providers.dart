@@ -6,6 +6,7 @@ import '../../core/media/media_storage_service.dart';
 import '../../features/ai/data/repositories/llm_repository_impl.dart';
 import '../../features/ai/domain/repositories/llm_repository.dart';
 import '../../features/ai/domain/agent_runner.dart';
+import '../../features/ai/domain/builtin_tools.dart';
 import '../../features/text_ai/data/services/voice_recognition_service.dart';
 import '../../features/text_ai/data/services/platform_stt_service.dart';
 import '../../features/vision_ai/data/services/image_recognition_service.dart';
@@ -68,9 +69,12 @@ final transactionPipelineProvider = Provider<TransactionPipeline>((ref) {
 
 /// Agent 执行引擎 Provider（v2.0）
 final agentRunnerProvider = Provider<AgentRunner>((ref) {
+  // 首次访问时注册内置工具
+  final db = ref.watch(appDatabaseProvider);
+  registerBuiltinTools(db);
   return AgentRunner(
     ref.watch(llmRepositoryProvider),
-    ref.watch(appDatabaseProvider),
+    db,
   );
 });
 
