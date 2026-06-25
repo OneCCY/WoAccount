@@ -489,6 +489,12 @@ class TransactionPipeline {
       }
       // 尝试找到 JSON 对象
       final jsonStart = jsonStr.indexOf('{');
+      if (jsonStart < 0) {
+        // 没有 JSON，把整个内容作为描述返回
+        return [TransactionParseResult(
+          type: 'expense', amount: 0, category: '', description: content, confidence: 0.1,
+        )];
+      }
       if (jsonStart > 0) jsonStr = jsonStr.substring(jsonStart);
 
       final decoded = jsonDecode(jsonStr);
@@ -515,7 +521,11 @@ class TransactionPipeline {
           payMethod: m['payMethod'] as String?,
         );
       }).toList();
-    } catch (_) {
+    } catch (e) {
+      assert(() {
+        print('[TransactionPipeline] _parseAgentResult failed: $e\n  content: ${content.substring(0, content.length.clamp(0, 200))}');
+        return true;
+      }());
       return [];
     }
   }

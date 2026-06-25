@@ -11,8 +11,6 @@ import '../../domain/agent_registry.dart';
 import '../../data/storage/model_fetcher.dart';
 
 /// Agent 配置编辑页
-///
-/// 允许用户为每个 Agent 配置主模型和备选模型。
 class AgentEditPage extends ConsumerStatefulWidget {
   final String agentId;
   const AgentEditPage({super.key, required this.agentId});
@@ -24,17 +22,20 @@ class AgentEditPage extends ConsumerStatefulWidget {
 class _AgentEditPageState extends ConsumerState<AgentEditPage> {
   AiAgent? _agent;
   List<AiProvider> _providers = [];
-  List<String> _fetchedModels = [];
   bool _isLoading = true;
-  bool _showFallback = false;
 
-  // 主模型选择
+  // 主模型
   String? _selectedProviderId;
   String? _selectedModel;
+  List<String> _fetchedModels = [];
+  bool _isLoadingModels = false;
 
-  // 备选模型选择
+  // 备选模型
+  bool _showFallback = false;
   String? _fallbackProviderId;
   String? _fallbackModel;
+  List<String> _fallbackModels = [];
+  bool _isLoadingFallbackModels = false;
 
   @override
   void initState() {
@@ -59,26 +60,48 @@ class _AgentEditPageState extends ConsumerState<AgentEditPage> {
     });
 
     if (_selectedProviderId != null) {
-      _fetchModels(_selectedProviderId!);
+      _fetchModels(_selectedProviderId!, isFallback: false);
+    }
+    if (_showFallback && _fallbackProviderId != null) {
+      _fetchModels(_fallbackProviderId!, isFallback: true);
     }
   }
 
-  Future<void> _fetchModels(String providerId) async {
-    final provider = _providers.firstWhere(
-      (p) => p.id == providerId,
-      orElse: () => _providers.first,
-    );
-    final models = await ModelFetcher.fetchAndCache(
-      providerId,
-      provider.baseUrl,
-      provider.apiKey,
-    );
+  Future<void> _fetchModels(String providerId, {required bool isFallback}) async {
+    final provider = _providers.where((p) => p.id == providerId).firstOrNull;
+    if (provider == null) return;
+
+    setState(() {
+      if (isFallback) _isLoadingFallbackModels = true;
+      else _isLoadingModels = true;
+    });
+
+    List<String> models;
+    try {
+      models = await ModelFetcher.fetchAndCache(providerId, provider.baseUrl, provider.apiKey);
+    } catch (_) {
+      models = [];
+    }
+
+    // 如果 API 没返回模型，尝试从缓存读取
+    if (models.isEmpty) {
+      models = await ProviderStorage.loadFetchedModels(providerId);
+    }
+
     if (mounted) {
-      setState(() => _fetchedModels = models);
+      setState(() {
+        if (isFallback) {
+          _fallbackModels = models;
+          _isLoadingFallbackModels = false;
+        } else {
+          _fetchedModels = models;
+          _isLoadingModels = false;
+        }
+      });
     }
   }
 
-  Future<void> _save() async {
+  void _save() async {
     if (_selectedProviderId == null || _selectedModel == null || _selectedModel!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.agentEditSelectModel)),
@@ -125,7 +148,6 @@ class _AgentEditPageState extends ConsumerState<AgentEditPage> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Agent 描述
           Text(
             _getAgentDesc(l10n, agent),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -136,27 +158,32 @@ class _AgentEditPageState extends ConsumerState<AgentEditPage> {
           _buildProfileChip(agent.recommendedProfile),
           const SizedBox(height: 24),
 
-          // 主模型配置
+          // 主模型
           _buildSectionTitle(l10n.agentEditPrimaryModel),
-          _buildProviderDropdown(
-            value: _selectedProviderId,
+          _buildProviderSelector(
+            selectedId: _selectedProviderId,
             onChanged: (id) {
               setState(() {
                 _selectedProviderId = id;
                 _selectedModel = null;
                 _fetchedModels = [];
               });
-              if (id != null) _fetchModels(id);
+              if (id != null) _fetchModels(id, isFallback: false);
             },
           ),
           const SizedBox(height: 8),
-          _buildModelDropdown(
-            value: _selectedModel,
+          _buildModelSelector(
+            selectedModel: _selectedModel,
+            models: _fetchedModels,
+            isLoading: _isLoadingModels,
             onChanged: (v) => setState(() => _selectedModel = v),
+            onRefresh: _selectedProviderId != null
+                ? () => _fetchModels(_selectedProviderId!, isFallback: false)
+                : null,
           ),
           const SizedBox(height: 24),
 
-          // 备选模型配置
+          // 备选模型
           _buildSectionTitle(l10n.agentEditFallbackModel),
           SwitchListTile(
             title: Text(l10n.agentEditEnableFallback),
@@ -165,17 +192,26 @@ class _AgentEditPageState extends ConsumerState<AgentEditPage> {
             contentPadding: EdgeInsets.zero,
           ),
           if (_showFallback) ...[
-            _buildProviderDropdown(
-              value: _fallbackProviderId,
-              onChanged: (id) => setState(() {
-                _fallbackProviderId = id;
-                _fallbackModel = null;
-              }),
+            _buildProviderSelector(
+              selectedId: _fallbackProviderId,
+              onChanged: (id) {
+                setState(() {
+                  _fallbackProviderId = id;
+                  _fallbackModel = null;
+                  _fallbackModels = [];
+                });
+                if (id != null) _fetchModels(id, isFallback: true);
+              },
             ),
             const SizedBox(height: 8),
-            _buildModelDropdown(
-              value: _fallbackModel,
+            _buildModelSelector(
+              selectedModel: _fallbackModel,
+              models: _fallbackModels,
+              isLoading: _isLoadingFallbackModels,
               onChanged: (v) => setState(() => _fallbackModel = v),
+              onRefresh: _fallbackProviderId != null
+                  ? () => _fetchModels(_fallbackProviderId!, isFallback: true)
+                  : null,
             ),
           ],
           const SizedBox(height: 24),
@@ -190,15 +226,11 @@ class _AgentEditPageState extends ConsumerState<AgentEditPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        '${l10n.agentEditTestCase} ${entry.key + 1}',
-                        style: Theme.of(context).textTheme.labelMedium,
-                      ),
+                      Text('${l10n.agentEditTestCase} ${entry.key + 1}',
+                          style: Theme.of(context).textTheme.labelMedium),
                       const SizedBox(height: 4),
-                      Text(
-                        '"${entry.value.input}"',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
+                      Text('"${entry.value.input}"',
+                          style: Theme.of(context).textTheme.bodyMedium),
                     ],
                   ),
                 ),
@@ -217,12 +249,12 @@ class _AgentEditPageState extends ConsumerState<AgentEditPage> {
     );
   }
 
-  Widget _buildProviderDropdown({
-    required String? value,
+  Widget _buildProviderSelector({
+    required String? selectedId,
     required ValueChanged<String?> onChanged,
   }) {
     return DropdownButtonFormField<String>(
-      value: _providers.any((p) => p.id == value) ? value : null,
+      value: _providers.any((p) => p.id == selectedId) ? selectedId : null,
       decoration: InputDecoration(
         labelText: AppLocalizations.of(context)!.agentEditProvider,
         border: const OutlineInputBorder(),
@@ -236,33 +268,81 @@ class _AgentEditPageState extends ConsumerState<AgentEditPage> {
     );
   }
 
-  Widget _buildModelDropdown({
-    required String? value,
+  Widget _buildModelSelector({
+    required String? selectedModel,
+    required List<String> models,
+    required bool isLoading,
     required ValueChanged<String?> onChanged,
+    VoidCallback? onRefresh,
   }) {
-    final items = <DropdownMenuItem<String>>[];
-    if (_fetchedModels.isNotEmpty) {
-      items.addAll(_fetchedModels.map((m) => DropdownMenuItem(
-        value: m,
-        child: Text(m, overflow: TextOverflow.ellipsis),
-      )));
-    }
-    // 手动输入选项
-    return DropdownButtonFormField<String>(
-      value: (value != null && (value.isEmpty || items.any((i) => i.value == value))) ? value : null,
-      decoration: InputDecoration(
-        labelText: AppLocalizations.of(context)!.agentEditModel,
-        border: const OutlineInputBorder(),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      ),
-      items: items,
-      onChanged: (v) {
-        if (v == '__manual__') {
-          _showManualInputDialog(onChanged);
-        } else {
-          onChanged(v);
-        }
-      },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: DropdownButtonFormField<String>(
+                value: (selectedModel != null && models.contains(selectedModel))
+                    ? selectedModel
+                    : null,
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.agentEditModel,
+                  border: const OutlineInputBorder(),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  suffixIcon: isLoading
+                      ? const Padding(
+                          padding: EdgeInsets.all(12),
+                          child: SizedBox(
+                            width: 16, height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        )
+                      : null,
+                ),
+                items: [
+                  ...models.map((m) => DropdownMenuItem(
+                    value: m,
+                    child: Text(m, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13)),
+                  )),
+                  DropdownMenuItem(
+                    value: '__manual__',
+                    child: Text(
+                      AppLocalizations.of(context)!.agentEditManualInput,
+                      style: TextStyle(color: Theme.of(context).colorScheme.primary),
+                    ),
+                  ),
+                ],
+                onChanged: (v) {
+                  if (v == '__manual__') {
+                    _showManualInputDialog(onChanged);
+                  } else {
+                    onChanged(v);
+                  }
+                },
+              ),
+            ),
+            if (onRefresh != null) ...[
+              const SizedBox(width: 8),
+              IconButton.filledTonal(
+                onPressed: isLoading ? null : onRefresh,
+                icon: const Icon(Icons.refresh, size: 20),
+                tooltip: AppLocalizations.of(context)!.aiSettingsTestConnection,
+              ),
+            ],
+          ],
+        ),
+        // 如果当前选中的模型不在列表中，显示为文本
+        if (selectedModel != null && selectedModel.isNotEmpty && !models.contains(selectedModel))
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              '当前: $selectedModel',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -284,9 +364,10 @@ class _AgentEditPageState extends ConsumerState<AgentEditPage> {
             onPressed: () => Navigator.pop(ctx),
             child: Text(AppLocalizations.of(context)!.cancel),
           ),
-          TextButton(
+          FilledButton(
             onPressed: () {
-              onChanged(controller.text.trim());
+              final name = controller.text.trim();
+              if (name.isNotEmpty) onChanged(name);
               Navigator.pop(ctx);
             },
             child: Text(AppLocalizations.of(context)!.confirm),
@@ -304,7 +385,7 @@ class _AgentEditPageState extends ConsumerState<AgentEditPage> {
     };
     return Chip(
       label: Text(label, style: TextStyle(color: color, fontSize: 12)),
-      backgroundColor: color.withOpacity(0.1),
+      backgroundColor: color.withValues(alpha: 0.1),
       side: BorderSide.none,
       visualDensity: VisualDensity.compact,
     );
