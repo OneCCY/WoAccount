@@ -2669,6 +2669,111 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get llmNone => '不使用';
+
+  @override
+  String get cancel => '取消';
+
+  @override
+  String get confirm => '确认';
+
+  @override
+  String get agentTransactionParser => '记账解析';
+
+  @override
+  String get agentTransactionParserDesc => '从自然语言中提取交易金额、分类、时间';
+
+  @override
+  String get agentReceiptOcr => '小票识别';
+
+  @override
+  String get agentReceiptOcrDesc => '识别小票/发票图片中的消费信息';
+
+  @override
+  String get agentVoiceTranscribe => '语音转写';
+
+  @override
+  String get agentVoiceTranscribeDesc => '将语音录音转为文字';
+
+  @override
+  String get agentFinanceSearch => '财务搜索';
+
+  @override
+  String get agentFinanceSearchDesc => '自然语言查询交易、预算、分类';
+
+  @override
+  String get agentEditTitle => '功能配置';
+
+  @override
+  String get agentEditSave => '保存';
+
+  @override
+  String get agentEditSaved => '配置已保存';
+
+  @override
+  String get agentEditSelectModel => '请先选择模型';
+
+  @override
+  String get agentEditPrimaryModel => '主模型';
+
+  @override
+  String get agentEditFallbackModel => '备选模型';
+
+  @override
+  String get agentEditEnableFallback => '启用自动降级';
+
+  @override
+  String get agentEditTestCases => '测试用例';
+
+  @override
+  String get agentEditTestCase => '用例';
+
+  @override
+  String get agentEditProvider => '供应商';
+
+  @override
+  String get agentEditModel => '模型';
+
+  @override
+  String get agentEditManualInput => '手动输入模型名';
+
+  @override
+  String get agentEditModelNameHint => '输入模型名称';
+
+  @override
+  String get aiSettingsTitle => 'AI 设置';
+
+  @override
+  String get aiSettingsAgents => '功能配置';
+
+  @override
+  String get aiSettingsSuppliers => '供应商管理';
+
+  @override
+  String get aiSettingsUsage => '本月用量';
+
+  @override
+  String get aiSettingsUsageCalls => '调用';
+
+  @override
+  String get aiSettingsUsageFallback => '降级';
+
+  @override
+  String get aiSettingsNoAgents => '未配置任何功能';
+
+  @override
+  String get aiSettingsAddSupplier => '添加供应商';
+
+  @override
+  String get aiSettingsTestConnection => '测试连接';
+
+  @override
+  String get aiSettingsConnected => '已连接';
+
+  @override
+  String get aiSettingsDisconnected => '未连接';
+
+  @override
+  String get aiSettingsLatency => '延迟';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -5320,4 +5425,109 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get llmNone => '不使用';
+
+  @override
+  String get cancel => '取消';
+
+  @override
+  String get confirm => '確認';
+
+  @override
+  String get agentTransactionParser => '記帳解析';
+
+  @override
+  String get agentTransactionParserDesc => '從自然語言中提取交易金額、分類、時間';
+
+  @override
+  String get agentReceiptOcr => '小票識別';
+
+  @override
+  String get agentReceiptOcrDesc => '識別小票/發票圖片中的消費資訊';
+
+  @override
+  String get agentVoiceTranscribe => '語音轉寫';
+
+  @override
+  String get agentVoiceTranscribeDesc => '將語音錄音轉為文字';
+
+  @override
+  String get agentFinanceSearch => '財務搜尋';
+
+  @override
+  String get agentFinanceSearchDesc => '自然語言查詢交易、預算、分類';
+
+  @override
+  String get agentEditTitle => '功能配置';
+
+  @override
+  String get agentEditSave => '儲存';
+
+  @override
+  String get agentEditSaved => '配置已儲存';
+
+  @override
+  String get agentEditSelectModel => '請先選擇模型';
+
+  @override
+  String get agentEditPrimaryModel => '主模型';
+
+  @override
+  String get agentEditFallbackModel => '備選模型';
+
+  @override
+  String get agentEditEnableFallback => '啟用自動降級';
+
+  @override
+  String get agentEditTestCases => '測試用例';
+
+  @override
+  String get agentEditTestCase => '用例';
+
+  @override
+  String get agentEditProvider => '供應商';
+
+  @override
+  String get agentEditModel => '模型';
+
+  @override
+  String get agentEditManualInput => '手動輸入模型名';
+
+  @override
+  String get agentEditModelNameHint => '輸入模型名稱';
+
+  @override
+  String get aiSettingsTitle => 'AI 設定';
+
+  @override
+  String get aiSettingsAgents => '功能配置';
+
+  @override
+  String get aiSettingsSuppliers => '供應商管理';
+
+  @override
+  String get aiSettingsUsage => '本月用量';
+
+  @override
+  String get aiSettingsUsageCalls => '次調用';
+
+  @override
+  String get aiSettingsUsageFallback => '次降級';
+
+  @override
+  String get aiSettingsNoAgents => '未配置任何功能';
+
+  @override
+  String get aiSettingsAddSupplier => '新增供應商';
+
+  @override
+  String get aiSettingsTestConnection => '測試連線';
+
+  @override
+  String get aiSettingsConnected => '已連線';
+
+  @override
+  String get aiSettingsDisconnected => '未連線';
+
+  @override
+  String get aiSettingsLatency => '延遲';
 }

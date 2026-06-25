@@ -2682,4 +2682,109 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get llmNone => '사용 안 함';
+
+  @override
+  String get cancel => '취소';
+
+  @override
+  String get confirm => '확인';
+
+  @override
+  String get agentTransactionParser => '가계부 분석';
+
+  @override
+  String get agentTransactionParserDesc => '자연어에서 금액, 카테고리, 시간을 추출';
+
+  @override
+  String get agentReceiptOcr => '영수증 OCR';
+
+  @override
+  String get agentReceiptOcrDesc => '영수증/청구서 이미지에서 지출 정보 인식';
+
+  @override
+  String get agentVoiceTranscribe => '음성 텍스트 변환';
+
+  @override
+  String get agentVoiceTranscribeDesc => '음성 녹음을 텍스트로 변환';
+
+  @override
+  String get agentFinanceSearch => '재무 검색';
+
+  @override
+  String get agentFinanceSearchDesc => '자연어로 거래, 예산, 카테고리 검색';
+
+  @override
+  String get agentEditTitle => '기능 설정';
+
+  @override
+  String get agentEditSave => '저장';
+
+  @override
+  String get agentEditSaved => '설정이 저장되었습니다';
+
+  @override
+  String get agentEditSelectModel => '먼저 모델을 선택해 주세요';
+
+  @override
+  String get agentEditPrimaryModel => '주 모델';
+
+  @override
+  String get agentEditFallbackModel => '대체 모델';
+
+  @override
+  String get agentEditEnableFallback => '자동 대체 활성화';
+
+  @override
+  String get agentEditTestCases => '테스트 케이스';
+
+  @override
+  String get agentEditTestCase => '케이스';
+
+  @override
+  String get agentEditProvider => '공급자';
+
+  @override
+  String get agentEditModel => '모델';
+
+  @override
+  String get agentEditManualInput => '모델 이름 수동 입력';
+
+  @override
+  String get agentEditModelNameHint => '모델 이름 입력';
+
+  @override
+  String get aiSettingsTitle => 'AI 설정';
+
+  @override
+  String get aiSettingsAgents => '기능 설정';
+
+  @override
+  String get aiSettingsSuppliers => '공급자 관리';
+
+  @override
+  String get aiSettingsUsage => '이번 달 사용량';
+
+  @override
+  String get aiSettingsUsageCalls => '회';
+
+  @override
+  String get aiSettingsUsageFallback => '회 대체';
+
+  @override
+  String get aiSettingsNoAgents => '설정된 기능이 없습니다';
+
+  @override
+  String get aiSettingsAddSupplier => '공급자 추가';
+
+  @override
+  String get aiSettingsTestConnection => '연결 테스트';
+
+  @override
+  String get aiSettingsConnected => '연결됨';
+
+  @override
+  String get aiSettingsDisconnected => '연결 안 됨';
+
+  @override
+  String get aiSettingsLatency => '지연 시간';
 }

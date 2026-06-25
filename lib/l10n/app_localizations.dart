@@ -5111,6 +5111,216 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'不使用'**
   String get llmNone;
+
+  /// No description provided for @cancel.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消'**
+  String get cancel;
+
+  /// No description provided for @confirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认'**
+  String get confirm;
+
+  /// No description provided for @agentTransactionParser.
+  ///
+  /// In zh, this message translates to:
+  /// **'记账解析'**
+  String get agentTransactionParser;
+
+  /// No description provided for @agentTransactionParserDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'从自然语言中提取交易金额、分类、时间'**
+  String get agentTransactionParserDesc;
+
+  /// No description provided for @agentReceiptOcr.
+  ///
+  /// In zh, this message translates to:
+  /// **'小票识别'**
+  String get agentReceiptOcr;
+
+  /// No description provided for @agentReceiptOcrDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'识别小票/发票图片中的消费信息'**
+  String get agentReceiptOcrDesc;
+
+  /// No description provided for @agentVoiceTranscribe.
+  ///
+  /// In zh, this message translates to:
+  /// **'语音转写'**
+  String get agentVoiceTranscribe;
+
+  /// No description provided for @agentVoiceTranscribeDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'将语音录音转为文字'**
+  String get agentVoiceTranscribeDesc;
+
+  /// No description provided for @agentFinanceSearch.
+  ///
+  /// In zh, this message translates to:
+  /// **'财务搜索'**
+  String get agentFinanceSearch;
+
+  /// No description provided for @agentFinanceSearchDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'自然语言查询交易、预算、分类'**
+  String get agentFinanceSearchDesc;
+
+  /// No description provided for @agentEditTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'功能配置'**
+  String get agentEditTitle;
+
+  /// No description provided for @agentEditSave.
+  ///
+  /// In zh, this message translates to:
+  /// **'保存'**
+  String get agentEditSave;
+
+  /// No description provided for @agentEditSaved.
+  ///
+  /// In zh, this message translates to:
+  /// **'配置已保存'**
+  String get agentEditSaved;
+
+  /// No description provided for @agentEditSelectModel.
+  ///
+  /// In zh, this message translates to:
+  /// **'请先选择模型'**
+  String get agentEditSelectModel;
+
+  /// No description provided for @agentEditPrimaryModel.
+  ///
+  /// In zh, this message translates to:
+  /// **'主模型'**
+  String get agentEditPrimaryModel;
+
+  /// No description provided for @agentEditFallbackModel.
+  ///
+  /// In zh, this message translates to:
+  /// **'备选模型'**
+  String get agentEditFallbackModel;
+
+  /// No description provided for @agentEditEnableFallback.
+  ///
+  /// In zh, this message translates to:
+  /// **'启用自动降级'**
+  String get agentEditEnableFallback;
+
+  /// No description provided for @agentEditTestCases.
+  ///
+  /// In zh, this message translates to:
+  /// **'测试用例'**
+  String get agentEditTestCases;
+
+  /// No description provided for @agentEditTestCase.
+  ///
+  /// In zh, this message translates to:
+  /// **'用例'**
+  String get agentEditTestCase;
+
+  /// No description provided for @agentEditProvider.
+  ///
+  /// In zh, this message translates to:
+  /// **'供应商'**
+  String get agentEditProvider;
+
+  /// No description provided for @agentEditModel.
+  ///
+  /// In zh, this message translates to:
+  /// **'模型'**
+  String get agentEditModel;
+
+  /// No description provided for @agentEditManualInput.
+  ///
+  /// In zh, this message translates to:
+  /// **'手动输入模型名'**
+  String get agentEditManualInput;
+
+  /// No description provided for @agentEditModelNameHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'输入模型名称'**
+  String get agentEditModelNameHint;
+
+  /// No description provided for @aiSettingsTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 设置'**
+  String get aiSettingsTitle;
+
+  /// No description provided for @aiSettingsAgents.
+  ///
+  /// In zh, this message translates to:
+  /// **'功能配置'**
+  String get aiSettingsAgents;
+
+  /// No description provided for @aiSettingsSuppliers.
+  ///
+  /// In zh, this message translates to:
+  /// **'供应商管理'**
+  String get aiSettingsSuppliers;
+
+  /// No description provided for @aiSettingsUsage.
+  ///
+  /// In zh, this message translates to:
+  /// **'本月用量'**
+  String get aiSettingsUsage;
+
+  /// No description provided for @aiSettingsUsageCalls.
+  ///
+  /// In zh, this message translates to:
+  /// **'调用'**
+  String get aiSettingsUsageCalls;
+
+  /// No description provided for @aiSettingsUsageFallback.
+  ///
+  /// In zh, this message translates to:
+  /// **'降级'**
+  String get aiSettingsUsageFallback;
+
+  /// No description provided for @aiSettingsNoAgents.
+  ///
+  /// In zh, this message translates to:
+  /// **'未配置任何功能'**
+  String get aiSettingsNoAgents;
+
+  /// No description provided for @aiSettingsAddSupplier.
+  ///
+  /// In zh, this message translates to:
+  /// **'添加供应商'**
+  String get aiSettingsAddSupplier;
+
+  /// No description provided for @aiSettingsTestConnection.
+  ///
+  /// In zh, this message translates to:
+  /// **'测试连接'**
+  String get aiSettingsTestConnection;
+
+  /// No description provided for @aiSettingsConnected.
+  ///
+  /// In zh, this message translates to:
+  /// **'已连接'**
+  String get aiSettingsConnected;
+
+  /// No description provided for @aiSettingsDisconnected.
+  ///
+  /// In zh, this message translates to:
+  /// **'未连接'**
+  String get aiSettingsDisconnected;
+
+  /// No description provided for @aiSettingsLatency.
+  ///
+  /// In zh, this message translates to:
+  /// **'延迟'**
+  String get aiSettingsLatency;
 }
 
 class _AppLocalizationsDelegate

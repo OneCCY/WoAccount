@@ -2674,4 +2674,109 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get llmNone => '使用しない';
+
+  @override
+  String get cancel => 'キャンセル';
+
+  @override
+  String get confirm => '確認';
+
+  @override
+  String get agentTransactionParser => '記帳解析';
+
+  @override
+  String get agentTransactionParserDesc => '自然言語から金額・カテゴリ・日時を抽出';
+
+  @override
+  String get agentReceiptOcr => 'レシートOCR';
+
+  @override
+  String get agentReceiptOcrDesc => 'レシート/請求書の画像から支出情報を認識';
+
+  @override
+  String get agentVoiceTranscribe => '音声文字起こし';
+
+  @override
+  String get agentVoiceTranscribeDesc => '音声録音をテキストに変換';
+
+  @override
+  String get agentFinanceSearch => '財務検索';
+
+  @override
+  String get agentFinanceSearchDesc => '自然言語で取引・予算・カテゴリを検索';
+
+  @override
+  String get agentEditTitle => '機能設定';
+
+  @override
+  String get agentEditSave => '保存';
+
+  @override
+  String get agentEditSaved => '設定を保存しました';
+
+  @override
+  String get agentEditSelectModel => 'まずモデルを選択してください';
+
+  @override
+  String get agentEditPrimaryModel => 'メインモデル';
+
+  @override
+  String get agentEditFallbackModel => 'フォールバックモデル';
+
+  @override
+  String get agentEditEnableFallback => '自動フォールバックを有効化';
+
+  @override
+  String get agentEditTestCases => 'テストケース';
+
+  @override
+  String get agentEditTestCase => 'ケース';
+
+  @override
+  String get agentEditProvider => 'プロバイダー';
+
+  @override
+  String get agentEditModel => 'モデル';
+
+  @override
+  String get agentEditManualInput => 'モデル名を手動入力';
+
+  @override
+  String get agentEditModelNameHint => 'モデル名を入力';
+
+  @override
+  String get aiSettingsTitle => 'AI設定';
+
+  @override
+  String get aiSettingsAgents => '機能設定';
+
+  @override
+  String get aiSettingsSuppliers => 'プロバイダー管理';
+
+  @override
+  String get aiSettingsUsage => '今月の利用状況';
+
+  @override
+  String get aiSettingsUsageCalls => '回';
+
+  @override
+  String get aiSettingsUsageFallback => '回フォールバック';
+
+  @override
+  String get aiSettingsNoAgents => '機能が設定されていません';
+
+  @override
+  String get aiSettingsAddSupplier => 'プロバイダー追加';
+
+  @override
+  String get aiSettingsTestConnection => '接続テスト';
+
+  @override
+  String get aiSettingsConnected => '接続済み';
+
+  @override
+  String get aiSettingsDisconnected => '未接続';
+
+  @override
+  String get aiSettingsLatency => 'レイテンシ';
 }

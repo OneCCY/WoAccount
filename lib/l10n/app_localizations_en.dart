@@ -2725,4 +2725,112 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get llmNone => 'None';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get confirm => 'Confirm';
+
+  @override
+  String get agentTransactionParser => 'Transaction Parser';
+
+  @override
+  String get agentTransactionParserDesc =>
+      'Extract amount, category, and time from natural language';
+
+  @override
+  String get agentReceiptOcr => 'Receipt OCR';
+
+  @override
+  String get agentReceiptOcrDesc =>
+      'Recognize expenses from receipt/invoice images';
+
+  @override
+  String get agentVoiceTranscribe => 'Voice Transcribe';
+
+  @override
+  String get agentVoiceTranscribeDesc => 'Convert voice recordings to text';
+
+  @override
+  String get agentFinanceSearch => 'Finance Search';
+
+  @override
+  String get agentFinanceSearchDesc =>
+      'Query transactions, budgets, and categories with natural language';
+
+  @override
+  String get agentEditTitle => 'Agent Configuration';
+
+  @override
+  String get agentEditSave => 'Save';
+
+  @override
+  String get agentEditSaved => 'Configuration saved';
+
+  @override
+  String get agentEditSelectModel => 'Please select a model first';
+
+  @override
+  String get agentEditPrimaryModel => 'Primary Model';
+
+  @override
+  String get agentEditFallbackModel => 'Fallback Model';
+
+  @override
+  String get agentEditEnableFallback => 'Enable auto fallback';
+
+  @override
+  String get agentEditTestCases => 'Test Cases';
+
+  @override
+  String get agentEditTestCase => 'Case';
+
+  @override
+  String get agentEditProvider => 'Provider';
+
+  @override
+  String get agentEditModel => 'Model';
+
+  @override
+  String get agentEditManualInput => 'Enter model name manually';
+
+  @override
+  String get agentEditModelNameHint => 'Enter model name';
+
+  @override
+  String get aiSettingsTitle => 'AI Settings';
+
+  @override
+  String get aiSettingsAgents => 'Agent Configuration';
+
+  @override
+  String get aiSettingsSuppliers => 'Provider Management';
+
+  @override
+  String get aiSettingsUsage => 'Monthly Usage';
+
+  @override
+  String get aiSettingsUsageCalls => 'calls';
+
+  @override
+  String get aiSettingsUsageFallback => 'fallbacks';
+
+  @override
+  String get aiSettingsNoAgents => 'No agents configured';
+
+  @override
+  String get aiSettingsAddSupplier => 'Add Provider';
+
+  @override
+  String get aiSettingsTestConnection => 'Test Connection';
+
+  @override
+  String get aiSettingsConnected => 'Connected';
+
+  @override
+  String get aiSettingsDisconnected => 'Disconnected';
+
+  @override
+  String get aiSettingsLatency => 'Latency';
 }
