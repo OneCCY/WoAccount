@@ -32,8 +32,9 @@ class VoiceRecognitionService {
     LlmProvider provider,
     String audioFilePath, {
     String language = 'zh',
+    String? modelName,
   }) async {
-    final model = provider.getModelForCapability(ModelCapability.audio);
+    final model = modelName ?? provider.getModelForCapability(ModelCapability.audio);
     if (model == null || model.isEmpty) {
       throw const LlmException('未配置语音识别模型，请在 AI 设置中配置',
           errorCode: 'voiceErrorNoModelConfigured');

@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:drift/drift.dart';
 import '../../config/database/app_database.dart';
 import '../../features/ai/data/models/llm_config.dart';
+import '../../features/ai/domain/agent_runner.dart';
 import '../../features/vision_ai/data/services/image_recognition_service.dart';
 import '../../features/ai/domain/repositories/llm_repository.dart';
 import '../media/media_storage_service.dart';
@@ -70,16 +72,19 @@ class TransactionPipeline {
   final ImageRecognitionService _imageService;
   final MediaStorageService _mediaStorage;
   final AppDatabase _db;
+  final AgentRunner? _agentRunner;
 
   TransactionPipeline({
     required LlmRepository llmRepo,
     required ImageRecognitionService imageService,
     required MediaStorageService mediaStorage,
     required AppDatabase db,
+    AgentRunner? agentRunner,
   })  : _llmRepo = llmRepo,
         _imageService = imageService,
         _mediaStorage = mediaStorage,
-        _db = db;
+        _db = db,
+        _agentRunner = agentRunner;
 
   /// 处理文本输入
   Future<PipelineResult> processText(
@@ -88,6 +93,36 @@ class TransactionPipeline {
     String locale = 'zh',
     int? bookId,
   }) async {
+    // 优先使用 AgentRunner（v2.0）
+    if (_agentRunner != null) {
+      try {
+        final agentRunner = _agentRunner;
+        final result = await agentRunner.run(
+          'transaction_parser',
+          text,
+          extraParams: {
+            if (categoryTaxonomy != null) 'categoryTaxonomy': categoryTaxonomy,
+            'locale': locale,
+            if (bookId != null) 'bookId': bookId,
+          },
+        );
+        final parsed = _parseAgentResult(result.content);
+        return PipelineResult(
+          normalizedText: text,
+          transactions: parsed,
+          source: InputSource.text,
+        );
+      } catch (e) {
+        // AgentRunner 失败，回退到旧逻辑
+        if (e is LlmException && e.errorCode == 'agentNotConfigured') {
+          // Agent 未配置，使用旧路径
+        } else {
+          rethrow;
+        }
+      }
+    }
+
+    // 旧路径（兼容 AgentRunner 不可用时）
     // [Tool Use] 检测引用型输入，预取历史数据
     final resolvedText = await _resolveReference(text, bookId);
 
@@ -441,6 +476,48 @@ class TransactionPipeline {
     return cleaned.split(RegExp(r'\s+'))
         .where((w) => w.length >= 2)
         .toList();
+  }
+
+  /// 解析 AgentRunner 返回的 JSON 为 TransactionParseResult 列表
+  List<TransactionParseResult> _parseAgentResult(String content) {
+    try {
+      // 提取 JSON（可能被 markdown 代码块包裹）
+      var jsonStr = content.trim();
+      if (jsonStr.contains('```')) {
+        final match = RegExp(r'```(?:json)?\s*([\s\S]*?)```').firstMatch(jsonStr);
+        if (match != null) jsonStr = match.group(1)!.trim();
+      }
+      // 尝试找到 JSON 对象
+      final jsonStart = jsonStr.indexOf('{');
+      if (jsonStart > 0) jsonStr = jsonStr.substring(jsonStart);
+
+      final decoded = jsonDecode(jsonStr);
+      final List<dynamic> txList;
+      if (decoded is Map<String, dynamic> && decoded.containsKey('transactions')) {
+        txList = decoded['transactions'] as List<dynamic>;
+      } else if (decoded is List) {
+        txList = decoded;
+      } else {
+        return [];
+      }
+
+      return txList.map((tx) {
+        final m = tx as Map<String, dynamic>;
+        return TransactionParseResult(
+          type: m['type'] as String? ?? 'expense',
+          amount: (m['amount'] as num?)?.toDouble() ?? 0,
+          category: m['category'] as String? ?? '',
+          subcategory: m['subcategory'] as String?,
+          description: m['description'] as String? ?? '',
+          confidence: (m['confidence'] as num?)?.toDouble() ?? 0.5,
+          date: m['date'] as String?,
+          note: m['note'] as String?,
+          payMethod: m['payMethod'] as String?,
+        );
+      }).toList();
+    } catch (_) {
+      return [];
+    }
   }
 }
 

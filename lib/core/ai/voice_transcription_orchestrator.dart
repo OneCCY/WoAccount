@@ -1,5 +1,8 @@
 import '../media/media_storage_service.dart';
 import '../../features/ai/data/models/llm_config.dart';
+import '../../features/ai/data/models/ai_provider.dart';
+import '../../features/ai/data/storage/agent_config_storage.dart';
+import '../../features/ai/data/storage/provider_storage.dart';
 import '../../features/text_ai/data/services/voice_recognition_service.dart';
 
 /// 双引擎语音转写结果
@@ -77,10 +80,14 @@ class VoiceTranscriptionOrchestrator {
     required String audioPath,
     String? platformText,
   }) async {
-    // 解析 audio 能力对应的 provider
-    final provider = await LlmConfigManager.resolveProviderForCapability(
-      ModelCapability.audio,
-    );
+    // 通过 AgentConfig 解析 voice_transcribe 的 Provider 和模型
+    AiProvider? provider;
+    String? whisperModel;
+    final agentConfig = await AgentConfigStorage.load('voice_transcribe');
+    if (agentConfig != null && agentConfig.enabled) {
+      provider = await ProviderStorage.getById(agentConfig.providerId);
+      whisperModel = agentConfig.modelName;
+    }
 
     // 1. 保存音频到永久存储
     String? savedPath;
@@ -93,8 +100,8 @@ class VoiceTranscriptionOrchestrator {
     // 2. 检测引擎可用性
     final hasPlatform =
         platformText != null && platformText.trim().isNotEmpty;
-    final hasWhisper = provider != null && provider.isComplete &&
-        provider.getModelForCapability(ModelCapability.audio) != null;
+    final hasWhisper = provider != null && provider.isReady &&
+        whisperModel != null && whisperModel.isNotEmpty;
 
     if (!hasPlatform && !hasWhisper) {
       throw const LlmException(
@@ -114,7 +121,22 @@ class VoiceTranscriptionOrchestrator {
     // 4. Whisper 引擎（单引擎或双引擎）
     String? whisperText;
     try {
-      whisperText = await _whisperService.transcribe(provider!, savedPath ?? audioPath);
+      // 将 AiProvider 转换为 LlmProvider 供 WhisperService 使用
+      final legacyProvider = LlmProvider(
+        id: provider!.id,
+        name: provider.name,
+        apiKey: provider.apiKey,
+        baseUrl: provider.baseUrl,
+        temperature: provider.temperature,
+        maxTokens: provider.maxTokens,
+        timeoutSeconds: provider.timeoutSeconds,
+        providerKey: provider.providerKey ?? 'custom',
+      );
+      whisperText = await _whisperService.transcribe(
+        legacyProvider,
+        savedPath ?? audioPath,
+        modelName: whisperModel,
+      );
     } catch (e) {
       // Whisper 失败时，如果 Platform 有结果则降级
       if (hasPlatform) {

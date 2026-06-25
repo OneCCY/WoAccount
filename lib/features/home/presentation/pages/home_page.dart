@@ -9,7 +9,7 @@ import '../../../../config/di/ai_providers.dart';
 import '../../../../core/ai/llm_error_resolver.dart';
 import '../../../../core/ai/transaction_pipeline.dart';
 import '../../../../core/ai/voice_transcription_orchestrator.dart';
-import '../../../ai/data/models/llm_config.dart';
+import '../../../ai/data/storage/agent_config_storage.dart';
 import '../../../../core/locale/locale_provider.dart';
 import '../../../transaction/domain/repositories/transaction_repository.dart';
 import '../../../category/domain/repositories/category_repository.dart';
@@ -79,9 +79,11 @@ class _HomePageState extends ConsumerState<HomePage> {
     final sttService = ref.read(platformSttServiceProvider);
     final hasPlatform = await sttService.isAvailable();
 
-    final llmRepo = ref.read(llmRepositoryProvider);
-    final provider = await llmRepo.getActiveProvider();
-    final hasWhisper = provider?.getModelForCapability(ModelCapability.audio) != null;
+    // 使用 AgentConfig 检测语音能力（v2.0）
+    final voiceConfig = await AgentConfigStorage.load('voice_transcribe');
+    final hasWhisper = voiceConfig != null &&
+        voiceConfig.enabled &&
+        voiceConfig.modelName.isNotEmpty;
 
     if (!hasPlatform && !hasWhisper && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

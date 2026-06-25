@@ -24,8 +24,9 @@ class ImageRecognitionService {
     LlmProvider provider,
     String imagePath, {
     String? customPrompt,
+    String? modelName,
   }) async {
-    final model = provider.getModelForCapability(ModelCapability.vision);
+    final model = modelName ?? provider.getModelForCapability(ModelCapability.vision);
     if (model == null || model.isEmpty) {
       throw const LlmException('未配置视觉识别模型，请在 AI 设置中配置', errorCode: 'visionErrorNoModelConfigured');
     }

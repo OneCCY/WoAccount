@@ -974,6 +974,160 @@ AiAgent(
 
 ---
 
+## 16. 实现策略
+
+### 16.1 AgentRunner 替代 TransactionPipeline
+
+现有 `TransactionPipeline` 包含完整的业务编排逻辑，AgentRunner 不仅是通用执行引擎，还需接管 Pipeline 的全部职责：
+
+| TransactionPipeline 逻辑 | 迁移到 Agent 系统的位置 |
+|--------------------------|----------------------|
+| RAG（相似交易检索） | Agent 预处理步骤，AgentRunner.run() 在调用 LLM 前执行 |
+| Episodic Memory（纠错记忆） | Agent 预处理步骤，注入到 system prompt 的 few-shot 部分 |
+| Tool Use（指代解析："上次那样"） | ToolRegistry 中的 `resolve_reference` 工具 |
+| 路由（text→parser, voice→whisper+parser） | Agent 间调用关系，由调用方按需串联 |
+| RuleEngine 离线降级 | AgentRunner 的最后一级降级（LLM 全部失败 → RuleEngine） |
+
+**迁移后调用链**：
+
+```
+语音记账:
+  AgentRunner.run("voice_transcribe", audioData)
+    → 得到文字
+  AgentRunner.run("transaction_parser", text)
+    → 预处理: RAG 检索相似交易 + Episodic Memory 注入
+    → LLM 调用（带 Tool: get_categories, resolve_reference）
+    → 失败降级到 RuleEngine
+    → 返回 TransactionParseResult
+
+小票记账:
+  AgentRunner.run("receipt_ocr", imageData)
+    → 得到文字/JSON
+  AgentRunner.run("transaction_parser", extractedText)
+    → 同上
+
+手动记账:
+  AgentRunner.run("transaction_parser", userInput)
+    → 同上
+```
+
+### 16.2 ToolRegistry 设计
+
+```dart
+class ToolRegistry {
+  final Map<String, BuiltinTool> _tools = {};
+
+  void register(BuiltinTool tool);
+  BuiltinTool? get(String toolId);
+  List<BuiltinTool> getToolsByIds(List<String> toolIds);
+}
+
+abstract class BuiltinTool {
+  String get id;           // "get_categories"
+  String get name;         // "获取分类列表"
+  String get description;  // 给 LLM 看的工具描述
+  Map<String, dynamic> get schema; // JSON Schema for parameters
+  Future<dynamic> execute(Map<String, dynamic> params);
+}
+```
+
+**预置工具**：
+
+| Tool ID | 来源 | 说明 |
+|---------|------|------|
+| `get_categories` | TransactionPipeline._buildCategoryTool | 查询用户分类列表 |
+| `get_exchange_rate` | TransactionPipeline._buildExchangeRateTool | 汇率转换 |
+| `get_transactions` | 新增 | 查询交易记录（供 finance_search 使用） |
+| `get_budgets` | 新增 | 查询预算信息 |
+| `calculate_total` | 新增 | 计算金额汇总 |
+| `resolve_reference` | TransactionPipeline Tool Use 逻辑 | 解析指代（"上次那样"、"和昨天一样"） |
+
+### 16.3 RAG + Episodic Memory 迁移
+
+RAG 和 Episodic Memory 作为 `AgentRunner.run()` 的预处理步骤：
+
+```dart
+class AgentRunner {
+  Future<AgentResult> run(String agentId, dynamic input) async {
+    final agent = _registry.get(agentId);
+    final config = await _configStorage.load(agentId);
+    final provider = await _providerStorage.load(config.providerId);
+
+    // 预处理：RAG + Memory（仅 transaction_parser 触发）
+    String enrichedInput = input.toString();
+    String enrichedPrompt = agent.systemPrompt;
+
+    if (agent.id == 'transaction_parser') {
+      // RAG: 检索相似交易
+      final similar = await _ragRetriever.findSimilar(input.toString());
+      if (similar.isNotEmpty) {
+        enrichedInput = _injectRAG(input.toString(), similar);
+      }
+      // Episodic Memory: 注入纠错记忆
+      final memories = await _memoryStore.getCorrections();
+      if (memories.isNotEmpty) {
+        enrichedPrompt = _injectMemory(agent.systemPrompt, memories);
+      }
+    }
+
+    // 构建请求 → 主模型调用 → 降级 → Trace
+    ...
+  }
+}
+```
+
+### 16.4 分阶段实现顺序
+
+```
+阶段 A: 数据层 ─────────────────────────────────
+  ├─ AiProvider 数据类（去掉 models）
+  ├─ AiAgent 数据类 + 预置定义
+  ├─ AgentConfig 数据类 + AgentConfigStorage
+  ├─ AiTrace 数据类 + TraceStorage
+  ├─ ProviderStorage（从 LlmConfigManager 拆出）
+  ├─ ModelFetcher（从 fetchModelsFromApi 提取）
+  └─ migrateFromV1() 数据迁移
+
+阶段 B: 领域层 ─────────────────────────────────
+  ├─ AgentRegistry（4 个预置 Agent）
+  ├─ ToolRegistry + 6 个预置工具
+  ├─ AgentRunner（主备降级 + RAG + Memory + Trace）
+  └─ 更新 LlmRepository 接口（移除 capability 相关方法）
+
+阶段 C: 服务层迁移 ─────────────────────────────
+  ├─ TransactionPipeline → AgentRunner 调用
+  ├─ VoiceRecognitionService → voice_transcribe Agent
+  ├─ ImageRecognitionService → receipt_ocr Agent
+  ├─ VoiceTranscriptionOrchestrator → 使用 AgentConfig
+  ├─ Home page 能力检测 → 基于 AgentConfig
+  └─ 更新 DI 层（Riverpod providers）
+
+阶段 D: UI 重建 ─────────────────────────────────
+  ├─ LlmSettingsPage（主入口：供应商列表 + Agent 列表 + 用量）
+  ├─ SupplierManagementPage（供应商管理 + Level 1 测试）
+  ├─ ProviderEditPage（编辑 + 自动拉取模型）
+  ├─ AgentEditPage（主模型 + 备选 + 测试用例）
+  ├─ 公共 widgets（ConnectionStatusBadge, ModelSelector, TestCaseRunner）
+  └─ 删除旧页面（_ModelManagementPage, _CapabilityConfigPage）
+
+阶段 E: 集成验证 ─────────────────────────────────
+  ├─ 端到端测试：语音记账、小票记账、手动记账
+  ├─ 降级测试：主模型超时 → 备选模型
+  └─ 迁移测试：旧数据 → 新格式
+```
+
+### 16.5 关键设计决策
+
+| 决策 | 选择 | 原因 |
+|------|------|------|
+| AgentRunner vs Pipeline | AgentRunner 完全替代 | 避免两套编排逻辑并存的维护成本 |
+| RAG/Memory 归属 | AgentRunner 预处理步骤 | 仅 transaction_parser 需要，作为可选预处理 |
+| Tool 系统 | 完整 ToolRegistry | finance_search 需要多工具组合，需灵活注册 |
+| UI 拆分 | 独立文件 | 1893 行单文件不可维护，符合 Spec 设计 |
+| 存储 | 继续 SharedPreferences | 与现有架构一致，减少迁移风险 |
+
+---
+
 ## 变更记录
 
 | 日期 | 版本 | 变更 |
@@ -981,3 +1135,4 @@ AiAgent(
 | 2026-06-04 | v1.0 | 初始设计，单供应商单模型 |
 | 2026-06-23 | v1.5 | 增加能力独立供应商选择 |
 | 2026-06-25 | v2.0 | Agent 导向架构重设计，Provider 解耦，主备降级，Trace 追踪 |
+| 2026-06-25 | v2.1 | 补充实现策略：AgentRunner 替代 Pipeline、ToolRegistry、RAG/Memory 迁移、分阶段实现顺序 |
