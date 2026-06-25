@@ -76,14 +76,19 @@ class _AgentEditPageState extends ConsumerState<AgentEditPage> {
       else _isLoadingModels = true;
     });
 
+    final isAnthropic = provider.providerKey == 'claude';
+
     List<String> models;
     try {
-      models = await ModelFetcher.fetchAndCache(providerId, provider.baseUrl, provider.apiKey);
+      models = await ModelFetcher.fetchAndCache(
+        providerId, provider.baseUrl, provider.apiKey,
+        isAnthropic: isAnthropic,
+      );
     } catch (_) {
       models = [];
     }
 
-    // 如果 API 没返回模型，尝试从缓存读取
+    // API 失败时从缓存读取（缓存已按 providerId 隔离）
     if (models.isEmpty) {
       models = await ProviderStorage.loadFetchedModels(providerId);
     }
@@ -93,9 +98,16 @@ class _AgentEditPageState extends ConsumerState<AgentEditPage> {
         if (isFallback) {
           _fallbackModels = models;
           _isLoadingFallbackModels = false;
+          // 如果之前选的模型不在新列表中，清空选择
+          if (_fallbackModel != null && !models.contains(_fallbackModel)) {
+            _fallbackModel = null;
+          }
         } else {
           _fetchedModels = models;
           _isLoadingModels = false;
+          if (_selectedModel != null && !models.contains(_selectedModel)) {
+            _selectedModel = null;
+          }
         }
       });
     }
@@ -254,7 +266,7 @@ class _AgentEditPageState extends ConsumerState<AgentEditPage> {
     required ValueChanged<String?> onChanged,
   }) {
     return DropdownButtonFormField<String>(
-      value: _providers.any((p) => p.id == selectedId) ? selectedId : null,
+      initialValue: _providers.any((p) => p.id == selectedId) ? selectedId : null,
       decoration: InputDecoration(
         labelText: AppLocalizations.of(context)!.agentEditProvider,
         border: const OutlineInputBorder(),
@@ -282,7 +294,7 @@ class _AgentEditPageState extends ConsumerState<AgentEditPage> {
           children: [
             Expanded(
               child: DropdownButtonFormField<String>(
-                value: (selectedModel != null && models.contains(selectedModel))
+                initialValue: (selectedModel != null && models.contains(selectedModel))
                     ? selectedModel
                     : null,
                 decoration: InputDecoration(

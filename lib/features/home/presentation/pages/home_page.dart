@@ -57,9 +57,12 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   /// 检查 AI 服务是否已配置
   Future<void> _checkAiConfig() async {
-    final llmRepo = ref.read(llmRepositoryProvider);
-    final provider = await llmRepo.getActiveProvider();
-    if ((provider == null || !provider.isComplete) && mounted) {
+    // v2.0: 检查 transaction_parser Agent 是否已配置
+    final config = await AgentConfigStorage.load('transaction_parser');
+    final isConfigured = config != null &&
+        config.providerId.isNotEmpty &&
+        config.modelName.isNotEmpty;
+    if (!isConfigured && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(AppLocalizations.of(context)!.homePageAiNotConfigured),
@@ -253,12 +256,13 @@ class _HomePageState extends ConsumerState<HomePage> {
     final stopwatch = Stopwatch()..start();
 
     try {
-      // 使用 AI 服务解析（含降级策略：LLM → 规则引擎）
-      final llmRepo = ref.read(llmRepositoryProvider);
+      // 使用 AI 服务解析（v2.0: 通过 TransactionPipeline → AgentRunner）
+      final pipeline = ref.read(transactionPipelineProvider);
       // 动态构建用户分类体系（包含最新分类和子分类）
       final categoryTaxonomy = await _buildCategoryTaxonomy();
       final locale = Localizations.localeOf(context).languageCode;
-      final results = await llmRepo.parseTransaction(input, categoryTaxonomy: categoryTaxonomy, locale: locale);
+      final pipelineResult = await pipeline.processText(input, categoryTaxonomy: categoryTaxonomy, locale: locale, bookId: ref.read(currentBookProvider));
+      final results = pipelineResult.transactions;
       stopwatch.stop();
       if (!mounted) return;
 
