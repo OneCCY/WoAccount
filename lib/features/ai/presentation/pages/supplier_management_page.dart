@@ -4,9 +4,7 @@ import 'package:wo_account/l10n/app_localizations.dart';
 import 'package:dio/dio.dart';
 
 import '../../data/models/ai_provider.dart';
-import '../../data/models/llm_config.dart';
 import '../../data/storage/provider_storage.dart';
-import '../../data/repositories/llm_repository_impl.dart';
 import 'provider_edit_page_v2.dart';
 
 /// 供应商管理页（v2.0）
@@ -57,25 +55,47 @@ class _SupplierManagementPageV2State extends ConsumerState<SupplierManagementPag
 
     final stopwatch = Stopwatch()..start();
     try {
-      final legacyProvider = LlmProvider(
-        id: provider.id,
-        name: provider.name,
-        apiKey: provider.apiKey,
-        baseUrl: provider.baseUrl,
-        temperature: provider.temperature,
-        maxTokens: provider.maxTokens,
-        timeoutSeconds: provider.timeoutSeconds,
-        providerKey: provider.providerKey ?? 'custom',
-      );
-      final repo = LlmRepositoryImpl(Dio());
-      final ok = await repo.testConnection(legacyProvider);
+      // v2 连通性测试：GET /models（不依赖模型配置）
+      final dio = Dio();
+      final baseUrl = provider.baseUrl.replaceAll(RegExp(r'/+$'), '');
+      final candidates = [
+        '$baseUrl/v1/models',
+        '$baseUrl/models',
+      ];
+
+      bool connected = false;
+      for (final url in candidates) {
+        try {
+          final response = await dio.get(
+            url,
+            options: Options(
+              headers: {'Authorization': 'Bearer ${provider.apiKey}'},
+              receiveTimeout: const Duration(seconds: 10),
+            ),
+          );
+          if (response.statusCode == 200) {
+            connected = true;
+            break;
+          }
+        } on DioException catch (e) {
+          // 401/403 说明 key 有效但权限问题，也算连通
+          if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
+            connected = true;
+            break;
+          }
+          // 404 说明 URL 不对，继续尝试下一个
+          if (e.response?.statusCode == 404) continue;
+          rethrow;
+        }
+      }
+
       stopwatch.stop();
       if (mounted) {
         setState(() {
-          _statuses[provider.id] = ok
+          _statuses[provider.id] = connected
               ? _ConnectionStatus.connected
               : _ConnectionStatus.disconnected;
-          _latencies[provider.id] = ok ? stopwatch.elapsedMilliseconds : null;
+          _latencies[provider.id] = connected ? stopwatch.elapsedMilliseconds : null;
         });
       }
     } catch (_) {
