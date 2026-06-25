@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' hide Column;
@@ -50,6 +51,7 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
   int? _selectedId;
   int? _expandedParentId;
   String _searchQuery = '';
+  Timer? _searchDebounce;
 
   @override
   void initState() {
@@ -58,6 +60,12 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
         ? widget.initialCategoryType
         : (widget.initialIsExpense ? 0 : 1);
     _selectedId = widget.selectedCategoryId;
+  }
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    super.dispose();
   }
 
   List<Category> _filterTopLevel(List<Category> allCategories) {
@@ -145,7 +153,12 @@ class _CategoryPickerSheetState extends ConsumerState<CategoryPickerSheet> {
                     borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
                   ),
                   child: TextField(
-                    onChanged: (v) => setState(() => _searchQuery = v),
+                    onChanged: (v) {
+                      _searchDebounce?.cancel();
+                      _searchDebounce = Timer(const Duration(milliseconds: 300), () {
+                        if (mounted) setState(() => _searchQuery = v);
+                      });
+                    },
                     style: context.textStyles.footnote,
                     decoration: InputDecoration(
                       hintText: l10n.txnCategorySearch,

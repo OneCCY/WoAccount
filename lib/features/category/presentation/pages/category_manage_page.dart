@@ -237,27 +237,32 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
         isExpense: isExpense,
         isOther: isOther,
         onConfirm: (name, icon) async {
-          if (!mounted) return;
-          final existing = await _catRepo.getByName(name);
-          if (!mounted) return;
-          if (existing != null) {
-            AppToast.show(context, AppLocalizations.of(context)!.catManageNameExists, duration: const Duration(milliseconds: 800));
-            return;
-          }
+          try {
+            if (!mounted) return false;
+            final existing = await _catRepo.getByName(name);
+            if (!mounted) return false;
+            if (existing != null) {
+              AppToast.show(context, AppLocalizations.of(context)!.catManageNameExists, duration: const Duration(milliseconds: 800));
+              return false;
+            }
 
-          final allTopLevel = await _catRepo.getTopLevel();
-          if (!mounted) return;
-          final maxSort = allTopLevel.isEmpty ? 0 : allTopLevel.map((c) => c.sortOrder).reduce((a, b) => a > b ? a : b);
-          final randomColor = _colorOptions[DateTime.now().millisecondsSinceEpoch % _colorOptions.length];
-          await _catRepo.insert(CategoriesCompanion.insert(
-            name: name,
-            icon: Value(icon),
-            color: Value(randomColor),
-            level: const Value(1),
-            isSystem: const Value(false),
-            isExpense: Value(isExpense && !isOther),
-            sortOrder: Value(maxSort + 1),
-          ));
+            final allTopLevel = await _catRepo.getTopLevel();
+            if (!mounted) return false;
+            final maxSort = allTopLevel.isEmpty ? 0 : allTopLevel.map((c) => c.sortOrder).reduce((a, b) => a > b ? a : b);
+            final randomColor = _colorOptions[DateTime.now().millisecondsSinceEpoch % _colorOptions.length];
+            await _catRepo.insert(CategoriesCompanion.insert(
+              name: name,
+              icon: Value(icon),
+              color: Value(randomColor),
+              level: const Value(1),
+              isSystem: const Value(false),
+              isExpense: Value(isExpense && !isOther),
+              sortOrder: Value(maxSort + 1),
+            ));
+            return true;
+          } catch (_) {
+            return false;
+          }
         },
       ),
     );
@@ -271,27 +276,32 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
       builder: (ctx) => _AddSubCategorySheet(
         parentName: _selectedParent!.name,
         onConfirm: (name, icon) async {
-          if (!mounted) return;
-          final existing = await _catRepo.getByName(name);
-          if (!mounted) return;
-          if (existing != null) {
-            AppToast.show(context, AppLocalizations.of(context)!.catManageSubNameExists, duration: const Duration(milliseconds: 800));
-            return;
-          }
+          try {
+            if (!mounted) return false;
+            final existing = await _catRepo.getByName(name);
+            if (!mounted) return false;
+            if (existing != null) {
+              AppToast.show(context, AppLocalizations.of(context)!.catManageSubNameExists, duration: const Duration(milliseconds: 800));
+              return false;
+            }
 
-          final children = await _catRepo.getChildren(_selectedParent!.id);
-          if (!mounted) return;
-          final maxSort = children.isEmpty ? 0 : children.map((c) => c.sortOrder).reduce((a, b) => a > b ? a : b);
-          await _catRepo.insert(CategoriesCompanion.insert(
-            name: name,
-            icon: Value(icon),
-            color: Value(_selectedParent!.color),
-            parentId: Value(_selectedParent!.id),
-            level: const Value(2),
-            isSystem: const Value(false),
-            isExpense: Value(_selectedParent!.isExpense),
-            sortOrder: Value(maxSort + 1),
-          ));
+            final children = await _catRepo.getChildren(_selectedParent!.id);
+            if (!mounted) return false;
+            final maxSort = children.isEmpty ? 0 : children.map((c) => c.sortOrder).reduce((a, b) => a > b ? a : b);
+            await _catRepo.insert(CategoriesCompanion.insert(
+              name: name,
+              icon: Value(icon),
+              color: Value(_selectedParent!.color),
+              parentId: Value(_selectedParent!.id),
+              level: const Value(2),
+              isSystem: const Value(false),
+              isExpense: Value(_selectedParent!.isExpense),
+              sortOrder: Value(maxSort + 1),
+            ));
+            return true;
+          } catch (_) {
+            return false;
+          }
         },
       ),
     );
@@ -306,34 +316,44 @@ class _CategoryManagePageState extends ConsumerState<CategoryManagePage> {
       builder: (ctx) => _EditCategorySheet(
         category: cat,
         onConfirm: (name, icon) async {
-          final existing = await _catRepo.getByName(name);
-          if (existing != null && existing.id != cat.id) {
-            if (mounted) {
+          try {
+            final existing = await _catRepo.getByName(name);
+            if (!mounted) return false;
+            if (existing != null && existing.id != cat.id) {
               AppToast.show(context, l10n.catManageNameExists, duration: const Duration(milliseconds: 800));
+              return false;
             }
-            return;
+            final success = await _catRepo.update(CategoriesCompanion(
+              id: Value(cat.id),
+              name: Value(name),
+              icon: Value(icon),
+              color: Value(cat.color),
+              isExpense: Value(cat.isExpense),
+              level: Value(cat.level),
+              sortOrder: Value(cat.sortOrder),
+              parentId: Value(cat.parentId),
+            ));
+            return success;
+          } catch (_) {
+            return false;
           }
-          await _catRepo.update(CategoriesCompanion(
-            id: Value(cat.id),
-            name: Value(name),
-            icon: Value(icon),
-            color: Value(cat.color),
-            isExpense: Value(cat.isExpense),
-            level: Value(cat.level),
-            sortOrder: Value(cat.sortOrder),
-            parentId: Value(cat.parentId),
-          ));
         },
         onDelete: () async {
-          final children = await _catRepo.getChildren(cat.id);
-          final bool success;
-          if (children.isNotEmpty) {
-            success = await _catRepo.deleteWithChildren(cat.id);
-          } else {
-            success = await _catRepo.delete(cat.id);
-          }
-          if (!success && mounted) {
-            AppToast.show(context, l10n.catManageDeleteBlocked, duration: const Duration(milliseconds: 800));
+          try {
+            final children = await _catRepo.getChildren(cat.id);
+            if (!mounted) return false;
+            final bool success;
+            if (children.isNotEmpty) {
+              success = await _catRepo.deleteWithChildren(cat.id);
+            } else {
+              success = await _catRepo.delete(cat.id);
+            }
+            if (!success && mounted) {
+              AppToast.show(context, l10n.catManageDeleteBlocked, duration: const Duration(milliseconds: 800));
+            }
+            return success;
+          } catch (_) {
+            return false;
           }
         },
       ),
@@ -477,7 +497,7 @@ const _colorOptions = [
 class _AddCategorySheet extends StatefulWidget {
   final bool isExpense;
   final bool isOther;
-  final Function(String name, String icon) onConfirm;
+  final Future<bool> Function(String name, String icon) onConfirm;
 
   const _AddCategorySheet({
     required this.isExpense,
@@ -584,14 +604,16 @@ class _AddCategorySheetState extends State<_AddCategorySheet> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 final name = _nameController.text.trim();
                 if (name.isEmpty) {
                   AppToast.show(context, l10n.catManageNameHint, duration: const Duration(milliseconds: 500));
                   return;
                 }
-                Navigator.of(context).pop();
-                widget.onConfirm(name, _selectedIcon);
+                final success = await widget.onConfirm(name, _selectedIcon);
+                if (success && context.mounted) {
+                  Navigator.of(context).pop();
+                }
               },
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 12),
@@ -616,7 +638,7 @@ class _AddCategorySheetState extends State<_AddCategorySheet> {
 
 class _AddSubCategorySheet extends StatefulWidget {
   final String parentName;
-  final Function(String name, String icon) onConfirm;
+  final Future<bool> Function(String name, String icon) onConfirm;
 
   const _AddSubCategorySheet({
     required this.parentName,
@@ -721,14 +743,16 @@ class _AddSubCategorySheetState extends State<_AddSubCategorySheet> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 final name = _nameController.text.trim();
                 if (name.isEmpty) {
                   AppToast.show(context, l10n.catManageSubNameHint, duration: const Duration(milliseconds: 500));
                   return;
                 }
-                Navigator.of(context).pop();
-                widget.onConfirm(name, _selectedIcon);
+                final success = await widget.onConfirm(name, _selectedIcon);
+                if (success && context.mounted) {
+                  Navigator.of(context).pop();
+                }
               },
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 12),
@@ -753,8 +777,8 @@ class _AddSubCategorySheetState extends State<_AddSubCategorySheet> {
 
 class _EditCategorySheet extends StatefulWidget {
   final Category category;
-  final Function(String name, String icon) onConfirm;
-  final VoidCallback onDelete;
+  final Future<bool> Function(String name, String icon) onConfirm;
+  final Future<bool> Function() onDelete;
 
   const _EditCategorySheet({
     required this.category,
@@ -867,9 +891,11 @@ class _EditCategorySheetState extends State<_EditCategorySheet> {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    widget.onDelete();
+                  onPressed: () async {
+                    final success = await widget.onDelete();
+                    if (success && context.mounted) {
+                      Navigator.of(context).pop();
+                    }
                   },
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
@@ -887,14 +913,16 @@ class _EditCategorySheetState extends State<_EditCategorySheet> {
               const SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     final name = _nameController.text.trim();
                     if (name.isEmpty) {
                       AppToast.show(context, l10n.catManageNameHint, duration: const Duration(milliseconds: 500));
                       return;
                     }
-                    Navigator.of(context).pop();
-                    widget.onConfirm(name, _selectedIcon);
+                    final success = await widget.onConfirm(name, _selectedIcon);
+                    if (success && context.mounted) {
+                      Navigator.of(context).pop();
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),

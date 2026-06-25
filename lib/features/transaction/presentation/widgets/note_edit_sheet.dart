@@ -90,7 +90,7 @@ class _NoteEditSheetState extends State<NoteEditSheet> {
               contentPadding: const EdgeInsets.all(12),
               counterStyle: context.textStyles.caption,
             ),
-            onChanged: (_) => setState(() {}),
+            onChanged: (_) {},
           ),
           const SizedBox(height: 16),
           // 按钮行
