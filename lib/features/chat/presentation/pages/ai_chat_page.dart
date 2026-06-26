@@ -330,6 +330,33 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
 
       // 3. 为每笔交易匹配分类并生成确认卡片
       final confirmCards = <ConfirmData>[];
+
+      // 非记账输入：显示 AI 的友好回复
+      if (result.transactions.isEmpty && result.nonTransactionResponse != null) {
+        final aiMsg = result.nonTransactionResponse!;
+        await _chatRepo.insertMessage(
+          ConversationMessagesCompanion.insert(
+            conversationId: _conversationId,
+            role: 'assistant',
+            content: aiMsg,
+            accountBookId: _bookId,
+          ),
+        );
+        if (!mounted) return;
+        setState(() {
+          _items.add(_ChatItem.assistant(ConversationMessage(
+            id: 0,
+            conversationId: _conversationId,
+            role: 'assistant',
+            content: aiMsg,
+            accountBookId: _bookId,
+            createdAt: DateTime.now(),
+          )));
+          _isAiResponding = false;
+        });
+        return;
+      }
+
       for (final txn in result.transactions) {
         final matchedCategory = await _matchCategory(txn.category, txn.type);
         final matchedSub = await _matchSubcategory(matchedCategory.id, txn.subcategory, txn.type == 'expense');
