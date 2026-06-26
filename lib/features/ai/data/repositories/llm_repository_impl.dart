@@ -3,6 +3,8 @@ import 'package:dio/dio.dart';
 import '../../../../core/ai/prompt_templates.dart';
 import '../../../../core/ai/rule_engine.dart';
 import '../../../../core/config/ai_provider_presets.dart';
+import '../storage/provider_storage.dart';
+import '../storage/agent_config_storage.dart';
 import '../../domain/repositories/llm_repository.dart';
 import '../models/llm_config.dart';
 
@@ -18,7 +20,38 @@ class LlmRepositoryImpl implements LlmRepository {
 
   @override
   Future<LlmProvider?> getActiveProvider() async {
-    return await LlmConfigManager.getActiveProvider();
+    final provider = await LlmConfigManager.getActiveProvider();
+    if (provider != null && provider.isComplete) return provider;
+
+    // v2 回退：从 ProviderStorage 获取第一个可用 provider
+    final v2Providers = await ProviderStorage.loadAll();
+    final ready = v2Providers.where((p) => p.isReady).toList();
+    if (ready.isNotEmpty) {
+      final p = ready.first;
+      // 尝试从 AgentConfig 获取 text 模型名
+      String? textModel;
+      try {
+        final configs = await AgentConfigStorage.loadAll();
+        final tpConfig = configs['transaction_parser'];
+        if (tpConfig != null && tpConfig.modelName.isNotEmpty) {
+          textModel = tpConfig.modelName;
+        }
+      } catch (_) {}
+      return LlmProvider(
+        id: p.id,
+        name: p.name,
+        apiKey: p.apiKey,
+        baseUrl: p.baseUrl,
+        temperature: p.temperature,
+        maxTokens: p.maxTokens,
+        timeoutSeconds: p.timeoutSeconds,
+        providerKey: p.providerKey ?? 'custom',
+        models: {
+          if (textModel != null) 'text': ModelConfig(modelName: textModel),
+        },
+      );
+    }
+    return null;
   }
 
   /// 获取指定能力的模型名称
@@ -33,7 +66,7 @@ class LlmRepositoryImpl implements LlmRepository {
 
   @override
   Future<LlmResponse> chat(LlmRequest request, {LlmProvider? provider}) async {
-    provider ??= await LlmConfigManager.getActiveProvider();
+    provider ??= await getActiveProvider();
 
     if (provider == null || !provider.isComplete) {
       throw const LlmException('请先在设置中添加并配置 AI 服务商', errorCode: 'llmErrorNoProviderConfigured');
@@ -199,7 +232,7 @@ class LlmRepositoryImpl implements LlmRepository {
 
     // 降级策略：先尝试 LLM，失败后用规则引擎
     try {
-      provider ??= await LlmConfigManager.resolveProviderForCapability(ModelCapability.text);
+      provider ??= await getActiveProvider();
       if (provider == null || !provider.isComplete) {
         // 未配置 LLM，直接用规则引擎
         final ruleResult = RuleEngine.parse(sanitizedInput);
@@ -335,7 +368,7 @@ class LlmRepositoryImpl implements LlmRepository {
   @override
   Future<Map<String, dynamic>> parseSearchQuery(String input, {String? categoryTaxonomy, String locale = 'zh'}) async {
     try {
-      final provider = await LlmConfigManager.getActiveProvider();
+      final provider = await getActiveProvider();
       if (provider == null || !provider.isComplete) {
         // 未配置 LLM，返回基础关键词查询
         return {
@@ -420,7 +453,7 @@ class LlmRepositoryImpl implements LlmRepository {
   @override
   Future<String> generateSearchSummary(String userQuery, Map<String, dynamic> stats, {String? categoryTaxonomy}) async {
     try {
-      final provider = await LlmConfigManager.getActiveProvider();
+      final provider = await getActiveProvider();
       if (provider == null || !provider.isComplete) {
         return _generateLocalSummary(stats);
       }

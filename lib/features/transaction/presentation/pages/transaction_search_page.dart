@@ -30,7 +30,7 @@ class _TransactionSearchPageState extends ConsumerState<TransactionSearchPage> {
   final _searchController = TextEditingController();
   final _focusNode = FocusNode();
 
-  SearchMode _searchMode = SearchMode.keyword;
+  SearchMode _searchMode = SearchMode.ai;
   bool _isSearching = false;
   bool _isAiParsing = false;
   String? _aiIntent;
