@@ -249,6 +249,8 @@ class _AiInputBarState extends State<AiInputBar> {
         child: Row(
           children: [
             _buildRecordButton(),
+            const SizedBox(width: 6),
+            _SideButton(icon: Icons.camera_alt_outlined, onPressed: widget.onCamera, tooltip: AppLocalizations.of(context)!.homeInputCamera),
             const SizedBox(width: 10),
             Expanded(
               child: Container(
@@ -283,7 +285,12 @@ class _AiInputBarState extends State<AiInputBar> {
               ),
             ),
             const SizedBox(width: 10),
-            _SideButton(icon: Icons.camera_alt_outlined, onPressed: widget.onCamera, tooltip: AppLocalizations.of(context)!.homeInputCamera),
+            _SideButton(
+              icon: Icons.send_rounded,
+              onPressed: _handleSubmit,
+              tooltip: AppLocalizations.of(context)!.homeInputSubmit,
+              color: context.colors.primary,
+            ),
           ],
         ),
       ),
@@ -366,8 +373,9 @@ class _SideButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onPressed;
   final String tooltip;
+  final Color? color;
 
-  const _SideButton({required this.icon, required this.onPressed, required this.tooltip});
+  const _SideButton({required this.icon, required this.onPressed, required this.tooltip, this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -384,7 +392,7 @@ class _SideButton extends StatelessWidget {
         child: InkWell(
           onTap: onPressed,
           borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-          child: Icon(icon, size: 20, color: context.colors.textPrimary),
+          child: Icon(icon, size: 20, color: color ?? context.colors.textPrimary),
         ),
       ),
     );

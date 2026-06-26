@@ -252,6 +252,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get homeInputHint => '昼食ラーメン25円';
 
   @override
+  String get homeInputSubmit => '送信';
+
+  @override
   String get homeInputCamera => '写真で認識';
 
   @override

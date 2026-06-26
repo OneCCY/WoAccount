@@ -540,6 +540,12 @@ abstract class AppLocalizations {
   /// **'午饭吃了碗拉面25元'**
   String get homeInputHint;
 
+  /// No description provided for @homeInputSubmit.
+  ///
+  /// In zh, this message translates to:
+  /// **'发送'**
+  String get homeInputSubmit;
+
   /// No description provided for @homeInputCamera.
   ///
   /// In zh, this message translates to:

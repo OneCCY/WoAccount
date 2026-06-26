@@ -253,6 +253,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeInputHint => '점심 라면 25원';
 
   @override
+  String get homeInputSubmit => '보내기';
+
+  @override
   String get homeInputCamera => '사진으로 인식';
 
   @override

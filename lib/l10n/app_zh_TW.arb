@@ -82,6 +82,7 @@
   "homePageBudgetAlert": "今日消費已超過日均預算的80%",
   "homeInputManual": "手動記帳",
   "homeInputHint": "午餐吃了碗拉麵25元",
+  "homeInputSubmit": "發送",
   "homeInputCamera": "拍照辨識",
   "homeConfirmTitle": "🤖 AI解析結果",
   "homeConfirmOriginalInput": "原始輸入: {input}",

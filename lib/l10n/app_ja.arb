@@ -82,6 +82,7 @@
   "homePageBudgetAlert": "本日の支出が日予算の80%を超過しています",
   "homeInputManual": "手動入力",
   "homeInputHint": "昼食ラーメン25円",
+  "homeInputSubmit": "送信",
   "homeInputCamera": "写真で認識",
   "homeConfirmTitle": "🤖 AI解析結果",
   "homeConfirmOriginalInput": "入力内容: {input}",

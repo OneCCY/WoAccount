@@ -261,6 +261,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeInputHint => 'Lunch ramen 25 yuan';
 
   @override
+  String get homeInputSubmit => 'Send';
+
+  @override
   String get homeInputCamera => 'Photo Recognition';
 
   @override

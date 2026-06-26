@@ -82,6 +82,7 @@
   "homePageBudgetAlert": "오늘 지출이 일일 예산의 80%를 초과했습니다",
   "homeInputManual": "직접 입력",
   "homeInputHint": "점심 라면 25원",
+  "homeInputSubmit": "보내기",
   "homeInputCamera": "사진으로 인식",
   "homeConfirmTitle": "🤖 AI 분석 결과",
   "homeConfirmOriginalInput": "입력 내용: {input}",

@@ -252,6 +252,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get homeInputHint => '午饭吃了碗拉面25元';
 
   @override
+  String get homeInputSubmit => '发送';
+
+  @override
   String get homeInputCamera => '拍照识别';
 
   @override
@@ -3007,6 +3010,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get homeInputHint => '午餐吃了碗拉麵25元';
+
+  @override
+  String get homeInputSubmit => '發送';
 
   @override
   String get homeInputCamera => '拍照辨識';

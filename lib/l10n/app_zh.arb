@@ -87,6 +87,7 @@
   "homePageBudgetAlert": "今日消费已超过日均预算的80%",
   "homeInputManual": "手动记账",
   "homeInputHint": "午饭吃了碗拉面25元",
+  "homeInputSubmit": "发送",
   "homeInputCamera": "拍照识别",
   "homeConfirmTitle": "🤖 AI解析结果",
   "homeConfirmOriginalInput": "原始输入: {input}",

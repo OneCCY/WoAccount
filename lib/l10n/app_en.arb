@@ -87,6 +87,7 @@
   "homePageBudgetAlert": "Today's spending has exceeded 80% of the daily budget",
   "homeInputManual": "Manual Entry",
   "homeInputHint": "Lunch ramen 25 yuan",
+  "homeInputSubmit": "Send",
   "homeInputCamera": "Photo Recognition",
   "homeConfirmTitle": "🤖 AI Parse Result",
   "homeConfirmOriginalInput": "Original input: {input}",
