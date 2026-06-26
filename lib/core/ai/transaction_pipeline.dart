@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import '../../config/database/app_database.dart';
 import '../../features/ai/data/models/llm_config.dart';
+import '../../features/ai/data/storage/agent_config_storage.dart';
+import '../../features/ai/data/storage/provider_storage.dart';
 import '../../features/ai/domain/agent_runner.dart';
 import '../../features/vision_ai/data/services/image_recognition_service.dart';
 import '../../features/ai/domain/repositories/llm_repository.dart';
@@ -130,9 +132,50 @@ class TransactionPipeline {
     final context = await _buildEnrichedContext(resolvedText, bookId);
 
     // 解析 text 能力对应的 provider
-    final provider = await LlmConfigManager.resolveProviderForCapability(
+    LlmProvider? provider = await LlmConfigManager.resolveProviderForCapability(
       ModelCapability.text,
     );
+
+    // v2 回退：旧 LlmConfigManager 无数据时，从 ProviderStorage 获取
+    if (provider == null || !provider.isComplete) {
+      final agentConfig = await AgentConfigStorage.load('transaction_parser');
+      if (agentConfig != null && agentConfig.providerId.isNotEmpty && agentConfig.modelName.isNotEmpty) {
+        final aiProvider = await ProviderStorage.getById(agentConfig.providerId);
+        if (aiProvider != null && aiProvider.isReady) {
+          provider = LlmProvider(
+            id: aiProvider.id,
+            name: aiProvider.name,
+            apiKey: aiProvider.apiKey,
+            baseUrl: aiProvider.baseUrl,
+            temperature: aiProvider.temperature,
+            maxTokens: aiProvider.maxTokens,
+            timeoutSeconds: aiProvider.timeoutSeconds,
+            providerKey: aiProvider.providerKey ?? 'custom',
+            models: {'text': ModelConfig(modelName: agentConfig.modelName)},
+          );
+        }
+      }
+    }
+
+    // 仍然没有 provider，尝试用任意可用的 v2 provider
+    if (provider == null || !provider.isComplete) {
+      final v2Providers = await ProviderStorage.loadAll();
+      final ready = v2Providers.where((p) => p.isReady).toList();
+      if (ready.isNotEmpty) {
+        final p = ready.first;
+        provider = LlmProvider(
+          id: p.id,
+          name: p.name,
+          apiKey: p.apiKey,
+          baseUrl: p.baseUrl,
+          temperature: p.temperature,
+          maxTokens: p.maxTokens,
+          timeoutSeconds: p.timeoutSeconds,
+          providerKey: p.providerKey ?? 'custom',
+          models: {},
+        );
+      }
+    }
 
     final results = await _llmRepo.parseTransaction(
       resolvedText,
