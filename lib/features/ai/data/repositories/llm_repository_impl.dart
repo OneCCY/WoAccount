@@ -155,15 +155,33 @@ class LlmRepositoryImpl implements LlmRepository {
     );
 
     final stream = response.data!.stream;
-    String buffer = '';
+    List<int> byteBuffer = [];
+    String lineBuffer = '';
 
     await for (final chunk in stream) {
-      buffer += String.fromCharCodes(chunk);
+      byteBuffer = [...byteBuffer, ...chunk];
+      // 尝试解码，如果末尾有多字节字符被截断，先保留未解码的字节
+      int validEnd = byteBuffer.length;
+      try {
+        utf8.decode(byteBuffer);
+      } on FormatException {
+        // 末尾可能有不完整的多字节字符，逐字节回退
+        for (int i = 1; i <= 3 && validEnd - i >= 0; i++) {
+          try {
+            utf8.decode(byteBuffer.sublist(0, validEnd - i));
+            validEnd -= i;
+            break;
+          } catch (_) {}
+        }
+      }
+      final decoded = utf8.decode(byteBuffer.sublist(0, validEnd), allowMalformed: true);
+      byteBuffer = byteBuffer.sublist(validEnd);
+      lineBuffer += decoded;
       // SSE 格式：按行解析
-      while (buffer.contains('\n')) {
-        final idx = buffer.indexOf('\n');
-        final line = buffer.substring(0, idx).trim();
-        buffer = buffer.substring(idx + 1);
+      while (lineBuffer.contains('\n')) {
+        final idx = lineBuffer.indexOf('\n');
+        final line = lineBuffer.substring(0, idx).trim();
+        lineBuffer = lineBuffer.substring(idx + 1);
 
         if (!line.startsWith('data: ')) continue;
         final data = line.substring(6);
