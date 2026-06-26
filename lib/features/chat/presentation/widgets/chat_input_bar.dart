@@ -269,6 +269,22 @@ class _ChatInputBarState extends State<ChatInputBar> {
                   ),
                 ),
               ),
+              SizedBox(width: Responsive.s(context, 6)),
+              // 拍照按钮（手动记账右侧）
+              GestureDetector(
+                onTap: _showImageSourceSheet,
+                child: Container(
+                  width: Responsive.s(context, 40),
+                  height: Responsive.s(context, 40),
+                  decoration: BoxDecoration(
+                    color: context.colors.surfaceSecondary,
+                    borderRadius: BorderRadius.circular(Responsive.s(context, 20)),
+                  ),
+                  child: Center(
+                    child: Icon(Icons.camera_alt, size: 20, color: context.colors.textSecondary),
+                  ),
+                ),
+              ),
               SizedBox(width: Responsive.s(context, 8)),
               // 中间：文本输入框
               Expanded(
@@ -299,6 +315,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
                           ),
                           textInputAction: TextInputAction.send,
                           onSubmitted: (_) => _handleSubmit(),
+                          onChanged: (_) => setState(() {}),
                         ),
                       ),
                       if (_controller.text.isNotEmpty)
@@ -314,18 +331,18 @@ class _ChatInputBarState extends State<ChatInputBar> {
                 ),
               ),
               SizedBox(width: Responsive.s(context, 8)),
-              // 右侧：拍照按钮
+              // 右侧：发送按钮
               GestureDetector(
-                onTap: _showImageSourceSheet,
+                onTap: _handleSubmit,
                 child: Container(
                   width: Responsive.s(context, 40),
                   height: Responsive.s(context, 40),
                   decoration: BoxDecoration(
-                    color: context.colors.surfaceSecondary,
+                    color: context.colors.primary,
                     borderRadius: BorderRadius.circular(Responsive.s(context, 20)),
                   ),
                   child: Center(
-                    child: Icon(Icons.camera_alt, size: 20, color: context.colors.textSecondary),
+                    child: Icon(Icons.send_rounded, size: 20, color: Colors.white),
                   ),
                 ),
               ),
