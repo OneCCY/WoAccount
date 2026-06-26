@@ -173,8 +173,14 @@ class _TransactionSearchPageState extends ConsumerState<TransactionSearchPage> {
       // 2. 将 LLM 解析结果转换为 SearchQuery
       final searchQuery = _buildSearchQueryFromParsed(parsed);
 
-      // 3. 一次查询同时获取结果和统计（避免重复查询）
-      final combined = await repo.searchWithResults(bookId, searchQuery);
+      // 3. 查询结果 + 准备分类体系（并行）
+      final searchFuture = repo.searchWithResults(bookId, searchQuery);
+      final catRepo = ref.read(categoryRepositoryProvider);
+      final catsFuture = catRepo.getAll();
+
+      final combined = await searchFuture;
+      final allCats = await catsFuture;
+
       if (!mounted) return;
       setState(() {
         _results = combined.transactions;
@@ -182,7 +188,7 @@ class _TransactionSearchPageState extends ConsumerState<TransactionSearchPage> {
         _isSearching = false;
       });
 
-      // 4. 计算分类分布
+      // 4. 计算分类分布 + 构建统计 Map
       final categoryTotals = <String, double>{};
       for (final t in combined.transactions) {
         final cat = _categoryMap[t.parentCategoryId ?? t.categoryId];
@@ -203,11 +209,8 @@ class _TransactionSearchPageState extends ConsumerState<TransactionSearchPage> {
         'topCategories': sortedCategories.take(5).toList(),
       };
 
-      // 5. 生成 AI 摘要（流式，始终执行）
-      final catRepo = ref.read(categoryRepositoryProvider);
-      final allCats = await catRepo.getAll();
+      // 5. 启动 AI 摘要流（不阻塞，结果立即显示）
       final taxonomy = _buildTaxonomyText(allCats);
-
       if (mounted) {
         setState(() {
           _aiSummary = '';
@@ -216,26 +219,21 @@ class _TransactionSearchPageState extends ConsumerState<TransactionSearchPage> {
         });
       }
 
-      try {
-        final stream = llmRepo.generateSearchSummaryStream(
-          query, statsMap,
-          categoryTaxonomy: taxonomy.isNotEmpty ? taxonomy : null,
-        );
-        _summarySubscription?.cancel();
-        _summarySubscription = stream.listen(
-          (chunk) {
-            if (mounted) setState(() => _aiSummary = (_aiSummary ?? '') + chunk);
-          },
-          onDone: () {
-            if (mounted) setState(() => _isSummaryStreaming = false);
-          },
-          onError: (_) {
-            if (mounted) setState(() => _isSummaryStreaming = false);
-          },
-        );
-      } catch (_) {
-        if (mounted) setState(() => _isSummaryStreaming = false);
-      }
+      _summarySubscription?.cancel();
+      _summarySubscription = llmRepo.generateSearchSummaryStream(
+        query, statsMap,
+        categoryTaxonomy: taxonomy.isNotEmpty ? taxonomy : null,
+      ).listen(
+        (chunk) {
+          if (mounted) setState(() => _aiSummary = (_aiSummary ?? '') + chunk);
+        },
+        onDone: () {
+          if (mounted) setState(() => _isSummaryStreaming = false);
+        },
+        onError: (_) {
+          if (mounted) setState(() => _isSummaryStreaming = false);
+        },
+      );
     } catch (e) {
       if (!mounted) return;
       setState(() {
