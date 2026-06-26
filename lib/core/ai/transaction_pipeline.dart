@@ -528,19 +528,49 @@ class TransactionPipeline {
     try {
       // 提取 JSON（可能被 markdown 代码块包裹）
       var jsonStr = content.trim();
+
+      // 1. 尝试从 markdown 代码块中提取
       if (jsonStr.contains('```')) {
         final match = RegExp(r'```(?:json)?\s*([\s\S]*?)```').firstMatch(jsonStr);
         if (match != null) jsonStr = match.group(1)!.trim();
       }
-      // 尝试找到 JSON 对象
-      final jsonStart = jsonStr.indexOf('{');
-      if (jsonStart < 0) {
+
+      // 2. 找到第一个 [ 或 { 作为 JSON 起点
+      final arrayStart = jsonStr.indexOf('[');
+      final objectStart = jsonStr.indexOf('{');
+      int jsonStart;
+      if (arrayStart < 0 && objectStart < 0) {
         // 没有 JSON，把整个内容作为描述返回
         return [TransactionParseResult(
           type: 'expense', amount: 0, category: '', description: content, confidence: 0.1,
         )];
+      } else if (arrayStart < 0) {
+        jsonStart = objectStart;
+      } else if (objectStart < 0) {
+        jsonStart = arrayStart;
+      } else {
+        jsonStart = arrayStart < objectStart ? arrayStart : objectStart;
       }
-      if (jsonStart > 0) jsonStr = jsonStr.substring(jsonStart);
+      jsonStr = jsonStr.substring(jsonStart);
+
+      // 3. 找到匹配的闭合括号（处理 LLM 在 JSON 后附加文本的情况）
+      final openChar = jsonStr[0];
+      final closeChar = openChar == '[' ? ']' : '}';
+      int depth = 0;
+      int jsonEnd = -1;
+      for (int i = 0; i < jsonStr.length; i++) {
+        if (jsonStr[i] == openChar) depth++;
+        if (jsonStr[i] == closeChar) {
+          depth--;
+          if (depth == 0) {
+            jsonEnd = i + 1;
+            break;
+          }
+        }
+      }
+      if (jsonEnd > 0) {
+        jsonStr = jsonStr.substring(0, jsonEnd);
+      }
 
       final decoded = jsonDecode(jsonStr);
       final List<dynamic> txList;
@@ -548,6 +578,9 @@ class TransactionPipeline {
         txList = decoded['transactions'] as List<dynamic>;
       } else if (decoded is List) {
         txList = decoded;
+      } else if (decoded is Map<String, dynamic>) {
+        // 单个对象而非数组
+        txList = [decoded];
       } else {
         return [];
       }
@@ -571,7 +604,10 @@ class TransactionPipeline {
         print('[TransactionPipeline] _parseAgentResult failed: $e\n  content: ${content.substring(0, content.length.clamp(0, 200))}');
         return true;
       }());
-      return [];
+      // 解析失败，返回原始内容作为描述
+      return [TransactionParseResult(
+        type: 'expense', amount: 0, category: '', description: content, confidence: 0.1,
+      )];
     }
   }
 }
