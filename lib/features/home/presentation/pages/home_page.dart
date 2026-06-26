@@ -267,7 +267,13 @@ class _HomePageState extends ConsumerState<HomePage> {
       if (!mounted) return;
 
       if (results.isEmpty) {
-        _showSnackBar(AppLocalizations.of(context)!.homePageNoContent);
+        // 非记账输入：显示 AI 的友好回复
+        final aiResponse = pipelineResult.nonTransactionResponse;
+        if (aiResponse != null && aiResponse.isNotEmpty) {
+          _showSnackBar(aiResponse);
+        } else {
+          _showSnackBar(AppLocalizations.of(context)!.homePageNoContent);
+        }
         return;
       }
 

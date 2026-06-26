@@ -48,11 +48,16 @@ class PipelineResult {
   /// 保存后的媒体文件路径（语音/图片输入时有值）
   final String? mediaFilePath;
 
+  /// AI 对非记账输入的回复（如"你叫什么"时 AI 的友好回复）
+  /// 当此字段非空时，transactions 为空，UI 应显示此文本作为 AI 回复
+  final String? nonTransactionResponse;
+
   const PipelineResult({
     required this.normalizedText,
     required this.transactions,
     required this.source,
     this.mediaFilePath,
+    this.nonTransactionResponse,
   });
 }
 
@@ -75,6 +80,9 @@ class TransactionPipeline {
   final MediaStorageService _mediaStorage;
   final AppDatabase _db;
   final AgentRunner? _agentRunner;
+
+  /// 临时存储非记账回复（_parseAgentResult 设置，processText 读取后清空）
+  String? _pendingNonTransactionResponse;
 
   TransactionPipeline({
     required LlmRepository llmRepo,
@@ -109,10 +117,13 @@ class TransactionPipeline {
           },
         );
         final parsed = _parseAgentResult(result.content);
+        final nonTxResponse = _pendingNonTransactionResponse;
+        _pendingNonTransactionResponse = null;
         return PipelineResult(
           normalizedText: text,
           transactions: parsed,
           source: InputSource.text,
+          nonTransactionResponse: nonTxResponse,
         );
       } catch (e) {
         // AgentRunner 失败，回退到旧逻辑
@@ -540,10 +551,9 @@ class TransactionPipeline {
       final objectStart = jsonStr.indexOf('{');
       int jsonStart;
       if (arrayStart < 0 && objectStart < 0) {
-        // 没有 JSON，把整个内容作为描述返回
-        return [TransactionParseResult(
-          type: 'expense', amount: 0, category: '', description: content, confidence: 0.1,
-        )];
+        // 没有 JSON → LLM 的非记账回复，标记为 nonTransactionResponse
+        _pendingNonTransactionResponse = content;
+        return [];
       } else if (arrayStart < 0) {
         jsonStart = objectStart;
       } else if (objectStart < 0) {
@@ -604,10 +614,9 @@ class TransactionPipeline {
         print('[TransactionPipeline] _parseAgentResult failed: $e\n  content: ${content.substring(0, content.length.clamp(0, 200))}');
         return true;
       }());
-      // 解析失败，返回原始内容作为描述
-      return [TransactionParseResult(
-        type: 'expense', amount: 0, category: '', description: content, confidence: 0.1,
-      )];
+      // 解析失败 → 将原始 LLM 回复作为非记账回复展示
+      _pendingNonTransactionResponse = content;
+      return [];
     }
   }
 }
