@@ -37,6 +37,10 @@ class LlmRepositoryImpl implements LlmRepository {
           textModel = tpConfig.modelName;
         }
       } catch (_) {}
+
+      // 无 AgentConfig 时，从预设获取默认模型
+      textModel ??= _getDefaultModelForProvider(p.providerKey);
+
       return LlmProvider(
         id: p.id,
         name: p.name,
@@ -51,6 +55,19 @@ class LlmRepositoryImpl implements LlmRepository {
         },
       );
     }
+    return null;
+  }
+
+  /// 根据 providerKey 获取预设默认模型名
+  String? _getDefaultModelForProvider(String? providerKey) {
+    if (providerKey == null) return null;
+    final preset = getPresetByKey(providerKey);
+    if (preset == null) return null;
+    // 优先用 text 能力的默认模型
+    final textModels = preset.defaultModelsByCapability['text'];
+    if (textModels != null && textModels.isNotEmpty) return textModels.first;
+    // 其次用 defaultModels 列表
+    if (preset.defaultModels.isNotEmpty) return preset.defaultModels.first;
     return null;
   }
 

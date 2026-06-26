@@ -118,7 +118,9 @@ class TransactionPipeline {
         // AgentRunner 失败，回退到旧逻辑
         if (e is LlmException && e.errorCode == 'agentNotConfigured') {
           // Agent 未配置，使用旧路径
+          assert(() { print('[Pipeline] AgentRunner: agentNotConfigured, falling back'); return true; }());
         } else {
+          assert(() { print('[Pipeline] AgentRunner error: $e'); return true; }());
           rethrow;
         }
       }
