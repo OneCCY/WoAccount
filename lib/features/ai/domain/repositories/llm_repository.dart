@@ -8,6 +8,9 @@ abstract class LlmRepository {
   /// 发送聊天请求
   Future<LlmResponse> chat(LlmRequest request, {LlmProvider? provider});
 
+  /// 流式聊天请求，返回逐步生成的文本片段
+  Stream<String> chatStream(LlmRequest request, {LlmProvider? provider});
+
   /// 解析记账输入（带降级策略：LLM → 规则引擎）
   /// 返回列表支持多笔交易（如 "吃饭24，洗衣服34"）
   /// [categoryTaxonomy] 可选的动态分类体系文本，用于替换默认硬编码分类
@@ -35,4 +38,7 @@ abstract class LlmRepository {
   /// 根据搜索结果数据生成自然语言摘要
   /// [categoryTaxonomy] 可选的分类体系，用于更精准的分类分析
   Future<String> generateSearchSummary(String userQuery, Map<String, dynamic> stats, {String? categoryTaxonomy});
+
+  /// 流式生成搜索摘要
+  Stream<String> generateSearchSummaryStream(String userQuery, Map<String, dynamic> stats, {String? categoryTaxonomy});
 }

@@ -106,6 +106,96 @@ class LlmRepositoryImpl implements LlmRepository {
     }
   }
 
+  @override
+  Stream<String> chatStream(LlmRequest request, {LlmProvider? provider}) async* {
+    final resolvedProvider = provider ?? await getActiveProvider();
+    if (resolvedProvider == null || !resolvedProvider.isComplete) {
+      throw const LlmException('请先在设置中添加并配置 AI 服务商', errorCode: 'llmErrorNoProviderConfigured');
+    }
+
+    final model = _resolveModel(resolvedProvider, request);
+    final preset = getPresetByKey(resolvedProvider.providerKey);
+    final isAnthropic = preset?.apiFormat == ApiFormat.anthropic;
+
+    final body = <String, dynamic>{
+      'model': model,
+      'messages': request.messages.map((m) => m.toJson()).toList(),
+      'temperature': request.temperature ?? resolvedProvider.temperature,
+      'max_tokens': request.maxTokens ?? resolvedProvider.maxTokens,
+      'stream': true,
+    };
+
+    final url = isAnthropic
+        ? '${resolvedProvider.baseUrl}/messages'
+        : '${resolvedProvider.baseUrl}/chat/completions';
+
+    final headers = isAnthropic
+        ? {
+            'x-api-key': resolvedProvider.apiKey,
+            'Content-Type': 'application/json',
+            'anthropic-version': '2023-06-01',
+          }
+        : {
+            'Authorization': 'Bearer ${resolvedProvider.apiKey}',
+            'Content-Type': 'application/json',
+          };
+
+    if (isAnthropic) {
+      body['max_tokens'] = request.maxTokens ?? resolvedProvider.maxTokens;
+    }
+
+    final response = await _dio.post<ResponseBody>(
+      url,
+      options: Options(
+        headers: headers,
+        responseType: ResponseType.stream,
+        receiveTimeout: Duration(seconds: resolvedProvider.timeoutSeconds * 3),
+      ),
+      data: body,
+    );
+
+    final stream = response.data!.stream;
+    String buffer = '';
+
+    await for (final chunk in stream) {
+      buffer += String.fromCharCodes(chunk);
+      // SSE 格式：按行解析
+      while (buffer.contains('\n')) {
+        final idx = buffer.indexOf('\n');
+        final line = buffer.substring(0, idx).trim();
+        buffer = buffer.substring(idx + 1);
+
+        if (!line.startsWith('data: ')) continue;
+        final data = line.substring(6);
+        if (data == '[DONE]') return;
+
+        try {
+          final json = jsonDecode(data) as Map<String, dynamic>;
+          String? delta;
+          if (isAnthropic) {
+            // Anthropic 格式
+            if (json['type'] == 'content_block_delta') {
+              final contentDelta = json['delta'] as Map<String, dynamic>?;
+              delta = contentDelta?['text'] as String?;
+            }
+          } else {
+            // OpenAI 格式
+            final choices = json['choices'] as List?;
+            if (choices != null && choices.isNotEmpty) {
+              final deltaObj = choices[0]['delta'] as Map<String, dynamic>?;
+              delta = deltaObj?['content'] as String?;
+            }
+          }
+          if (delta != null && delta.isNotEmpty) {
+            yield delta;
+          }
+        } catch (_) {
+          // 忽略解析错误的行
+        }
+      }
+    }
+  }
+
   /// OpenAI 兼容格式调用
   Future<LlmResponse> _chatOpenAI(LlmProvider provider, LlmRequest request, String model) async {
     final body = <String, dynamic>{
@@ -509,6 +599,40 @@ class LlmRepositoryImpl implements LlmRepository {
       return response.content;
     } catch (_) {
       return _generateLocalSummary(stats);
+    }
+  }
+
+  @override
+  Stream<String> generateSearchSummaryStream(String userQuery, Map<String, dynamic> stats, {String? categoryTaxonomy}) async* {
+    final provider = await getActiveProvider();
+    if (provider == null || !provider.isComplete) {
+      yield _generateLocalSummary(stats);
+      return;
+    }
+
+    final statsText = StringBuffer()
+      ..writeln('用户查询: $userQuery')
+      ..writeln('匹配笔数: ${stats['count']}')
+      ..writeln('总支出: ${stats['totalExpense']}')
+      ..writeln('总收入: ${stats['totalIncome']}');
+    if (stats['average'] != null) statsText.writeln('平均金额: ${stats['average']}');
+    if (stats['maxAmount'] != null) {
+      statsText.writeln('最大单笔: ${stats['maxAmount']}');
+      if (stats['maxDescription'] != null) statsText.writeln('最大单笔描述: ${stats['maxDescription']}');
+    }
+    if (stats['topCategories'] != null) statsText.writeln('分类分布: ${stats['topCategories']}');
+
+    try {
+      yield* chatStream(LlmRequest(
+        messages: [
+          ChatMessage(role: 'system', content: PromptTemplates.searchSummarySystem(categoryTaxonomy: categoryTaxonomy)),
+          ChatMessage(role: 'user', content: statsText.toString()),
+        ],
+        temperature: 0.3,
+        capability: ModelCapability.text,
+      ));
+    } catch (_) {
+      yield _generateLocalSummary(stats);
     }
   }
 

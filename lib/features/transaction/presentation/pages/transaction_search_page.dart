@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -40,6 +41,9 @@ class _TransactionSearchPageState extends ConsumerState<TransactionSearchPage> {
   SearchResultStats? _resultStats;
   Map<int, Category> _categoryMap = {};
   String? _aiSummary;
+  bool _isSummaryStreaming = false;
+  bool _isSummaryExpanded = true;
+  StreamSubscription<String>? _summarySubscription;
 
   // 筛选状态
   String? _filterType; // null=全部, 'expense', 'income'
@@ -62,6 +66,7 @@ class _TransactionSearchPageState extends ConsumerState<TransactionSearchPage> {
   @override
   void dispose() {
     _debounceController();
+    _summarySubscription?.cancel();
     _searchController.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -197,20 +202,38 @@ class _TransactionSearchPageState extends ConsumerState<TransactionSearchPage> {
         'topCategories': sortedCategories.take(5).toList(),
       };
 
-      // 5. 如果有聚合需求或结果较多，生成 AI 摘要（传入分类体系）
-      final aggregation = parsed['aggregation'] as String? ?? 'none';
-      if (aggregation != 'none' || combined.transactions.length > 5) {
-        final catRepo = ref.read(categoryRepositoryProvider);
-        final allCats = await catRepo.getAll();
-        final taxonomy = _buildTaxonomyText(allCats);
+      // 5. 生成 AI 摘要（流式，始终执行）
+      final catRepo = ref.read(categoryRepositoryProvider);
+      final allCats = await catRepo.getAll();
+      final taxonomy = _buildTaxonomyText(allCats);
 
-        final summary = await llmRepo.generateSearchSummary(
+      if (mounted) {
+        setState(() {
+          _aiSummary = '';
+          _isSummaryStreaming = true;
+          _isSummaryExpanded = true;
+        });
+      }
+
+      try {
+        final stream = llmRepo.generateSearchSummaryStream(
           query, statsMap,
           categoryTaxonomy: taxonomy.isNotEmpty ? taxonomy : null,
         );
-        if (mounted) {
-          setState(() => _aiSummary = summary);
-        }
+        _summarySubscription?.cancel();
+        _summarySubscription = stream.listen(
+          (chunk) {
+            if (mounted) setState(() => _aiSummary = (_aiSummary ?? '') + chunk);
+          },
+          onDone: () {
+            if (mounted) setState(() => _isSummaryStreaming = false);
+          },
+          onError: (_) {
+            if (mounted) setState(() => _isSummaryStreaming = false);
+          },
+        );
+      } catch (_) {
+        if (mounted) setState(() => _isSummaryStreaming = false);
       }
     } catch (e) {
       if (!mounted) return;
@@ -880,13 +903,14 @@ class _TransactionSearchPageState extends ConsumerState<TransactionSearchPage> {
   // ==================== AI 摘要 ====================
 
   Widget _buildAiSummary(AppLocalizations l10n) {
+    final hasContent = (_aiSummary ?? '').isNotEmpty;
+
     return Container(
       width: double.infinity,
       margin: EdgeInsets.symmetric(
         horizontal: Responsive.s(context, AppDimensions.md),
         vertical: Responsive.s(context, 6),
       ),
-      padding: EdgeInsets.all(Responsive.s(context, 12)),
       decoration: BoxDecoration(
         gradient: context.colors.aiEntryGradient,
         borderRadius: BorderRadius.circular(Responsive.s(context, AppDimensions.radiusSm)),
@@ -898,27 +922,88 @@ class _TransactionSearchPageState extends ConsumerState<TransactionSearchPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(Icons.auto_awesome, size: 14, color: context.colors.primary),
-              SizedBox(width: Responsive.s(context, 6)),
-              Text(
-                l10n.searchAiSummaryTitle,
-                style: context.textStyles.footnote.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: context.colors.primary,
-                ),
+          // 标题栏（可折叠）
+          InkWell(
+            onTap: () => setState(() => _isSummaryExpanded = !_isSummaryExpanded),
+            borderRadius: BorderRadius.circular(Responsive.s(context, AppDimensions.radiusSm)),
+            child: Padding(
+              padding: EdgeInsets.all(Responsive.s(context, 12)),
+              child: Row(
+                children: [
+                  Icon(Icons.auto_awesome, size: 14, color: context.colors.primary),
+                  SizedBox(width: Responsive.s(context, 6)),
+                  Expanded(
+                    child: Text(
+                      l10n.searchAiSummaryTitle,
+                      style: context.textStyles.footnote.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: context.colors.primary,
+                      ),
+                    ),
+                  ),
+                  // 流式加载指示器
+                  if (_isSummaryStreaming)
+                    SizedBox(
+                      width: 14, height: 14,
+                      child: CircularProgressIndicator(strokeWidth: 1.5, color: context.colors.primary),
+                    ),
+                  SizedBox(width: Responsive.s(context, 4)),
+                  Icon(
+                    _isSummaryExpanded ? Icons.expand_less : Icons.expand_more,
+                    size: 18,
+                    color: context.colors.textTertiary,
+                  ),
+                ],
               ),
-            ],
-          ),
-          SizedBox(height: Responsive.s(context, 6)),
-          Text(
-            _aiSummary!,
-            style: context.textStyles.body.copyWith(
-              fontSize: Responsive.fs(context, 13),
-              height: 1.5,
             ),
           ),
+          // 内容区域（可折叠）
+          if (_isSummaryExpanded && hasContent)
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                Responsive.s(context, 12), 0,
+                Responsive.s(context, 12), Responsive.s(context, 12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 可选中文本（支持长按复制）
+                  SelectableText(
+                    _aiSummary!,
+                    style: context.textStyles.body.copyWith(
+                      fontSize: Responsive.fs(context, 13),
+                      height: 1.5,
+                    ),
+                  ),
+                  // 复制按钮
+                  SizedBox(height: Responsive.s(context, 6)),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: InkWell(
+                      onTap: () {
+                        Clipboard.setData(ClipboardData(text: _aiSummary ?? ''));
+                        AppToast.show(context, '已复制');
+                      },
+                      borderRadius: BorderRadius.circular(4),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Responsive.s(context, 6),
+                          vertical: Responsive.s(context, 2),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.copy, size: 12, color: context.colors.textTertiary),
+                            SizedBox(width: Responsive.s(context, 4)),
+                            Text('复制', style: context.textStyles.caption.copyWith(color: context.colors.textTertiary)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
