@@ -190,19 +190,31 @@ class TransactionPipeline {
       }
     }
 
-    final results = await _llmRepo.parseTransaction(
-      resolvedText,
-      provider: provider,
-      categoryTaxonomy: categoryTaxonomy,
-      locale: locale,
-      fewShotExamples: context.fewShotExamples,
-      similarTransactions: context.similarTransactions,
-    );
-    return PipelineResult(
-      normalizedText: text,  // 保留原始输入（不是解析后的）
-      transactions: results,
-      source: InputSource.text,
-    );
+    try {
+      final results = await _llmRepo.parseTransaction(
+        resolvedText,
+        provider: provider,
+        categoryTaxonomy: categoryTaxonomy,
+        locale: locale,
+        fewShotExamples: context.fewShotExamples,
+        similarTransactions: context.similarTransactions,
+      );
+      return PipelineResult(
+        normalizedText: text,
+        transactions: results,
+        source: InputSource.text,
+      );
+    } on LlmException catch (e) {
+      if (e.errorCode == 'llmErrorNonTransaction') {
+        return PipelineResult(
+          normalizedText: text,
+          transactions: const [],
+          source: InputSource.text,
+          nonTransactionResponse: e.data as String? ?? e.message,
+        );
+      }
+      rethrow;
+    }
   }
 
   /// 处理双引擎语音转写结果

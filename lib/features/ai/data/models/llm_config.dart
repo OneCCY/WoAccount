@@ -440,7 +440,8 @@ class TransactionParseResult {
 class LlmException implements Exception {
   final String message;
   final String? errorCode;
-  const LlmException(this.message, {this.errorCode});
+  final dynamic data;
+  const LlmException(this.message, {this.errorCode, this.data});
 
   @override
   String toString() => 'LlmException: $message';

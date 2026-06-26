@@ -281,7 +281,11 @@ class LlmRepositoryImpl implements LlmRepository {
 
       // [Reflection] 输出合理性自检
       return _validateAndReflect(results, sanitizedInput);
-    } on LlmException {
+    } on LlmException catch (e) {
+      // 非记账回复：LLM 返回了非 JSON 的对话式回复
+      if (e.errorCode == 'llmErrorNonTransaction') {
+        rethrow; // 向上传播，由 Pipeline 设置 nonTransactionResponse
+      }
       // LLM 失败，降级到规则引擎
       final ruleResult = RuleEngine.parse(sanitizedInput);
       if (ruleResult != null) return [ruleResult];
@@ -573,13 +577,14 @@ class LlmRepositoryImpl implements LlmRepository {
       // Fallback: 用括号计数器提取 JSON 片段
       final jsonStr = _extractJson(content);
       if (jsonStr == null) {
-        throw const LlmException('无法解析 AI 响应', errorCode: 'llmErrorCannotParseResponse');
+        // 没有 JSON → LLM 的对话式回复，标记为非记账
+        throw LlmException(content, errorCode: 'llmErrorNonTransaction', data: content);
       }
 
       final extractParse = _tryParseTransactionJson(jsonStr);
       if (extractParse != null) return extractParse;
 
-      throw const LlmException('AI 响应格式不正确', errorCode: 'llmErrorInvalidResponseFormat');
+      throw LlmException(content, errorCode: 'llmErrorNonTransaction', data: content);
     } catch (e) {
       if (e is LlmException) rethrow;
       throw LlmException('解析 AI 响应失败: $e', errorCode: 'llmErrorParseFailed');
