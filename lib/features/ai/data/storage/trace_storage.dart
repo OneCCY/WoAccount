@@ -64,16 +64,61 @@ class TraceStorage {
     await prefs.remove(_key);
   }
 
-  /// 统计：本月调用次数和成功次数
-  static Future<({int total, int success, int fallbackUsed})> monthlyStats() async {
+  /// 统计：按时间范围查询
+  static Future<TraceStats> statsByDateRange(DateTime start, DateTime end) async {
+    final traces = await getByDateRange(start, end);
+    return TraceStats.fromTraces(traces);
+  }
+
+  /// 统计：本月
+  static Future<TraceStats> monthlyStats() async {
     final now = DateTime.now();
     final start = DateTime(now.year, now.month, 1);
     final end = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
-    final traces = await getByDateRange(start, end);
-    return (
+    return statsByDateRange(start, end);
+  }
+}
+
+/// Trace 统计数据
+class TraceStats {
+  final int total;
+  final int success;
+  final int failed;
+  final int fallbackUsed;
+  final int totalInputTokens;
+  final int totalOutputTokens;
+  final int avgLatencyMs;
+
+  const TraceStats({
+    required this.total,
+    required this.success,
+    required this.failed,
+    required this.fallbackUsed,
+    required this.totalInputTokens,
+    required this.totalOutputTokens,
+    required this.avgLatencyMs,
+  });
+
+  factory TraceStats.fromTraces(List<AiTrace> traces) {
+    if (traces.isEmpty) {
+      return const TraceStats(
+        total: 0, success: 0, failed: 0, fallbackUsed: 0,
+        totalInputTokens: 0, totalOutputTokens: 0, avgLatencyMs: 0,
+      );
+    }
+    final successCount = traces.where((t) => t.success).length;
+    final fallbackCount = traces.where((t) => t.fallbackUsed).length;
+    final inputTokens = traces.fold<int>(0, (s, t) => s + (t.inputTokens ?? 0));
+    final outputTokens = traces.fold<int>(0, (s, t) => s + (t.outputTokens ?? 0));
+    final totalLatency = traces.fold<int>(0, (s, t) => s + t.latencyMs);
+    return TraceStats(
       total: traces.length,
-      success: traces.where((t) => t.success).length,
-      fallbackUsed: traces.where((t) => t.fallbackUsed).length,
+      success: successCount,
+      failed: traces.length - successCount,
+      fallbackUsed: fallbackCount,
+      totalInputTokens: inputTokens,
+      totalOutputTokens: outputTokens,
+      avgLatencyMs: traces.isNotEmpty ? (totalLatency / traces.length).round() : 0,
     );
   }
 }
