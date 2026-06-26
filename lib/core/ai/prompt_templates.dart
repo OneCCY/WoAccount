@@ -162,8 +162,18 @@ $categoryTaxonomy
   "payMethod": "cash/wechat/alipay/card/other/null",
   "aggregation": "none/count/sum/avg/max/min",
   "sortBy": "time/amount",
+  "limit": 数字或null,
   "intent": "用户搜索意图的简要描述"
 }
+
+## limit 使用规则
+
+当用户查询包含"最大的一笔"、"最小的"、"第一笔"、"最近一笔"等限定数量的描述时，必须设置 limit 为对应的数量（通常为1）。
+当用户查询是"最近一周的消费"、"本月收入"等不限数量的查询时，limit 设为 null。
+- "最近一周消费最大的一笔" → limit: 1, sortBy: "amount"
+- "最近一个月花了多少" → limit: null
+- "昨天最后一笔" → limit: 1, sortBy: "time"
+- "最大的3笔支出" → limit: 3, sortBy: "amount"
 
 ## 时间解析规则
 

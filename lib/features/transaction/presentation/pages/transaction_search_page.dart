@@ -311,6 +311,9 @@ class _TransactionSearchPageState extends ConsumerState<TransactionSearchPage> {
     final sortByStr = parsed['sortBy'] as String? ?? 'time';
     final sortBy = sortByStr == 'amount' ? SearchSortBy.amount : SearchSortBy.time;
 
+    // 结果数量限制
+    final limit = (parsed['limit'] as num?)?.toInt() ?? 0;
+
     return SearchQuery(
       keyword: parsed['keyword'] as String?,
       keywordSynonyms: (parsed['keywordSynonyms'] as List<dynamic>?)?.cast<String>() ?? [],
@@ -323,6 +326,7 @@ class _TransactionSearchPageState extends ConsumerState<TransactionSearchPage> {
       categoryId: categoryId,
       payMethod: parsed['payMethod'] as String?,
       sortBy: sortBy,
+      limit: limit,
       intent: parsed['intent'] as String?,
     );
   }
