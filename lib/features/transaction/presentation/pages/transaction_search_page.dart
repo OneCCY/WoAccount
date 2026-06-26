@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -967,12 +968,22 @@ class _TransactionSearchPageState extends ConsumerState<TransactionSearchPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 可选中文本（支持长按复制）
-                  SelectableText(
-                    _aiSummary!,
-                    style: context.textStyles.body.copyWith(
-                      fontSize: Responsive.fs(context, 13),
-                      height: 1.5,
+                  // Markdown 渲染（支持加粗、列表、emoji 等）
+                  MarkdownBody(
+                    data: _aiSummary!,
+                    selectable: true,
+                    styleSheet: MarkdownStyleSheet(
+                      p: context.textStyles.body.copyWith(
+                        fontSize: Responsive.fs(context, 13),
+                        height: 1.5,
+                      ),
+                      strong: context.textStyles.body.copyWith(
+                        fontSize: Responsive.fs(context, 13),
+                        fontWeight: FontWeight.w600,
+                      ),
+                      listBullet: context.textStyles.body.copyWith(
+                        fontSize: Responsive.fs(context, 13),
+                      ),
                     ),
                   ),
                   // 复制按钮
