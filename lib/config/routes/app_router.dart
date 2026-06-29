@@ -26,6 +26,9 @@ import '../../features/account_book/presentation/pages/account_book_page.dart';
 import '../../features/account_book/presentation/pages/account_book_detail_page.dart';
 import '../../features/account_book/presentation/pages/book_recycle_bin_page.dart';
 import '../../features/stats/presentation/pages/report_page.dart';
+import '../../features/ai/presentation/pages/persona_list_page.dart';
+import '../../features/ai/presentation/pages/persona_edit_page.dart';
+import '../../features/ai/data/models/ai_persona.dart';
 
 /// 全局路由观察者（用于 RouteAware 监听页面可见性）
 final routeObserver = RouteObserver<ModalRoute<void>>();
@@ -114,6 +117,17 @@ class AppRouter {
       GoRoute(
         path: '/settings/llm',
         builder: (context, state) => const LlmSettingsPageV2(),
+      ),
+      GoRoute(
+        path: '/ai/personas',
+        builder: (context, state) => const PersonaListPage(),
+      ),
+      GoRoute(
+        path: '/ai/personas/edit',
+        builder: (context, state) {
+          final persona = state.extra as AiPersona?;
+          return PersonaEditPage(existingPersona: persona);
+        },
       ),
       GoRoute(
         path: '/budget',

@@ -171,6 +171,33 @@ class AcCoinTransactions extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
+/// AI 角色聊天消息表（v12: 角色对话持久化）
+@DataClassName('RoleChatMessage')
+class ChatMessages extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get personaId => text().nullable()(); // 关联角色 ID
+  TextColumn get role => text().withLength(max: 20)(); // user/assistant
+  TextColumn get content => text()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  TextColumn get searchKeywords => text().nullable()(); // FTS 用关键词
+}
+
+/// AI 角色语义记忆表（v12）
+@DataClassName('PersonaMemory')
+class PersonaMemories extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get personaId => text()();
+  TextColumn get type => text().withLength(max: 20)(); // preference/fact/relationship/instruction
+  TextColumn get content => text()();
+  RealColumn get score => real().withDefault(const Constant(0.8))();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  IntColumn get sourceMessageId => integer().nullable()();
+  TextColumn get uniqueKey => text().nullable()(); // 去重key: personaId_type_content_hash
+
+  @override
+  List<Set<Column>> get uniqueKeys => [{uniqueKey}];
+}
+
 @DriftDatabase(tables: [
   AccountBooks,
   Transactions,
@@ -183,6 +210,8 @@ class AcCoinTransactions extends Table {
   CheckInRecords,
   AcCoinBalances,
   AcCoinTransactions,
+  ChatMessages,
+  PersonaMemories,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -191,7 +220,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -344,6 +373,19 @@ class AppDatabase extends _$AppDatabase {
         await customStatement(
           'CREATE INDEX IF NOT EXISTS idx_training_book_correct '
           'ON ai_training_records(account_book_id, was_correct, created_at DESC)',
+        );
+      }
+      if (from < 12) {
+        // v12: 新增 AI 角色聊天记录和语义记忆表
+        await m.createTable(chatMessages);
+        await m.createTable(personaMemories);
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_chat_persona_created '
+          'ON chat_messages(persona_id, created_at)',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_memory_persona_score '
+          'ON persona_memories(persona_id, score DESC)',
         );
       }
     },

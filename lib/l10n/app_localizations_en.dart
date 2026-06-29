@@ -2836,4 +2836,76 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiSettingsLatency => 'Latency';
+
+  @override
+  String get aiPersonaManage => 'AI Personas';
+
+  @override
+  String get aiPersonaAdd => 'Add Persona';
+
+  @override
+  String get aiPersonaEdit => 'Edit Persona';
+
+  @override
+  String get aiPersonaName => 'Persona Name';
+
+  @override
+  String get aiPersonaAvatar => 'Avatar';
+
+  @override
+  String get aiPersonaDescription => 'Personality Description';
+
+  @override
+  String get aiPersonaDescriptionHint =>
+      'Describe personality traits and speaking style...';
+
+  @override
+  String get aiPersonaNone => 'Disabled';
+
+  @override
+  String aiPersonaDeleteConfirm(Object name) {
+    return 'Delete persona \"$name\"? Chat history will also be cleared.';
+  }
+
+  @override
+  String get aiPersonaEmpty => 'No personas yet~';
+
+  @override
+  String get aiPersonaNameRequired => 'Please enter a name';
+
+  @override
+  String get aiPersonaTip =>
+      'More specific personality = better AI performance!';
+
+  @override
+  String get aiPersonaExamples => 'Dialogue Examples';
+
+  @override
+  String get aiPersonaExamplesHint =>
+      'Add examples to make the AI more in-character';
+
+  @override
+  String get aiPersonaExampleUser => 'User';
+
+  @override
+  String get aiPersonaExampleAssistant => 'AI';
+
+  @override
+  String get aiPersonaAddExample => 'Add Example';
+
+  @override
+  String get aiPersonaGreeting => 'Greeting';
+
+  @override
+  String get aiPersonaGreetingHint =>
+      'First message sent when activating this persona';
+
+  @override
+  String get aiChatHistoryCleared => 'Chat history cleared';
+
+  @override
+  String get aiChatHistoryClear => 'Clear History';
+
+  @override
+  String get aiPersonaManageMemories => 'Manage Memories';
 }

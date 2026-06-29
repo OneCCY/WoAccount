@@ -5327,6 +5327,138 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'延迟'**
   String get aiSettingsLatency;
+
+  /// No description provided for @aiPersonaManage.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 角色管理'**
+  String get aiPersonaManage;
+
+  /// No description provided for @aiPersonaAdd.
+  ///
+  /// In zh, this message translates to:
+  /// **'添加角色'**
+  String get aiPersonaAdd;
+
+  /// No description provided for @aiPersonaEdit.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑角色'**
+  String get aiPersonaEdit;
+
+  /// No description provided for @aiPersonaName.
+  ///
+  /// In zh, this message translates to:
+  /// **'角色名称'**
+  String get aiPersonaName;
+
+  /// No description provided for @aiPersonaAvatar.
+  ///
+  /// In zh, this message translates to:
+  /// **'角色头像'**
+  String get aiPersonaAvatar;
+
+  /// No description provided for @aiPersonaDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'性格描述'**
+  String get aiPersonaDescription;
+
+  /// No description provided for @aiPersonaDescriptionHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'描述角色的性格特点、说话方式...'**
+  String get aiPersonaDescriptionHint;
+
+  /// No description provided for @aiPersonaNone.
+  ///
+  /// In zh, this message translates to:
+  /// **'不启用角色'**
+  String get aiPersonaNone;
+
+  /// No description provided for @aiPersonaDeleteConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定删除角色\"{name}\"吗？同时也将清除聊天记录。'**
+  String aiPersonaDeleteConfirm(Object name);
+
+  /// No description provided for @aiPersonaEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有创建角色哦～'**
+  String get aiPersonaEmpty;
+
+  /// No description provided for @aiPersonaNameRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入角色名称'**
+  String get aiPersonaNameRequired;
+
+  /// No description provided for @aiPersonaTip.
+  ///
+  /// In zh, this message translates to:
+  /// **'角色性格越具体，AI 表现越鲜明！建议包含语气、说话风格、习惯用语等'**
+  String get aiPersonaTip;
+
+  /// No description provided for @aiPersonaExamples.
+  ///
+  /// In zh, this message translates to:
+  /// **'对话示例'**
+  String get aiPersonaExamples;
+
+  /// No description provided for @aiPersonaExamplesHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'添加几组对话示例，让 AI 更贴合人设'**
+  String get aiPersonaExamplesHint;
+
+  /// No description provided for @aiPersonaExampleUser.
+  ///
+  /// In zh, this message translates to:
+  /// **'用户'**
+  String get aiPersonaExampleUser;
+
+  /// No description provided for @aiPersonaExampleAssistant.
+  ///
+  /// In zh, this message translates to:
+  /// **'角色'**
+  String get aiPersonaExampleAssistant;
+
+  /// No description provided for @aiPersonaAddExample.
+  ///
+  /// In zh, this message translates to:
+  /// **'添加示例'**
+  String get aiPersonaAddExample;
+
+  /// No description provided for @aiPersonaGreeting.
+  ///
+  /// In zh, this message translates to:
+  /// **'开场白'**
+  String get aiPersonaGreeting;
+
+  /// No description provided for @aiPersonaGreetingHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'激活角色时自动发送的第一句话'**
+  String get aiPersonaGreetingHint;
+
+  /// No description provided for @aiChatHistoryCleared.
+  ///
+  /// In zh, this message translates to:
+  /// **'聊天记录已清除'**
+  String get aiChatHistoryCleared;
+
+  /// No description provided for @aiChatHistoryClear.
+  ///
+  /// In zh, this message translates to:
+  /// **'清空聊天记录'**
+  String get aiChatHistoryClear;
+
+  /// No description provided for @aiPersonaManageMemories.
+  ///
+  /// In zh, this message translates to:
+  /// **'管理记忆'**
+  String get aiPersonaManageMemories;
 }
 
 class _AppLocalizationsDelegate

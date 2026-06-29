@@ -5,6 +5,7 @@ import 'package:wo_account/l10n/app_localizations.dart';
 import 'agent_list_page.dart';
 import 'supplier_management_page.dart';
 import 'usage_analysis_page.dart';
+import 'persona_list_page.dart';
 
 /// AI 设置主入口页（v2.0）
 ///
@@ -50,6 +51,16 @@ class _LlmSettingsPageV2State extends ConsumerState<LlmSettingsPageV2> {
             color: Colors.orange,
             onTap: () => Navigator.push(context,
               MaterialPageRoute(builder: (_) => const UsageAnalysisPage()),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildEntryCard(
+            icon: Icons.paste_outlined,
+            title: l10n.aiPersonaManage,
+            color: Colors.purple,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const PersonaListPage()),
             ),
           ),
         ],

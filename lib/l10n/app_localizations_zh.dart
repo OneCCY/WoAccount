@@ -2777,6 +2777,74 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get aiSettingsLatency => '延迟';
+
+  @override
+  String get aiPersonaManage => 'AI 角色管理';
+
+  @override
+  String get aiPersonaAdd => '添加角色';
+
+  @override
+  String get aiPersonaEdit => '编辑角色';
+
+  @override
+  String get aiPersonaName => '角色名称';
+
+  @override
+  String get aiPersonaAvatar => '角色头像';
+
+  @override
+  String get aiPersonaDescription => '性格描述';
+
+  @override
+  String get aiPersonaDescriptionHint => '描述角色的性格特点、说话方式...';
+
+  @override
+  String get aiPersonaNone => '不启用角色';
+
+  @override
+  String aiPersonaDeleteConfirm(Object name) {
+    return '确定删除角色\"$name\"吗？同时也将清除聊天记录。';
+  }
+
+  @override
+  String get aiPersonaEmpty => '还没有创建角色哦～';
+
+  @override
+  String get aiPersonaNameRequired => '请输入角色名称';
+
+  @override
+  String get aiPersonaTip => '角色性格越具体，AI 表现越鲜明！建议包含语气、说话风格、习惯用语等';
+
+  @override
+  String get aiPersonaExamples => '对话示例';
+
+  @override
+  String get aiPersonaExamplesHint => '添加几组对话示例，让 AI 更贴合人设';
+
+  @override
+  String get aiPersonaExampleUser => '用户';
+
+  @override
+  String get aiPersonaExampleAssistant => '角色';
+
+  @override
+  String get aiPersonaAddExample => '添加示例';
+
+  @override
+  String get aiPersonaGreeting => '开场白';
+
+  @override
+  String get aiPersonaGreetingHint => '激活角色时自动发送的第一句话';
+
+  @override
+  String get aiChatHistoryCleared => '聊天记录已清除';
+
+  @override
+  String get aiChatHistoryClear => '清空聊天记录';
+
+  @override
+  String get aiPersonaManageMemories => '管理记忆';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).

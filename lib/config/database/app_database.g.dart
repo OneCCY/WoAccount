@@ -5999,6 +5999,920 @@ class AcCoinTransactionsCompanion extends UpdateCompanion<AcCoinTransaction> {
   }
 }
 
+class $ChatMessagesTable extends ChatMessages
+    with TableInfo<$ChatMessagesTable, RoleChatMessage> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ChatMessagesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _personaIdMeta = const VerificationMeta(
+    'personaId',
+  );
+  @override
+  late final GeneratedColumn<String> personaId = GeneratedColumn<String>(
+    'persona_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _roleMeta = const VerificationMeta('role');
+  @override
+  late final GeneratedColumn<String> role = GeneratedColumn<String>(
+    'role',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 20),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _contentMeta = const VerificationMeta(
+    'content',
+  );
+  @override
+  late final GeneratedColumn<String> content = GeneratedColumn<String>(
+    'content',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _searchKeywordsMeta = const VerificationMeta(
+    'searchKeywords',
+  );
+  @override
+  late final GeneratedColumn<String> searchKeywords = GeneratedColumn<String>(
+    'search_keywords',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    personaId,
+    role,
+    content,
+    createdAt,
+    searchKeywords,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'chat_messages';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RoleChatMessage> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('persona_id')) {
+      context.handle(
+        _personaIdMeta,
+        personaId.isAcceptableOrUnknown(data['persona_id']!, _personaIdMeta),
+      );
+    }
+    if (data.containsKey('role')) {
+      context.handle(
+        _roleMeta,
+        role.isAcceptableOrUnknown(data['role']!, _roleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_roleMeta);
+    }
+    if (data.containsKey('content')) {
+      context.handle(
+        _contentMeta,
+        content.isAcceptableOrUnknown(data['content']!, _contentMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_contentMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('search_keywords')) {
+      context.handle(
+        _searchKeywordsMeta,
+        searchKeywords.isAcceptableOrUnknown(
+          data['search_keywords']!,
+          _searchKeywordsMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  RoleChatMessage map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RoleChatMessage(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      personaId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}persona_id'],
+      ),
+      role: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}role'],
+      )!,
+      content: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      searchKeywords: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}search_keywords'],
+      ),
+    );
+  }
+
+  @override
+  $ChatMessagesTable createAlias(String alias) {
+    return $ChatMessagesTable(attachedDatabase, alias);
+  }
+}
+
+class RoleChatMessage extends DataClass implements Insertable<RoleChatMessage> {
+  final int id;
+  final String? personaId;
+  final String role;
+  final String content;
+  final DateTime createdAt;
+  final String? searchKeywords;
+  const RoleChatMessage({
+    required this.id,
+    this.personaId,
+    required this.role,
+    required this.content,
+    required this.createdAt,
+    this.searchKeywords,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    if (!nullToAbsent || personaId != null) {
+      map['persona_id'] = Variable<String>(personaId);
+    }
+    map['role'] = Variable<String>(role);
+    map['content'] = Variable<String>(content);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || searchKeywords != null) {
+      map['search_keywords'] = Variable<String>(searchKeywords);
+    }
+    return map;
+  }
+
+  ChatMessagesCompanion toCompanion(bool nullToAbsent) {
+    return ChatMessagesCompanion(
+      id: Value(id),
+      personaId: personaId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(personaId),
+      role: Value(role),
+      content: Value(content),
+      createdAt: Value(createdAt),
+      searchKeywords: searchKeywords == null && nullToAbsent
+          ? const Value.absent()
+          : Value(searchKeywords),
+    );
+  }
+
+  factory RoleChatMessage.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RoleChatMessage(
+      id: serializer.fromJson<int>(json['id']),
+      personaId: serializer.fromJson<String?>(json['personaId']),
+      role: serializer.fromJson<String>(json['role']),
+      content: serializer.fromJson<String>(json['content']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      searchKeywords: serializer.fromJson<String?>(json['searchKeywords']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'personaId': serializer.toJson<String?>(personaId),
+      'role': serializer.toJson<String>(role),
+      'content': serializer.toJson<String>(content),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'searchKeywords': serializer.toJson<String?>(searchKeywords),
+    };
+  }
+
+  RoleChatMessage copyWith({
+    int? id,
+    Value<String?> personaId = const Value.absent(),
+    String? role,
+    String? content,
+    DateTime? createdAt,
+    Value<String?> searchKeywords = const Value.absent(),
+  }) => RoleChatMessage(
+    id: id ?? this.id,
+    personaId: personaId.present ? personaId.value : this.personaId,
+    role: role ?? this.role,
+    content: content ?? this.content,
+    createdAt: createdAt ?? this.createdAt,
+    searchKeywords: searchKeywords.present
+        ? searchKeywords.value
+        : this.searchKeywords,
+  );
+  RoleChatMessage copyWithCompanion(ChatMessagesCompanion data) {
+    return RoleChatMessage(
+      id: data.id.present ? data.id.value : this.id,
+      personaId: data.personaId.present ? data.personaId.value : this.personaId,
+      role: data.role.present ? data.role.value : this.role,
+      content: data.content.present ? data.content.value : this.content,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      searchKeywords: data.searchKeywords.present
+          ? data.searchKeywords.value
+          : this.searchKeywords,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RoleChatMessage(')
+          ..write('id: $id, ')
+          ..write('personaId: $personaId, ')
+          ..write('role: $role, ')
+          ..write('content: $content, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('searchKeywords: $searchKeywords')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, personaId, role, content, createdAt, searchKeywords);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RoleChatMessage &&
+          other.id == this.id &&
+          other.personaId == this.personaId &&
+          other.role == this.role &&
+          other.content == this.content &&
+          other.createdAt == this.createdAt &&
+          other.searchKeywords == this.searchKeywords);
+}
+
+class ChatMessagesCompanion extends UpdateCompanion<RoleChatMessage> {
+  final Value<int> id;
+  final Value<String?> personaId;
+  final Value<String> role;
+  final Value<String> content;
+  final Value<DateTime> createdAt;
+  final Value<String?> searchKeywords;
+  const ChatMessagesCompanion({
+    this.id = const Value.absent(),
+    this.personaId = const Value.absent(),
+    this.role = const Value.absent(),
+    this.content = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.searchKeywords = const Value.absent(),
+  });
+  ChatMessagesCompanion.insert({
+    this.id = const Value.absent(),
+    this.personaId = const Value.absent(),
+    required String role,
+    required String content,
+    this.createdAt = const Value.absent(),
+    this.searchKeywords = const Value.absent(),
+  }) : role = Value(role),
+       content = Value(content);
+  static Insertable<RoleChatMessage> custom({
+    Expression<int>? id,
+    Expression<String>? personaId,
+    Expression<String>? role,
+    Expression<String>? content,
+    Expression<DateTime>? createdAt,
+    Expression<String>? searchKeywords,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (personaId != null) 'persona_id': personaId,
+      if (role != null) 'role': role,
+      if (content != null) 'content': content,
+      if (createdAt != null) 'created_at': createdAt,
+      if (searchKeywords != null) 'search_keywords': searchKeywords,
+    });
+  }
+
+  ChatMessagesCompanion copyWith({
+    Value<int>? id,
+    Value<String?>? personaId,
+    Value<String>? role,
+    Value<String>? content,
+    Value<DateTime>? createdAt,
+    Value<String?>? searchKeywords,
+  }) {
+    return ChatMessagesCompanion(
+      id: id ?? this.id,
+      personaId: personaId ?? this.personaId,
+      role: role ?? this.role,
+      content: content ?? this.content,
+      createdAt: createdAt ?? this.createdAt,
+      searchKeywords: searchKeywords ?? this.searchKeywords,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (personaId.present) {
+      map['persona_id'] = Variable<String>(personaId.value);
+    }
+    if (role.present) {
+      map['role'] = Variable<String>(role.value);
+    }
+    if (content.present) {
+      map['content'] = Variable<String>(content.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (searchKeywords.present) {
+      map['search_keywords'] = Variable<String>(searchKeywords.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChatMessagesCompanion(')
+          ..write('id: $id, ')
+          ..write('personaId: $personaId, ')
+          ..write('role: $role, ')
+          ..write('content: $content, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('searchKeywords: $searchKeywords')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PersonaMemoriesTable extends PersonaMemories
+    with TableInfo<$PersonaMemoriesTable, PersonaMemory> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PersonaMemoriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _personaIdMeta = const VerificationMeta(
+    'personaId',
+  );
+  @override
+  late final GeneratedColumn<String> personaId = GeneratedColumn<String>(
+    'persona_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 20),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _contentMeta = const VerificationMeta(
+    'content',
+  );
+  @override
+  late final GeneratedColumn<String> content = GeneratedColumn<String>(
+    'content',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _scoreMeta = const VerificationMeta('score');
+  @override
+  late final GeneratedColumn<double> score = GeneratedColumn<double>(
+    'score',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.8),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _sourceMessageIdMeta = const VerificationMeta(
+    'sourceMessageId',
+  );
+  @override
+  late final GeneratedColumn<int> sourceMessageId = GeneratedColumn<int>(
+    'source_message_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _uniqueKeyMeta = const VerificationMeta(
+    'uniqueKey',
+  );
+  @override
+  late final GeneratedColumn<String> uniqueKey = GeneratedColumn<String>(
+    'unique_key',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    personaId,
+    type,
+    content,
+    score,
+    updatedAt,
+    sourceMessageId,
+    uniqueKey,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'persona_memories';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PersonaMemory> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('persona_id')) {
+      context.handle(
+        _personaIdMeta,
+        personaId.isAcceptableOrUnknown(data['persona_id']!, _personaIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_personaIdMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('content')) {
+      context.handle(
+        _contentMeta,
+        content.isAcceptableOrUnknown(data['content']!, _contentMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_contentMeta);
+    }
+    if (data.containsKey('score')) {
+      context.handle(
+        _scoreMeta,
+        score.isAcceptableOrUnknown(data['score']!, _scoreMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('source_message_id')) {
+      context.handle(
+        _sourceMessageIdMeta,
+        sourceMessageId.isAcceptableOrUnknown(
+          data['source_message_id']!,
+          _sourceMessageIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('unique_key')) {
+      context.handle(
+        _uniqueKeyMeta,
+        uniqueKey.isAcceptableOrUnknown(data['unique_key']!, _uniqueKeyMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {uniqueKey},
+  ];
+  @override
+  PersonaMemory map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PersonaMemory(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      personaId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}persona_id'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
+      content: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content'],
+      )!,
+      score: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}score'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      sourceMessageId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}source_message_id'],
+      ),
+      uniqueKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}unique_key'],
+      ),
+    );
+  }
+
+  @override
+  $PersonaMemoriesTable createAlias(String alias) {
+    return $PersonaMemoriesTable(attachedDatabase, alias);
+  }
+}
+
+class PersonaMemory extends DataClass implements Insertable<PersonaMemory> {
+  final int id;
+  final String personaId;
+  final String type;
+  final String content;
+  final double score;
+  final DateTime updatedAt;
+  final int? sourceMessageId;
+  final String? uniqueKey;
+  const PersonaMemory({
+    required this.id,
+    required this.personaId,
+    required this.type,
+    required this.content,
+    required this.score,
+    required this.updatedAt,
+    this.sourceMessageId,
+    this.uniqueKey,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['persona_id'] = Variable<String>(personaId);
+    map['type'] = Variable<String>(type);
+    map['content'] = Variable<String>(content);
+    map['score'] = Variable<double>(score);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || sourceMessageId != null) {
+      map['source_message_id'] = Variable<int>(sourceMessageId);
+    }
+    if (!nullToAbsent || uniqueKey != null) {
+      map['unique_key'] = Variable<String>(uniqueKey);
+    }
+    return map;
+  }
+
+  PersonaMemoriesCompanion toCompanion(bool nullToAbsent) {
+    return PersonaMemoriesCompanion(
+      id: Value(id),
+      personaId: Value(personaId),
+      type: Value(type),
+      content: Value(content),
+      score: Value(score),
+      updatedAt: Value(updatedAt),
+      sourceMessageId: sourceMessageId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sourceMessageId),
+      uniqueKey: uniqueKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(uniqueKey),
+    );
+  }
+
+  factory PersonaMemory.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PersonaMemory(
+      id: serializer.fromJson<int>(json['id']),
+      personaId: serializer.fromJson<String>(json['personaId']),
+      type: serializer.fromJson<String>(json['type']),
+      content: serializer.fromJson<String>(json['content']),
+      score: serializer.fromJson<double>(json['score']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      sourceMessageId: serializer.fromJson<int?>(json['sourceMessageId']),
+      uniqueKey: serializer.fromJson<String?>(json['uniqueKey']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'personaId': serializer.toJson<String>(personaId),
+      'type': serializer.toJson<String>(type),
+      'content': serializer.toJson<String>(content),
+      'score': serializer.toJson<double>(score),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'sourceMessageId': serializer.toJson<int?>(sourceMessageId),
+      'uniqueKey': serializer.toJson<String?>(uniqueKey),
+    };
+  }
+
+  PersonaMemory copyWith({
+    int? id,
+    String? personaId,
+    String? type,
+    String? content,
+    double? score,
+    DateTime? updatedAt,
+    Value<int?> sourceMessageId = const Value.absent(),
+    Value<String?> uniqueKey = const Value.absent(),
+  }) => PersonaMemory(
+    id: id ?? this.id,
+    personaId: personaId ?? this.personaId,
+    type: type ?? this.type,
+    content: content ?? this.content,
+    score: score ?? this.score,
+    updatedAt: updatedAt ?? this.updatedAt,
+    sourceMessageId: sourceMessageId.present
+        ? sourceMessageId.value
+        : this.sourceMessageId,
+    uniqueKey: uniqueKey.present ? uniqueKey.value : this.uniqueKey,
+  );
+  PersonaMemory copyWithCompanion(PersonaMemoriesCompanion data) {
+    return PersonaMemory(
+      id: data.id.present ? data.id.value : this.id,
+      personaId: data.personaId.present ? data.personaId.value : this.personaId,
+      type: data.type.present ? data.type.value : this.type,
+      content: data.content.present ? data.content.value : this.content,
+      score: data.score.present ? data.score.value : this.score,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      sourceMessageId: data.sourceMessageId.present
+          ? data.sourceMessageId.value
+          : this.sourceMessageId,
+      uniqueKey: data.uniqueKey.present ? data.uniqueKey.value : this.uniqueKey,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PersonaMemory(')
+          ..write('id: $id, ')
+          ..write('personaId: $personaId, ')
+          ..write('type: $type, ')
+          ..write('content: $content, ')
+          ..write('score: $score, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('sourceMessageId: $sourceMessageId, ')
+          ..write('uniqueKey: $uniqueKey')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    personaId,
+    type,
+    content,
+    score,
+    updatedAt,
+    sourceMessageId,
+    uniqueKey,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PersonaMemory &&
+          other.id == this.id &&
+          other.personaId == this.personaId &&
+          other.type == this.type &&
+          other.content == this.content &&
+          other.score == this.score &&
+          other.updatedAt == this.updatedAt &&
+          other.sourceMessageId == this.sourceMessageId &&
+          other.uniqueKey == this.uniqueKey);
+}
+
+class PersonaMemoriesCompanion extends UpdateCompanion<PersonaMemory> {
+  final Value<int> id;
+  final Value<String> personaId;
+  final Value<String> type;
+  final Value<String> content;
+  final Value<double> score;
+  final Value<DateTime> updatedAt;
+  final Value<int?> sourceMessageId;
+  final Value<String?> uniqueKey;
+  const PersonaMemoriesCompanion({
+    this.id = const Value.absent(),
+    this.personaId = const Value.absent(),
+    this.type = const Value.absent(),
+    this.content = const Value.absent(),
+    this.score = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.sourceMessageId = const Value.absent(),
+    this.uniqueKey = const Value.absent(),
+  });
+  PersonaMemoriesCompanion.insert({
+    this.id = const Value.absent(),
+    required String personaId,
+    required String type,
+    required String content,
+    this.score = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.sourceMessageId = const Value.absent(),
+    this.uniqueKey = const Value.absent(),
+  }) : personaId = Value(personaId),
+       type = Value(type),
+       content = Value(content);
+  static Insertable<PersonaMemory> custom({
+    Expression<int>? id,
+    Expression<String>? personaId,
+    Expression<String>? type,
+    Expression<String>? content,
+    Expression<double>? score,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? sourceMessageId,
+    Expression<String>? uniqueKey,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (personaId != null) 'persona_id': personaId,
+      if (type != null) 'type': type,
+      if (content != null) 'content': content,
+      if (score != null) 'score': score,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (sourceMessageId != null) 'source_message_id': sourceMessageId,
+      if (uniqueKey != null) 'unique_key': uniqueKey,
+    });
+  }
+
+  PersonaMemoriesCompanion copyWith({
+    Value<int>? id,
+    Value<String>? personaId,
+    Value<String>? type,
+    Value<String>? content,
+    Value<double>? score,
+    Value<DateTime>? updatedAt,
+    Value<int?>? sourceMessageId,
+    Value<String?>? uniqueKey,
+  }) {
+    return PersonaMemoriesCompanion(
+      id: id ?? this.id,
+      personaId: personaId ?? this.personaId,
+      type: type ?? this.type,
+      content: content ?? this.content,
+      score: score ?? this.score,
+      updatedAt: updatedAt ?? this.updatedAt,
+      sourceMessageId: sourceMessageId ?? this.sourceMessageId,
+      uniqueKey: uniqueKey ?? this.uniqueKey,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (personaId.present) {
+      map['persona_id'] = Variable<String>(personaId.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (content.present) {
+      map['content'] = Variable<String>(content.value);
+    }
+    if (score.present) {
+      map['score'] = Variable<double>(score.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (sourceMessageId.present) {
+      map['source_message_id'] = Variable<int>(sourceMessageId.value);
+    }
+    if (uniqueKey.present) {
+      map['unique_key'] = Variable<String>(uniqueKey.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PersonaMemoriesCompanion(')
+          ..write('id: $id, ')
+          ..write('personaId: $personaId, ')
+          ..write('type: $type, ')
+          ..write('content: $content, ')
+          ..write('score: $score, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('sourceMessageId: $sourceMessageId, ')
+          ..write('uniqueKey: $uniqueKey')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -6018,6 +6932,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $AcCoinBalancesTable acCoinBalances = $AcCoinBalancesTable(this);
   late final $AcCoinTransactionsTable acCoinTransactions =
       $AcCoinTransactionsTable(this);
+  late final $ChatMessagesTable chatMessages = $ChatMessagesTable(this);
+  late final $PersonaMemoriesTable personaMemories = $PersonaMemoriesTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -6034,6 +6952,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     checkInRecords,
     acCoinBalances,
     acCoinTransactions,
+    chatMessages,
+    personaMemories,
   ];
 }
 
@@ -10648,6 +11568,476 @@ typedef $$AcCoinTransactionsTableProcessedTableManager =
       AcCoinTransaction,
       PrefetchHooks Function()
     >;
+typedef $$ChatMessagesTableCreateCompanionBuilder =
+    ChatMessagesCompanion Function({
+      Value<int> id,
+      Value<String?> personaId,
+      required String role,
+      required String content,
+      Value<DateTime> createdAt,
+      Value<String?> searchKeywords,
+    });
+typedef $$ChatMessagesTableUpdateCompanionBuilder =
+    ChatMessagesCompanion Function({
+      Value<int> id,
+      Value<String?> personaId,
+      Value<String> role,
+      Value<String> content,
+      Value<DateTime> createdAt,
+      Value<String?> searchKeywords,
+    });
+
+class $$ChatMessagesTableFilterComposer
+    extends Composer<_$AppDatabase, $ChatMessagesTable> {
+  $$ChatMessagesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get personaId => $composableBuilder(
+    column: $table.personaId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get role => $composableBuilder(
+    column: $table.role,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get content => $composableBuilder(
+    column: $table.content,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get searchKeywords => $composableBuilder(
+    column: $table.searchKeywords,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ChatMessagesTableOrderingComposer
+    extends Composer<_$AppDatabase, $ChatMessagesTable> {
+  $$ChatMessagesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get personaId => $composableBuilder(
+    column: $table.personaId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get role => $composableBuilder(
+    column: $table.role,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get content => $composableBuilder(
+    column: $table.content,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get searchKeywords => $composableBuilder(
+    column: $table.searchKeywords,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ChatMessagesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ChatMessagesTable> {
+  $$ChatMessagesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get personaId =>
+      $composableBuilder(column: $table.personaId, builder: (column) => column);
+
+  GeneratedColumn<String> get role =>
+      $composableBuilder(column: $table.role, builder: (column) => column);
+
+  GeneratedColumn<String> get content =>
+      $composableBuilder(column: $table.content, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<String> get searchKeywords => $composableBuilder(
+    column: $table.searchKeywords,
+    builder: (column) => column,
+  );
+}
+
+class $$ChatMessagesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ChatMessagesTable,
+          RoleChatMessage,
+          $$ChatMessagesTableFilterComposer,
+          $$ChatMessagesTableOrderingComposer,
+          $$ChatMessagesTableAnnotationComposer,
+          $$ChatMessagesTableCreateCompanionBuilder,
+          $$ChatMessagesTableUpdateCompanionBuilder,
+          (
+            RoleChatMessage,
+            BaseReferences<_$AppDatabase, $ChatMessagesTable, RoleChatMessage>,
+          ),
+          RoleChatMessage,
+          PrefetchHooks Function()
+        > {
+  $$ChatMessagesTableTableManager(_$AppDatabase db, $ChatMessagesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ChatMessagesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ChatMessagesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ChatMessagesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String?> personaId = const Value.absent(),
+                Value<String> role = const Value.absent(),
+                Value<String> content = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<String?> searchKeywords = const Value.absent(),
+              }) => ChatMessagesCompanion(
+                id: id,
+                personaId: personaId,
+                role: role,
+                content: content,
+                createdAt: createdAt,
+                searchKeywords: searchKeywords,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String?> personaId = const Value.absent(),
+                required String role,
+                required String content,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<String?> searchKeywords = const Value.absent(),
+              }) => ChatMessagesCompanion.insert(
+                id: id,
+                personaId: personaId,
+                role: role,
+                content: content,
+                createdAt: createdAt,
+                searchKeywords: searchKeywords,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ChatMessagesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ChatMessagesTable,
+      RoleChatMessage,
+      $$ChatMessagesTableFilterComposer,
+      $$ChatMessagesTableOrderingComposer,
+      $$ChatMessagesTableAnnotationComposer,
+      $$ChatMessagesTableCreateCompanionBuilder,
+      $$ChatMessagesTableUpdateCompanionBuilder,
+      (
+        RoleChatMessage,
+        BaseReferences<_$AppDatabase, $ChatMessagesTable, RoleChatMessage>,
+      ),
+      RoleChatMessage,
+      PrefetchHooks Function()
+    >;
+typedef $$PersonaMemoriesTableCreateCompanionBuilder =
+    PersonaMemoriesCompanion Function({
+      Value<int> id,
+      required String personaId,
+      required String type,
+      required String content,
+      Value<double> score,
+      Value<DateTime> updatedAt,
+      Value<int?> sourceMessageId,
+      Value<String?> uniqueKey,
+    });
+typedef $$PersonaMemoriesTableUpdateCompanionBuilder =
+    PersonaMemoriesCompanion Function({
+      Value<int> id,
+      Value<String> personaId,
+      Value<String> type,
+      Value<String> content,
+      Value<double> score,
+      Value<DateTime> updatedAt,
+      Value<int?> sourceMessageId,
+      Value<String?> uniqueKey,
+    });
+
+class $$PersonaMemoriesTableFilterComposer
+    extends Composer<_$AppDatabase, $PersonaMemoriesTable> {
+  $$PersonaMemoriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get personaId => $composableBuilder(
+    column: $table.personaId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get content => $composableBuilder(
+    column: $table.content,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get score => $composableBuilder(
+    column: $table.score,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sourceMessageId => $composableBuilder(
+    column: $table.sourceMessageId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get uniqueKey => $composableBuilder(
+    column: $table.uniqueKey,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PersonaMemoriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $PersonaMemoriesTable> {
+  $$PersonaMemoriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get personaId => $composableBuilder(
+    column: $table.personaId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get content => $composableBuilder(
+    column: $table.content,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get score => $composableBuilder(
+    column: $table.score,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sourceMessageId => $composableBuilder(
+    column: $table.sourceMessageId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get uniqueKey => $composableBuilder(
+    column: $table.uniqueKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PersonaMemoriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PersonaMemoriesTable> {
+  $$PersonaMemoriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get personaId =>
+      $composableBuilder(column: $table.personaId, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get content =>
+      $composableBuilder(column: $table.content, builder: (column) => column);
+
+  GeneratedColumn<double> get score =>
+      $composableBuilder(column: $table.score, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get sourceMessageId => $composableBuilder(
+    column: $table.sourceMessageId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get uniqueKey =>
+      $composableBuilder(column: $table.uniqueKey, builder: (column) => column);
+}
+
+class $$PersonaMemoriesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PersonaMemoriesTable,
+          PersonaMemory,
+          $$PersonaMemoriesTableFilterComposer,
+          $$PersonaMemoriesTableOrderingComposer,
+          $$PersonaMemoriesTableAnnotationComposer,
+          $$PersonaMemoriesTableCreateCompanionBuilder,
+          $$PersonaMemoriesTableUpdateCompanionBuilder,
+          (
+            PersonaMemory,
+            BaseReferences<_$AppDatabase, $PersonaMemoriesTable, PersonaMemory>,
+          ),
+          PersonaMemory,
+          PrefetchHooks Function()
+        > {
+  $$PersonaMemoriesTableTableManager(
+    _$AppDatabase db,
+    $PersonaMemoriesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PersonaMemoriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PersonaMemoriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PersonaMemoriesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> personaId = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<String> content = const Value.absent(),
+                Value<double> score = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int?> sourceMessageId = const Value.absent(),
+                Value<String?> uniqueKey = const Value.absent(),
+              }) => PersonaMemoriesCompanion(
+                id: id,
+                personaId: personaId,
+                type: type,
+                content: content,
+                score: score,
+                updatedAt: updatedAt,
+                sourceMessageId: sourceMessageId,
+                uniqueKey: uniqueKey,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String personaId,
+                required String type,
+                required String content,
+                Value<double> score = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int?> sourceMessageId = const Value.absent(),
+                Value<String?> uniqueKey = const Value.absent(),
+              }) => PersonaMemoriesCompanion.insert(
+                id: id,
+                personaId: personaId,
+                type: type,
+                content: content,
+                score: score,
+                updatedAt: updatedAt,
+                sourceMessageId: sourceMessageId,
+                uniqueKey: uniqueKey,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PersonaMemoriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PersonaMemoriesTable,
+      PersonaMemory,
+      $$PersonaMemoriesTableFilterComposer,
+      $$PersonaMemoriesTableOrderingComposer,
+      $$PersonaMemoriesTableAnnotationComposer,
+      $$PersonaMemoriesTableCreateCompanionBuilder,
+      $$PersonaMemoriesTableUpdateCompanionBuilder,
+      (
+        PersonaMemory,
+        BaseReferences<_$AppDatabase, $PersonaMemoriesTable, PersonaMemory>,
+      ),
+      PersonaMemory,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -10674,4 +12064,8 @@ class $AppDatabaseManager {
       $$AcCoinBalancesTableTableManager(_db, _db.acCoinBalances);
   $$AcCoinTransactionsTableTableManager get acCoinTransactions =>
       $$AcCoinTransactionsTableTableManager(_db, _db.acCoinTransactions);
+  $$ChatMessagesTableTableManager get chatMessages =>
+      $$ChatMessagesTableTableManager(_db, _db.chatMessages);
+  $$PersonaMemoriesTableTableManager get personaMemories =>
+      $$PersonaMemoriesTableTableManager(_db, _db.personaMemories);
 }
