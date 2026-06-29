@@ -324,7 +324,6 @@ class TransactionRepositoryImpl implements TransactionRepository {
     final aggResult = await aggQuery.getSingle();
     final count = aggResult.read(t.id.count()) ?? 0;
     final totalAmount = aggResult.read(t.amount.sum()) ?? 0.0;
-    final average = aggResult.read(t.amount.avg());
     final maxAmount = aggResult.read(t.amount.max());
 
     // 分别统计支出和收入
@@ -409,34 +408,4 @@ class TransactionRepositoryImpl implements TransactionRepository {
     return condition;
   }
 
-  /// 从交易列表计算统计数据（单次遍历）
-  SearchResultStats _computeStats(List<Transaction> results) {
-    double totalExpense = 0;
-    double totalIncome = 0;
-    double? maxAmount;
-    Transaction? maxTxn;
-
-    for (final t in results) {
-      if (t.type == 'expense') {
-        totalExpense += t.amount;
-      } else {
-        totalIncome += t.amount;
-      }
-      if (maxAmount == null || t.amount > maxAmount) {
-        maxAmount = t.amount;
-        maxTxn = t;
-      }
-    }
-
-    final totalAmount = totalExpense + totalIncome;
-
-    return SearchResultStats(
-      count: results.length,
-      totalExpense: totalExpense,
-      totalIncome: totalIncome,
-      average: results.isNotEmpty ? totalAmount / results.length : null,
-      maxAmount: maxAmount,
-      maxTransaction: maxTxn,
-    );
   }
-}

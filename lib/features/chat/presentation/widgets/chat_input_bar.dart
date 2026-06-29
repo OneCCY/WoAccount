@@ -47,7 +47,6 @@ class _ChatInputBarState extends State<ChatInputBar> {
   // 录音状态
   bool _isVoiceActive = false;
   _GestureZone _zone = _GestureZone.none;
-  Offset _gestureOrigin = Offset.zero;
 
   // 平台 STT
   String _partialText = '';
@@ -76,7 +75,6 @@ class _ChatInputBarState extends State<ChatInputBar> {
 
   void _onLongPressStart(LongPressStartDetails details) {
     HapticFeedback.heavyImpact();
-    _gestureOrigin = details.globalPosition;
     setState(() {
       _isVoiceActive = true;
       _zone = _GestureZone.send;
@@ -173,6 +171,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
     final result = (platformText ?? _partialText).trim();
     if (result.isNotEmpty) {
       // 填入输入框供用户编辑
+      if (!mounted) return;
       _controller.text = result;
       _focusNode.requestFocus();
     } else {

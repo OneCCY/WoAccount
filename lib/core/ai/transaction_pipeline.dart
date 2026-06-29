@@ -409,8 +409,8 @@ class TransactionPipeline {
 
       // 构建替换文本：将"跟上次一样"替换为具体描述
       final detail = catName.isNotEmpty
-          ? '${referenced!.description} ${referenced!.amount}元 ($catName)'
-          : '${referenced!.description} ${referenced!.amount}元';
+          ? '${referenced.description} ${referenced.amount}元 ($catName)'
+          : '${referenced.description} ${referenced.amount}元';
       return input.replaceAll(matched.keyword, detail);
     } catch (_) {
       // 查找失败时原样返回，让 LLM 自行处理
@@ -431,8 +431,8 @@ class TransactionPipeline {
     ]);
 
     return _EnrichedContext(
-      similarTransactions: results[0] as String?,
-      fewShotExamples: results[1] as String?,
+      similarTransactions: results[0],
+      fewShotExamples: results[1],
     );
   }
 

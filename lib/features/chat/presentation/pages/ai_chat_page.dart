@@ -214,6 +214,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
       before: firstMsg!.message!.createdAt,
     );
 
+    if (!mounted) return;
     setState(() {
       _items = [...older.map((m) => _ChatItem.fromMessage(m)), ..._items];
       _isLoadingMore = false;
