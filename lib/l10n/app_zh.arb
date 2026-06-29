@@ -51,7 +51,7 @@
   "voiceOverlaySwipeHint": "↑ 上滑取消或转文字",
   "voiceOverlayCancelLabel": "松手 取消",
   "voiceOverlayTranscribeLabel": "松手 仅转文字",
-  "chatInputTextHint": "说点什么...",
+  "chatInputTextHint": "输入文本开始记账",
   "chatConfirmTitle": "AI 解析结果",
   "chatConfirmCategory": "分类",
   "chatConfirmDescription": "描述",

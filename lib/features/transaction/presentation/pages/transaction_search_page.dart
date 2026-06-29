@@ -1090,7 +1090,7 @@ class _TransactionSearchPageState extends ConsumerState<TransactionSearchPage> {
     final amountColor = isExpense ? context.colors.expense : context.colors.income;
 
     return GestureDetector(
-      onTap: () => context.push('/transactions/${t.id}'),
+      onTap: () => context.push('/txn/${t.id}'),
       child: Container(
         padding: EdgeInsets.symmetric(
           horizontal: Responsive.s(context, AppDimensions.md),

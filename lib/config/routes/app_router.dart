@@ -84,6 +84,13 @@ class AppRouter {
         path: '/search',
         builder: (context, state) => const TransactionSearchPage(),
       ),
+      // 从搜索页查看交易详情（顶层路由，避免 ShellRoute 嵌套导航 key 冲突）
+      GoRoute(
+        path: '/txn/:id',
+        builder: (context, state) => TransactionDetailPage(
+          transactionId: int.parse(state.pathParameters['id']!),
+        ),
+      ),
       GoRoute(
         path: '/ai-assistant',
         builder: (context, state) => const AiAssistantPage(),

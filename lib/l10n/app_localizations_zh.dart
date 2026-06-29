@@ -155,7 +155,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get voiceOverlayTranscribeLabel => '松手 仅转文字';
 
   @override
-  String get chatInputTextHint => '说点什么...';
+  String get chatInputTextHint => '输入文本开始记账';
 
   @override
   String get chatConfirmTitle => 'AI 解析结果';
@@ -2915,7 +2915,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get voiceOverlayTranscribeLabel => '鬆手 僅轉文字';
 
   @override
-  String get chatInputTextHint => '說點什麼...';
+  String get chatInputTextHint => '輸入文字開始記帳';
 
   @override
   String get chatConfirmTitle => 'AI 解析結果';

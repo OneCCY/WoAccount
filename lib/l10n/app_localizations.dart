@@ -369,7 +369,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatInputTextHint.
   ///
   /// In zh, this message translates to:
-  /// **'说点什么...'**
+  /// **'输入文本开始记账'**
   String get chatInputTextHint;
 
   /// No description provided for @chatConfirmTitle.
