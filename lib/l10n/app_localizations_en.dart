@@ -2805,7 +2805,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiSettingsTitle => 'AI Settings';
 
   @override
-  String get aiSettingsAgents => 'Agent Configuration';
+  String get aiSettingsAgents => 'Configure Models for Features';
 
   @override
   String get aiSettingsSuppliers => 'Provider Management';

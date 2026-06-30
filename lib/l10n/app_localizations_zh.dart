@@ -2746,7 +2746,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get aiSettingsTitle => 'AI 设置';
 
   @override
-  String get aiSettingsAgents => '功能配置';
+  String get aiSettingsAgents => '为功能配置模型';
 
   @override
   String get aiSettingsSuppliers => '供应商管理';

@@ -15,6 +15,10 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../ai/data/models/llm_config.dart';
+import '../../../ai/data/models/ai_persona.dart';
+import '../../../ai/data/repository/chat_history_repository.dart';
+import '../../../ai/data/repository/memory_extraction_queue.dart';
+import '../../../ai/data/storage/persona_storage.dart';
 import '../../../category/domain/repositories/category_repository.dart';
 import '../../../transaction/domain/repositories/transaction_repository.dart';
 import '../../domain/repositories/chat_repository.dart';
@@ -71,6 +75,11 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
   late final int _bookId;
   late final TransactionPipeline _pipeline;
 
+  // [v1.2] 角色记忆
+  String? _activePersonaId;
+  late final ChatHistoryRepository _chatHistoryRepo;
+  late final MemoryExtractionQueue _extractionQueue;
+
   @override
   void initState() {
     super.initState();
@@ -81,6 +90,8 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
 
     // 初始化统一记账管线
     _pipeline = ref.read(transactionPipelineProvider);
+    _chatHistoryRepo = ref.read(chatHistoryRepositoryProvider);
+    _extractionQueue = ref.read(memoryExtractionQueueProvider);
 
     _scrollController.addListener(_onScroll);
     _loadInitialMessages().then((_) {
@@ -89,6 +100,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
     });
     _loadUserProfile();
     _loadAiProviderIcon();
+    _loadPersona();
   }
 
   /// 从 provider 恢复未保存的确认卡片
@@ -164,6 +176,33 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
   void dispose() {
     _scrollController.dispose();
     super.dispose();
+  }
+
+  // ==================== 角色记忆加载 ====================
+
+  Future<void> _loadPersona() async {
+    final persona = await PersonaStorage.getActive();
+    if (mounted && persona != null) {
+      setState(() => _activePersonaId = persona.id);
+      final messages = await _chatHistoryRepo.getRecentMessages(
+        personaId: persona.id,
+        limit: 20,
+      );
+      if (mounted && persona.greeting.isNotEmpty && messages.isEmpty) {
+        setState(() {
+          _items.add(_ChatItem.personaAssistant(RoleChatMessage(
+            id: 0,
+            personaId: persona.id,
+            role: 'assistant',
+            content: persona.greeting,
+            createdAt: DateTime.now(),
+          )));
+        });
+        _scrollToBottom();
+      }
+    } else if (mounted) {
+      setState(() => _activePersonaId = null);
+    }
   }
 
   Future<void> _loadInitialMessages() async {
@@ -290,6 +329,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
       // 动态构建用户分类体系
       final categoryTaxonomy = await _buildCategoryTaxonomy();
       final locale = Localizations.localeOf(context).languageCode;
+      if (!mounted) return;
 
       PipelineResult result;
       switch (source) {
@@ -1152,13 +1192,15 @@ class _ChatItem {
   final ConversationMessage? message;
   final ConfirmData? confirmData;
   final SavedData? savedData;
+  final RoleChatMessage? personaMessage;
   final bool isConfirm;
   final bool isSaved;
 
-  _ChatItem.user(this.message) : confirmData = null, savedData = null, isConfirm = false, isSaved = false;
-  _ChatItem.assistant(this.message) : confirmData = null, savedData = null, isConfirm = false, isSaved = false;
-  _ChatItem.confirm(this.confirmData) : message = null, savedData = null, isConfirm = true, isSaved = false;
-  _ChatItem.saved(this.savedData) : message = null, confirmData = null, isConfirm = false, isSaved = true;
+  _ChatItem.user(this.message) : confirmData = null, savedData = null, personaMessage = null, isConfirm = false, isSaved = false;
+  _ChatItem.assistant(this.message) : confirmData = null, savedData = null, personaMessage = null, isConfirm = false, isSaved = false;
+  _ChatItem.confirm(this.confirmData) : message = null, savedData = null, personaMessage = null, isConfirm = true, isSaved = false;
+  _ChatItem.saved(this.savedData) : message = null, confirmData = null, personaMessage = null, isConfirm = false, isSaved = true;
+  _ChatItem.personaAssistant(this.personaMessage) : message = null, confirmData = null, savedData = null, isConfirm = false, isSaved = false;
 
   static _ChatItem fromMessage(ConversationMessage m) {
     return m.role == 'user' ? _ChatItem.user(m) : _ChatItem.assistant(m);

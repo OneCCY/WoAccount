@@ -23,6 +23,7 @@ import '../../features/profile/data/repositories/ac_coin_repository_impl.dart';
 import '../../features/profile/data/services/excel_service.dart';
 import '../../features/ai/data/repository/chat_history_repository.dart';
 import '../../features/ai/data/repository/memory_repository.dart';
+import '../../features/ai/data/repository/memory_extraction_queue.dart';
 import '../../features/profile/data/services/backup_service.dart';
 
 part 'providers.g.dart';
@@ -130,4 +131,14 @@ final chatHistoryRepositoryProvider = Provider<ChatHistoryRepository>((ref) {
 final memoryRepositoryProvider = Provider<MemoryRepository>((ref) {
   final db = ref.read(appDatabaseProvider);
   return MemoryRepository(db);
+});
+
+/// 异步记忆提取队列 Provider
+final memoryExtractionQueueProvider = Provider<MemoryExtractionQueue>((ref) {
+  final chatHistoryRepo = ref.read(chatHistoryRepositoryProvider);
+  final memoryRepo = ref.read(memoryRepositoryProvider);
+  return MemoryExtractionQueue(
+    memoryRepo: memoryRepo,
+    chatHistoryRepo: chatHistoryRepo,
+  );
 });

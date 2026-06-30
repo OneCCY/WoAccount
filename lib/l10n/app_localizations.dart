@@ -5265,7 +5265,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiSettingsAgents.
   ///
   /// In zh, this message translates to:
-  /// **'功能配置'**
+  /// **'为功能配置模型'**
   String get aiSettingsAgents;
 
   /// No description provided for @aiSettingsSuppliers.
