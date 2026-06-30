@@ -160,7 +160,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voiceOverlayTranscribeLabel => 'Release to transcribe only';
 
   @override
-  String get chatInputTextHint => 'Say something...';
+  String get chatInputTextHint => 'Send to record or chat';
 
   @override
   String get chatConfirmTitle => 'AI Parse Result';
@@ -2908,4 +2908,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiPersonaManageMemories => 'Manage Memories';
+
+  @override
+  String get profileMenuDialogManage => 'Dialog Management';
 }

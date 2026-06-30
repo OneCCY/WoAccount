@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,7 +15,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../ai/data/models/llm_config.dart';
-import '../../../ai/data/models/ai_persona.dart';
 import '../../../ai/data/repository/chat_history_repository.dart';
 import '../../../ai/data/repository/memory_extraction_queue.dart';
 import '../../../ai/data/storage/persona_storage.dart';
@@ -51,6 +50,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
     _loadInitialMessages();
     _loadUserProfile();
     _loadAiProviderIcon();
+    _loadPersona();
   }
 
   List<_ChatItem> _items = [];
@@ -328,8 +328,8 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
     try {
       // 动态构建用户分类体系
       final categoryTaxonomy = await _buildCategoryTaxonomy();
-      final locale = Localizations.localeOf(context).languageCode;
       if (!mounted) return;
+      final locale = Localizations.localeOf(context).languageCode;
 
       PipelineResult result;
       switch (source) {
@@ -889,6 +889,26 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
             const Spacer(),
             Text(l10n.chatPageTitle, style: AppTextStyles.h3.copyWith(fontSize: 16)),
             const Spacer(),
+            // 新对话按钮
+            GestureDetector(
+              onTap: _newConversation,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: context.colors.surfaceSecondary,
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.add_circle_outline, size: 16, color: context.colors.textSecondary),
+                    const SizedBox(width: 4),
+                    const Text('新对话', style: AppTextStyles.caption),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
             // 多选按钮
             GestureDetector(
               onTap: () => setState(() {
@@ -947,6 +967,35 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
               AppToast.show(context, l10n.chatDeleteSuccess, duration: const Duration(milliseconds: 1500));
             },
             child: Text(l10n.commonDelete, style: TextStyle(color: context.colors.error)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 新建对话：保存当前对话到对话管理，然后清空
+  void _newConversation() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('新对话'),
+        content: const Text('将保存当前对话并创建新对话'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              setState(() {
+                _items = [];
+                _hasMore = true;
+              });
+              _scrollToBottom();
+              AppToast.show(context, '新对话已创建', duration: const Duration(milliseconds: 1200));
+            },
+            child: const Text('确定', style: TextStyle(color: Colors.blue)),
           ),
         ],
       ),

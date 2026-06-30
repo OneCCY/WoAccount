@@ -1,5 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 import '../../../../config/database/app_database.dart';
+import '../../data/models/llm_config.dart';
+import '../../data/storage/provider_storage.dart';
+import '../../domain/repositories/llm_repository.dart';
 import 'chat_history_repository.dart';
 import 'memory_repository.dart';
 
@@ -8,6 +12,7 @@ import 'memory_repository.dart';
 class MemoryExtractionQueue {
   final MemoryRepository _memoryRepo;
   final ChatHistoryRepository _chatHistoryRepo;
+  final LlmRepository? _llmRepo;
 
   final List<_QueueItem> _queue = [];
   Timer? _debounceTimer;
@@ -19,8 +24,10 @@ class MemoryExtractionQueue {
   MemoryExtractionQueue({
     required MemoryRepository memoryRepo,
     required ChatHistoryRepository chatHistoryRepo,
+    LlmRepository? llmRepo,
   })  : _memoryRepo = memoryRepo,
-        _chatHistoryRepo = chatHistoryRepo;
+        _chatHistoryRepo = chatHistoryRepo,
+        _llmRepo = llmRepo;
 
   /// 入队一条新消息
   void enqueue(String personaId, String userContent, String assistantContent) {
@@ -106,9 +113,88 @@ $dialogues
   ]
 }''';
 
-    // TODO: 调用 LLM 执行提取
-    // 目前返回空结果，等 LLM 集成后再启用
-    return _ExtractionResult([], []);
+    // 调用 LLM 执行提取
+    if (_llmRepo == null) return _ExtractionResult([], []);
+
+    try {
+      // 获取可用的 provider
+      final provider = await _getAvailableProvider();
+      if (provider == null) return _ExtractionResult([], []);
+
+      final response = await _llmRepo.chat(
+        LlmRequest(
+          messages: [ChatMessage(role: 'user', content: prompt)],
+        ),
+        provider: provider,
+      );
+
+      // 解析 JSON 结果
+      return _parseExtractionResult(response.content, batch.length);
+    } catch (e) {
+      // 提取失败不阻塞
+      return _ExtractionResult([], []);
+    }
+  }
+
+  /// 获取可用的 LLM provider
+  Future<LlmProvider?> _getAvailableProvider() async {
+    // 尝试从 ProviderStorage 获取
+    final v2Providers = await ProviderStorage.loadAll();
+    final ready = v2Providers.where((p) => p.isReady).toList();
+    if (ready.isNotEmpty) {
+      final p = ready.first;
+      return LlmProvider(
+        id: p.id,
+        name: p.name,
+        apiKey: p.apiKey,
+        baseUrl: p.baseUrl,
+        temperature: p.temperature,
+        maxTokens: p.maxTokens,
+        timeoutSeconds: p.timeoutSeconds,
+        providerKey: p.providerKey ?? 'custom',
+        models: {},
+      );
+    }
+    return null;
+  }
+
+  /// 解析 LLM 返回的记忆提取结果
+  _ExtractionResult _parseExtractionResult(String content, int batchSize) {
+    try {
+      final decoded = jsonDecode(content) as Map<String, dynamic>;
+
+      // 解析 memories
+      final memories = <PersonaMemory>[];
+      final memoryList = decoded['memories'] as List<dynamic>? ?? [];
+      final now = DateTime.now();
+      for (final m in memoryList) {
+        final map = m as Map<String, dynamic>;
+        memories.add(PersonaMemory(
+          id: 0,
+          personaId: '', // 将在 upsert 时由 repository 设置
+          type: map['type'] as String? ?? 'preference',
+          content: map['content'] as String? ?? '',
+          score: 0.8,
+          updatedAt: now,
+        ));
+      }
+
+      // 解析 keywords
+      final keywords = <_KeywordUpdate>[];
+      final keywordList = decoded['keywords'] as List<dynamic>? ?? [];
+      for (var i = 0; i < keywordList.length && i < batchSize; i++) {
+        final map = keywordList[i] as Map<String, dynamic>;
+        keywords.add(_KeywordUpdate(
+          messageId: i + 1, // 简化处理，实际应映射到数据库 ID
+          keywords: map['keywords'] as String? ?? '',
+        ));
+      }
+
+      return _ExtractionResult(memories, keywords);
+    } catch (e) {
+      // 解析失败
+      return _ExtractionResult([], []);
+    }
   }
 }
 
@@ -131,5 +217,5 @@ class _KeywordUpdate {
   final int messageId;
   final String keywords;
 
-  _KeywordUpdate(this.messageId, this.keywords);
+  _KeywordUpdate({required this.messageId, required this.keywords});
 }

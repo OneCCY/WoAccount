@@ -51,7 +51,7 @@
   "voiceOverlaySwipeHint": "↑ 上滑取消或转文字",
   "voiceOverlayCancelLabel": "松手 取消",
   "voiceOverlayTranscribeLabel": "松手 仅转文字",
-  "chatInputTextHint": "输入文本开始记账",
+  "chatInputTextHint": "发送内容开始记账和对话",
   "chatConfirmTitle": "AI 解析结果",
   "chatConfirmCategory": "分类",
   "chatConfirmDescription": "描述",
@@ -1002,5 +1002,6 @@
   "aiPersonaGreetingHint": "激活角色时自动发送的第一句话",
   "aiChatHistoryCleared": "聊天记录已清除",
   "aiChatHistoryClear": "清空聊天记录",
-  "aiPersonaManageMemories": "管理记忆"
+  "aiPersonaManageMemories": "管理记忆",
+  "profileMenuDialogManage": "对话管理"
 }

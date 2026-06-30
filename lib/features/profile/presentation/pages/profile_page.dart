@@ -153,6 +153,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with PageRefreshMixin
                   // 功能菜单
                   _buildFuncGrid(l10n),
                   const SizedBox(height: 12),
+                  // 对话管理按钮
+                  _buildDialogManagerButton(l10n),
+                  const SizedBox(height: 12),
                   // 工具与服务
                   _buildMenuGroup(
                     title: l10n.profileToolsAndServices,
@@ -623,7 +626,25 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with PageRefreshMixin
       AppToast.show(context, l10n.profileFeatureComingSoon(label), duration: const Duration(milliseconds: 500));
     } else if (label == l10n.profileMenuSettings) {
       context.push('/settings');
+    } else if (label == l10n.profileMenuDialogManage) {
+      context.push('/dialogs');
     }
+  }
+
+  /// 对话管理按钮
+  Widget _buildDialogManagerButton(AppLocalizations l10n) {
+    return Center(
+      child: ElevatedButton.icon(
+        onPressed: () => context.push('/dialogs'),
+        icon: const Icon(Icons.chat_bubble_outline, size: 18),
+        label: Text(l10n.profileMenuDialogManage),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: context.colors.primarySurface,
+          foregroundColor: context.colors.primary,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        ),
+      ),
+    );
   }
 }
 

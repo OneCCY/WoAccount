@@ -51,7 +51,7 @@
   "voiceOverlaySwipeHint": "↑ Swipe up to cancel or transcribe",
   "voiceOverlayCancelLabel": "Release to cancel",
   "voiceOverlayTranscribeLabel": "Release to transcribe only",
-  "chatInputTextHint": "Say something...",
+  "chatInputTextHint": "Send to record or chat",
   "chatConfirmTitle": "AI Parse Result",
   "chatConfirmCategory": "Category",
   "chatConfirmDescription": "Description",
@@ -1001,5 +1001,6 @@
   "aiPersonaGreetingHint": "First message sent when activating this persona",
   "aiChatHistoryCleared": "Chat history cleared",
   "aiChatHistoryClear": "Clear History",
-  "aiPersonaManageMemories": "Manage Memories"
+  "aiPersonaManageMemories": "Manage Memories",
+  "profileMenuDialogManage": "Dialog Management"
 }

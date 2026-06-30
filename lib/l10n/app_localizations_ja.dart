@@ -2850,4 +2850,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get aiPersonaManageMemories => '管理记忆';
+
+  @override
+  String get profileMenuDialogManage => '对话管理';
 }

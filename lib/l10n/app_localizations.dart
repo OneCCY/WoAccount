@@ -369,7 +369,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatInputTextHint.
   ///
   /// In zh, this message translates to:
-  /// **'输入文本开始记账'**
+  /// **'发送内容开始记账和对话'**
   String get chatInputTextHint;
 
   /// No description provided for @chatConfirmTitle.
@@ -5459,6 +5459,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'管理记忆'**
   String get aiPersonaManageMemories;
+
+  /// No description provided for @profileMenuDialogManage.
+  ///
+  /// In zh, this message translates to:
+  /// **'对话管理'**
+  String get profileMenuDialogManage;
 }
 
 class _AppLocalizationsDelegate

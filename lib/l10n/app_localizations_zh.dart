@@ -155,7 +155,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get voiceOverlayTranscribeLabel => '松手 仅转文字';
 
   @override
-  String get chatInputTextHint => '输入文本开始记账';
+  String get chatInputTextHint => '发送内容开始记账和对话';
 
   @override
   String get chatConfirmTitle => 'AI 解析结果';
@@ -2845,6 +2845,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get aiPersonaManageMemories => '管理记忆';
+
+  @override
+  String get profileMenuDialogManage => '对话管理';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -2983,7 +2986,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get voiceOverlayTranscribeLabel => '鬆手 僅轉文字';
 
   @override
-  String get chatInputTextHint => '輸入文字開始記帳';
+  String get chatInputTextHint => '發送內容開始記帳和對話';
 
   @override
   String get chatConfirmTitle => 'AI 解析結果';

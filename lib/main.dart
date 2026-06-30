@@ -12,6 +12,7 @@ import 'config/di/providers.dart';
 import 'features/security/presentation/widgets/auth_wrapper.dart';
 import 'features/profile/data/services/backup_service.dart';
 import 'features/ai/data/storage/config_migration.dart';
+import 'features/ai/data/storage/persona_storage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,6 +44,11 @@ void main() async {
 
   // 自动备份检查（后台执行，不阻塞启动）
   BackupService().autoBackup().catchError((_) => null);
+
+  // 初始化预设角色（后台执行，不阻塞启动）
+  try {
+    PersonaStorage.initPresets();
+  } catch (_) {}
 
   runApp(
     ProviderScope(
