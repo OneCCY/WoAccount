@@ -28,6 +28,7 @@ import '../../features/account_book/presentation/pages/book_recycle_bin_page.dar
 import '../../features/stats/presentation/pages/report_page.dart';
 import '../../features/ai/presentation/pages/persona_list_page.dart';
 import '../../features/ai/presentation/pages/persona_edit_page.dart';
+import '../../features/ai/presentation/pages/memory_manage_page.dart';
 import '../../features/ai/data/models/ai_persona.dart';
 
 /// 全局路由观察者（用于 RouteAware 监听页面可见性）
@@ -127,6 +128,13 @@ class AppRouter {
         builder: (context, state) {
           final persona = state.extra as AiPersona?;
           return PersonaEditPage(existingPersona: persona);
+        },
+      ),
+      GoRoute(
+        path: '/ai/personas/memories',
+        builder: (context, state) {
+          final personaId = state.extra as String;
+          return MemoryManagePage(personaId: personaId);
         },
       ),
       GoRoute(

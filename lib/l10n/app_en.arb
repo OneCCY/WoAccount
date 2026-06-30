@@ -969,7 +969,7 @@
   "agentEditManualInput": "Enter model name manually",
   "agentEditModelNameHint": "Enter model name",
   "aiSettingsTitle": "AI Settings",
-  "aiSettingsAgents": "Agent Configuration",
+  "aiSettingsAgents": "Configure Models for Features",
   "aiSettingsSuppliers": "Provider Management",
   "aiSettingsUsage": "Monthly Usage",
   "aiSettingsUsageCalls": "calls",

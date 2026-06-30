@@ -1,9 +1,15 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:drift/drift.dart';
 import '../../config/database/app_database.dart';
 import '../../features/ai/data/models/llm_config.dart';
 import '../../features/ai/data/storage/agent_config_storage.dart';
+import '../../features/ai/data/storage/persona_storage.dart';
 import '../../features/ai/data/storage/provider_storage.dart';
+import '../../features/ai/data/repository/chat_history_repository.dart';
+import '../../features/ai/data/repository/memory_repository.dart';
+import '../../features/ai/data/repository/memory_extraction_queue.dart';
+import '../../features/ai/data/models/ai_persona.dart';
 import '../../features/ai/domain/agent_runner.dart';
 import '../../features/vision_ai/data/services/image_recognition_service.dart';
 import '../../features/ai/domain/repositories/llm_repository.dart';
@@ -80,6 +86,9 @@ class TransactionPipeline {
   final MediaStorageService _mediaStorage;
   final AppDatabase _db;
   final AgentRunner? _agentRunner;
+  final ChatHistoryRepository? _chatHistoryRepo;
+  final MemoryRepository? _memoryRepo;
+  final MemoryExtractionQueue? _extractionQueue;
 
   /// 临时存储非记账回复（_parseAgentResult 设置，processText 读取后清空）
   String? _pendingNonTransactionResponse;
@@ -90,11 +99,17 @@ class TransactionPipeline {
     required MediaStorageService mediaStorage,
     required AppDatabase db,
     AgentRunner? agentRunner,
+    ChatHistoryRepository? chatHistoryRepo,
+    MemoryRepository? memoryRepo,
+    MemoryExtractionQueue? extractionQueue,
   })  : _llmRepo = llmRepo,
         _imageService = imageService,
         _mediaStorage = mediaStorage,
         _db = db,
-        _agentRunner = agentRunner;
+        _agentRunner = agentRunner,
+        _chatHistoryRepo = chatHistoryRepo,
+        _memoryRepo = memoryRepo,
+        _extractionQueue = extractionQueue;
 
   /// 处理文本输入
   Future<PipelineResult> processText(
@@ -206,6 +221,70 @@ class TransactionPipeline {
       );
     } on LlmException catch (e) {
       if (e.errorCode == 'llmErrorNonTransaction') {
+        // [v1.2] 角色记忆：检查是否有激活的角色
+        if (_chatHistoryRepo != null && _memoryRepo != null) {
+          final activePersona = await PersonaStorage.getActive();
+          if (activePersona != null) {
+            try {
+              // 1. 加载持久化历史
+              final historyEntities = await _chatHistoryRepo.getRecentMessages(
+                personaId: activePersona.id,
+                limit: 6,
+              );
+              final historyMessages = historyEntities.map((e) =>
+                ChatMessage(role: e.role, content: e.content),
+              ).toList();
+
+              // 2. 构建增强 System Prompt（含语义记忆 + 历史）
+              final enhancedPrompt = await _buildEnhancedPersonaPrompt(
+                activePersona,
+                historyMessages,
+                text,
+              );
+
+              // 3. 调用 LLM
+              final response = await _llmRepo.chat(
+                LlmRequest(messages: [
+                  ChatMessage(role: 'system', content: enhancedPrompt),
+                  ...historyMessages,
+                  ChatMessage(role: 'user', content: text),
+                ]),
+                provider: provider,
+              );
+
+              // 4. 持久化消息
+              await _chatHistoryRepo.addMessages([
+                ChatMessagesCompanion.insert(
+                  personaId: Value(activePersona.id),
+                  role: 'user',
+                  content: text,
+                ),
+                ChatMessagesCompanion.insert(
+                  personaId: Value(activePersona.id),
+                  role: 'assistant',
+                  content: response.content,
+                ),
+              ]);
+
+              // 5. 异步入队记忆提取（enqueue 本身是同步的，后台触发）
+              _extractionQueue?.enqueue(
+                activePersona.id,
+                text,
+                response.content,
+              );
+
+              return PipelineResult(
+                normalizedText: text,
+                transactions: const [],
+                source: InputSource.text,
+                nonTransactionResponse: response.content,
+              );
+            } catch (_) {
+              // 角色调用失败，静默回退
+            }
+          }
+        }
+        // 无角色或角色调用失败，返回原始响应
         return PipelineResult(
           normalizedText: text,
           transactions: const [],
@@ -630,6 +709,55 @@ class TransactionPipeline {
       _pendingNonTransactionResponse = content;
       return [];
     }
+  }
+
+  /// [v1.2] 构建增强的角色 System Prompt（含语义记忆 + 情景记忆）
+  Future<String> _buildEnhancedPersonaPrompt(
+    AiPersona persona,
+    List<ChatMessage> historyMessages,
+    String userInput,
+  ) async {
+    final buffer = StringBuffer(persona.systemPrompt);
+
+    // 📌 语义记忆：固定注入，按 score 降序取 Top-8
+    final memories = await _memoryRepo!.getTopMemories(
+      personaId: persona.id,
+      limit: 8,
+    );
+    if (memories.isNotEmpty) {
+      buffer.writeln('\n## 你对用户的长期了解');
+      for (final m in memories) {
+        buffer.writeln('- [${m.type}] ${m.content}');
+      }
+    }
+
+    // 🔍 情景记忆：按需检索，仅在输入含潜在指代时触发
+    if (_needsContextRecall(userInput)) {
+      try {
+        final relevant = await _chatHistoryRepo!.searchByKeywords(
+          personaId: persona.id,
+          query: userInput,
+          limit: 3,
+        );
+        if (relevant.isNotEmpty) {
+          buffer.writeln('\n## 相关历史回忆');
+          for (final msg in relevant) {
+            buffer.writeln('- ${msg.content}');
+          }
+        }
+      } catch (_) {
+        // FTS 检索失败不影响主流程
+      }
+    }
+
+    return buffer.toString();
+  }
+
+  /// 轻量判断是否需要触发情景记忆检索
+  bool _needsContextRecall(String input) {
+    if (input.length < 5) return false;
+    const triggers = ['之前', '上次', '那个', '还记得', '以前', '昨天', '上周', 'last', 'before', 'again'];
+    return triggers.any((t) => input.toLowerCase().contains(t));
   }
 }
 

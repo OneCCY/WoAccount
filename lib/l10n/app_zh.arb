@@ -970,7 +970,7 @@
   "agentEditManualInput": "手动输入模型名",
   "agentEditModelNameHint": "输入模型名称",
   "aiSettingsTitle": "AI 设置",
-  "aiSettingsAgents": "功能配置",
+  "aiSettingsAgents": "为功能配置模型",
   "aiSettingsSuppliers": "供应商管理",
   "aiSettingsUsage": "本月用量",
   "aiSettingsUsageCalls": "调用",

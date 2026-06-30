@@ -21,6 +21,8 @@ import '../../features/profile/data/repositories/checkin_repository_impl.dart';
 import '../../features/profile/domain/repositories/ac_coin_repository.dart';
 import '../../features/profile/data/repositories/ac_coin_repository_impl.dart';
 import '../../features/profile/data/services/excel_service.dart';
+import '../../features/ai/data/repository/chat_history_repository.dart';
+import '../../features/ai/data/repository/memory_repository.dart';
 import '../../features/profile/data/services/backup_service.dart';
 
 part 'providers.g.dart';
@@ -116,4 +118,16 @@ final excelServiceProvider = Provider<ExcelService>((ref) {
 /// 数据备份服务 Provider（单例）
 final backupServiceProvider = Provider<BackupService>((ref) {
   return BackupService();
+});
+
+/// 角色聊天记录仓库 Provider
+final chatHistoryRepositoryProvider = Provider<ChatHistoryRepository>((ref) {
+  final db = ref.read(appDatabaseProvider);
+  return ChatHistoryRepository(db);
+});
+
+/// 语义记忆仓库 Provider
+final memoryRepositoryProvider = Provider<MemoryRepository>((ref) {
+  final db = ref.read(appDatabaseProvider);
+  return MemoryRepository(db);
 });

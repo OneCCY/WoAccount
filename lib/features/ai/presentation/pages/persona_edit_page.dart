@@ -248,6 +248,16 @@ class _PersonaEditPageState extends State<PersonaEditPage> {
               }),
             const SizedBox(height: 16),
 
+            // 管理记忆
+            if (widget.existingPersona != null)
+              ListTile(
+                leading: const Icon(Icons.memory, color: Colors.purple),
+                title: const Text('管理记忆'),
+                subtitle: const Text('查看和编辑 AI 从对话中学到的记忆'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/ai/personas/memories', extra: widget.existingPersona!.id),
+              ),
+
             // 提示
             Container(
               padding: const EdgeInsets.all(12),
