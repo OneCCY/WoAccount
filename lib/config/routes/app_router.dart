@@ -12,6 +12,7 @@ import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/profile/presentation/pages/profile_edit_page.dart';
 import '../../features/profile/presentation/pages/checkin_calendar_page.dart';
 import '../../features/profile/presentation/pages/ac_coin_records_page.dart';
+import '../../features/profile/presentation/pages/dialog_manage_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/ai/presentation/pages/llm_settings_page_v2.dart';
 import '../../features/budget/presentation/pages/budget_page.dart';
@@ -235,6 +236,10 @@ class AppRouter {
       GoRoute(
         path: '/reports',
         builder: (context, state) => const ReportPage(),
+      ),
+      GoRoute(
+        path: '/dialogs',
+        builder: (context, state) => const DialogManagePage(),
       ),
     ],
   );

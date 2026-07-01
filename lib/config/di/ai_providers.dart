@@ -7,6 +7,7 @@ import '../../features/ai/data/repositories/llm_repository_impl.dart';
 import '../../features/ai/domain/repositories/llm_repository.dart';
 import '../../features/ai/domain/agent_runner.dart';
 import '../../features/ai/domain/builtin_tools.dart';
+import '../../features/ai/data/repository/memory_extraction_queue.dart';
 import '../../features/text_ai/data/services/voice_recognition_service.dart';
 import '../../features/text_ai/data/services/platform_stt_service.dart';
 import '../../features/vision_ai/data/services/image_recognition_service.dart';
@@ -58,12 +59,34 @@ final mediaStorageServiceProvider = Provider<MediaStorageService>((ref) {
 
 /// 统一记账管线 Provider
 final transactionPipelineProvider = Provider<TransactionPipeline>((ref) {
+  final chatHistoryRepo = ref.read(chatHistoryRepositoryProvider);
+  final memoryRepo = ref.read(memoryRepositoryProvider);
+  final llmRepo = ref.read(llmRepositoryProvider);
   return TransactionPipeline(
-    llmRepo: ref.watch(llmRepositoryProvider),
+    llmRepo: llmRepo,
     imageService: ref.watch(imageRecognitionServiceProvider),
     mediaStorage: ref.watch(mediaStorageServiceProvider),
     db: ref.watch(appDatabaseProvider),
     agentRunner: ref.watch(agentRunnerProvider),
+    chatHistoryRepo: chatHistoryRepo,
+    memoryRepo: memoryRepo,
+    extractionQueue: MemoryExtractionQueue(
+      memoryRepo: memoryRepo,
+      chatHistoryRepo: chatHistoryRepo,
+      llmRepo: llmRepo,
+    ),
+  );
+});
+
+/// 异步记忆提取队列 Provider
+final memoryExtractionQueueProvider = Provider<MemoryExtractionQueue>((ref) {
+  final chatHistoryRepo = ref.read(chatHistoryRepositoryProvider);
+  final memoryRepo = ref.read(memoryRepositoryProvider);
+  final llmRepo = ref.read(llmRepositoryProvider);
+  return MemoryExtractionQueue(
+    memoryRepo: memoryRepo,
+    chatHistoryRepo: chatHistoryRepo,
+    llmRepo: llmRepo,
   );
 });
 

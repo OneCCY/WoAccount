@@ -45,9 +45,9 @@ void main() async {
   // 自动备份检查（后台执行，不阻塞启动）
   BackupService().autoBackup().catchError((_) => null);
 
-  // 初始化预设角色（后台执行，不阻塞启动）
+  // 初始化预设角色（前台执行，确保首次运行有预设数据）
   try {
-    PersonaStorage.initPresets();
+    await PersonaStorage.initPresets();
   } catch (_) {}
 
   runApp(
