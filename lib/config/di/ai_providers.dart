@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/ai/transaction_pipeline.dart';
 import '../../core/ai/voice_transcription_orchestrator.dart';
 import '../../core/media/media_storage_service.dart';
@@ -104,3 +105,30 @@ final agentRunnerProvider = Provider<AgentRunner>((ref) {
 /// AI 记账页未保存的确认卡片（跨页面切换持久化）
 /// 存储 ConfirmData 列表，页面重建时恢复
 final pendingConfirmCardsProvider = StateProvider<List<dynamic>>((ref) => []);
+
+/// 当前对话 ID（跨页面切换持久化，保存到 SharedPreferences）
+final currentConversationIdProvider = StateNotifierProvider<_ConversationIdNotifier, String>((ref) {
+  return _ConversationIdNotifier();
+});
+
+class _ConversationIdNotifier extends StateNotifier<String> {
+  _ConversationIdNotifier() : super('default') {
+    _load();
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString('current_conversation_id');
+    if (saved != null && saved.isNotEmpty) {
+      state = saved;
+    }
+  }
+
+  @override
+  set state(String value) {
+    super.state = value;
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setString('current_conversation_id', value);
+    });
+  }
+}

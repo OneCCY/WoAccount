@@ -6029,6 +6029,17 @@ class $ChatMessagesTable extends ChatMessages
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _conversationIdMeta = const VerificationMeta(
+    'conversationId',
+  );
+  @override
+  late final GeneratedColumn<String> conversationId = GeneratedColumn<String>(
+    'conversation_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _roleMeta = const VerificationMeta('role');
   @override
   late final GeneratedColumn<String> role = GeneratedColumn<String>(
@@ -6077,6 +6088,7 @@ class $ChatMessagesTable extends ChatMessages
   List<GeneratedColumn> get $columns => [
     id,
     personaId,
+    conversationId,
     role,
     content,
     createdAt,
@@ -6101,6 +6113,15 @@ class $ChatMessagesTable extends ChatMessages
       context.handle(
         _personaIdMeta,
         personaId.isAcceptableOrUnknown(data['persona_id']!, _personaIdMeta),
+      );
+    }
+    if (data.containsKey('conversation_id')) {
+      context.handle(
+        _conversationIdMeta,
+        conversationId.isAcceptableOrUnknown(
+          data['conversation_id']!,
+          _conversationIdMeta,
+        ),
       );
     }
     if (data.containsKey('role')) {
@@ -6151,6 +6172,10 @@ class $ChatMessagesTable extends ChatMessages
         DriftSqlType.string,
         data['${effectivePrefix}persona_id'],
       ),
+      conversationId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}conversation_id'],
+      ),
       role: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}role'],
@@ -6179,6 +6204,7 @@ class $ChatMessagesTable extends ChatMessages
 class RoleChatMessage extends DataClass implements Insertable<RoleChatMessage> {
   final int id;
   final String? personaId;
+  final String? conversationId;
   final String role;
   final String content;
   final DateTime createdAt;
@@ -6186,6 +6212,7 @@ class RoleChatMessage extends DataClass implements Insertable<RoleChatMessage> {
   const RoleChatMessage({
     required this.id,
     this.personaId,
+    this.conversationId,
     required this.role,
     required this.content,
     required this.createdAt,
@@ -6197,6 +6224,9 @@ class RoleChatMessage extends DataClass implements Insertable<RoleChatMessage> {
     map['id'] = Variable<int>(id);
     if (!nullToAbsent || personaId != null) {
       map['persona_id'] = Variable<String>(personaId);
+    }
+    if (!nullToAbsent || conversationId != null) {
+      map['conversation_id'] = Variable<String>(conversationId);
     }
     map['role'] = Variable<String>(role);
     map['content'] = Variable<String>(content);
@@ -6213,6 +6243,9 @@ class RoleChatMessage extends DataClass implements Insertable<RoleChatMessage> {
       personaId: personaId == null && nullToAbsent
           ? const Value.absent()
           : Value(personaId),
+      conversationId: conversationId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(conversationId),
       role: Value(role),
       content: Value(content),
       createdAt: Value(createdAt),
@@ -6230,6 +6263,7 @@ class RoleChatMessage extends DataClass implements Insertable<RoleChatMessage> {
     return RoleChatMessage(
       id: serializer.fromJson<int>(json['id']),
       personaId: serializer.fromJson<String?>(json['personaId']),
+      conversationId: serializer.fromJson<String?>(json['conversationId']),
       role: serializer.fromJson<String>(json['role']),
       content: serializer.fromJson<String>(json['content']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -6242,6 +6276,7 @@ class RoleChatMessage extends DataClass implements Insertable<RoleChatMessage> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'personaId': serializer.toJson<String?>(personaId),
+      'conversationId': serializer.toJson<String?>(conversationId),
       'role': serializer.toJson<String>(role),
       'content': serializer.toJson<String>(content),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -6252,6 +6287,7 @@ class RoleChatMessage extends DataClass implements Insertable<RoleChatMessage> {
   RoleChatMessage copyWith({
     int? id,
     Value<String?> personaId = const Value.absent(),
+    Value<String?> conversationId = const Value.absent(),
     String? role,
     String? content,
     DateTime? createdAt,
@@ -6259,6 +6295,9 @@ class RoleChatMessage extends DataClass implements Insertable<RoleChatMessage> {
   }) => RoleChatMessage(
     id: id ?? this.id,
     personaId: personaId.present ? personaId.value : this.personaId,
+    conversationId: conversationId.present
+        ? conversationId.value
+        : this.conversationId,
     role: role ?? this.role,
     content: content ?? this.content,
     createdAt: createdAt ?? this.createdAt,
@@ -6270,6 +6309,9 @@ class RoleChatMessage extends DataClass implements Insertable<RoleChatMessage> {
     return RoleChatMessage(
       id: data.id.present ? data.id.value : this.id,
       personaId: data.personaId.present ? data.personaId.value : this.personaId,
+      conversationId: data.conversationId.present
+          ? data.conversationId.value
+          : this.conversationId,
       role: data.role.present ? data.role.value : this.role,
       content: data.content.present ? data.content.value : this.content,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
@@ -6284,6 +6326,7 @@ class RoleChatMessage extends DataClass implements Insertable<RoleChatMessage> {
     return (StringBuffer('RoleChatMessage(')
           ..write('id: $id, ')
           ..write('personaId: $personaId, ')
+          ..write('conversationId: $conversationId, ')
           ..write('role: $role, ')
           ..write('content: $content, ')
           ..write('createdAt: $createdAt, ')
@@ -6293,14 +6336,22 @@ class RoleChatMessage extends DataClass implements Insertable<RoleChatMessage> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, personaId, role, content, createdAt, searchKeywords);
+  int get hashCode => Object.hash(
+    id,
+    personaId,
+    conversationId,
+    role,
+    content,
+    createdAt,
+    searchKeywords,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is RoleChatMessage &&
           other.id == this.id &&
           other.personaId == this.personaId &&
+          other.conversationId == this.conversationId &&
           other.role == this.role &&
           other.content == this.content &&
           other.createdAt == this.createdAt &&
@@ -6310,6 +6361,7 @@ class RoleChatMessage extends DataClass implements Insertable<RoleChatMessage> {
 class ChatMessagesCompanion extends UpdateCompanion<RoleChatMessage> {
   final Value<int> id;
   final Value<String?> personaId;
+  final Value<String?> conversationId;
   final Value<String> role;
   final Value<String> content;
   final Value<DateTime> createdAt;
@@ -6317,6 +6369,7 @@ class ChatMessagesCompanion extends UpdateCompanion<RoleChatMessage> {
   const ChatMessagesCompanion({
     this.id = const Value.absent(),
     this.personaId = const Value.absent(),
+    this.conversationId = const Value.absent(),
     this.role = const Value.absent(),
     this.content = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -6325,6 +6378,7 @@ class ChatMessagesCompanion extends UpdateCompanion<RoleChatMessage> {
   ChatMessagesCompanion.insert({
     this.id = const Value.absent(),
     this.personaId = const Value.absent(),
+    this.conversationId = const Value.absent(),
     required String role,
     required String content,
     this.createdAt = const Value.absent(),
@@ -6334,6 +6388,7 @@ class ChatMessagesCompanion extends UpdateCompanion<RoleChatMessage> {
   static Insertable<RoleChatMessage> custom({
     Expression<int>? id,
     Expression<String>? personaId,
+    Expression<String>? conversationId,
     Expression<String>? role,
     Expression<String>? content,
     Expression<DateTime>? createdAt,
@@ -6342,6 +6397,7 @@ class ChatMessagesCompanion extends UpdateCompanion<RoleChatMessage> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (personaId != null) 'persona_id': personaId,
+      if (conversationId != null) 'conversation_id': conversationId,
       if (role != null) 'role': role,
       if (content != null) 'content': content,
       if (createdAt != null) 'created_at': createdAt,
@@ -6352,6 +6408,7 @@ class ChatMessagesCompanion extends UpdateCompanion<RoleChatMessage> {
   ChatMessagesCompanion copyWith({
     Value<int>? id,
     Value<String?>? personaId,
+    Value<String?>? conversationId,
     Value<String>? role,
     Value<String>? content,
     Value<DateTime>? createdAt,
@@ -6360,6 +6417,7 @@ class ChatMessagesCompanion extends UpdateCompanion<RoleChatMessage> {
     return ChatMessagesCompanion(
       id: id ?? this.id,
       personaId: personaId ?? this.personaId,
+      conversationId: conversationId ?? this.conversationId,
       role: role ?? this.role,
       content: content ?? this.content,
       createdAt: createdAt ?? this.createdAt,
@@ -6375,6 +6433,9 @@ class ChatMessagesCompanion extends UpdateCompanion<RoleChatMessage> {
     }
     if (personaId.present) {
       map['persona_id'] = Variable<String>(personaId.value);
+    }
+    if (conversationId.present) {
+      map['conversation_id'] = Variable<String>(conversationId.value);
     }
     if (role.present) {
       map['role'] = Variable<String>(role.value);
@@ -6396,6 +6457,7 @@ class ChatMessagesCompanion extends UpdateCompanion<RoleChatMessage> {
     return (StringBuffer('ChatMessagesCompanion(')
           ..write('id: $id, ')
           ..write('personaId: $personaId, ')
+          ..write('conversationId: $conversationId, ')
           ..write('role: $role, ')
           ..write('content: $content, ')
           ..write('createdAt: $createdAt, ')
@@ -11572,6 +11634,7 @@ typedef $$ChatMessagesTableCreateCompanionBuilder =
     ChatMessagesCompanion Function({
       Value<int> id,
       Value<String?> personaId,
+      Value<String?> conversationId,
       required String role,
       required String content,
       Value<DateTime> createdAt,
@@ -11581,6 +11644,7 @@ typedef $$ChatMessagesTableUpdateCompanionBuilder =
     ChatMessagesCompanion Function({
       Value<int> id,
       Value<String?> personaId,
+      Value<String?> conversationId,
       Value<String> role,
       Value<String> content,
       Value<DateTime> createdAt,
@@ -11603,6 +11667,11 @@ class $$ChatMessagesTableFilterComposer
 
   ColumnFilters<String> get personaId => $composableBuilder(
     column: $table.personaId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get conversationId => $composableBuilder(
+    column: $table.conversationId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -11646,6 +11715,11 @@ class $$ChatMessagesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get conversationId => $composableBuilder(
+    column: $table.conversationId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get role => $composableBuilder(
     column: $table.role,
     builder: (column) => ColumnOrderings(column),
@@ -11681,6 +11755,11 @@ class $$ChatMessagesTableAnnotationComposer
 
   GeneratedColumn<String> get personaId =>
       $composableBuilder(column: $table.personaId, builder: (column) => column);
+
+  GeneratedColumn<String> get conversationId => $composableBuilder(
+    column: $table.conversationId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get role =>
       $composableBuilder(column: $table.role, builder: (column) => column);
@@ -11730,6 +11809,7 @@ class $$ChatMessagesTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String?> personaId = const Value.absent(),
+                Value<String?> conversationId = const Value.absent(),
                 Value<String> role = const Value.absent(),
                 Value<String> content = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -11737,6 +11817,7 @@ class $$ChatMessagesTableTableManager
               }) => ChatMessagesCompanion(
                 id: id,
                 personaId: personaId,
+                conversationId: conversationId,
                 role: role,
                 content: content,
                 createdAt: createdAt,
@@ -11746,6 +11827,7 @@ class $$ChatMessagesTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String?> personaId = const Value.absent(),
+                Value<String?> conversationId = const Value.absent(),
                 required String role,
                 required String content,
                 Value<DateTime> createdAt = const Value.absent(),
@@ -11753,6 +11835,7 @@ class $$ChatMessagesTableTableManager
               }) => ChatMessagesCompanion.insert(
                 id: id,
                 personaId: personaId,
+                conversationId: conversationId,
                 role: role,
                 content: content,
                 createdAt: createdAt,

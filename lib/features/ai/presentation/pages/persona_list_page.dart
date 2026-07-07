@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -38,6 +40,27 @@ class _PersonaListPageState extends State<PersonaListPage> {
   }
 
   Future<void> _activate(String id) async {
+    // 首次激活时显示隐私提示
+    final prefs = await SharedPreferences.getInstance();
+    final privacyShown = prefs.getBool('ai_persona_privacy_shown') ?? false;
+    if (!privacyShown && mounted) {
+      final agreed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('AI 记忆功能'),
+          content: const Text('AI 会记住你的偏好和对话中的信息，以提供更贴心的服务。\n\n你可以随时在"AI 角色管理"中查看和删除记忆。'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('暂不使用')),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('知道了')),
+          ],
+        ),
+      );
+      if (agreed != true) return;
+      await prefs.setBool('ai_persona_privacy_shown', true);
+    }
+    // 切换角色时生成新会话 ID，避免不同角色混在同一会话中
+    final newConvId = 'conv_${DateTime.now().millisecondsSinceEpoch}';
+    await prefs.setString('current_conversation_id', newConvId);
     await PersonaStorage.setActiveId(id);
     if (mounted) setState(() => _activeId = id);
   }
@@ -120,7 +143,11 @@ class _PersonaListPageState extends State<PersonaListPage> {
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: isActive ? context.colors.primary : context.colors.surfaceSecondary,
-          child: Text(persona.avatar, style: const TextStyle(fontSize: 20)),
+          backgroundImage: persona.avatarPath != null ? FileImage(File(persona.avatarPath!)) : null,
+          onBackgroundImageError: persona.avatarPath != null ? (_, _) {} : null,
+          child: persona.avatarPath == null
+              ? Text(persona.avatar, style: const TextStyle(fontSize: 20))
+              : null,
         ),
         title: Text(persona.name),
         subtitle: Text(persona.description.isEmpty ? '暂无描述' : persona.description),

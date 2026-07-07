@@ -176,6 +176,7 @@ class AcCoinTransactions extends Table {
 class ChatMessages extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get personaId => text().nullable()(); // 关联角色 ID
+  TextColumn get conversationId => text().nullable()(); // 🆕 关联对话 ID（跨对话隔离）
   TextColumn get role => text().withLength(max: 20)(); // user/assistant
   TextColumn get content => text()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
@@ -220,7 +221,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 12;
+  int get schemaVersion => 13;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -386,6 +387,16 @@ class AppDatabase extends _$AppDatabase {
         await customStatement(
           'CREATE INDEX IF NOT EXISTS idx_memory_persona_score '
           'ON persona_memories(persona_id, score DESC)',
+        );
+      }
+      if (from < 13) {
+        // v13: 新增 conversationId 字段，实现跨对话隔离
+        await customStatement(
+          'ALTER TABLE chat_messages ADD COLUMN conversation_id TEXT',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_chat_persona_conv '
+          'ON chat_messages(persona_id, conversation_id, created_at)',
         );
       }
     },

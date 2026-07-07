@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import '../../../../config/database/app_database.dart';
 import '../../data/models/llm_config.dart';
+import '../../data/storage/agent_config_storage.dart';
 import '../../data/storage/provider_storage.dart';
 import '../../domain/repositories/llm_repository.dart';
 import 'chat_history_repository.dart';
@@ -17,9 +18,7 @@ class MemoryExtractionQueue {
   final List<_QueueItem> _queue = [];
   Timer? _debounceTimer;
   DateTime _lastExtraction = DateTime.now();
-
-  static const int _batchThreshold = 5;
-  static const Duration _timeThreshold = Duration(seconds: 60);
+  static const Duration _flushDelay = Duration(seconds: 3);
 
   MemoryExtractionQueue({
     required MemoryRepository memoryRepo,
@@ -40,18 +39,9 @@ class MemoryExtractionQueue {
 
   /// 判断是否满足触发条件
   void _tryTrigger() {
-    if (_queue.length >= _batchThreshold) {
-      _flush();
-      return;
-    }
-    final elapsed = DateTime.now().difference(_lastExtraction);
-    if (elapsed >= _timeThreshold && _queue.isNotEmpty) {
-      _flush();
-      return;
-    }
-    // 兜底 debounce
+    // 快速触发：3 秒 debounce，第一条消息入队后立即开始计时
     _debounceTimer?.cancel();
-    _debounceTimer = Timer(_timeThreshold, _flush);
+    _debounceTimer = Timer(_flushDelay, _flush);
   }
 
   /// 执行批量提取
@@ -129,7 +119,7 @@ $dialogues
       );
 
       // 解析 JSON 结果
-      return _parseExtractionResult(response.content, batch.length);
+      return _parseExtractionResult(response.content, batch);
     } catch (e) {
       // 提取失败不阻塞
       return _ExtractionResult([], []);
@@ -143,6 +133,15 @@ $dialogues
     final ready = v2Providers.where((p) => p.isReady).toList();
     if (ready.isNotEmpty) {
       final p = ready.first;
+      // 从 transaction_parser 配置获取模型名
+      String? textModel;
+      try {
+        final tpConfig = await AgentConfigStorage.load('transaction_parser');
+        if (tpConfig != null && tpConfig.modelName.isNotEmpty) {
+          textModel = tpConfig.modelName;
+        }
+      } catch (_) {}
+      if (textModel == null || textModel.isEmpty) return null;
       return LlmProvider(
         id: p.id,
         name: p.name,
@@ -152,16 +151,20 @@ $dialogues
         maxTokens: p.maxTokens,
         timeoutSeconds: p.timeoutSeconds,
         providerKey: p.providerKey ?? 'custom',
-        models: {},
+        models: {'text': ModelConfig(modelName: textModel)},
       );
     }
     return null;
   }
 
   /// 解析 LLM 返回的记忆提取结果
-  _ExtractionResult _parseExtractionResult(String content, int batchSize) {
+  _ExtractionResult _parseExtractionResult(String content, List<_QueueItem> batch) {
     try {
       final decoded = jsonDecode(content) as Map<String, dynamic>;
+
+      // 从队列第一条消息获取 personaId
+      final personaId = batch.isNotEmpty ? batch.first.personaId : '';
+      final batchSize = batch.length;
 
       // 解析 memories
       final memories = <PersonaMemory>[];
@@ -171,7 +174,7 @@ $dialogues
         final map = m as Map<String, dynamic>;
         memories.add(PersonaMemory(
           id: 0,
-          personaId: '', // 将在 upsert 时由 repository 设置
+          personaId: personaId,
           type: map['type'] as String? ?? 'preference',
           content: map['content'] as String? ?? '',
           score: 0.8,

@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:go_router/go_router.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
@@ -36,10 +38,10 @@ class AiChatPage extends ConsumerStatefulWidget {
   ConsumerState<AiChatPage> createState() => _AiChatPageState();
 }
 
-class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
+class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin, WidgetsBindingObserver {
   final _scrollController = ScrollController();
   final _pageSize = 20;
-  final String _conversationId = 'default';
+  String _conversationId = '';
 
   @override
   String get routePath => '/';
@@ -68,6 +70,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
 
   String? _userAvatarPath;
   String _aiIcon = '🤖';
+  String? _aiAvatarPath;
 
   late final ChatRepository _chatRepo;
   late final TransactionRepository _txnRepo;
@@ -76,7 +79,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
   late final TransactionPipeline _pipeline;
 
   // [v1.2] 角色记忆
-  String? _activePersonaId;
+  bool _personaActive = false;
   late final ChatHistoryRepository _chatHistoryRepo;
   late final MemoryExtractionQueue _extractionQueue;
 
@@ -94,13 +97,48 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
     _extractionQueue = ref.read(memoryExtractionQueueProvider);
 
     _scrollController.addListener(_onScroll);
-    _loadInitialMessages().then((_) {
+    // 从 provider 恢复对话 ID
+    _conversationId = ref.read(currentConversationIdProvider);
+    // 如果 provider 是默认值，尝试从 SharedPreferences 恢复
+    if (_conversationId == 'default') {
+      SharedPreferences.getInstance().then((prefs) {
+        final saved = prefs.getString('current_conversation_id');
+        if (saved != null && saved.isNotEmpty && mounted) {
+          _conversationId = saved;
+          ref.read(currentConversationIdProvider.notifier).state = saved;
+          _loadInitialMessages();
+        }
+      });
+    }
+    WidgetsBinding.instance.addObserver(this);
+    _initPersona().then((_) => _loadInitialMessages().then((_) {
       _restorePendingCards();
       _handleExternalInput();
-    });
+    }));
     _loadUserProfile();
     _loadAiProviderIcon();
-    _loadPersona();
+  }
+
+  /// 同步加载角色状态（优先执行）
+  Future<void> _initPersona() async {
+    final activeId = await PersonaStorage.getActiveId();
+    if (activeId != null) {
+      final persona = await PersonaStorage.getActive();
+      if (mounted) {
+        setState(() {
+          _personaActive = true;
+          if (persona != null) {
+            _aiIcon = persona.avatar;
+            _aiAvatarPath = persona.avatarPath;
+          }
+        });
+      }
+    } else if (mounted) {
+      setState(() {
+        _personaActive = false;
+        _aiAvatarPath = null;
+      });
+    }
   }
 
   /// 从 provider 恢复未保存的确认卡片
@@ -173,7 +211,16 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
   }
 
   @override
+  void didChangeMetrics() {
+    // 键盘弹出/收起时滚动到底部
+    if (_scrollController.hasClients && !_scrollController.position.atEdge) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _scrollController.dispose();
     super.dispose();
   }
@@ -183,9 +230,10 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
   Future<void> _loadPersona() async {
     final persona = await PersonaStorage.getActive();
     if (mounted && persona != null) {
-      setState(() => _activePersonaId = persona.id);
+      setState(() => _personaActive = true);
       final messages = await _chatHistoryRepo.getRecentMessages(
         personaId: persona.id,
+        conversationId: _conversationId,
         limit: 20,
       );
       if (mounted && persona.greeting.isNotEmpty && messages.isEmpty) {
@@ -201,7 +249,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
         _scrollToBottom();
       }
     } else if (mounted) {
-      setState(() => _activePersonaId = null);
+      setState(() => _personaActive = false);
     }
   }
 
@@ -273,6 +321,221 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
     });
   }
 
+  /// [v1.2] 流式输出角色响应
+  Future<void> _streamPersonaResponse(String fullResponse) async {
+    // 先创建临时消息占位，然后逐字追加
+    final aiMsg = ConversationMessage(
+      id: 0,
+      conversationId: _conversationId,
+      role: 'assistant',
+      content: '',
+      accountBookId: _bookId,
+      createdAt: DateTime.now(),
+    );
+    if (!mounted) return;
+    setState(() {
+      _items.add(_ChatItem.assistant(aiMsg));
+    });
+
+    // 逐字追加模拟流式效果（实际是完整响应，逐步显示）
+    final displayText = fullResponse;
+    for (int i = 0; i <= displayText.length; i += 3) {
+      if (!mounted) return;
+      final chunk = displayText.substring(0, i.clamp(0, displayText.length));
+      setState(() {
+        _items.last = _ChatItem.assistant(ConversationMessage(
+          id: 0,
+          conversationId: _conversationId,
+          role: 'assistant',
+          content: chunk,
+          accountBookId: _bookId,
+          createdAt: DateTime.now(),
+        ));
+      });
+      _scrollToBottom();
+      await Future.delayed(const Duration(milliseconds: 15));
+    }
+
+    // 流结束，保存完整消息到数据库
+    await _chatRepo.insertMessage(
+      ConversationMessagesCompanion.insert(
+        conversationId: _conversationId,
+        role: 'assistant',
+        content: fullResponse,
+        accountBookId: _bookId,
+      ),
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _items.last = _ChatItem.assistant(ConversationMessage(
+        id: 0,
+        conversationId: _conversationId,
+        role: 'assistant',
+        content: fullResponse,
+        accountBookId: _bookId,
+        createdAt: DateTime.now(),
+      ));
+      _isAiResponding = false;
+    });
+    _scrollToBottom();
+  }
+
+  /// [v1.2] 流式处理文本输入（支持角色响应逐字输出）
+  Future<void> _handleTextStream(String text, String categoryTaxonomy, String locale) async {
+    final isPersona = _personaActive;
+    // 创建思考中占位
+    final tempMsg = ConversationMessage(
+      id: 0,
+      conversationId: _conversationId,
+      role: 'assistant',
+      content: isPersona ? '正在思考中...' : 'AI正在解析...',
+      accountBookId: _bookId,
+      createdAt: DateTime.now(),
+    );
+    if (!mounted) return;
+    setState(() => _items.add(_ChatItem.assistant(tempMsg)));
+
+    // 启动跳动点动画（每 500ms 循环 ... → ....）
+    int dotCount = 3;
+    Timer? bounceTimer;
+    if (isPersona) {
+      bounceTimer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
+        dotCount = dotCount >= 4 ? 3 : dotCount + 1;
+        final dots = '.' * dotCount;
+        if (mounted) {
+          setState(() {
+            _items.last = _ChatItem.assistant(ConversationMessage(
+              id: 0,
+              conversationId: _conversationId,
+              role: 'assistant',
+              content: '正在思考中$dots',
+              accountBookId: _bookId,
+              createdAt: DateTime.now(),
+            ));
+          });
+        }
+      });
+    }
+
+    String fullContent = '';
+    bool streamingStarted = false;
+    await for (final event in _pipeline.processTextStream(
+      text,
+      categoryTaxonomy: categoryTaxonomy,
+      locale: locale,
+      bookId: _bookId,
+      conversationId: _conversationId,
+    )) {
+      if (!mounted) return;
+      // 第一个 delta 到达时取消跳动，切换为实际内容
+      if (!streamingStarted && event is PipelineStreamDeltaEvent) {
+        streamingStarted = true;
+        bounceTimer?.cancel();
+      }
+      switch (event) {
+        case PipelineStreamDeltaEvent(:final text):
+          fullContent += text;
+          setState(() {
+            _items.last = _ChatItem.assistant(ConversationMessage(
+              id: 0,
+              conversationId: _conversationId,
+              role: 'assistant',
+              content: fullContent,
+              accountBookId: _bookId,
+              createdAt: DateTime.now(),
+            ));
+          });
+          _scrollToBottom();
+        case PipelineStreamDoneEvent(:final result):
+          // 替换临时消息为最终结果
+          if (result.transactions.isEmpty && result.nonTransactionResponse != null && result.isStreamed) {
+            // 角色流式：streaming 已完成，保存到 DB
+            await _chatRepo.insertMessage(
+              ConversationMessagesCompanion.insert(
+                conversationId: _conversationId,
+                role: 'assistant',
+                content: result.nonTransactionResponse!,
+                accountBookId: _bookId,
+              ),
+            );
+            if (!mounted) return;
+            setState(() {
+              _items.last = _ChatItem.assistant(ConversationMessage(
+                id: 0,
+                conversationId: _conversationId,
+                role: 'assistant',
+                content: result.nonTransactionResponse!,
+                accountBookId: _bookId,
+                createdAt: DateTime.now(),
+              ));
+              _isAiResponding = false;
+            });
+          } else if (result.transactions.isEmpty && result.nonTransactionResponse != null) {
+            // 非流式非记账响应
+            final aiMsg = result.nonTransactionResponse!;
+            await _chatRepo.insertMessage(
+              ConversationMessagesCompanion.insert(
+                conversationId: _conversationId,
+                role: 'assistant',
+                content: aiMsg,
+                accountBookId: _bookId,
+              ),
+            );
+            if (!mounted) return;
+            setState(() {
+              _items.last = _ChatItem.assistant(ConversationMessage(
+                id: 0,
+                conversationId: _conversationId,
+                role: 'assistant',
+                content: aiMsg,
+                accountBookId: _bookId,
+                createdAt: DateTime.now(),
+              ));
+              _isAiResponding = false;
+            });
+          } else if (result.transactions.isNotEmpty) {
+            setState(() => _isAiResponding = false);
+            // 替换临时消息为交易确认卡片
+            _items.removeLast();
+            for (final txn in result.transactions) {
+              final matchedCategory = await _matchCategory(txn.category, txn.type);
+              final matchedSub = await _matchSubcategory(matchedCategory.id, txn.subcategory, txn.type == 'expense');
+              DateTime txnDate = DateTime.now();
+              if (txn.date != null && txn.date!.isNotEmpty) {
+                try {
+                  final parsed = DateTime.parse(txn.date!);
+                  final now = DateTime.now();
+                  txnDate = DateTime(parsed.year, parsed.month, parsed.day, now.hour, now.minute, now.second);
+                } catch (_) {}
+              }
+              final card = ConfirmData(
+                originalInput: result.normalizedText,
+                amount: txn.amount,
+                type: txn.type,
+                category: matchedCategory.name,
+                categoryId: matchedSub?.id ?? matchedCategory.id,
+                parentCategoryId: matchedSub != null ? matchedCategory.id : null,
+                description: txn.description.isNotEmpty ? txn.description : result.normalizedText.replaceAll(RegExp(r'\d+\.?\d*'), '').trim(),
+                note: txn.note,
+                date: txnDate,
+                confidence: txn.confidence,
+                aiPredictedCategoryId: matchedSub?.id ?? matchedCategory.id,
+              );
+              setState(() => _items.add(_ChatItem.confirm(card)));
+            }
+            _persistPendingCards();
+          } else {
+            // 空结果
+            setState(() => _isAiResponding = false);
+            _items.removeLast();
+          }
+          _scrollToBottom();
+      }
+      bounceTimer?.cancel();
+    }
+  }
+
   // ==================== 统一输入处理 ====================
 
   /// 统一处理入口：文本/图片都走此方法
@@ -334,8 +597,9 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
       PipelineResult result;
       switch (source) {
         case InputSource.text:
-          result = await _pipeline.processText(displayText, categoryTaxonomy: categoryTaxonomy, locale: locale, bookId: _bookId);
-          break;
+          // 使用流式管线
+          await _handleTextStream(displayText, categoryTaxonomy, locale);
+          return;
         case InputSource.voice:
           // Voice is no longer handled here; upstream orchestrator handles transcription.
           throw UnsupportedError('Voice input is not supported in AiChatPage');
@@ -375,26 +639,31 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
       // 非记账输入：显示 AI 的友好回复
       if (result.transactions.isEmpty && result.nonTransactionResponse != null) {
         final aiMsg = result.nonTransactionResponse!;
-        await _chatRepo.insertMessage(
-          ConversationMessagesCompanion.insert(
-            conversationId: _conversationId,
-            role: 'assistant',
-            content: aiMsg,
-            accountBookId: _bookId,
-          ),
-        );
-        if (!mounted) return;
-        setState(() {
-          _items.add(_ChatItem.assistant(ConversationMessage(
-            id: 0,
-            conversationId: _conversationId,
-            role: 'assistant',
-            content: aiMsg,
-            accountBookId: _bookId,
-            createdAt: DateTime.now(),
-          )));
-          _isAiResponding = false;
-        });
+        // [v1.2] 角色激活时用流式输出
+        if (_personaActive) {
+          await _streamPersonaResponse(aiMsg);
+        } else {
+          await _chatRepo.insertMessage(
+            ConversationMessagesCompanion.insert(
+              conversationId: _conversationId,
+              role: 'assistant',
+              content: aiMsg,
+              accountBookId: _bookId,
+            ),
+          );
+          if (!mounted) return;
+          setState(() {
+            _items.add(_ChatItem.assistant(ConversationMessage(
+              id: 0,
+              conversationId: _conversationId,
+              role: 'assistant',
+              content: aiMsg,
+              accountBookId: _bookId,
+              createdAt: DateTime.now(),
+            )));
+            _isAiResponding = false;
+          });
+        }
         return;
       }
 
@@ -828,7 +1097,6 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
           SizedBox(height: MediaQuery.of(context).padding.top),
           _buildTopBar(),
           Expanded(child: _buildMessageList()),
-          if (_isAiResponding) _buildTypingIndicator(),
           ChatInputBar(
             onSubmit: (text) => _processInput(text: text),
             onImageCaptured: (path) => _processInput(imagePath: path),
@@ -868,28 +1136,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
                 color: _selectedIndices.isEmpty ? context.colors.textHint : context.colors.error),
             ),
           ] else ...[
-            GestureDetector(
-              onTap: () => context.go('/transactions'),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: context.colors.surfaceSecondary,
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.receipt_long_outlined, size: 16, color: context.colors.textSecondary),
-                    const SizedBox(width: 4),
-                    Text(l10n.navTransactions, style: AppTextStyles.caption.copyWith(color: context.colors.textSecondary)),
-                  ],
-                ),
-              ),
-            ),
-            const Spacer(),
-            Text(l10n.chatPageTitle, style: AppTextStyles.h3.copyWith(fontSize: 16)),
-            const Spacer(),
-            // 新对话按钮
+            // 新对话按钮（替换原账单入口）
             GestureDetector(
               onTap: _newConversation,
               child: Container(
@@ -903,12 +1150,14 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
                   children: [
                     Icon(Icons.add_circle_outline, size: 16, color: context.colors.textSecondary),
                     const SizedBox(width: 4),
-                    const Text('新对话', style: AppTextStyles.caption),
+                    Text('新对话', style: AppTextStyles.caption.copyWith(color: context.colors.textSecondary)),
                   ],
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            const Spacer(),
+            Text(l10n.chatPageTitle, style: AppTextStyles.h3.copyWith(fontSize: 16)),
+            const Spacer(),
             // 多选按钮
             GestureDetector(
               onTap: () => setState(() {
@@ -973,27 +1222,32 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
     );
   }
 
-  /// 新建对话：保存当前对话到对话管理，然后清空
+  /// 新对话：确认后生成新 conversationId（旧对话自动保留在 DB 中）
   void _newConversation() {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('新对话'),
+        title: Text(l10n.chatDeleteTitle),
         content: const Text('将保存当前对话并创建新对话'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('取消'),
+            child: Text(l10n.commonCancel),
           ),
           TextButton(
-            onPressed: () async {
+            onPressed: () {
               Navigator.of(ctx).pop();
+              _conversationId = 'conv_${DateTime.now().millisecondsSinceEpoch}';
+              ref.read(currentConversationIdProvider.notifier).state = _conversationId;
+              SharedPreferences.getInstance().then((prefs) =>
+                prefs.setString('current_conversation_id', _conversationId),
+              );
               setState(() {
                 _items = [];
                 _hasMore = true;
               });
               _scrollToBottom();
-              AppToast.show(context, '新对话已创建', duration: const Duration(milliseconds: 1200));
             },
             child: const Text('确定', style: TextStyle(color: Colors.blue)),
           ),
@@ -1122,6 +1376,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
                   mediaFilePath: msg.mediaFilePath,
                   userAvatarPath: _userAvatarPath,
                   aiIcon: _aiIcon,
+                  aiAvatarPath: _aiAvatarPath,
                   onLongPress: () => _showMessageActions(item),
                 );
               }
@@ -1134,6 +1389,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
                 mediaFilePath: msg.mediaFilePath,
                 userAvatarPath: _userAvatarPath,
                 aiIcon: _aiIcon,
+                aiAvatarPath: _aiAvatarPath,
                 onLongPress: () => _showMessageActions(item),
               );
             }
@@ -1211,26 +1467,64 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin {
       ),
     );
   }
+}
 
-  Widget _buildTypingIndicator() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      alignment: Alignment.centerLeft,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: context.colors.surface,
-          borderRadius: BorderRadius.circular(16),
+/// 跳动点文字组件（文字上下弹跳）
+class _BouncingDotsText extends StatefulWidget {
+  final String text;
+  const _BouncingDotsText({required this.text});
+
+  @override
+  State<_BouncingDotsText> createState() => _BouncingDotsTextState();
+}
+
+class _BouncingDotsTextState extends State<_BouncingDotsText> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _bounce;
+  int _dotCount = 3;
+  Timer? _dotTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    )..repeat(reverse: true);
+    _bounce = Tween<double>(begin: -3, end: 3).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+
+    _dotTimer = Timer.periodic(const Duration(milliseconds: 500), (_) {
+      if (mounted) setState(() => _dotCount = _dotCount >= 4 ? 3 : _dotCount + 1);
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _dotTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('${widget.text}.', style: AppTextStyles.caption),
+        AnimatedBuilder(
+          animation: _bounce,
+          builder: (_, child) => Transform.translate(
+            offset: Offset(0, _bounce.value),
+            child: child,
+          ),
+          child: Text(
+            '.' * (_dotCount - 1),
+            style: AppTextStyles.caption,
+          ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: context.colors.textTertiary)),
-            const SizedBox(width: 8),
-            Text(AppLocalizations.of(context)!.chatPageAiParsing, style: AppTextStyles.caption),
-          ],
-        ),
-      ),
+      ],
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +10,8 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'config/routes/app_router.dart';
 import 'config/di/providers.dart';
+import 'config/di/ai_providers.dart';
+import 'features/ai/data/repository/memory_repository.dart';
 import 'features/security/presentation/widgets/auth_wrapper.dart';
 import 'features/profile/data/services/backup_service.dart';
 import 'features/ai/data/storage/config_migration.dart';
@@ -70,11 +73,56 @@ final themeProviderOverrideProvider = ChangeNotifierProvider<ThemeProvider>((ref
   throw UnimplementedError('必须在 ProviderScope 中通过 override 提供');
 });
 
-class WoAccountApp extends ConsumerWidget {
+class WoAccountApp extends ConsumerStatefulWidget {
   const WoAccountApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<WoAccountApp> createState() => _WoAccountAppState();
+}
+
+class _WoAccountAppState extends ConsumerState<WoAccountApp> with WidgetsBindingObserver {
+  Timer? _decayTimer;
+  AppLifecycleListener? _lifecycleListener;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    // 内存 decay 定时器：每 24 小时清理一次低分记忆
+    _decayTimer = Timer.periodic(const Duration(hours: 24), (_) async {
+      try {
+        final db = ref.read(appDatabaseProvider);
+        final memoryRepo = MemoryRepository(db);
+        await memoryRepo.decayAndPrune();
+      } catch (_) {}
+    });
+
+    // App 生命周期监听（切后台时触发记忆提取）
+    _lifecycleListener = AppLifecycleListener(
+      onInactive: _onBackgrounded,
+      onPause: _onBackgrounded,
+      onDetach: _onBackgrounded,
+    );
+  }
+
+  void _onBackgrounded() {
+    try {
+      final queue = ref.read(memoryExtractionQueueProvider);
+      queue.onAppBackgrounded();
+    } catch (_) {}
+  }
+
+  @override
+  void dispose() {
+    _decayTimer?.cancel();
+    _lifecycleListener?.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final themeProvider = ref.watch(themeProviderOverrideProvider);
     final localeProvider = ref.watch(localeProviderOverrideProvider);
 

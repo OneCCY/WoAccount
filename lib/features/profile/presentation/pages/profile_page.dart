@@ -492,6 +492,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> with PageRefreshMixin
       context.push('/reports');
     } else if (label == l10n.profileMenuDataBackup) {
       _backupDatabase(l10n);
+    } else if (label == l10n.profileMenuDialogManage) {
+      context.push('/dialogs');
     } else if (label == l10n.profileExportExcel) {
       _exportExcel(l10n);
     } else if (label == l10n.profileImportExcel) {

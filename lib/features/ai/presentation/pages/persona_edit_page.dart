@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -23,14 +25,10 @@ class _PersonaEditPageState extends State<PersonaEditPage> {
   final _formKey = GlobalKey<FormState>();
 
   String _selectedAvatar = '🤖';
+  String? _avatarPath;
   List<DialogueExample> _examples = [];
 
-  // 常用头像选项
-  static const _avatars = [
-    '🤖', '🧚', '🎅', '🧛', '🐱', '🐶', '🦊', '🐰',
-    '🐼', '🦄', '🐧', '🦋', '💃', '🕺', '🎪', '🎭',
-    '🧙', '🧝', '🧞', '🧜', '😎', '🧐', '🤗', '😊',
-  ];
+  final _picker = ImagePicker();
 
   @override
   void initState() {
@@ -39,6 +37,7 @@ class _PersonaEditPageState extends State<PersonaEditPage> {
       final p = widget.existingPersona!;
       _nameController.text = p.name;
       _selectedAvatar = p.avatar;
+      _avatarPath = p.avatarPath;
       _descController.text = p.description;
       _greetingController.text = p.greeting;
       _examples = List.from(p.examples);
@@ -51,6 +50,13 @@ class _PersonaEditPageState extends State<PersonaEditPage> {
     _descController.dispose();
     _greetingController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final picked = await _picker.pickImage(source: ImageSource.gallery, maxWidth: 200, maxHeight: 200);
+    if (picked != null) {
+      setState(() => _avatarPath = picked.path);
+    }
   }
 
   Future<void> _save() async {
@@ -68,6 +74,7 @@ class _PersonaEditPageState extends State<PersonaEditPage> {
     await PersonaStorage.save(persona.copyWith(
       name: _nameController.text.trim(),
       avatar: _selectedAvatar,
+      avatarPath: _avatarPath,
       description: _descController.text.trim(),
       greeting: _greetingController.text.trim(),
       examples: _examples,
@@ -144,36 +151,61 @@ class _PersonaEditPageState extends State<PersonaEditPage> {
                 labelText: l10n.aiPersonaName,
                 hintText: 'e.g. 温柔知心',
                 border: const OutlineInputBorder(),
+                counterText: '',
               ),
-              validator: (v) => (v == null || v.trim().isEmpty) ? l10n.aiPersonaNameRequired : null,
+              maxLength: 5,
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) return l10n.aiPersonaNameRequired;
+                if (v.trim().length > 5) return '角色名称不能超过5个字';
+                return null;
+              },
             ),
             const SizedBox(height: 16),
 
-            // 头像选择
+            // 头像上传
             Text(l10n.aiPersonaAvatar, style: context.textStyles.body),
             const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _avatars.map((a) {
-                final isSelected = a == _selectedAvatar;
-                return GestureDetector(
-                  onTap: () => setState(() => _selectedAvatar = a),
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: isSelected ? context.colors.primary : Colors.grey.shade300,
-                        width: isSelected ? 2 : 1,
+            Row(
+              children: [
+                // 当前头像预览
+                CircleAvatar(
+                  radius: 30,
+                  backgroundColor: context.colors.surfaceSecondary,
+                  backgroundImage: (_avatarPath != null && File(_avatarPath!).existsSync())
+                      ? FileImage(File(_avatarPath!))
+                      : null,
+                  onBackgroundImageError: (_avatarPath != null && File(_avatarPath!).existsSync())
+                      ? (_, _) {}
+                      : null,
+                  child: _avatarPath == null || !File(_avatarPath!).existsSync()
+                      ? Text(_selectedAvatar, style: const TextStyle(fontSize: 28))
+                      : null,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      FilledButton.tonalIcon(
+                        onPressed: _pickImage,
+                        icon: const Icon(Icons.camera_alt, size: 18),
+                        label: const Text('上传头像'),
                       ),
-                      borderRadius: BorderRadius.circular(8),
-                      color: isSelected ? context.colors.primarySurface : null,
-                    ),
-                    child: Center(child: Text(a, style: const TextStyle(fontSize: 20))),
+                      const SizedBox(height: 4),
+                      Text('支持 JPG/PNG，建议方形图片',
+                          style: context.textStyles.caption),
+                    ],
                   ),
-                );
-              }).toList(),
+                ),
+                if (_avatarPath != null) ...[
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: () => setState(() => _avatarPath = null),
+                    icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red),
+                    tooltip: '清除头像',
+                  ),
+                ],
+              ],
             ),
             const SizedBox(height: 16),
 

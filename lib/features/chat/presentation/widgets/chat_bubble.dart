@@ -17,7 +17,10 @@ class ChatBubble extends StatefulWidget {
   final MessageMediaType mediaType;
   final String? mediaFilePath;
   final String? userAvatarPath;
+  final String? userName; // 🆕 用户名称
   final String? aiIcon;
+  final String? aiName; // 🆕 AI 角色名称
+  final String? aiAvatarPath; // 🆕 AI 角色自定义头像
   final VoidCallback? onLongPress;
 
   const ChatBubble({
@@ -28,7 +31,10 @@ class ChatBubble extends StatefulWidget {
     this.mediaType = MessageMediaType.text,
     this.mediaFilePath,
     this.userAvatarPath,
+    this.userName,
     this.aiIcon,
+    this.aiName,
+    this.aiAvatarPath,
     this.onLongPress,
   });
 
@@ -344,42 +350,69 @@ class _ChatBubbleState extends State<ChatBubble> {
 
   Widget _buildAvatar(BuildContext context) {
     final icon = widget.aiIcon ?? '🤖';
-    return Container(
-      width: 32,
-      height: 32,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [context.colors.primary, context.colors.primary.withValues(alpha: 0.7)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    final avatarPath = widget.aiAvatarPath;
+    final hasCustomAvatar = avatarPath != null && File(avatarPath).existsSync();
+    final name = widget.aiName ?? '';
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            gradient: hasCustomAvatar ? null : LinearGradient(
+              colors: [context.colors.primary, context.colors.primary.withValues(alpha: 0.7)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: hasCustomAvatar
+              ? Image.file(File(avatarPath), fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => Center(child: Text(icon, style: const TextStyle(fontSize: 16))))
+              : Center(child: Text(icon, style: const TextStyle(fontSize: 16))),
         ),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Center(
-        child: Text(icon, style: const TextStyle(fontSize: 16)),
-      ),
+        if (name.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(name, style: const TextStyle(fontSize: 10, color: Colors.grey, height: 1)),
+          ),
+      ],
     );
   }
 
   Widget _buildUserAvatar(BuildContext context) {
     final avatarPath = widget.userAvatarPath;
     final hasAvatar = avatarPath != null && File(avatarPath).existsSync();
+    final name = widget.userName ?? '';
 
-    return Container(
-      width: 32,
-      height: 32,
-      decoration: BoxDecoration(
-        color: context.colors.primarySurface,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: hasAvatar
-          ? Image.file(
-              File(avatarPath),
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => Icon(Icons.person, size: 18, color: context.colors.primary),
-            )
-          : Icon(Icons.person, size: 18, color: context.colors.primary),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: context.colors.primarySurface,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: hasAvatar
+              ? Image.file(
+                  File(avatarPath),
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => Icon(Icons.person, size: 18, color: context.colors.primary),
+                )
+              : Icon(Icons.person, size: 18, color: context.colors.primary),
+        ),
+        if (name.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(name, style: const TextStyle(fontSize: 10, color: Colors.grey, height: 1)),
+          ),
+      ],
     );
   }
 }

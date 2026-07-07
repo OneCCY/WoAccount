@@ -67,6 +67,24 @@ class MemoryRepository {
         ));
     } else {
       // 新增
+      // 上限兜底：单角色语义记忆硬限 100 条，超出淘汰最低 score
+      final count = await (_db.select(_db.personaMemories)
+        ..where((t) => t.personaId.equals(memory.personaId)))
+        .get()
+        .then((r) => r.length);
+      if (count >= 100) {
+        // 找到最低 score 的记忆删除
+        final lowest = await (_db.select(_db.personaMemories)
+          ..where((t) => t.personaId.equals(memory.personaId))
+          ..orderBy([(t) => OrderingTerm.asc(t.score)])
+          ..limit(1))
+          .get()
+          .then((r) => r.isNotEmpty ? r.first.id : null);
+        if (lowest != null) {
+          await (_db.delete(_db.personaMemories)
+            ..where((t) => t.id.equals(lowest))).go();
+        }
+      }
       final companion = memory.toCompanion(true);
       await _db.into(_db.personaMemories).insert(companion);
     }

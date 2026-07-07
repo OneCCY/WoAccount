@@ -8,6 +8,7 @@ import '../../data/storage/agent_config_storage.dart';
 import '../../data/storage/provider_storage.dart';
 import '../../domain/agent_registry.dart';
 import 'agent_edit_page.dart';
+import 'persona_model_config_page.dart';
 
 /// 功能配置列表页
 class AgentListPage extends StatefulWidget {
@@ -48,10 +49,13 @@ class _AgentListPageState extends State<AgentListPage> {
       appBar: AppBar(title: Text(l10n.aiSettingsAgents)),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
+          : ListView(
               padding: const EdgeInsets.all(16),
-              itemCount: AgentRegistry.all.length,
-              itemBuilder: (ctx, i) => _buildAgentCard(AgentRegistry.all[i], l10n),
+              children: [
+                ...AgentRegistry.all.map((a) => _buildAgentCard(a, l10n)),
+                const SizedBox(height: 8),
+                _buildPersonaModelCard(),
+              ],
             ),
     );
   }
@@ -80,6 +84,36 @@ class _AgentListPageState extends State<AgentListPage> {
         onTap: () async {
           final result = await Navigator.push(context,
             MaterialPageRoute(builder: (_) => AgentEditPage(agentId: agent.id)),
+          );
+          if (result == true) _load();
+        },
+      ),
+    );
+  }
+
+  /// AI 角色模型配置卡片（统一供应商）
+  Widget _buildPersonaModelCard() {
+    final config = _agentConfigs['persona_chat'];
+    final isConfigured = config != null &&
+        config.providerId.isNotEmpty &&
+        config.modelName.isNotEmpty;
+    final providerName = isConfigured && config != null
+        ? _providers.where((p) => p.id == config.providerId).firstOrNull?.name ?? config.providerId
+        : null;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        leading: const Text('🤖', style: TextStyle(fontSize: 28)),
+        title: const Text('AI 角色模型配置'),
+        subtitle: isConfigured && providerName != null
+            ? Text('$providerName / ${config!.modelName}')
+            : Text('未配置模型供应商',
+                style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () async {
+          final result = await Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const PersonaModelConfigPage()),
           );
           if (result == true) _load();
         },

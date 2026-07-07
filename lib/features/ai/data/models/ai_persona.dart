@@ -4,7 +4,8 @@ import 'package:uuid/uuid.dart';
 class AiPersona {
   final String id;
   final String name;
-  final String avatar;
+  final String avatar; // emoji 头像
+  final String? avatarPath; // 🆕 自定义头像文件路径
   final String description;
   final List<DialogueExample> examples;
   final String greeting;
@@ -15,6 +16,7 @@ class AiPersona {
     required this.id,
     required this.name,
     this.avatar = '🤖',
+    this.avatarPath,
     this.description = '',
     this.examples = const [],
     this.greeting = '',
@@ -26,6 +28,7 @@ class AiPersona {
     String? id,
     String? name,
     String? avatar,
+    String? avatarPath,
     String? description,
     List<DialogueExample>? examples,
     String? greeting,
@@ -36,6 +39,7 @@ class AiPersona {
       id: id ?? this.id,
       name: name ?? this.name,
       avatar: avatar ?? this.avatar,
+      avatarPath: avatarPath ?? this.avatarPath,
       description: description ?? this.description,
       examples: examples ?? this.examples,
       greeting: greeting ?? this.greeting,
@@ -47,6 +51,7 @@ class AiPersona {
   static AiPersona generate({
     required String name,
     String avatar = '🤖',
+    String? avatarPath,
     String description = '',
     List<DialogueExample> examples = const [],
     String greeting = '',
@@ -57,6 +62,7 @@ class AiPersona {
       id: const Uuid().v4(),
       name: name,
       avatar: avatar,
+      avatarPath: avatarPath,
       description: description,
       examples: examples,
       greeting: greeting,
@@ -71,6 +77,7 @@ class AiPersona {
     'id': id,
     'name': name,
     'avatar': avatar,
+    if (avatarPath != null) 'avatarPath': avatarPath,
     'description': description,
     'examples': examples.map((e) => e.toJson()).toList(),
     'greeting': greeting,
@@ -82,6 +89,7 @@ class AiPersona {
     id: json['id'] as String,
     name: json['name'] as String,
     avatar: json['avatar'] as String? ?? '🤖',
+    avatarPath: json['avatarPath'] as String?,
     description: json['description'] as String? ?? '',
     examples: (json['examples'] as List<dynamic>?)
         ?.map((e) => DialogueExample.fromJson(e as Map<String, dynamic>))

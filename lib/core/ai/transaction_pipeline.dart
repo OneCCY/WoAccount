@@ -58,12 +58,16 @@ class PipelineResult {
   /// 当此字段非空时，transactions 为空，UI 应显示此文本作为 AI 回复
   final String? nonTransactionResponse;
 
+  /// 是否为流式回复（角色对话场景下为 true，UI 应使用流式渲染）
+  final bool isStreamed;
+
   const PipelineResult({
     required this.normalizedText,
     required this.transactions,
     required this.source,
     this.mediaFilePath,
     this.nonTransactionResponse,
+    this.isStreamed = false,
   });
 }
 
@@ -111,12 +115,153 @@ class TransactionPipeline {
         _memoryRepo = memoryRepo,
         _extractionQueue = extractionQueue;
 
-  /// 处理文本输入
+  /// 流式事件：角色对话的文本片段
+  /// UI 接收到 [PipelineStreamEvent.delta] 后追加显示，[PipelineStreamEvent.done] 时持久化
+  Stream<PipelineStreamEvent> processTextStream(
+    String text, {
+    String? categoryTaxonomy,
+    String locale = 'zh',
+    int? bookId,
+    String? conversationId,
+  }) async* {
+    // 先用 AgentRunner 解析是否为记账
+    String? nonTxResponse;
+    List<TransactionParseResult> parsed = [];
+    try {
+      if (_agentRunner != null) {
+        final result = await _agentRunner.run(
+          'transaction_parser',
+          text,
+          extraParams: {
+            if (categoryTaxonomy != null) 'categoryTaxonomy': categoryTaxonomy,
+            'locale': locale,
+            if (bookId != null) 'bookId': bookId,
+          },
+        );
+        parsed = _parseAgentResult(result.content);
+        nonTxResponse = _pendingNonTransactionResponse;
+        _pendingNonTransactionResponse = null;
+      }
+    } catch (e) {
+      if (e is LlmException && e.errorCode == 'llmErrorNonTransaction') {
+        nonTxResponse = e.data as String? ?? e.message;
+      } else if (e is LlmException && e.errorCode == 'agentNotConfigured') {
+        // 回退到旧路径
+      } else {
+        rethrow;
+      }
+    }
+
+    // 记账输入：直接返回结果（非流式，UI 显示确认卡片）
+    if (parsed.isNotEmpty) {
+      yield PipelineStreamEvent.done(PipelineResult(
+        normalizedText: text,
+        transactions: parsed,
+        source: InputSource.text,
+      ));
+      return;
+    }
+
+    // 非记账输入：先检查角色
+    if (_chatHistoryRepo == null || _memoryRepo == null) {
+      yield PipelineStreamEvent.done(PipelineResult(
+        normalizedText: text,
+        transactions: const [],
+        source: InputSource.text,
+        nonTransactionResponse: nonTxResponse,
+      ));
+      return;
+    }
+
+    final activePersona = await PersonaStorage.getActive();
+    if (activePersona == null) {
+      yield PipelineStreamEvent.done(PipelineResult(
+        normalizedText: text,
+        transactions: const [],
+        source: InputSource.text,
+        nonTransactionResponse: nonTxResponse,
+      ));
+      return;
+    }
+
+    // 有角色：流式调用 LLM
+    try {
+      final provider = await _resolvePersonaProvider();
+      final historyEntities = await _chatHistoryRepo.getRecentMessages(
+        personaId: activePersona.id,
+        conversationId: conversationId,
+        limit: 6,
+      );
+      final historyMessages = historyEntities.map((e) =>
+        ChatMessage(role: e.role, content: e.content),
+      ).toList();
+      final enhancedPrompt = await _buildEnhancedPersonaPrompt(
+        activePersona, historyMessages, text,
+      );
+
+      final fullBuffer = StringBuffer();
+      await for (final chunk in _llmRepo.chatStream(
+        LlmRequest(messages: [
+          ChatMessage(role: 'system', content: enhancedPrompt),
+          ...historyMessages,
+          ChatMessage(role: 'user', content: text),
+        ]),
+        provider: provider,
+      )) {
+        fullBuffer.write(chunk);
+        yield PipelineStreamEvent.delta(chunk);
+      }
+
+      final fullContent = fullBuffer.toString();
+
+      // 持久化消息（带 conversationId 隔离）
+      await _chatHistoryRepo.addMessages([
+        ChatMessagesCompanion.insert(
+          personaId: Value(activePersona.id),
+          conversationId: Value(conversationId),
+          role: 'user',
+          content: text,
+        ),
+        ChatMessagesCompanion.insert(
+          personaId: Value(activePersona.id),
+          conversationId: Value(conversationId),
+          role: 'assistant',
+          content: fullContent,
+        ),
+      ]);
+
+      // 异步入队记忆提取
+      _extractionQueue?.enqueue(
+        activePersona.id,
+        text,
+        fullContent,
+      );
+
+      yield PipelineStreamEvent.done(PipelineResult(
+        normalizedText: text,
+        transactions: const [],
+        source: InputSource.text,
+        nonTransactionResponse: fullContent,
+        isStreamed: true,
+      ));
+    } catch (e) {
+      // 流式失败，回退到原始响应
+      yield PipelineStreamEvent.done(PipelineResult(
+        normalizedText: text,
+        transactions: const [],
+        source: InputSource.text,
+        nonTransactionResponse: nonTxResponse,
+      ));
+    }
+  }
+
+  /// 处理文本输入（非流式，兼容旧调用方）
   Future<PipelineResult> processText(
     String text, {
     String? categoryTaxonomy,
     String locale = 'zh',
     int? bookId,
+    String? conversationId,
   }) async {
     // 优先使用 AgentRunner（v2.0）
     if (_agentRunner != null) {
@@ -131,9 +276,22 @@ class TransactionPipeline {
             if (bookId != null) 'bookId': bookId,
           },
         );
-        final parsed = _parseAgentResult(result.content);
-        final nonTxResponse = _pendingNonTransactionResponse;
+        var parsed = _parseAgentResult(result.content);
+        var nonTxResponse = _pendingNonTransactionResponse;
         _pendingNonTransactionResponse = null;
+
+        // [v1.2] 非记账 → 检查角色
+        if (parsed.isEmpty) {
+          final personaResult = await _handlePersonaResponse(text, nonTxResponse ?? '', conversationId: conversationId);
+          if (personaResult != null) {
+            parsed = personaResult.transactions;
+            nonTxResponse = personaResult.nonTransactionResponse;
+          } else if (nonTxResponse == null) {
+            // 角色调用失败且无原始响应时，返回友好提示
+            nonTxResponse = '嗯？有什么需要帮忙的吗？';
+          }
+        }
+
         return PipelineResult(
           normalizedText: text,
           transactions: parsed,
@@ -221,70 +379,11 @@ class TransactionPipeline {
       );
     } on LlmException catch (e) {
       if (e.errorCode == 'llmErrorNonTransaction') {
-        // [v1.2] 角色记忆：检查是否有激活的角色
-        if (_chatHistoryRepo != null && _memoryRepo != null) {
-          final activePersona = await PersonaStorage.getActive();
-          if (activePersona != null) {
-            try {
-              // 1. 加载持久化历史
-              final historyEntities = await _chatHistoryRepo.getRecentMessages(
-                personaId: activePersona.id,
-                limit: 6,
-              );
-              final historyMessages = historyEntities.map((e) =>
-                ChatMessage(role: e.role, content: e.content),
-              ).toList();
+        // [v1.2] 角色记忆：检查有角色时用角色回复覆盖原始响应
+        final personaResult = await _handlePersonaResponse(text, e.data as String? ?? e.message, conversationId: conversationId);
+        if (personaResult != null) return personaResult;
 
-              // 2. 构建增强 System Prompt（含语义记忆 + 历史）
-              final enhancedPrompt = await _buildEnhancedPersonaPrompt(
-                activePersona,
-                historyMessages,
-                text,
-              );
-
-              // 3. 调用 LLM
-              final response = await _llmRepo.chat(
-                LlmRequest(messages: [
-                  ChatMessage(role: 'system', content: enhancedPrompt),
-                  ...historyMessages,
-                  ChatMessage(role: 'user', content: text),
-                ]),
-                provider: provider,
-              );
-
-              // 4. 持久化消息
-              await _chatHistoryRepo.addMessages([
-                ChatMessagesCompanion.insert(
-                  personaId: Value(activePersona.id),
-                  role: 'user',
-                  content: text,
-                ),
-                ChatMessagesCompanion.insert(
-                  personaId: Value(activePersona.id),
-                  role: 'assistant',
-                  content: response.content,
-                ),
-              ]);
-
-              // 5. 异步入队记忆提取（enqueue 本身是同步的，后台触发）
-              _extractionQueue?.enqueue(
-                activePersona.id,
-                text,
-                response.content,
-              );
-
-              return PipelineResult(
-                normalizedText: text,
-                transactions: const [],
-                source: InputSource.text,
-                nonTransactionResponse: response.content,
-              );
-            } catch (_) {
-              // 角色调用失败，静默回退
-            }
-          }
-        }
-        // 无角色或角色调用失败，返回原始响应
+        // 无角色或失败，返回原始响应
         return PipelineResult(
           normalizedText: text,
           transactions: const [],
@@ -686,6 +785,12 @@ class TransactionPipeline {
         return [];
       }
 
+      // 空交易列表 → 非记账输入，标记为 nonTransactionResponse
+      if (txList.isEmpty) {
+        _pendingNonTransactionResponse = content;
+        return [];
+      }
+
       return txList.map((tx) {
         final m = tx as Map<String, dynamic>;
         return TransactionParseResult(
@@ -750,6 +855,15 @@ class TransactionPipeline {
       }
     }
 
+    // 📋 本轮对话历史（直接注入，确保 LLM 不会忽略）
+    if (historyMessages.isNotEmpty) {
+      buffer.writeln('\n## 本轮对话历史（请仔细阅读并记住用户说过的信息）');
+      for (final msg in historyMessages) {
+        final prefix = msg.role == 'user' ? '用户' : '你';
+        buffer.writeln('$prefix: ${msg.content}');
+      }
+    }
+
     return buffer.toString();
   }
 
@@ -758,6 +872,133 @@ class TransactionPipeline {
     if (input.length < 5) return false;
     const triggers = ['之前', '上次', '那个', '还记得', '以前', '昨天', '上周', 'last', 'before', 'again'];
     return triggers.any((t) => input.toLowerCase().contains(t));
+  }
+
+  /// [v1.2] 处理角色响应：用角色 prompt 重新调用 LLM，返回 PipelineResult 或 null
+  Future<PipelineResult?> _handlePersonaResponse(
+    String userInput,
+    String fallbackResponse, {
+    String? conversationId,
+  }) async {
+    if (_chatHistoryRepo == null || _memoryRepo == null) return null;
+
+    final activePersona = await PersonaStorage.getActive();
+    if (activePersona == null) return null;
+
+    try {
+      // 0. 解析角色专用 provider（来自 persona_chat 配置）
+      final provider = await _resolvePersonaProvider();
+
+      // 1. 加载持久化历史（按 persona + 会话隔离）
+      final historyEntities = await _chatHistoryRepo.getRecentMessages(
+        personaId: activePersona.id,
+        conversationId: conversationId,
+        limit: 6,
+      );
+      final historyMessages = historyEntities.map((e) =>
+        ChatMessage(role: e.role, content: e.content),
+      ).toList();
+
+      // 2. 构建增强 System Prompt（含语义记忆 + 历史）
+      final enhancedPrompt = await _buildEnhancedPersonaPrompt(
+        activePersona,
+        historyMessages,
+        userInput,
+      );
+
+      // 3. 调用 LLM
+      final response = await _llmRepo.chat(
+        LlmRequest(messages: [
+          ChatMessage(role: 'system', content: enhancedPrompt),
+          ...historyMessages,
+          ChatMessage(role: 'user', content: userInput),
+        ]),
+        provider: provider,
+      );
+
+      // 4. 持久化消息（带 conversationId 隔离）
+      await _chatHistoryRepo.addMessages([
+        ChatMessagesCompanion.insert(
+          personaId: Value(activePersona.id),
+          conversationId: Value(conversationId),
+          role: 'user',
+          content: userInput,
+        ),
+        ChatMessagesCompanion.insert(
+          personaId: Value(activePersona.id),
+          conversationId: Value(conversationId),
+          role: 'assistant',
+          content: response.content,
+        ),
+      ]);
+
+      // 5. 异步入队记忆提取
+      _extractionQueue?.enqueue(
+        activePersona.id,
+        userInput,
+        response.content,
+      );
+
+      return PipelineResult(
+        normalizedText: userInput,
+        transactions: const [],
+        source: InputSource.text,
+        nonTransactionResponse: response.content,
+      );
+    } catch (e) {
+      // 角色调用失败，静默回退
+      return null;
+    }
+  }
+
+  /// 解析角色对话专用的 LLM provider
+  /// 优先级：persona_chat AgentConfig → 任意可用 v2 provider
+  Future<LlmProvider?> _resolvePersonaProvider() async {
+    // 1. 角色专用配置
+    final personaConfig = await AgentConfigStorage.load('persona_chat');
+    if (personaConfig != null &&
+        personaConfig.providerId.isNotEmpty &&
+        personaConfig.modelName.isNotEmpty) {
+      final aiProvider = await ProviderStorage.getById(personaConfig.providerId);
+      if (aiProvider != null && aiProvider.isReady) {
+        return LlmProvider(
+          id: aiProvider.id,
+          name: aiProvider.name,
+          apiKey: aiProvider.apiKey,
+          baseUrl: aiProvider.baseUrl,
+          temperature: aiProvider.temperature,
+          maxTokens: aiProvider.maxTokens,
+          timeoutSeconds: aiProvider.timeoutSeconds,
+          providerKey: aiProvider.providerKey ?? 'custom',
+          models: {'text': ModelConfig(modelName: personaConfig.modelName)},
+        );
+      }
+    }
+
+    // 2. 回退：任意可用 v2 provider（模型从 transaction_parser 配置获取）
+    final v2Providers = await ProviderStorage.loadAll();
+    final ready = v2Providers.where((p) => p.isReady).toList();
+    if (ready.isNotEmpty) {
+      final p = ready.first;
+      String? textModel;
+      final tpConfig = await AgentConfigStorage.load('transaction_parser');
+      if (tpConfig != null && tpConfig.modelName.isNotEmpty) {
+        textModel = tpConfig.modelName;
+      }
+      if (textModel == null || textModel.isEmpty) return null;
+      return LlmProvider(
+        id: p.id,
+        name: p.name,
+        apiKey: p.apiKey,
+        baseUrl: p.baseUrl,
+        temperature: p.temperature,
+        maxTokens: p.maxTokens,
+        timeoutSeconds: p.timeoutSeconds,
+        providerKey: p.providerKey ?? 'custom',
+        models: {'text': ModelConfig(modelName: textModel)},
+      );
+    }
+    return null;
   }
 }
 
@@ -772,6 +1013,27 @@ class _ReferencePattern {
   final String keyword;
   final _ReferenceType type;
   const _ReferencePattern(this.keyword, this.type);
+}
+
+/// 流式事件
+sealed class PipelineStreamEvent {
+  const PipelineStreamEvent();
+
+  /// 文本增量
+  const factory PipelineStreamEvent.delta(String text) = PipelineStreamDeltaEvent;
+
+  /// 流结束，携带最终结果
+  const factory PipelineStreamEvent.done(PipelineResult result) = PipelineStreamDoneEvent;
+}
+
+class PipelineStreamDeltaEvent extends PipelineStreamEvent {
+  final String text;
+  const PipelineStreamDeltaEvent(this.text);
+}
+
+class PipelineStreamDoneEvent extends PipelineStreamEvent {
+  final PipelineResult result;
+  const PipelineStreamDoneEvent(this.result);
 }
 
 /// 增强上下文

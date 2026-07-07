@@ -8,14 +8,21 @@ class ChatHistoryRepository {
 
   ChatHistoryRepository(this._db);
 
-  /// 获取某角色的最近 N 条消息（按时间正序）
+  /// 获取某角色、某会话的最近 N 条消息（按时间正序）
   Future<List<RoleChatMessage>> getRecentMessages({
     required String? personaId,
+    String? conversationId,
     int limit = 20,
   }) async {
     if (personaId == null) return [];
     return (_db.select(_db.chatMessages)
-      ..where((t) => t.personaId.equals(personaId))
+      ..where((t) {
+        var condition = t.personaId.equals(personaId);
+        if (conversationId != null) {
+          condition &= t.conversationId.equals(conversationId);
+        }
+        return condition;
+      })
       ..orderBy([(t) => OrderingTerm.asc(t.createdAt)])
       ..limit(limit))
       .get();
@@ -30,7 +37,7 @@ class ChatHistoryRepository {
     });
   }
 
-  /// 按关键词模糊搜索（LIKE，后续可升级为 FTS）
+  /// 按关键词模糊搜索（跨会话共享）
   Future<List<RoleChatMessage>> searchByKeywords({
     required String? personaId,
     required String query,
@@ -53,11 +60,15 @@ class ChatHistoryRepository {
     );
   }
 
-  /// 清理策略：保留最近 keepCount 条，删除更早的
-  Future<void> trimHistory(String? personaId, {int keepCount = 50}) async {
+  /// 清理策略：保留某会话最近 keepCount 条
+  Future<void> trimHistory(String? personaId, {String? conversationId, int keepCount = 50}) async {
     if (personaId == null) return;
     final rows = await (_db.select(_db.chatMessages)
-      ..where((t) => t.personaId.equals(personaId)))
+      ..where((t) {
+        var condition = t.personaId.equals(personaId);
+        if (conversationId != null) condition &= t.conversationId.equals(conversationId);
+        return condition;
+      }))
       .get();
     if (rows.length <= keepCount) return;
 
