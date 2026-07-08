@@ -9,6 +9,7 @@ import '../../features/ai/data/storage/provider_storage.dart';
 import '../../features/ai/data/repository/chat_history_repository.dart';
 import '../../features/ai/data/repository/memory_repository.dart';
 import '../../features/ai/data/repository/memory_extraction_queue.dart';
+import '../../features/ai/data/config/persona_config_loader.dart';
 import '../../features/ai/data/models/ai_persona.dart';
 import '../../features/ai/domain/agent_runner.dart';
 import '../../features/vision_ai/data/services/image_recognition_service.dart';
@@ -85,6 +86,7 @@ class PipelineResult {
 /// - Episodic Memory：注入用户修正过的分类记录
 /// - Tool Use：检测引用型输入（"跟上次一样"）并预取历史数据
 class TransactionPipeline {
+  static List<String>? _cachedTriggers;
   final LlmRepository _llmRepo;
   final ImageRecognitionService _imageService;
   final MediaStorageService _mediaStorage;
@@ -124,6 +126,10 @@ class TransactionPipeline {
     int? bookId,
     String? conversationId,
   }) async* {
+    // 加载配置文件中的 token 预算
+    final maxTokens = await PersonaConfigLoader.loadConversationMaxTokens();
+    final maxCount = await PersonaConfigLoader.loadConversationMaxCount();
+
     // 先用 AgentRunner 解析是否为记账
     String? nonTxResponse;
     List<TransactionParseResult> parsed = [];
@@ -187,10 +193,11 @@ class TransactionPipeline {
     // 有角色：流式调用 LLM
     try {
       final provider = await _resolvePersonaProvider();
-      final historyEntities = await _chatHistoryRepo.getRecentMessages(
+      final historyEntities = await _chatHistoryRepo.getRecentMessagesByTokenBudget(
         personaId: activePersona.id,
         conversationId: conversationId,
-        limit: 6,
+        maxTokens: 100000,
+        maxCount: 500,
       );
       final historyMessages = historyEntities.map((e) =>
         ChatMessage(role: e.role, content: e.content),
@@ -214,13 +221,15 @@ class TransactionPipeline {
 
       final fullContent = fullBuffer.toString();
 
-      // 持久化消息（带 conversationId 隔离）
+      // 持久化消息（带 conversationId 隔离 + 自动关键词）
+      final autoKeywords = _extractSimpleKeywords(text);
       await _chatHistoryRepo.addMessages([
         ChatMessagesCompanion.insert(
           personaId: Value(activePersona.id),
           conversationId: Value(conversationId),
           role: 'user',
           content: text,
+          searchKeywords: Value(autoKeywords),
         ),
         ChatMessagesCompanion.insert(
           personaId: Value(activePersona.id),
@@ -831,6 +840,7 @@ class TransactionPipeline {
     );
     if (memories.isNotEmpty) {
       buffer.writeln('\n## 你对用户的长期了解');
+      buffer.writeln('（以下信息已由用户确认，如与对话历史冲突请以本条为准）');
       for (final m in memories) {
         buffer.writeln('- [${m.type}] ${m.content}');
       }
@@ -869,9 +879,49 @@ class TransactionPipeline {
 
   /// 轻量判断是否需要触发情景记忆检索
   bool _needsContextRecall(String input) {
-    if (input.length < 5) return false;
-    const triggers = ['之前', '上次', '那个', '还记得', '以前', '昨天', '上周', 'last', 'before', 'again'];
-    return triggers.any((t) => input.toLowerCase().contains(t));
+    if (input.length < 3) return false;
+    // 从配置文件加载触发词（首次加载后缓存）
+    if (_cachedTriggers == null) {
+      PersonaConfigLoader.loadRecallTriggers().then((v) => _cachedTriggers = v);
+      return false; // 首次调用时来不及加载，后续调用生效
+    }
+    if (_cachedTriggers!.any((t) => input.toLowerCase().contains(t))) return true;
+    // 问句自动触发
+    if (input.startsWith('我') && (input.contains('什么') || input.contains('吗') || input.contains('是'))) {
+      return true;
+    }
+    return false;
+  }
+
+  /// 从文本中快速提取关键词（无需 LLM，用于即时 FTS 回填）
+  String _extractSimpleKeywords(String input) {
+    final buffer = StringBuffer();
+    // 提取引号内内容
+    final quotes = RegExp(r'[""](.+?)[""]').allMatches(input);
+    for (final m in quotes) {
+      buffer.write('${m.group(1)} ');
+    }
+    // 提取数字+单位模式（年龄、金额等）
+    final numbers = RegExp(r'(\d+)\s*([岁年元个块次])').allMatches(input);
+    for (final m in numbers) {
+      buffer.write('${m.group(1)}${m.group(2)} ');
+    }
+    // 提取"我XXX"的动宾短语
+    final actions = RegExp(r'(?:我|是|喜欢|不爱|在|去|吃|买|叫)\s*(\S{2,8})').allMatches(input);
+    for (final m in actions) {
+      buffer.write('${m.group(0)} ');
+    }
+    // 提取所有中文词（2-6字）
+    final words = RegExp(r'[一-鿿]{2,6}').allMatches(input);
+    final seen = <String>{};
+    for (final m in words) {
+      final w = m.group(0)!;
+      if (w.length >= 2 && !seen.contains(w)) {
+        seen.add(w);
+        buffer.write('$w ');
+      }
+    }
+    return buffer.toString().trim();
   }
 
   /// [v1.2] 处理角色响应：用角色 prompt 重新调用 LLM，返回 PipelineResult 或 null
@@ -889,11 +939,12 @@ class TransactionPipeline {
       // 0. 解析角色专用 provider（来自 persona_chat 配置）
       final provider = await _resolvePersonaProvider();
 
-      // 1. 加载持久化历史（按 persona + 会话隔离）
-      final historyEntities = await _chatHistoryRepo.getRecentMessages(
+      // 1. 加载持久化历史（按 token 预算加载，最多 20 条 1200 token）
+      final historyEntities = await _chatHistoryRepo.getRecentMessagesByTokenBudget(
         personaId: activePersona.id,
         conversationId: conversationId,
-        limit: 6,
+        maxTokens: 100000,
+        maxCount: 500,
       );
       final historyMessages = historyEntities.map((e) =>
         ChatMessage(role: e.role, content: e.content),
@@ -916,19 +967,23 @@ class TransactionPipeline {
         provider: provider,
       );
 
-      // 4. 持久化消息（带 conversationId 隔离）
+      // 4. 持久化消息（带 conversationId 隔离 + 自动关键词）
+      final userKeywords = _extractSimpleKeywords(userInput);
+      final asstKeywords = _extractSimpleKeywords(response.content);
       await _chatHistoryRepo.addMessages([
         ChatMessagesCompanion.insert(
           personaId: Value(activePersona.id),
           conversationId: Value(conversationId),
           role: 'user',
           content: userInput,
+          searchKeywords: Value(userKeywords),
         ),
         ChatMessagesCompanion.insert(
           personaId: Value(activePersona.id),
           conversationId: Value(conversationId),
           role: 'assistant',
           content: response.content,
+          searchKeywords: Value(asstKeywords),
         ),
       ]);
 

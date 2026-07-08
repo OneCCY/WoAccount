@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "_说明": "语义记忆提取 Prompt。当 LLM 批量提取对话中的记忆时使用此模板。{dialogues} 会被替换为实际对话内容。",
+  "system_prompt": "你是一个对话分析助手。从以下对话中提取用户的个人信息和偏好。",
+  "user_prompt": "分析以下对话，提取用户的偏好、事实和每条消息的关键词。\n\n## 对话内容\n{dialogues}\n\n## 记忆提取规则\n- 只提取明确表达或可高度确信的信息\n- \"今天吃饭花了30\" 不是记忆，不提取\n- \"我不吃辣\" → {\"type\": \"preference\", \"content\": \"不吃辣\"}\n- \"我在字节上班\" → {\"type\": \"fact\", \"content\": \"在字节跳动工作\"}\n- \"我女朋友叫小红\" → {\"type\": \"relationship\", \"content\": \"女朋友叫小红\"}\n- \"以后叫我CC就好\" → {\"type\": \"instruction\", \"content\": \"称呼用户为CC\"}\n\n## 输出格式\n{\n  \"memories\": [\n    {\"type\": \"preference\", \"content\": \"精炼的一句话描述\"}\n  ],\n  \"keywords\": [\n    {\"index\": 0, \"keywords\": \"关键词1 关键词2\"}\n  ]\n}",
+  "max_tokens_per_response": 500,
+  "temperature": 0.1
+}
