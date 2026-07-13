@@ -1238,22 +1238,58 @@ class _AiChatPageState extends ConsumerState<AiChatPage> with PageRefreshMixin, 
           TextButton(
             onPressed: () {
               Navigator.of(ctx).pop();
-              _conversationId = 'conv_${DateTime.now().millisecondsSinceEpoch}';
-              ref.read(currentConversationIdProvider.notifier).state = _conversationId;
-              SharedPreferences.getInstance().then((prefs) =>
-                prefs.setString('current_conversation_id', _conversationId),
-              );
-              setState(() {
-                _items = [];
-                _hasMore = true;
-              });
-              _scrollToBottom();
+              // 用 LLM 为当前对话生成标题
+              _generateTitleAndNewConversation();
             },
             child: const Text('确定', style: TextStyle(color: Colors.blue)),
           ),
         ],
       ),
     );
+  }
+
+  /// 使用 LLM 为当前对话生成标题，然后创建新会话
+  Future<void> _generateTitleAndNewConversation() async {
+    // 获取前几条用户消息作为标题素材
+    final recentItems = _items.where((i) => i.message != null && i.message!.role == 'user').take(3).toList();
+    String title;
+    if (recentItems.length >= 2) {
+      // 用 LLM 生成标题
+      try {
+        final llmRepo = ref.read(llmRepositoryProvider);
+        final messages = recentItems.map((i) => ChatMessage(role: 'user', content: i.message!.content)).toList();
+        final dialogText = messages.map((m) => m.content).join('\n');
+        final response = await llmRepo.chat(
+          LlmRequest(messages: [
+            ChatMessage(role: 'user', content: '用5-8个字概括以下对话的主题，只输出标题，不要多余内容：\n\n$dialogText'),
+          ]),
+        );
+        title = response.content.trim();
+        if (title.length > 40) title = '${title.substring(0, 40)}...';
+      } catch (_) {
+        title = recentItems.first.message!.content;
+        if (title.length > 40) title = '${title.substring(0, 40)}...';
+      }
+    } else {
+      title = recentItems.isNotEmpty ? recentItems.first.message!.content : '新对话';
+      if (title.length > 40) title = '${title.substring(0, 40)}...';
+    }
+    // 保存标题到 SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    final titles = prefs.getString('conversation_titles') ?? '{}';
+    final map = Map<String, dynamic>.from(jsonDecode(titles));
+    map[_conversationId] = title;
+    await prefs.setString('conversation_titles', jsonEncode(map));
+
+    // 创建新会话
+    _conversationId = 'conv_${DateTime.now().millisecondsSinceEpoch}';
+    ref.read(currentConversationIdProvider.notifier).state = _conversationId;
+    await prefs.setString('current_conversation_id', _conversationId);
+    setState(() {
+      _items = [];
+      _hasMore = true;
+    });
+    _scrollToBottom();
   }
 
   /// 删除多选的消息

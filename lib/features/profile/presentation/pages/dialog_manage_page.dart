@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:drift/drift.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../config/di/ai_providers.dart';
 import '../../../chat/domain/repositories/chat_repository.dart';
@@ -127,6 +129,11 @@ class _DialogManagePageState extends ConsumerState<DialogManagePage> {
     final db = ref.read(appDatabaseProvider);
     final results = <Map<String, dynamic>>[];
 
+    // 从 SharedPreferences 加载标题
+    final prefs = await SharedPreferences.getInstance();
+    final titlesStr = prefs.getString('conversation_titles') ?? '{}';
+    final titles = Map<String, dynamic>.from(jsonDecode(titlesStr));
+
     for (final id in ids) {
       final msgs = await chatRepo.getMessages(
         bookId: bookId,
@@ -135,12 +142,15 @@ class _DialogManagePageState extends ConsumerState<DialogManagePage> {
       );
       if (msgs.isEmpty) continue;
 
-      // 第一条用户消息作为标题
+      // 优先使用 LLM 生成的标题，其次使用第一条用户消息
       final firstUserMsg = msgs.where((m) => m.role == 'user').firstOrNull;
       final lastMsg = msgs.last;
-      var title = firstUserMsg?.content ?? lastMsg.content;
-      title = title.replaceAll(RegExp(r'[\n\r]+'), ' ');
-      if (title.length > 50) title = '${title.substring(0, 50)}...';
+      var title = titles[id] as String?;
+      if (title == null || title.isEmpty) {
+        title = firstUserMsg?.content ?? lastMsg.content;
+        title = title.replaceAll(RegExp(r'[\n\r]+'), ' ');
+        if (title.length > 50) title = '${title.substring(0, 50)}...';
+      }
 
       // 检查是否是角色对话
       String? personaId;

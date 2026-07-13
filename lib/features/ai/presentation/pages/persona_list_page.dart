@@ -1,10 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../config/di/ai_providers.dart';
 import '../../data/storage/persona_storage.dart';
 import '../../data/models/ai_persona.dart';
 
@@ -42,6 +44,8 @@ class _PersonaListPageState extends State<PersonaListPage> {
   Future<void> _activate(String id) async {
     // 首次激活时显示隐私提示
     final prefs = await SharedPreferences.getInstance();
+    // 在 async 前获取 Provider 容器
+    final container = mounted ? ProviderScope.containerOf(context, listen: false) : null;
     final privacyShown = prefs.getBool('ai_persona_privacy_shown') ?? false;
     if (!privacyShown && mounted) {
       final agreed = await showDialog<bool>(
@@ -58,9 +62,30 @@ class _PersonaListPageState extends State<PersonaListPage> {
       if (agreed != true) return;
       await prefs.setBool('ai_persona_privacy_shown', true);
     }
+
+    // 检查当前激活的角色是否与要切换的一致
+    if (_activeId != null && _activeId != id && mounted) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('切换角色'),
+          content: const Text('切换角色将创建新对话，当前对话将被保存。是否继续？'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('确定切换')),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+    }
+
     // 切换角色时生成新会话 ID，避免不同角色混在同一会话中
     final newConvId = 'conv_${DateTime.now().millisecondsSinceEpoch}';
     await prefs.setString('current_conversation_id', newConvId);
+    // 同步更新 Riverpod provider（确保页面切换后加载新会话）
+    try {
+      container?.read(currentConversationIdProvider.notifier).state = newConvId;
+    } catch (_) {}
     await PersonaStorage.setActiveId(id);
     if (mounted) setState(() => _activeId = id);
   }
