@@ -954,6 +954,12 @@ abstract class AppLocalizations {
   /// **'银行卡'**
   String get payMethodCard;
 
+  /// No description provided for @payMethodCustom.
+  ///
+  /// In zh, this message translates to:
+  /// **'自定义'**
+  String get payMethodCustom;
+
   /// No description provided for @entryNumpadToday.
   ///
   /// In zh, this message translates to:

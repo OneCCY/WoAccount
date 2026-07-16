@@ -471,6 +471,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get payMethodCard => '银行卡';
 
   @override
+  String get payMethodCustom => '自定义';
+
+  @override
   String get entryNumpadToday => '今天';
 
   @override
@@ -3303,6 +3306,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get payMethodCard => '銀行卡';
+
+  @override
+  String get payMethodCustom => '自訂';
 
   @override
   String get entryNumpadToday => '今天';

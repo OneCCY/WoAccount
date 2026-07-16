@@ -165,6 +165,7 @@
   "payMethodWechat": "WeChat",
   "payMethodAlipay": "Alipay",
   "payMethodCard": "Card",
+  "payMethodCustom": "Custom",
   "entryNumpadToday": "Today",
   "entryNumpadDelete": "Delete",
   "entryNumpadDone": "Done",

@@ -444,36 +444,96 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.md, vertical: 6),
       color: context.colors.surface,
       child: Row(
-        children: methods.map((m) {
-          final isSelected = _payMethod == m.$1;
-          return Padding(
+        children: [
+          ...methods.map((m) {
+            final isSelected = _payMethod == m.$1;
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: GestureDetector(
+                onTap: () => setState(() => _payMethod = m.$1),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: isSelected ? context.colors.primarySurface : context.colors.surfaceSecondary,
+                    borderRadius: BorderRadius.circular(12),
+                    border: isSelected ? Border.all(color: context.colors.primary, width: 1) : null,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(m.$2, size: 14, color: isSelected ? context.colors.primary : context.colors.textTertiary),
+                      const SizedBox(width: 4),
+                      Text(m.$3, style: context.textStyles.caption.copyWith(
+                        color: isSelected ? context.colors.primary : context.colors.textSecondary,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                      )),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
+          // 自定义支付方式
+          Padding(
             padding: const EdgeInsets.only(right: 8),
             child: GestureDetector(
-              onTap: () => setState(() => _payMethod = m.$1),
+              onTap: () => _showCustomPayMethodDialog(l10n),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: isSelected ? context.colors.primarySurface : context.colors.surfaceSecondary,
+                  color: context.colors.surfaceSecondary,
                   borderRadius: BorderRadius.circular(12),
-                  border: isSelected ? Border.all(color: context.colors.primary, width: 1) : null,
+                  border: Border.all(color: context.colors.textHint, width: 1, strokeAlign: BorderSide.strokeAlignOutside),
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(m.$2, size: 14, color: isSelected ? context.colors.primary : context.colors.textTertiary),
-                    const SizedBox(width: 4),
-                    Text(m.$3, style: context.textStyles.caption.copyWith(
-                      color: isSelected ? context.colors.primary : context.colors.textSecondary,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    )),
-                  ],
+                  children: [Icon(Icons.add, size: 16, color: Colors.grey)],
                 ),
               ),
             ),
-          );
-        }).toList(),
+          ),
+        ],
       ),
     );
+  }
+
+  // ==================== 自定义支付方式对话框 ====================
+
+  Future<void> _showCustomPayMethodDialog(AppLocalizations l10n) async {
+    final controller = TextEditingController();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.payMethodCustom),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText: l10n.payMethodCustom,
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l10n.commonCancel),
+          ),
+          TextButton(
+            onPressed: () {
+              final value = controller.text.trim();
+              if (value.isNotEmpty) {
+                Navigator.pop(ctx, value);
+              }
+            },
+            child: Text(l10n.commonSave),
+          ),
+        ],
+      ),
+    );
+    if (result != null && result.isNotEmpty) {
+      setState(() => _payMethod = result);
+    }
+    controller.dispose();
   }
 
   // ==================== 金额 + 备注行 ====================

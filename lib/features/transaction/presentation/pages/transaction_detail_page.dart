@@ -242,7 +242,8 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
       case 'alipay': return l10n.payMethodAlipay;
       case 'card': return l10n.payMethodCard;
       case 'cash': return l10n.payMethodCash;
-      default: return l10n.payMethodDefault;
+      case null: return l10n.payMethodDefault;
+      default: return method;
     }
   }
 
@@ -279,6 +280,15 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
                 )),
                 onTap: () => Navigator.pop(ctx, m.$1),
               )),
+              const Divider(height: 1, thickness: 0.5),
+              ListTile(
+                leading: const Icon(Icons.edit_outlined, color: Colors.grey),
+                title: Text(l10n.payMethodCustom, style: const TextStyle(color: Colors.grey)),
+                onTap: () async {
+                  final custom = await _showCustomPayMethodInput(ctx, l10n);
+                  if (custom != null && ctx.mounted && mounted) Navigator.pop(ctx, custom);
+                },
+              ),
             ],
           ),
         ),
@@ -290,6 +300,39 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
         _isDirty = true;
       });
     }
+  }
+
+  Future<String?> _showCustomPayMethodInput(BuildContext ctx, AppLocalizations l10n) async {
+    final controller = TextEditingController();
+    final result = await showDialog<String>(
+      context: ctx,
+      builder: (dialogCtx) => AlertDialog(
+        title: Text(l10n.payMethodCustom),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText: l10n.payMethodCustom,
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: Text(l10n.commonCancel),
+          ),
+          TextButton(
+            onPressed: () {
+              final value = controller.text.trim();
+              if (value.isNotEmpty) Navigator.pop(dialogCtx, value);
+            },
+            child: Text(l10n.commonSave),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    return result;
   }
 
   // ==================== UI 构建 ====================

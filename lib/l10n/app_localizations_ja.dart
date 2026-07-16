@@ -471,6 +471,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get payMethodCard => 'カード';
 
   @override
+  String get payMethodCustom => 'その他';
+
+  @override
   String get entryNumpadToday => '今日';
 
   @override

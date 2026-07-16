@@ -160,6 +160,7 @@
   "payMethodWechat": "微信",
   "payMethodAlipay": "支付寶",
   "payMethodCard": "銀行卡",
+  "payMethodCustom": "自訂",
   "entryNumpadToday": "今天",
   "entryNumpadDelete": "刪除",
   "entryNumpadDone": "完成",

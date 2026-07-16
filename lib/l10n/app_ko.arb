@@ -160,6 +160,7 @@
   "payMethodWechat": "WeChat",
   "payMethodAlipay": "Alipay",
   "payMethodCard": "카드",
+  "payMethodCustom": "기타",
   "entryNumpadToday": "오늘",
   "entryNumpadDelete": "삭제",
   "entryNumpadDone": "완료",

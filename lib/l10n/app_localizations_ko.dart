@@ -473,6 +473,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get payMethodCard => '카드';
 
   @override
+  String get payMethodCustom => '기타';
+
+  @override
   String get entryNumpadToday => '오늘';
 
   @override

@@ -481,6 +481,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get payMethodCard => 'Card';
 
   @override
+  String get payMethodCustom => 'Custom';
+
+  @override
   String get entryNumpadToday => 'Today';
 
   @override
