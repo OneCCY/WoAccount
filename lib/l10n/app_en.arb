@@ -966,6 +966,7 @@
   "agentEditTestCase": "Case",
   "agentEditProvider": "Provider",
   "agentEditModel": "Model",
+  "agentEditBaseURL": "Base URL",
   "agentEditManualInput": "Enter model name manually",
   "agentEditModelNameHint": "Enter model name",
   "aiSettingsTitle": "AI Settings",

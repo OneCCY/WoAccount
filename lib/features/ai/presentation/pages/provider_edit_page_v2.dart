@@ -139,7 +139,7 @@ class _ProviderEditPageV2State extends State<ProviderEditPageV2> {
           const SizedBox(height: 16),
 
           // Base URL
-          Text(l10n.agentEditModel, style: Theme.of(context).textTheme.titleSmall),
+          Text(l10n.agentEditBaseURL, style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: 8),
           TextField(
             controller: _baseUrlCtrl,

@@ -5244,6 +5244,12 @@ abstract class AppLocalizations {
   /// **'模型'**
   String get agentEditModel;
 
+  /// No description provided for @agentEditBaseURL.
+  ///
+  /// In zh, this message translates to:
+  /// **'Base URL'**
+  String get agentEditBaseURL;
+
   /// No description provided for @agentEditManualInput.
   ///
   /// In zh, this message translates to:

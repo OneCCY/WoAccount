@@ -956,6 +956,7 @@
   "agentEditTestCase": "ケース",
   "agentEditProvider": "プロバイダー",
   "agentEditModel": "モデル",
+  "agentEditBaseURL": "Base URL",
   "agentEditManualInput": "モデル名を手動入力",
   "agentEditModelNameHint": "モデル名を入力",
   "aiSettingsTitle": "AI設定",

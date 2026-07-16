@@ -2742,6 +2742,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get agentEditModel => 'モデル';
 
   @override
+  String get agentEditBaseURL => 'Base URL';
+
+  @override
   String get agentEditManualInput => 'モデル名を手動入力';
 
   @override

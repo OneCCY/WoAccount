@@ -175,7 +175,6 @@ class _PersonaListPageState extends State<PersonaListPage> {
               : null,
         ),
         title: Text(persona.name),
-        subtitle: Text(persona.description.isEmpty ? '暂无描述' : persona.description),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

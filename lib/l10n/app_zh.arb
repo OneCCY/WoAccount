@@ -967,6 +967,7 @@
   "agentEditTestCase": "用例",
   "agentEditProvider": "供应商",
   "agentEditModel": "模型",
+  "agentEditBaseURL": "Base URL",
   "agentEditManualInput": "手动输入模型名",
   "agentEditModelNameHint": "输入模型名称",
   "aiSettingsTitle": "AI 设置",

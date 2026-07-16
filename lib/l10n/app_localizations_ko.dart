@@ -2750,6 +2750,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get agentEditModel => '모델';
 
   @override
+  String get agentEditBaseURL => 'Base URL';
+
+  @override
   String get agentEditManualInput => '모델 이름 수동 입력';
 
   @override

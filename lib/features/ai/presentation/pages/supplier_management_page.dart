@@ -83,8 +83,9 @@ class _SupplierManagementPageV2State extends ConsumerState<SupplierManagementPag
             break;
           }
         } on DioException catch (e) {
+          // 401/403 表示 API Key 无效，连接失败
           if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
-            connected = true;
+            connected = false;
             break;
           }
           if (e.response?.statusCode == 404) continue;

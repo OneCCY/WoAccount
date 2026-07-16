@@ -2796,6 +2796,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get agentEditModel => 'Model';
 
   @override
+  String get agentEditBaseURL => 'Base URL';
+
+  @override
   String get agentEditManualInput => 'Enter model name manually';
 
   @override

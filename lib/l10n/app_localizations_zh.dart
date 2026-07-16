@@ -2737,6 +2737,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get agentEditModel => '模型';
 
   @override
+  String get agentEditBaseURL => 'Base URL';
+
+  @override
   String get agentEditManualInput => '手动输入模型名';
 
   @override
@@ -5565,6 +5568,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get agentEditModel => '模型';
+
+  @override
+  String get agentEditBaseURL => 'Base URL';
 
   @override
   String get agentEditManualInput => '手動輸入模型名';

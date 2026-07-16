@@ -7,6 +7,7 @@ import 'package:drift/drift.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../config/di/providers.dart';
 import '../../../../config/di/ai_providers.dart';
+import '../../../ai/data/storage/persona_storage.dart';
 import '../../../chat/domain/repositories/chat_repository.dart';
 
 /// 对话管理页 — 列出所有历史会话，支持按角色筛选
@@ -28,19 +29,12 @@ class _DialogManagePageState extends ConsumerState<DialogManagePage> {
   }
 
   Future<void> _loadPersonas() async {
-    final db = ref.read(appDatabaseProvider);
-    try {
-      final personaRows = await db.customSelect(
-        'SELECT DISTINCT persona_id FROM chat_messages WHERE persona_id IS NOT NULL AND persona_id != ?',
-        variables: [Variable('')],
-      ).get();
-      final names = <String, String>{};
-      for (final row in personaRows) {
-        final pid = row.read<String>('persona_id') ?? '';
-        if (pid.isNotEmpty) names[pid] = pid;
-      }
-      if (mounted) setState(() => _personaNames = names);
-    } catch (_) {}
+    final personas = await PersonaStorage.loadAll();
+    final names = <String, String>{};
+    for (final p in personas) {
+      names[p.id] = p.name;
+    }
+    if (mounted) setState(() => _personaNames = names);
   }
 
   @override
@@ -60,9 +54,9 @@ class _DialogManagePageState extends ConsumerState<DialogManagePage> {
               itemBuilder: (_) => [
                 const PopupMenuItem(value: null, child: Text('全部对话')),
                 const PopupMenuDivider(),
-                ..._personaNames.keys.map((pid) => PopupMenuItem(
-                  value: pid,
-                  child: Text('角色: ${pid.length > 8 ? "${pid.substring(0, 8)}..." : pid}'),
+                ..._personaNames.entries.map((entry) => PopupMenuItem(
+                  value: entry.key,
+                  child: Text(entry.value.length > 8 ? '${entry.value.substring(0, 8)}…' : entry.value),
                 )),
               ],
             ),
@@ -92,6 +86,7 @@ class _DialogManagePageState extends ConsumerState<DialogManagePage> {
               final title = conv['title'] as String;
               final time = conv['time'] as DateTime;
               final personaId = conv['personaId'] as String?;
+              final personaName = personaId != null ? (_personaNames[personaId] ?? personaId) : null;
 
               return Card(
                 margin: const EdgeInsets.only(bottom: 8),
@@ -108,7 +103,7 @@ class _DialogManagePageState extends ConsumerState<DialogManagePage> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   subtitle: Text(
-                    '${DateFormat('MM-dd HH:mm').format(time)}${personaId != null ? ' · 角色对话' : ''}',
+                    '${DateFormat('MM-dd HH:mm').format(time)}${personaName != null ? ' · $personaName' : ''}',
                   ),
                   trailing: const Icon(Icons.chevron_right, size: 18),
                   onTap: () {
