@@ -260,11 +260,48 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => _PayMethodBottomSheet(
-        currentPayMethod: _payMethod,
-        methods: methods,
-        l10n: l10n,
-        getPayMethodIcon: _getPayMethodIcon,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: context.colors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: EdgeInsets.only(top: 8, bottom: MediaQuery.of(ctx).padding.bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 拖拽把手
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(top: 12, bottom: 16),
+                decoration: BoxDecoration(
+                  color: context.colors.textTertiary.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            // 支付方式列表
+            ...methods.map((m) => ListTile(
+              leading: Icon(m.$1 == null ? Icons.payment : _getPayMethodIcon(m.$1),
+                color: _payMethod == m.$1 ? context.colors.primary : context.colors.textSecondary),
+              title: Text(m.$2, style: TextStyle(
+                fontWeight: _payMethod == m.$1 ? FontWeight.w600 : FontWeight.w400,
+                color: _payMethod == m.$1 ? context.colors.primary : null,
+              )),
+              onTap: () => Navigator.pop(ctx, m.$1),
+            )),
+            const Divider(height: 1, thickness: 0.5),
+            ListTile(
+              leading: const Icon(Icons.edit_outlined, color: Colors.grey),
+              title: Text(l10n.payMethodCustom, style: const TextStyle(color: Colors.grey)),
+              onTap: () {
+                Navigator.pop(ctx);
+                _showCustomPayMethodInput(l10n);
+              },
+            ),
+          ],
+        ),
       ),
     );
     if (mounted && result != _payMethod) {
@@ -275,13 +312,100 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
     }
   }
 
-  Future<String?> _showCustomPayMethodInput(AppLocalizations l10n) async {
-    return await showModalBottomSheet<String>(
+  Future<void> _showCustomPayMethodInput(AppLocalizations l10n) async {
+    final controller = TextEditingController();
+    await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (sheetCtx) => _CustomPayMethodInputSheet(l10n: l10n),
-    );
+      builder: (sheetCtx) => Container(
+        decoration: BoxDecoration(
+          color: context.colors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: EdgeInsets.fromLTRB(24, 0, 24, 24 + MediaQuery.of(sheetCtx).padding.bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 拖拽把手
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(top: 12, bottom: 20),
+                decoration: BoxDecoration(
+                  color: context.colors.textTertiary,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            // 标题
+            Text(l10n.payMethodCustom, style: context.textStyles.h3),
+            const SizedBox(height: 16),
+            // 输入框
+            TextField(
+              controller: controller,
+              autofocus: true,
+              style: context.textStyles.body,
+              decoration: InputDecoration(
+                hintText: l10n.payMethodCustom,
+                hintStyle: context.textStyles.body.copyWith(color: context.colors.textHint),
+                filled: true,
+                fillColor: context.colors.surfaceSecondary,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.all(12),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // 按钮行
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(sheetCtx).pop(),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                      ),
+                    ),
+                    child: Text(l10n.commonCancel, style: AppTextStyles.buttonText),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      final value = controller.text.trim();
+                      if (value.isNotEmpty) Navigator.of(sheetCtx).pop(value);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: context.colors.primary,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                      ),
+                    ),
+                    child: Text(l10n.commonSave, style: AppTextStyles.buttonText.copyWith(color: Colors.white)),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ).then((value) {
+      if (value != null && mounted) {
+        setState(() {
+          _payMethod = value;
+          _isDirty = true;
+        });
+      }
+    });
   }
 
   // ==================== UI 构建 ====================
@@ -668,117 +792,5 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
     if (hex == null || hex.isEmpty) return context.colors.textTertiary;
     final clean = hex.replaceFirst('#', '');
     return Color(int.parse('FF$clean', radix: 16));
-  }
-}
-
-/// 支付方式自定义输入 BottomSheet
-class _CustomPayMethodInputSheet extends StatefulWidget {
-  final AppLocalizations l10n;
-
-  const _CustomPayMethodInputSheet({required this.l10n});
-
-  @override
-  State<_CustomPayMethodInputSheet> createState() => _CustomPayMethodInputSheetState();
-}
-
-class _CustomPayMethodInputSheetState extends State<_CustomPayMethodInputSheet> {
-  late TextEditingController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = widget.l10n;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: context.colors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      padding: EdgeInsets.fromLTRB(24, 0, 24, 24 + MediaQuery.of(context).padding.bottom),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 拖拽把手
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(top: 12, bottom: 20),
-              decoration: BoxDecoration(
-                color: context.colors.textTertiary,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          // 标题
-          Text(l10n.payMethodCustom, style: context.textStyles.h3),
-          const SizedBox(height: 16),
-          // 输入框
-          TextField(
-            controller: _controller,
-            autofocus: true,
-            style: context.textStyles.body,
-            decoration: InputDecoration(
-              hintText: l10n.payMethodCustom,
-              hintStyle: context.textStyles.body.copyWith(color: context.colors.textHint),
-              filled: true,
-              fillColor: context.colors.surfaceSecondary,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding: const EdgeInsets.all(12),
-            ),
-          ),
-          const SizedBox(height: 16),
-          // 按钮行
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                    ),
-                  ),
-                  child: Text(l10n.commonCancel, style: AppTextStyles.buttonText),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    final value = _controller.text.trim();
-                    if (value.isNotEmpty) Navigator.of(context).pop(value);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: context.colors.primary,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                    ),
-                  ),
-                  child: Text(l10n.commonSave, style: AppTextStyles.buttonText.copyWith(color: Colors.white)),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
   }
 }
