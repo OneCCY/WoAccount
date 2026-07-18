@@ -55,3 +55,6 @@ android/key.properties
 # Flutter auto-generated metadata
 .metadata
 devtools_options.yaml
+
+# Claude Code scheduled tasks lock
+.claude/scheduled_tasks.lock
