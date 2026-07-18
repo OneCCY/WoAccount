@@ -153,7 +153,7 @@ class _BottomBarWithFloatingButton extends StatelessWidget {
 
           // 浮动记账按钮（居中，视觉中心与导航项对齐）
           Positioned(
-            bottom: 4,
+            bottom: 14,
             left: 0,
             right: 0,
             child: Center(
@@ -187,6 +187,8 @@ class _FloatingRecordButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final color = isActive ? context.colors.primary : context.colors.textTertiary;
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
@@ -196,36 +198,18 @@ class _FloatingRecordButton extends StatelessWidget {
           onVoiceResult(context, result);
         }
       },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+      child: SizedBox(
         width: 64,
         height: 64,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: isActive
-                ? [context.colors.primary, const Color(0xFF2E7D32)]
-                : [const Color(0xFF66BB6A), const Color(0xFF43A047)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: context.colors.primary.withValues(alpha: 0.4),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.mic, size: 24, color: context.colors.textOnPrimary),
+            Icon(Icons.add, size: 28, color: color),
             const SizedBox(height: 2),
             Text(
               AppLocalizations.of(context)!.navRecord,
-              style: TextStyle(fontSize: 10, color: context.colors.textOnPrimary, fontWeight: FontWeight.w600, height: 1),
+              style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w600, height: 1),
             ),
           ],
         ),
