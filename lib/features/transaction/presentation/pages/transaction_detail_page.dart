@@ -308,12 +308,22 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
       context: ctx,
       builder: (dialogCtx) => AlertDialog(
         title: Text(l10n.payMethodCustom),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: InputDecoration(
-            hintText: l10n.payMethodCustom,
-            border: const OutlineInputBorder(),
+        content: SingleChildScrollView(
+          child: TextField(
+            controller: controller,
+            autofocus: true,
+            style: context.textStyles.body,
+            decoration: InputDecoration(
+              hintText: l10n.payMethodCustom,
+              hintStyle: context.textStyles.body.copyWith(color: context.colors.textHint),
+              filled: true,
+              fillColor: context.colors.surfaceSecondary,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.all(12),
+            ),
           ),
         ),
         actions: [
