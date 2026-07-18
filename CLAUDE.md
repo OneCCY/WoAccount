@@ -57,3 +57,13 @@ refactor(db): simplify repository layer
 - 不跳过 hooks（--no-verify）
 - 不 force push 到 main
 - hook 失败时修复后新建提交，不 amend
+
+## 真机部署规范
+
+所有真机调试和部署统一使用 **debug 模式**，不使用 release 模式。
+
+```
+flutter run -d <device_id>
+```
+
+Debug 模式构建速度快（约 15-20 秒），支持热重载（`r`）和热重启（`R`），适合开发调试。Release 模式首次构建需要数分钟，不适合迭代开发。

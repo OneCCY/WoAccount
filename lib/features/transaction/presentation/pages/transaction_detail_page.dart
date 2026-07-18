@@ -331,7 +331,7 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
         ],
       ),
     );
-    controller.dispose();
+    WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
     return result;
   }
 

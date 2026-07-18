@@ -533,7 +533,8 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
     if (result != null && result.isNotEmpty) {
       setState(() => _payMethod = result);
     }
-    controller.dispose();
+    // Delay dispose to avoid framework assertion error on dialog close
+    WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
   }
 
   // ==================== 金额 + 备注行 ====================

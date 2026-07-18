@@ -151,9 +151,9 @@ class _BottomBarWithFloatingButton extends StatelessWidget {
             ),
           ),
 
-          // 浮动记账按钮（居中，与导航项底部对齐）
+          // 浮动记账按钮（居中，视觉中心与导航项对齐）
           Positioned(
-            bottom: 0,
+            bottom: 4,
             left: 0,
             right: 0,
             child: Center(
@@ -218,9 +218,11 @@ class _FloatingRecordButton extends StatelessWidget {
           ],
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.mic, size: 24, color: context.colors.textOnPrimary),
+            const SizedBox(height: 2),
             Text(
               AppLocalizations.of(context)!.navRecord,
               style: TextStyle(fontSize: 10, color: context.colors.textOnPrimary, fontWeight: FontWeight.w600, height: 1),
@@ -259,8 +261,9 @@ class _NavItem extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(8),
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12.0),
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(isActive ? activeIcon : icon, size: 28, color: color),
