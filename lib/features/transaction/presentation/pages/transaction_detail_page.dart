@@ -303,15 +303,12 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
   }
 
   Future<String?> _showCustomPayMethodInput(BuildContext ctx, AppLocalizations l10n) async {
-    final controller = TextEditingController();
-    final result = await showModalBottomSheet<String>(
+    return await showModalBottomSheet<String>(
       context: ctx,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (sheetCtx) => _CustomPayMethodInputSheet(controller: controller, l10n: l10n),
+      builder: (sheetCtx) => _CustomPayMethodInputSheet(l10n: l10n),
     );
-    WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
-    return result;
   }
 
   // ==================== UI 构建 ====================
@@ -702,17 +699,34 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
 }
 
 /// 支付方式自定义输入 BottomSheet
-class _CustomPayMethodInputSheet extends StatelessWidget {
-  final TextEditingController controller;
+class _CustomPayMethodInputSheet extends StatefulWidget {
   final AppLocalizations l10n;
 
-  const _CustomPayMethodInputSheet({
-    required this.controller,
-    required this.l10n,
-  });
+  const _CustomPayMethodInputSheet({required this.l10n});
+
+  @override
+  State<_CustomPayMethodInputSheet> createState() => _CustomPayMethodInputSheetState();
+}
+
+class _CustomPayMethodInputSheetState extends State<_CustomPayMethodInputSheet> {
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = widget.l10n;
+
     return Container(
       decoration: BoxDecoration(
         color: context.colors.surface,
@@ -740,7 +754,7 @@ class _CustomPayMethodInputSheet extends StatelessWidget {
           const SizedBox(height: 16),
           // 输入框
           TextField(
-            controller: controller,
+            controller: _controller,
             autofocus: true,
             style: context.textStyles.body,
             decoration: InputDecoration(
@@ -775,7 +789,7 @@ class _CustomPayMethodInputSheet extends StatelessWidget {
               Expanded(
                 child: ElevatedButton(
                   onPressed: () {
-                    final value = controller.text.trim();
+                    final value = _controller.text.trim();
                     if (value.isNotEmpty) Navigator.of(context).pop(value);
                   },
                   style: ElevatedButton.styleFrom(
