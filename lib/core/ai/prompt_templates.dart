@@ -108,11 +108,11 @@ Even for a single transaction, wrap it in an array.
    - "1千"/"1 thousand" → 1000, "1万"/"10k" → 10000
 4. **Category matching / 分类推断**: category and subcategory MUST use the exact names listed above. subcategory must come from the parenthesized list under the chosen category
 5. **Payment method / 支付方式推断**:
-   - "微信"/"wechat" → "wechat"
-   - "支付宝"/"alipay"/"花呗" → "alipay"
-   - "刷卡"/"card"/"credit card" → "card"
-   - "现金"/"cash" → "cash"
-   - If uncertain, omit this field
+   - "微信"/"wechat"/"wx"/"vx"/"微" → "wechat"
+   - "支付宝"/"alipay"/"花呗"/"余额宝"/"zfb" → "alipay"
+   - "刷卡"/"card"/"信用卡"/"借记卡"/"银行卡"/"银联"/"银行"/"visa"/"mastercard" → "card"
+   - "现金"/"cash"/"付现"/"现钞"/"现结" → "cash"
+   - "其他"/"other"/"其它"/"杂项" → "other"
 6. **Confidence / 置信度**:
    - Exact match: 0.9-1.0
    - Inferred: 0.7-0.9

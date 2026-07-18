@@ -233,6 +233,7 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
       case 'alipay': return Icons.account_balance_wallet;
       case 'card': return Icons.credit_card;
       case 'cash': return Icons.payments_outlined;
+      case 'other': return Icons.more_horiz;
       default: return Icons.payment;
     }
   }
@@ -243,6 +244,7 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
       case 'alipay': return l10n.payMethodAlipay;
       case 'card': return l10n.payMethodCard;
       case 'cash': return l10n.payMethodCash;
+      case 'other': return l10n.payMethodCustom;
       case null: return l10n.payMethodDefault;
       default: return method;
     }
