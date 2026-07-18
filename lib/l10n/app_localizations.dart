@@ -957,7 +957,7 @@ abstract class AppLocalizations {
   /// No description provided for @payMethodCustom.
   ///
   /// In zh, this message translates to:
-  /// **'自定义'**
+  /// **'其他'**
   String get payMethodCustom;
 
   /// No description provided for @entryNumpadToday.

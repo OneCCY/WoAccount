@@ -258,6 +258,7 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
       ('wechat', l10n.payMethodWechat),
       ('alipay', l10n.payMethodAlipay),
       ('card', l10n.payMethodCard),
+      ('other', l10n.payMethodCustom),
     ];
     final result = await PayMethodSelectionSheet.show(
       context: context,

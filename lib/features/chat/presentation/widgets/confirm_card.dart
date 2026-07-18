@@ -11,6 +11,7 @@ import '../../../transaction/presentation/widgets/amount_edit_sheet.dart';
 import '../../../transaction/presentation/widgets/category_picker_sheet.dart';
 import '../../../transaction/presentation/widgets/datetime_edit_sheet.dart';
 import '../../../transaction/presentation/widgets/note_edit_sheet.dart';
+import '../../../transaction/presentation/widgets/pay_method_selection_sheet.dart';
 import '../pages/ai_chat_page.dart';
 
 /// AI 解析结果确认卡片（重构版）
@@ -335,80 +336,15 @@ class ConfirmCard extends StatelessWidget {
       ('alipay', l10n.payMethodAlipay),
       ('card', l10n.payMethodCard),
     ];
-    final result = await showModalBottomSheet<String?>(
+    final result = await PayMethodSelectionSheet.show(
       context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        decoration: BoxDecoration(
-          color: context.colors.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-        ),
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(width: 36, height: 4, margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(color: context.colors.textTertiary.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2))),
-              ...methods.map((m) => ListTile(
-                leading: Icon(m.$1 == null ? Icons.payment : _getPayMethodIcon(m.$1),
-                  color: data.payMethod == m.$1 ? context.colors.primary : context.colors.textSecondary),
-                title: Text(m.$2, style: TextStyle(
-                  fontWeight: data.payMethod == m.$1 ? FontWeight.w600 : FontWeight.w400,
-                  color: data.payMethod == m.$1 ? context.colors.primary : null,
-                )),
-                onTap: () => Navigator.pop(ctx, m.$1),
-              )),
-              const Divider(height: 1, thickness: 0.5),
-              ListTile(
-                leading: const Icon(Icons.edit_outlined, color: Colors.grey),
-                title: Text(l10n.payMethodCustom, style: const TextStyle(color: Colors.grey)),
-                onTap: () async {
-                  final custom = await _showCustomPayMethodInput(context, l10n);
-                  if (custom != null && context.mounted) Navigator.pop(ctx, custom);
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
+      currentPayMethod: data.payMethod,
+      methods: methods,
+      getPayMethodIcon: _getPayMethodIcon,
     );
     if (result != data.payMethod) {
       onEdit(data.copyWith(payMethod: result));
     }
-  }
-
-  Future<String?> _showCustomPayMethodInput(BuildContext ctx, AppLocalizations l10n) async {
-    final controller = TextEditingController();
-    final result = await showDialog<String>(
-      context: ctx,
-      builder: (dialogCtx) => AlertDialog(
-        title: Text(l10n.payMethodCustom),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: InputDecoration(
-            hintText: l10n.payMethodCustom,
-            border: const OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogCtx),
-            child: Text(l10n.commonCancel),
-          ),
-          TextButton(
-            onPressed: () {
-              final value = controller.text.trim();
-              if (value.isNotEmpty) Navigator.pop(dialogCtx, value);
-            },
-            child: Text(l10n.commonSave),
-          ),
-        ],
-      ),
-    );
-    WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
-    return result;
   }
 
   IconData _getPayMethodIcon(String? method) {
@@ -417,6 +353,7 @@ class ConfirmCard extends StatelessWidget {
       case 'alipay': return Icons.account_balance_wallet;
       case 'card': return Icons.credit_card;
       case 'cash': return Icons.payments_outlined;
+      case 'other': return Icons.more_horiz;
       default: return Icons.payment;
     }
   }
@@ -427,6 +364,7 @@ class ConfirmCard extends StatelessWidget {
       case 'alipay': return l10n.payMethodAlipay;
       case 'card': return l10n.payMethodCard;
       case 'cash': return l10n.payMethodCash;
+      case 'other': return l10n.payMethodCustom;
       case null: return l10n.payMethodDefault;
       default: return method;
     }

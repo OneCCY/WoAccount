@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:wo_account/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 
 /// 支付方式选择 BottomSheet
-class PayMethodSelectionSheet extends StatefulWidget {
+class PayMethodSelectionSheet extends StatelessWidget {
   final String? currentPayMethod;
   final List<(String?, String)> methods;
   final IconData Function(String?) getPayMethodIcon;
@@ -34,14 +33,7 @@ class PayMethodSelectionSheet extends StatefulWidget {
   }
 
   @override
-  State<PayMethodSelectionSheet> createState() => _PayMethodSelectionSheetState();
-}
-
-class _PayMethodSelectionSheetState extends State<PayMethodSelectionSheet> {
-  @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
     return Container(
       decoration: BoxDecoration(
         color: context.colors.surface,
@@ -64,21 +56,15 @@ class _PayMethodSelectionSheetState extends State<PayMethodSelectionSheet> {
             ),
           ),
           // 支付方式列表
-          ...widget.methods.map((m) => ListTile(
-            leading: Icon(m.$1 == null ? Icons.payment : widget.getPayMethodIcon(m.$1),
-              color: widget.currentPayMethod == m.$1 ? context.colors.primary : context.colors.textSecondary),
+          ...methods.map((m) => ListTile(
+            leading: Icon(m.$1 == null ? Icons.payment : getPayMethodIcon(m.$1),
+              color: currentPayMethod == m.$1 ? context.colors.primary : context.colors.textSecondary),
             title: Text(m.$2, style: TextStyle(
-              fontWeight: widget.currentPayMethod == m.$1 ? FontWeight.w600 : FontWeight.w400,
-              color: widget.currentPayMethod == m.$1 ? context.colors.primary : null,
+              fontWeight: currentPayMethod == m.$1 ? FontWeight.w600 : FontWeight.w400,
+              color: currentPayMethod == m.$1 ? context.colors.primary : null,
             )),
             onTap: () => Navigator.of(context).pop(m.$1),
           )),
-          const Divider(height: 1, thickness: 0.5),
-          ListTile(
-            leading: Icon(Icons.more_horiz, color: Colors.grey),
-            title: Text(l10n.payMethodCustom, style: const TextStyle(color: Colors.grey)),
-            onTap: () => Navigator.of(context).pop('other'),
-          ),
         ],
       ),
     );

@@ -471,7 +471,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get payMethodCard => '银行卡';
 
   @override
-  String get payMethodCustom => '自定义';
+  String get payMethodCustom => '其他';
 
   @override
   String get entryNumpadToday => '今天';

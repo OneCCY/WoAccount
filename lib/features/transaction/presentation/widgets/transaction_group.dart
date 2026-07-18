@@ -380,6 +380,7 @@ class _TransactionItemState extends State<_TransactionItem>
       case 'alipay': return Icons.account_balance_wallet;
       case 'card': return Icons.credit_card;
       case 'cash': return Icons.payments_outlined;
+      case 'other': return Icons.more_horiz;
       default: return Icons.payment;
     }
   }
