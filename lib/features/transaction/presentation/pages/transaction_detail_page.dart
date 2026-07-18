@@ -258,40 +258,13 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
     ];
     final result = await showModalBottomSheet<String?>(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        decoration: BoxDecoration(
-          color: context.colors.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-        ),
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(width: 36, height: 4, margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(color: context.colors.textTertiary.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2))),
-              ...methods.map((m) => ListTile(
-                leading: Icon(m.$1 == null ? Icons.payment : _getPayMethodIcon(m.$1),
-                  color: _payMethod == m.$1 ? context.colors.primary : context.colors.textSecondary),
-                title: Text(m.$2, style: TextStyle(
-                  fontWeight: _payMethod == m.$1 ? FontWeight.w600 : FontWeight.w400,
-                  color: _payMethod == m.$1 ? context.colors.primary : null,
-                )),
-                onTap: () => Navigator.pop(ctx, m.$1),
-              )),
-              const Divider(height: 1, thickness: 0.5),
-              ListTile(
-                leading: const Icon(Icons.edit_outlined, color: Colors.grey),
-                title: Text(l10n.payMethodCustom, style: const TextStyle(color: Colors.grey)),
-                onTap: () async {
-                  final custom = await _showCustomPayMethodInput(ctx, l10n);
-                  if (custom != null && ctx.mounted && mounted) Navigator.pop(ctx, custom);
-                },
-              ),
-            ],
-          ),
-        ),
+      builder: (ctx) => _PayMethodBottomSheet(
+        currentPayMethod: _payMethod,
+        methods: methods,
+        l10n: l10n,
+        getPayMethodIcon: _getPayMethodIcon,
       ),
     );
     if (mounted && result != _payMethod) {
@@ -302,9 +275,9 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
     }
   }
 
-  Future<String?> _showCustomPayMethodInput(BuildContext ctx, AppLocalizations l10n) async {
+  Future<String?> _showCustomPayMethodInput(AppLocalizations l10n) async {
     return await showModalBottomSheet<String>(
-      context: ctx,
+      context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (sheetCtx) => _CustomPayMethodInputSheet(l10n: l10n),
