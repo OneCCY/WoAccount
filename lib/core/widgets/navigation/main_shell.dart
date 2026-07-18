@@ -205,11 +205,11 @@ class _FloatingRecordButton extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.add, size: 28, color: color),
-            const SizedBox(height: 2),
+            Icon(Icons.mic, size: 28, color: color),
+            const SizedBox(height: 5),
             Text(
               AppLocalizations.of(context)!.navRecord,
-              style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w600, height: 1),
+              style: AppTextStyles.navLabel.copyWith(color: color, fontSize: 13),
             ),
           ],
         ),
