@@ -14,6 +14,7 @@ import '../widgets/amount_edit_sheet.dart';
 import '../widgets/datetime_edit_sheet.dart';
 import '../widgets/category_picker_sheet.dart';
 import '../widgets/note_edit_sheet.dart';
+import '../widgets/pay_method_selection_sheet.dart';
 import '../../../../core/widgets/toast.dart';
 import '../../../../core/widgets/page_refresh_mixin.dart';
 
@@ -256,22 +257,11 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
       ('alipay', l10n.payMethodAlipay),
       ('card', l10n.payMethodCard),
     ];
-    final result = await showModalBottomSheet<String?>(
+    final result = await PayMethodSelectionSheet.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => _PayMethodSelectionSheet(
-        currentPayMethod: _payMethod,
-        methods: methods,
-        l10n: l10n,
-        getPayMethodIcon: _getPayMethodIcon,
-        onCustomTapped: () async {
-          final custom = await _showCustomPayMethodInput(l10n);
-          if (custom != null && mounted && ctx.mounted) {
-            Navigator.of(ctx).pop(custom);
-          }
-        },
-      ),
+      currentPayMethod: _payMethod,
+      methods: methods,
+      getPayMethodIcon: _getPayMethodIcon,
     );
     if (mounted && result != _payMethod) {
       setState(() {
@@ -279,84 +269,6 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
         _isDirty = true;
       });
     }
-  }
-
-  Future<String?> _showCustomPayMethodInput(AppLocalizations l10n) async {
-    final controller = TextEditingController();
-    return await showDialog<String>(
-      context: context,
-      builder: (dialogCtx) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
-          decoration: BoxDecoration(
-            color: context.colors.surface,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          padding: EdgeInsets.fromLTRB(24, 0, 24, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 标题
-              Text(l10n.payMethodCustom, style: context.textStyles.h3),
-              const SizedBox(height: 16),
-              // 输入框
-              TextField(
-                controller: controller,
-                autofocus: true,
-                style: context.textStyles.body,
-                decoration: InputDecoration(
-                  hintText: l10n.payMethodCustom,
-                  hintStyle: context.textStyles.body.copyWith(color: context.colors.textHint),
-                  filled: true,
-                  fillColor: context.colors.surfaceSecondary,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.all(12),
-                ),
-              ),
-              const SizedBox(height: 16),
-              // 按钮行
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(dialogCtx),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                        ),
-                      ),
-                      child: Text(l10n.commonCancel, style: AppTextStyles.buttonText),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        final value = controller.text.trim();
-                        if (value.isNotEmpty) Navigator.pop(dialogCtx, value);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: context.colors.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                        ),
-                      ),
-                      child: Text(l10n.commonSave, style: AppTextStyles.buttonText.copyWith(color: Colors.white)),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   // ==================== UI 构建 ====================
@@ -743,68 +655,5 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
     if (hex == null || hex.isEmpty) return context.colors.textTertiary;
     final clean = hex.replaceFirst('#', '');
     return Color(int.parse('FF$clean', radix: 16));
-  }
-}
-
-/// 支付方式选择 BottomSheet
-class _PayMethodSelectionSheet extends StatelessWidget {
-  final String? currentPayMethod;
-  final List<(String?, String)> methods;
-  final AppLocalizations l10n;
-  final IconData Function(String?) getPayMethodIcon;
-  final Future<void> Function() onCustomTapped;
-
-  const _PayMethodSelectionSheet({
-    required this.currentPayMethod,
-    required this.methods,
-    required this.l10n,
-    required this.getPayMethodIcon,
-    required this.onCustomTapped,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: context.colors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      padding: EdgeInsets.only(top: 8, bottom: MediaQuery.of(context).padding.bottom),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 拖拽把手
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(top: 12, bottom: 16),
-                decoration: BoxDecoration(
-                  color: context.colors.textTertiary.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            // 支付方式列表
-            ...methods.map((m) => ListTile(
-              leading: Icon(m.$1 == null ? Icons.payment : getPayMethodIcon(m.$1),
-                color: currentPayMethod == m.$1 ? context.colors.primary : context.colors.textSecondary),
-              title: Text(m.$2, style: TextStyle(
-                fontWeight: currentPayMethod == m.$1 ? FontWeight.w600 : FontWeight.w400,
-                color: currentPayMethod == m.$1 ? context.colors.primary : null,
-              )),
-              onTap: () => Navigator.of(context).pop(m.$1),
-            )),
-            const Divider(height: 1, thickness: 0.5),
-            ListTile(
-              leading: const Icon(Icons.edit_outlined, color: Colors.grey),
-              title: Text(l10n.payMethodCustom, style: const TextStyle(color: Colors.grey)),
-              onTap: onCustomTapped,
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
