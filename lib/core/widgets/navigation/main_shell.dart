@@ -134,8 +134,22 @@ class _BottomBarWithFloatingButton extends StatelessWidget {
                         isActive: currentIndex == 0,
                         onTap: () => onNavTap(context, 0),
                       ),
-                      // 中间留空给浮动按钮
-                      const Expanded(child: SizedBox()),
+                      // 中：记账（麦克风）
+                      _NavItem(
+                        icon: Icons.mic,
+                        activeIcon: Icons.mic,
+                        label: AppLocalizations.of(context)!.navRecord,
+                        isActive: currentIndex == 1,
+                        onTap: () => onNavTap(context, 1),
+                        onLongPress: currentIndex == 1
+                            ? () async {
+                                final result = await VoiceRecordingOverlay.show(context, sttService: sttService);
+                                if (result != null && context.mounted) {
+                                  onVoiceResult(context, result);
+                                }
+                              }
+                            : null,
+                      ),
                       // 右：我的
                       _NavItem(
                         icon: Icons.person_outline,
@@ -150,87 +164,20 @@ class _BottomBarWithFloatingButton extends StatelessWidget {
               ),
             ),
           ),
-
-          // 浮动记账按钮（与导航项垂直居中对齐）
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: _FloatingRecordButton(
-                isActive: currentIndex == 1,
-                onTap: () => onNavTap(context, 1),
-                onVoiceResult: onVoiceResult,
-                sttService: sttService,
-              ),
-            ),
-          ),
         ],
       ),
     );
   }
 }
 
-/// 浮动记账按钮（支持长按录音）
-class _FloatingRecordButton extends StatelessWidget {
-  final bool isActive;
-  final VoidCallback onTap;
-  final void Function(BuildContext, VoiceResult) onVoiceResult;
-  final PlatformSttService? sttService;
-
-  const _FloatingRecordButton({
-    required this.isActive,
-    required this.onTap,
-    required this.onVoiceResult,
-    this.sttService,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isActive ? context.colors.primary : context.colors.textTertiary;
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      onLongPressStart: (_) async {
-        final result = await VoiceRecordingOverlay.show(context, sttService: sttService);
-        if (result != null && context.mounted) {
-          onVoiceResult(context, result);
-        }
-      },
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.mic, size: 28, color: color),
-                const SizedBox(height: 5),
-                Text(
-                  AppLocalizations.of(context)!.navRecord,
-                  style: AppTextStyles.navLabel.copyWith(color: color, fontSize: 13),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// 底部导航项
+/// 底部导航项（支持长按录音）
 class _NavItem extends StatelessWidget {
   final IconData icon;
   final IconData activeIcon;
   final String label;
   final bool isActive;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
   const _NavItem({
     required this.icon,
@@ -238,6 +185,7 @@ class _NavItem extends StatelessWidget {
     required this.label,
     required this.isActive,
     required this.onTap,
+    this.onLongPress,
   });
 
   @override
@@ -249,6 +197,7 @@ class _NavItem extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
+          onLongPress: onLongPress,
           borderRadius: BorderRadius.circular(8),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
