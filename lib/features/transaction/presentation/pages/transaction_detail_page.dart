@@ -309,36 +309,63 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
       builder: (dialogCtx) => AlertDialog(
         title: Text(l10n.payMethodCustom),
         content: SingleChildScrollView(
-          child: TextField(
-            controller: controller,
-            autofocus: true,
-            style: context.textStyles.body,
-            decoration: InputDecoration(
-              hintText: l10n.payMethodCustom,
-              hintStyle: context.textStyles.body.copyWith(color: context.colors.textHint),
-              filled: true,
-              fillColor: context.colors.surfaceSecondary,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                borderSide: BorderSide.none,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: controller,
+                autofocus: true,
+                style: context.textStyles.body,
+                decoration: InputDecoration(
+                  hintText: l10n.payMethodCustom,
+                  hintStyle: context.textStyles.body.copyWith(color: context.colors.textHint),
+                  filled: true,
+                  fillColor: context.colors.surfaceSecondary,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.all(12),
+                ),
               ),
-              contentPadding: const EdgeInsets.all(12),
-            ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(dialogCtx),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                        ),
+                      ),
+                      child: Text(l10n.commonCancel, style: AppTextStyles.buttonText),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        final value = controller.text.trim();
+                        if (value.isNotEmpty) Navigator.pop(dialogCtx, value);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: context.colors.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                        ),
+                      ),
+                      child: Text(l10n.commonSave, style: AppTextStyles.buttonText.copyWith(color: Colors.white)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogCtx),
-            child: Text(l10n.commonCancel),
-          ),
-          TextButton(
-            onPressed: () {
-              final value = controller.text.trim();
-              if (value.isNotEmpty) Navigator.pop(dialogCtx, value);
-            },
-            child: Text(l10n.commonSave),
-          ),
-        ],
       ),
     );
     WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
