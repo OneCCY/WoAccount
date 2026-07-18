@@ -266,41 +266,43 @@ class _TransactionDetailPageState extends ConsumerState<TransactionDetailPage> w
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         padding: EdgeInsets.only(top: 8, bottom: MediaQuery.of(ctx).padding.bottom),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 拖拽把手
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(top: 12, bottom: 16),
-                decoration: BoxDecoration(
-                  color: context.colors.textTertiary.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(2),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 拖拽把手
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(top: 12, bottom: 16),
+                  decoration: BoxDecoration(
+                    color: context.colors.textTertiary.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-            ),
-            // 支付方式列表
-            ...methods.map((m) => ListTile(
-              leading: Icon(m.$1 == null ? Icons.payment : _getPayMethodIcon(m.$1),
-                color: _payMethod == m.$1 ? context.colors.primary : context.colors.textSecondary),
-              title: Text(m.$2, style: TextStyle(
-                fontWeight: _payMethod == m.$1 ? FontWeight.w600 : FontWeight.w400,
-                color: _payMethod == m.$1 ? context.colors.primary : null,
+              // 支付方式列表
+              ...methods.map((m) => ListTile(
+                leading: Icon(m.$1 == null ? Icons.payment : _getPayMethodIcon(m.$1),
+                  color: _payMethod == m.$1 ? context.colors.primary : context.colors.textSecondary),
+                title: Text(m.$2, style: TextStyle(
+                  fontWeight: _payMethod == m.$1 ? FontWeight.w600 : FontWeight.w400,
+                  color: _payMethod == m.$1 ? context.colors.primary : null,
+                )),
+                onTap: () => Navigator.pop(ctx, m.$1),
               )),
-              onTap: () => Navigator.pop(ctx, m.$1),
-            )),
-            const Divider(height: 1, thickness: 0.5),
-            ListTile(
-              leading: const Icon(Icons.edit_outlined, color: Colors.grey),
-              title: Text(l10n.payMethodCustom, style: const TextStyle(color: Colors.grey)),
-              onTap: () {
-                Navigator.pop(ctx);
-                _showCustomPayMethodInput(l10n);
-              },
-            ),
-          ],
+              const Divider(height: 1, thickness: 0.5),
+              ListTile(
+                leading: const Icon(Icons.edit_outlined, color: Colors.grey),
+                title: Text(l10n.payMethodCustom, style: const TextStyle(color: Colors.grey)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _showCustomPayMethodInput(l10n);
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
