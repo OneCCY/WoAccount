@@ -438,6 +438,7 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
       ('wechat', Icons.chat_bubble, l10n.payMethodWechat),
       ('alipay', Icons.account_balance_wallet, l10n.payMethodAlipay),
       ('card', Icons.credit_card, l10n.payMethodCard),
+      ('other', Icons.more_horiz, l10n.payMethodCustom),
     ];
 
     return Container(
@@ -473,21 +474,30 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
               ),
             );
           }),
-          // 自定义支付方式
+          // "其他" 选项
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: GestureDetector(
-              onTap: () => _showCustomPayMethodDialog(l10n),
+              onTap: () => setState(() => _payMethod = 'other'),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: context.colors.surfaceSecondary,
+                  color: _payMethod == 'other' ? context.colors.primarySurface : context.colors.surfaceSecondary,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: context.colors.textHint, width: 1, strokeAlign: BorderSide.strokeAlignOutside),
+                  border: _payMethod == 'other'
+                      ? Border.all(color: context.colors.primary, width: 1)
+                      : Border.all(color: context.colors.textHint, width: 1, strokeAlign: BorderSide.strokeAlignOutside),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: [Icon(Icons.add, size: 16, color: Colors.grey)],
+                  children: [
+                    Icon(Icons.more_horiz, size: 14, color: _payMethod == 'other' ? context.colors.primary : context.colors.textTertiary),
+                    const SizedBox(width: 4),
+                    Text(l10n.payMethodCustom, style: context.textStyles.caption.copyWith(
+                      color: _payMethod == 'other' ? context.colors.primary : context.colors.textSecondary,
+                      fontWeight: _payMethod == 'other' ? FontWeight.w600 : FontWeight.w400,
+                    )),
+                  ],
                 ),
               ),
             ),
@@ -495,46 +505,6 @@ class _ManualEntryPageState extends ConsumerState<ManualEntryPage> {
         ],
       ),
     );
-  }
-
-  // ==================== 自定义支付方式对话框 ====================
-
-  Future<void> _showCustomPayMethodDialog(AppLocalizations l10n) async {
-    final controller = TextEditingController();
-    final result = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.payMethodCustom),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: InputDecoration(
-            hintText: l10n.payMethodCustom,
-            border: const OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(l10n.commonCancel),
-          ),
-          TextButton(
-            onPressed: () {
-              final value = controller.text.trim();
-              if (value.isNotEmpty) {
-                Navigator.pop(ctx, value);
-              }
-            },
-            child: Text(l10n.commonSave),
-          ),
-        ],
-      ),
-    );
-    if (result != null && result.isNotEmpty) {
-      setState(() => _payMethod = result);
-    }
-    // Delay dispose to avoid framework assertion error on dialog close
-    WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
   }
 
   // ==================== 金额 + 备注行 ====================
